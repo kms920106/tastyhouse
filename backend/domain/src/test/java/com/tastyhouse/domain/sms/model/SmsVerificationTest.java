@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 import com.tastyhouse.domain.sms.vo.SmsVerificationId;
@@ -50,7 +50,7 @@ class SmsVerificationTest {
 
         assertThatThrownBy(() -> verification.verify(verification.getVerificationCode(), afterExpiry))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SMS_VERIFICATION_CODE_EXPIRED);
+            .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.SMS_VERIFICATION_CODE_EXPIRED);
         assertThat(verification.getStatus()).isEqualTo(SmsVerificationStatus.EXPIRED);
     }
 
@@ -62,7 +62,7 @@ class SmsVerificationTest {
 
         assertThatThrownBy(() -> verification.verify(VerificationCode.of("000000"), now))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SMS_VERIFICATION_CODE_MISMATCH);
+            .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.SMS_VERIFICATION_CODE_MISMATCH);
         assertThat(verification.getStatus()).isEqualTo(SmsVerificationStatus.PENDING);
     }
 

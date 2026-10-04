@@ -7,8 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoRing;
@@ -20,6 +18,8 @@ import com.tastyhouse.application.region.port.out.AdminDongBoundarySource;
 import com.tastyhouse.application.region.port.out.BoundaryCoordinate;
 import com.tastyhouse.application.region.port.out.BoundaryRing;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.BatchErrorCode;
 
 @Service
 class AdminDongSchedulerService implements SynchronizeAdminDongsUseCase {
@@ -42,7 +42,7 @@ class AdminDongSchedulerService implements SynchronizeAdminDongsUseCase {
 
         AdminDongBoundaryFetchResult fetchResult = adminDongBoundaryPort.fetchAll();
         if (fetchResult.failed()) {
-            throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+            throw new ApplicationException(BatchErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
         }
 
         List<AdminDong> adminDongs = toAdminDongs(fetchResult.sources());
@@ -76,7 +76,7 @@ class AdminDongSchedulerService implements SynchronizeAdminDongsUseCase {
 
         if (adminDongs.isEmpty()) {
             log.error("행정동 경계 원천에서 대표점을 계산한 행이 없습니다");
-            throw new BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
+            throw new ApplicationException(BatchErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED);
         }
 
         log.info("행정동 대표점 계산 완료: {}건 (대표점 계산 실패로 제외 {}건)", adminDongs.size(), skipped);

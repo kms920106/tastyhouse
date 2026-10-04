@@ -6,9 +6,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
 public class ShopRiderGuideValidator {
@@ -47,22 +48,22 @@ public class ShopRiderGuideValidator {
         }
 
         if (visitGuide.length() > VISIT_GUIDE_MAX_LENGTH) {
-            violations.add(ErrorCode.SHOP_RIDER_VISIT_GUIDE_TOO_LONG.getDefaultMessage());
+            violations.add(DomainErrorCode.SHOP_RIDER_VISIT_GUIDE_TOO_LONG.getDefaultMessage());
         }
 
         List<String> prohibitedWords = prohibitedWordValidator.findViolations(visitGuide);
         if (!prohibitedWords.isEmpty()) {
-            violations.add(ErrorCode.SHOP_TEXT_PROHIBITED_WORD.getDefaultMessage()
+            violations.add(ApplicationErrorCode.SHOP_TEXT_PROHIBITED_WORD.getDefaultMessage()
                 + ": " + String.join(", ", prohibitedWords));
         }
 
         if (containsShopAddress(shop, visitGuide)) {
-            violations.add(ErrorCode.SHOP_RIDER_VISIT_GUIDE_CONTAINS_ADDRESS.getDefaultMessage());
+            violations.add(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_CONTAINS_ADDRESS.getDefaultMessage());
         }
 
         String dispatchKeyword = findDispatchRestrictionKeyword(visitGuide);
         if (dispatchKeyword != null) {
-            violations.add(ErrorCode.SHOP_RIDER_VISIT_GUIDE_DISPATCH_RESTRICTION.getDefaultMessage()
+            violations.add(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_DISPATCH_RESTRICTION.getDefaultMessage()
                 + ": " + dispatchKeyword);
         }
 
@@ -77,13 +78,13 @@ public class ShopRiderGuideValidator {
         prohibitedWordValidator.validate(visitGuide);
 
         if (containsShopAddress(shop, visitGuide)) {
-            throw new BusinessException(ErrorCode.SHOP_RIDER_VISIT_GUIDE_CONTAINS_ADDRESS);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_CONTAINS_ADDRESS);
         }
 
         String dispatchKeyword = findDispatchRestrictionKeyword(visitGuide);
         if (dispatchKeyword != null) {
-            throw new BusinessException(ErrorCode.SHOP_RIDER_VISIT_GUIDE_DISPATCH_RESTRICTION,
-                ErrorCode.SHOP_RIDER_VISIT_GUIDE_DISPATCH_RESTRICTION.getDefaultMessage() + ": " + dispatchKeyword);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_DISPATCH_RESTRICTION,
+                ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_DISPATCH_RESTRICTION.getDefaultMessage() + ": " + dispatchKeyword);
         }
     }
 

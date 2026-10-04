@@ -6,8 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.coupon.model.Coupon;
 import com.tastyhouse.domain.coupon.model.DiscountType;
 import com.tastyhouse.domain.coupon.vo.CouponId;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.coupon.port.in.CouponCommandUseCase;
 import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
@@ -15,6 +13,8 @@ import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;
 import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
 import com.tastyhouse.application.coupon.port.in.CouponUpdateCommand;
 import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -88,6 +88,6 @@ class CouponCommandService implements CouponCommandUseCase {
 
     private Coupon findCouponOrThrow(CouponId couponId) {
         return couponPersistencePort.findById(couponId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.COUPON_NOT_FOUND));
     }
 }

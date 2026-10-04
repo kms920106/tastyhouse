@@ -7,12 +7,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.testsupport.review.service.FakeDomainEventPublisher;
 import com.tastyhouse.testsupport.review.service.FakeReviewImagePersistencePort;
 import com.tastyhouse.testsupport.review.service.FakeReviewLikePersistencePort;
@@ -66,7 +66,7 @@ class ReviewLifecycleServiceTest {
         ))
             .isInstanceOf(BusinessException.class)
             .satisfies(e -> assertThat(((BusinessException) e).getErrorCode())
-                .isEqualTo(ErrorCode.REVIEW_ALREADY_EXISTS));
+                .isEqualTo(ApplicationErrorCode.REVIEW_ALREADY_EXISTS));
     }
 
     @Test

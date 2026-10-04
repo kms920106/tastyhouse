@@ -4,13 +4,13 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopOperatingStatusResult;
 import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.model.ShopOrderMethodAvailability;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 
 @Service
@@ -33,21 +33,21 @@ public class ShopOrderAvailabilityService {
 
         ShopOperatingStatusResult shopStatus = availability.shopWide();
         if (!shopStatus.isOpen()) {
-            throw new BusinessException(ErrorCode.SHOP_NOT_ORDERABLE,
-                ErrorCode.SHOP_NOT_ORDERABLE.getDefaultMessage()
+            throw new ApplicationException(WebErrorCode.SHOP_NOT_ORDERABLE,
+                WebErrorCode.SHOP_NOT_ORDERABLE.getDefaultMessage()
                     + ": " + shopStatus.unavailableReason().getDisplayName());
         }
 
         if (!isAssigned(shop.getId(), orderMethod)) {
-            throw new BusinessException(ErrorCode.SHOP_ORDER_METHOD_NOT_SUPPORTED,
-                ErrorCode.SHOP_ORDER_METHOD_NOT_SUPPORTED.getDefaultMessage()
+            throw new ApplicationException(WebErrorCode.SHOP_ORDER_METHOD_NOT_SUPPORTED,
+                WebErrorCode.SHOP_ORDER_METHOD_NOT_SUPPORTED.getDefaultMessage()
                     + ": " + orderMethod.getDisplayName());
         }
 
         ShopOperatingStatusResult methodStatus = availability.orderMethod();
         if (!methodStatus.isOpen()) {
-            throw new BusinessException(ErrorCode.SHOP_ORDER_METHOD_SUSPENDED,
-                ErrorCode.SHOP_ORDER_METHOD_SUSPENDED.getDefaultMessage()
+            throw new ApplicationException(WebErrorCode.SHOP_ORDER_METHOD_SUSPENDED,
+                WebErrorCode.SHOP_ORDER_METHOD_SUSPENDED.getDefaultMessage()
                     + ": " + orderMethod.getDisplayName()
                     + " (" + methodStatus.unavailableReason().getDisplayName() + ")");
         }

@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.payment.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum PaymentMethod {
 
@@ -16,8 +16,8 @@ public enum PaymentMethod {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.PAYMENT_METHOD_UNKNOWN,
-                ErrorCode.PAYMENT_METHOD_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.PAYMENT_METHOD_UNKNOWN,
+                DomainErrorCode.PAYMENT_METHOD_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

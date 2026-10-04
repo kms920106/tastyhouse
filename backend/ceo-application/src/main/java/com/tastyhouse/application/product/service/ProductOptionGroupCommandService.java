@@ -5,9 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.CupDepositOptionRule;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductOption;
@@ -24,6 +21,10 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateComman
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -166,21 +167,21 @@ class ProductOptionGroupCommandService implements ProductOptionGroupCommandUseCa
 
     private Shop loadShop(Long shopId) {
         return shopPersistencePort.findById(ShopId.of(shopId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 
     private Product loadOwnedProduct(Long shopId, Long productId) {
         Product product = productPersistencePort.findById(ProductId.of(productId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
         return product;
     }
 
     private void validateSelectRange(Integer minSelect, Integer maxSelect) {
         if (minSelect != null && maxSelect != null && minSelect > maxSelect) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_SELECT_RANGE_INVALID);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_SELECT_RANGE_INVALID);
         }
     }
 }

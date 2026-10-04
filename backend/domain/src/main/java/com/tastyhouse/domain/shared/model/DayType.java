@@ -2,8 +2,8 @@ package com.tastyhouse.domain.shared.model;
 
 import java.time.DayOfWeek;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum DayType {
 
@@ -54,8 +54,8 @@ public enum DayType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.DAY_TYPE_UNKNOWN,
-                ErrorCode.DAY_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.DAY_TYPE_UNKNOWN,
+                DomainErrorCode.DAY_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

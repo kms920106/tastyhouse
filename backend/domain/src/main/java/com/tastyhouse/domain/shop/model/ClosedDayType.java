@@ -3,8 +3,8 @@ package com.tastyhouse.domain.shop.model;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum ClosedDayType {
 
@@ -93,8 +93,8 @@ public enum ClosedDayType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.CLOSED_DAY_TYPE_UNKNOWN,
-                ErrorCode.CLOSED_DAY_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.CLOSED_DAY_TYPE_UNKNOWN,
+                DomainErrorCode.CLOSED_DAY_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 

@@ -12,7 +12,7 @@
 
 **현재 상태: 로그인 + 점주 가게 관리 API 구현 완료** — 모듈 골격 + JWT 인증 인프라 + 공통(common/exception) 요소, `auth`(로그인/토큰갱신/로그아웃)에 더해, 배민 사장님 셀프서비스 가이드 기반 **점주 가게 설정 API(`shop`)** 를 구현했다: 내 가게 조회, 영업시간·휴게시간(PDF 규격 검증), 휴무일(공휴일/정기/임시), 전화번호(다건+대표번호), 가게 상태(노출정지), 가게소개(금칙어 검수), 편의정보·찾아오는길·노출위치, 상표·대표이미지 변경요청(승인 워크플로), 콘텐츠보드, 영업 임시중지, 위생정보 조회. order 등 나머지 도메인 엔드포인트는 아직 없다.
 
-- **점주-가게 소유권**: `Shop`에 `ceoId` 컬럼을 두어 1점주 N가게를 표현한다(관리자가 admin-api에서 배정). 모든 가게 관리 엔드포인트는 `application`의 `shop/ShopOwnershipValidator.validateOwnership(ceoId, shopId)`를 서비스 진입부에서 먼저 호출해 `shop.ceoId == 로그인 ceoId`를 확인하고, 불일치 시 `BusinessException(ErrorCode.SHOP_ACCESS_DENIED)`(403)을 던진다. `CustomUserDetails`는 `ceoId`만 노출하므로 shopId는 경로/바디로 받아 이 검증기로 소유권을 확인한다.
+- **점주-가게 소유권**: `Shop`에 `ceoId` 컬럼을 두어 1점주 N가게를 표현한다(관리자가 admin-api에서 배정). 모든 가게 관리 엔드포인트는 `application`의 `shop/ShopOwnershipValidator.validateOwnership(ceoId, shopId)`를 서비스 진입부에서 먼저 호출해 `shop.ceoId == 로그인 ceoId`를 확인하고, 불일치 시 `BusinessException(ApplicationErrorCode.SHOP_ACCESS_DENIED)`(403)을 던진다. `CustomUserDetails`는 `ceoId`만 노출하므로 shopId는 경로/바디로 받아 이 검증기로 소유권을 확인한다.
 - **검수/승인**: 상표·대표이미지는 `domain`의 `shared/model/ApprovalStatus`(PENDING/APPROVED/REJECTED)를 쓰는 공용 `ShopImageChangeRequest` 애그리거트로 "점주 변경요청 → admin 승인/반려 → 승인 시 Shop 반영" 워크플로를 구현한다. 가게소개·찾아오는길은 `ProhibitedWordValidator`(금칙어) 통과 시 즉시 반영, 콘텐츠보드는 즉시 노출 + admin 사후 숨김/삭제. 노출정지는 PENDING 승인요청 존재 시 차단(`SHOP_STATUS_CHANGE_BLOCKED_BY_PENDING_REQUEST`).
 - **이미지 규격 검증**: `application`의 `shop/ShopImageSpecValidator`가 상표(JPG·≤900KB·560×560↑·1:1)/콘텐츠(IMAGE JPG·PNG ≤10MB 700×700↑, GIF ≤10MB 250×250↑) 규격을 업로드 전 검증하고, 통과분만 `FileService`로 업로드한다. 유튜브 영상 길이(5~30분)는 서버 검증 불가라 URL 형식만 검증한다.
 
@@ -79,7 +79,7 @@
 - `application` (implementation) — 코어(공유 도메인 서비스·`port.out` 계약·리스너). ~~+ 마커 애노테이션 `CeoApp`·`SharedApp`(부트스트랩 중첩 `ApplicationLayerScanConfig`가 스캔 기준으로 사용. 과거에는 `CeoApplicationConfig`를 `@Import`)~~ (번복됨 — 앱 마커 제거)
 - `ceo-application` (implementation, 앱 마커 제거로 추가) — ceo 전용 UseCase 인바운드 포트(컨트롤러가 주입)·Command·서비스. **다른 앱의 application 모듈을 추가하지 않는다** — 필터 없는 스캔이라 그 앱의 빈이 전부 뜬다(`ApplicationModuleClasspathTest`가 막는다)
 - `infrastructure:persistence` (**챕터 02로 `runtimeOnly`로 강등 — 과거 서술의 번복**): 소스 import는 0건이고, **auto-configuration 전환으로 부트스트랩의 컴파일 타임 참조 자체가 사라졌다.** 과거에는 `@Import(InfrastructureModuleConfig.class)`가 진입점 설정 클래스를 컴파일 타임에 참조해 `runtimeOnly`로 내리면 4개 모듈 전부 "package does not exist"로 깨졌으나, `InfrastructureModuleConfig` → `PersistenceModuleAutoConfiguration`으로 리네임되며 `@AutoConfiguration` + `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록하는 형태가 되어 `@Import` 자체가 사라졌다(**번복됨 — imports 제거**: 그 설정과 imports 파일은 삭제됐고 지금은 부트스트랩 `ModuleScanConfig`의 `"com.tastyhouse.infrastructure"` 문자열 스캔이 등록한다 — 문자열이라 `runtimeOnly`가 그대로 유지된다). 은닉은 여전히 의존 스코프가 아니라 ArchUnit(`LayerRulesTest`)이 담당하지만, 이제는 컴파일 타임 은닉도 `runtimeOnly`가 실제로 보장한다
-- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(`application`의 포트 `FileStoragePort`(`application.file.port.out`) 구현 — 파일 업로드)를 묶어 전이로 공급하므로 **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClient.Builder` customizer만 — 예외·에러코드는 도메인 `ErrorCode` 소유)는 파일 저장 SPI가 삭제된 뒤 스타터의 조립 대상에서 빠져 **이 앱의 `runtimeClasspath`에 없다**(webflux는 리포 전체에서 제거됐다). **OAuth·결제·메시징 모듈은 의존하지 않는다** — 점주 화면에는 소셜 로그인·PG 결제·메일/SMS 발송 유스케이스가 없다
+- `infrastructure:file-storage` — 파일 저장 스타터(챕터 03). `infrastructure:firebase`(`application`의 포트 `FileStoragePort`(`application.file.port.out`) 구현 — 파일 업로드)를 묶어 전이로 공급하므로 **앱은 벤더 모듈을 직접 선언하지 않는다**. 코어 `infrastructure:restclient`(`RestClient.Builder` customizer만 — 예외·에러코드는 갖지 않는다. 에러코드는 던지는 모듈이 소유)는 파일 저장 SPI가 삭제된 뒤 스타터의 조립 대상에서 빠져 **이 앱의 `runtimeClasspath`에 없다**(webflux는 리포 전체에서 제거됐다). **OAuth·결제·메시징 모듈은 의존하지 않는다** — 점주 화면에는 소셜 로그인·PG 결제·메일/SMS 발송 유스케이스가 없다
 - `logging-module`, `security-module`
 - `infrastructure:redis` (**runtimeOnly**) — rate limit 카운터와 `StringRedisTemplate` 빈. 부트스트랩 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되며 `@Import`하지 않는다(~~`RedisModuleAutoConfiguration`이 자기 등록~~ — 번복됨, imports 제거. 설정 클래스는 `RedisModuleConfig`)
 - `api-common-module` — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService`·공용 `GlobalExceptionHandler`
@@ -244,7 +244,7 @@ web-api에 있는 이 규칙을 **이 모듈에 복제하지 않는다** — ceo
 - `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductOptionCreateRequest.java` → record 컴포넌트 `cupCount`
 - `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/product/adapter/in/web/request/ProductOptionUpdateRequest.java` → record 컴포넌트 `cupCount`
 
-범위(1~10) 검증은 Bean Validation이 아니라 도메인 계층(`CupDepositPolicy#validateCupCount`)이 소유한다. **여기에 `@Min`/`@Max`를 다시 붙이지 말 것** — 경계별로 다른 문구가 나가 `ErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID`의 통합 메시지("1개 이상 10개 이하")와 어긋난다.
+범위(1~10) 검증은 Bean Validation이 아니라 도메인 계층(`CupDepositPolicy#validateCupCount`)이 소유한다. **여기에 `@Min`/`@Max`를 다시 붙이지 말 것** — 경계별로 다른 문구가 나가 `DomainErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID`의 통합 메시지("1개 이상 10개 이하")와 어긋난다.
 
 ### `ProductOptionCreateRequest.toCommand` / `ProductOptionUpdateRequest.toCommand` / `ProductPriceItemRequest.toCommand` — 위치 기반 조립 금지
 

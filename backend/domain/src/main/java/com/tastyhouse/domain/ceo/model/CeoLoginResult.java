@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.ceo.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum CeoLoginResult {
 
@@ -18,8 +18,8 @@ public enum CeoLoginResult {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.CEO_LOGIN_RESULT_UNKNOWN,
-                ErrorCode.CEO_LOGIN_RESULT_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.CEO_LOGIN_RESULT_UNKNOWN,
+                DomainErrorCode.CEO_LOGIN_RESULT_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 

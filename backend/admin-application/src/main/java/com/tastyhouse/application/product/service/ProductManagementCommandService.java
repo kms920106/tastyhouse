@@ -5,8 +5,6 @@ import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.CupDepositOptionRule;
 import com.tastyhouse.domain.product.model.CupDepositPolicy;
@@ -37,6 +35,8 @@ import com.tastyhouse.application.product.port.in.ProductSoldOutManagementComman
 import com.tastyhouse.application.product.port.in.ProductSoldOutManagementUseCase;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 @Service
@@ -195,9 +195,9 @@ class ProductManagementCommandService implements
 
     private Shop loadShopOf(ProductId productId) {
         Product product = productPersistencePort.findById(productId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         return shopPersistencePort.findById(product.getShopId())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 
     @Override
@@ -213,7 +213,7 @@ class ProductManagementCommandService implements
 
         ProductOptionGroup optionGroup = productOptionGroupPersistencePort
             .findById(ProductOptionGroupId.of(groupId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
         CupDepositOptionRule.validateOptionValues(
             optionGroup, additionalPrice, cupCount, personalCupDiscountAmount, cupDepositPolicy
         );

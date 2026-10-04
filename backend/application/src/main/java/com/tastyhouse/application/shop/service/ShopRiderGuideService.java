@@ -4,9 +4,8 @@ import java.math.BigDecimal;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shop.model.RiderGuideActionType;
 import com.tastyhouse.domain.shop.model.RiderGuideActorType;
 import com.tastyhouse.domain.shop.model.Shop;
@@ -17,6 +16,8 @@ import com.tastyhouse.domain.shop.model.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
 
@@ -76,11 +77,11 @@ public class ShopRiderGuideService {
         findShop(shopId);
 
         ShopRiderGuide riderGuide = shopRiderGuidePersistencePort.findByShopId(ShopId.of(shopId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND));
 
         String previousVisitGuide = riderGuide.getVisitGuide();
         if (previousVisitGuide == null) {
-            throw new ResourceNotFoundException(ErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND);
         }
 
         riderGuide.changeVisitGuide(null);
@@ -101,11 +102,11 @@ public class ShopRiderGuideService {
         findShop(shopId);
 
         ShopRiderGuide riderGuide = shopRiderGuidePersistencePort.findByShopId(ShopId.of(shopId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND));
 
         String currentVisitGuide = riderGuide.getVisitGuide();
         if (currentVisitGuide == null) {
-            throw new ResourceNotFoundException(ErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND);
         }
 
         ShopRiderGuideHistory history = shopRiderGuidePersistencePort.saveHistory(ShopRiderGuideHistory.of(
@@ -201,13 +202,13 @@ public class ShopRiderGuideService {
 
     private Shop findShop(Long shopId) {
         return shopPersistencePort.findById(ShopId.of(shopId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 
     private Shop findActiveShop(Long shopId) {
         Shop shop = findShop(shopId);
         if (shop.isPermanentlyClosed()) {
-            throw new BusinessException(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+            throw new DomainException(DomainErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
         }
         return shop;
     }

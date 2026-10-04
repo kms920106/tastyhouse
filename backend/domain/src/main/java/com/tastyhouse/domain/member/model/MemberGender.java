@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.member.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum MemberGender {
 
@@ -12,8 +12,8 @@ public enum MemberGender {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.GENDER_TYPE_UNKNOWN,
-                ErrorCode.GENDER_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.GENDER_TYPE_UNKNOWN,
+                DomainErrorCode.GENDER_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

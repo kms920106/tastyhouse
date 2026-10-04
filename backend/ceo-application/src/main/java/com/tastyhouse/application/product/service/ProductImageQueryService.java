@@ -5,13 +5,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.product.port.in.ProductImageQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductImageManagementResult;
 import com.tastyhouse.application.product.port.out.ProductImageStatusResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -41,7 +41,7 @@ class ProductImageQueryService implements ProductImageQueryUseCase {
 
         boolean owned = productOwnerQueryPort.existsProductInShop(productId, shopId);
         if (!owned) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
     }
 }

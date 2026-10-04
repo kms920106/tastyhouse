@@ -5,8 +5,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.application.auth.port.out.MemberJwtResult;
@@ -14,6 +12,8 @@ import com.tastyhouse.application.auth.port.out.PhoneLoginResult;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 public class PhoneLoginService {
@@ -35,7 +35,7 @@ public class PhoneLoginService {
     @Transactional(readOnly = true)
     public PhoneLoginResult login(String smsVerifyToken) {
         if (jwtTokenProvider.isInvalidSmsVerifyToken(smsVerifyToken)) {
-            throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
+            throw new ApplicationException(WebErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);

@@ -3,9 +3,6 @@ package com.tastyhouse.application.review.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderProduct;
@@ -33,6 +30,10 @@ import com.tastyhouse.application.review.port.in.ReviewUpdateCommand;
 import com.tastyhouse.application.review.port.out.write.ReviewCommentPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewReplyPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 @Transactional
@@ -74,14 +75,14 @@ class ReviewCommandService implements ReviewCommandUseCase {
         OrderId orderId = null;
         if (orderProductId != null) {
             OrderProduct orderProduct = orderProductPersistencePort.findById(OrderProductId.of(orderProductId))
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
             orderId = orderProduct.getOrderId();
             validateOrderOwnership(orderId, MemberId.of(memberId));
         }
         validateDeliveryRating(orderId, deliveryRating, deliveryComment);
 
         Product product = productPersistencePort.findById(ProductId.of(command.productId()))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         ReviewRegistration registration = reviewLifecycleService.register(
             product.getShopId(),
@@ -109,7 +110,7 @@ class ReviewCommandService implements ReviewCommandUseCase {
 
         ReviewId targetReviewId = ReviewId.of(command.reviewId());
         Review review = reviewPersistencePort.findById(targetReviewId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         validateDeliveryRating(review.getOrderId(), deliveryRating, deliveryComment);
 
         ReviewRegistration registration = reviewLifecycleService.modify(
@@ -132,16 +133,16 @@ class ReviewCommandService implements ReviewCommandUseCase {
     public void deleteReview(ReviewDeleteCommand command) {
         ReviewId targetReviewId = ReviewId.of(command.reviewId());
         Review review = reviewPersistencePort.findById(targetReviewId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
 
         reviewLifecycleService.removeOwnedBy(targetReviewId, MemberId.of(command.memberId()), review.getProductId());
     }
 
     private void validateOrderOwnership(OrderId orderId, MemberId memberId) {
         Order order = orderPersistencePort.findById(orderId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         if (!order.getMemberId().equals(memberId)) {
-            throw new BusinessException(ErrorCode.REVIEW_ORDER_ACCESS_DENIED);
+            throw new ApplicationException(WebErrorCode.REVIEW_ORDER_ACCESS_DENIED);
         }
     }
 
@@ -150,13 +151,13 @@ class ReviewCommandService implements ReviewCommandUseCase {
             return;
         }
         if (orderId == null) {
-            throw new BusinessException(ErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
+            throw new ApplicationException(WebErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
         }
 
         Order order = orderPersistencePort.findById(orderId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         if (order.getOrderMethod() != OrderMethod.DELIVERY) {
-            throw new BusinessException(ErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
+            throw new ApplicationException(WebErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
         }
     }
 
@@ -178,7 +179,7 @@ class ReviewCommandService implements ReviewCommandUseCase {
     @Override
     public Long findReviewIdOfComment(Long commentId) {
         return reviewCommentPersistencePort.findById(ReviewCommentId.of(commentId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND))
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_COMMENT_NOT_FOUND))
             .getReviewId()
             .value();
     }

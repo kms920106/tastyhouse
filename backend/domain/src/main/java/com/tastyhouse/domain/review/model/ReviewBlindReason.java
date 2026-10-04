@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.review.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum ReviewBlindReason {
 
@@ -21,8 +21,8 @@ public enum ReviewBlindReason {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.REVIEW_BLIND_REASON_UNKNOWN,
-                ErrorCode.REVIEW_BLIND_REASON_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.REVIEW_BLIND_REASON_UNKNOWN,
+                DomainErrorCode.REVIEW_BLIND_REASON_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 

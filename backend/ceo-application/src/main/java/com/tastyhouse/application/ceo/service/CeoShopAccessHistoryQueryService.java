@@ -5,10 +5,10 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.application.ceo.port.in.CeoShopAccessHistoryQueryUseCase;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryQueryPort;
@@ -71,10 +71,10 @@ class CeoShopAccessHistoryQueryService implements CeoShopAccessHistoryQueryUseCa
 
     private void validateDateRange(LocalDate startDate, LocalDate endDate, LocalDate today) {
         if (startDate.isAfter(endDate)) {
-            throw new BusinessException(ErrorCode.SHOP_REQUEST_DATE_RANGE_INVALID);
+            throw new ApplicationException(CeoErrorCode.SHOP_REQUEST_DATE_RANGE_INVALID);
         }
         if (endDate.isAfter(today) || startDate.isBefore(today.minusYears(RETENTION_YEARS))) {
-            throw new BusinessException(ErrorCode.CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE);
+            throw new ApplicationException(CeoErrorCode.CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE);
         }
     }
 }

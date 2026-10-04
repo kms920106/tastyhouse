@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
@@ -39,6 +39,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipTierSpec;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
 import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
@@ -74,7 +75,7 @@ class ShopDeliveryTipServiceTest {
             assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, List.of(), ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED);
         }
 
         @Test
@@ -90,7 +91,7 @@ class ShopDeliveryTipServiceTest {
             assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED);
         }
 
         @Test
@@ -104,7 +105,7 @@ class ShopDeliveryTipServiceTest {
             assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_ASCENDING);
+                .isEqualTo(CeoErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_ASCENDING);
         }
 
         @Test
@@ -118,7 +119,7 @@ class ShopDeliveryTipServiceTest {
             assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_DESCENDING);
+                .isEqualTo(CeoErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_DESCENDING);
         }
 
         @Test
@@ -132,7 +133,7 @@ class ShopDeliveryTipServiceTest {
             assertThatThrownBy(() -> service.replaceTiers(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_DESCENDING);
+                .isEqualTo(CeoErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_DESCENDING);
         }
 
         @Test
@@ -195,7 +196,7 @@ class ShopDeliveryTipServiceTest {
             assertThatThrownBy(() -> service.changeDistanceTip(SHOP_ID, 1500, DeliveryTipDistanceUnit.PER_500M, 500, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT);
+                .isEqualTo(CeoErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT);
         }
 
         @Test
@@ -209,7 +210,7 @@ class ShopDeliveryTipServiceTest {
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT);
+                .isEqualTo(CeoErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT);
         }
 
         @Test
@@ -267,7 +268,7 @@ class ShopDeliveryTipServiceTest {
             ), ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_REGION_DUPLICATED);
+                .isEqualTo(CeoErrorCode.SHOP_DELIVERY_TIP_REGION_DUPLICATED);
         }
 
         @Test
@@ -278,7 +279,7 @@ class ShopDeliveryTipServiceTest {
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.ADMIN_DONG_NOT_FOUND);
+                .isEqualTo(CeoErrorCode.ADMIN_DONG_NOT_FOUND);
         }
 
         @Test
@@ -291,7 +292,7 @@ class ShopDeliveryTipServiceTest {
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_REGION_NOT_IN_DELIVERY_AREA);
+                .isEqualTo(CeoErrorCode.SHOP_DELIVERY_TIP_REGION_NOT_IN_DELIVERY_AREA);
         }
 
         @Test
@@ -341,7 +342,7 @@ class ShopDeliveryTipServiceTest {
             assertThatThrownBy(() -> service.replaceScheduleTips(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP);
         }
 
         @Test
@@ -355,7 +356,7 @@ class ShopDeliveryTipServiceTest {
             assertThatThrownBy(() -> service.replaceScheduleTips(SHOP_ID, specs, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP);
         }
 
         @Test

@@ -2,8 +2,8 @@ package com.tastyhouse.domain.product.model;
 
 import java.util.List;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public final class ProductOptionSelectionRule {
 
@@ -40,7 +40,7 @@ public final class ProductOptionSelectionRule {
 
         int required = minRemaining(group);
         if (remaining < required) {
-            throw new BusinessException(violationCodeOf(group, remaining));
+            throw new DomainException(violationCodeOf(group, remaining));
         }
     }
 
@@ -53,15 +53,15 @@ public final class ProductOptionSelectionRule {
             .filter(ProductOptionSelectionRule::selectable)
             .anyMatch(option -> option.getAdditionalPrice() == null || option.getAdditionalPrice() == 0);
         if (!hasZeroPrice) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_REQUIRES_ZERO_PRICE_OPTION);
+            throw new DomainException(DomainErrorCode.PRODUCT_OPTION_GROUP_REQUIRES_ZERO_PRICE_OPTION);
         }
     }
 
-    private static ErrorCode violationCodeOf(ProductOptionGroup group, long remaining) {
+    private static DomainErrorCode violationCodeOf(ProductOptionGroup group, long remaining) {
         int minSelect = group != null && group.getMinSelect() != null ? group.getMinSelect() : 0;
         if (remaining < Math.max(minSelect, 1)) {
-            return ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION;
+            return DomainErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION;
         }
-        return ErrorCode.PRODUCT_OPTION_MAX_SELECT_VIOLATION;
+        return DomainErrorCode.PRODUCT_OPTION_MAX_SELECT_VIOLATION;
     }
 }

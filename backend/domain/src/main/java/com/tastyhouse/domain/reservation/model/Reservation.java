@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -53,8 +53,8 @@ public class Reservation {
         String request
     ) {
         if (partySize == null || partySize < 1) {
-            throw new BusinessException(ErrorCode.RESERVATION_PARTY_SIZE_INVALID,
-                ErrorCode.RESERVATION_PARTY_SIZE_INVALID.getDefaultMessage() + ": " + partySize);
+            throw new DomainException(DomainErrorCode.RESERVATION_PARTY_SIZE_INVALID,
+                DomainErrorCode.RESERVATION_PARTY_SIZE_INVALID.getDefaultMessage() + ": " + partySize);
         }
 
         return new Reservation(null, memberId, shopId, reservationDate, reservationTime, partySize,
@@ -81,20 +81,20 @@ public class Reservation {
 
     public void validateOwnership(MemberId memberId) {
         if (!this.memberId.equals(memberId)) {
-            throw new BusinessException(ErrorCode.RESERVATION_ACCESS_DENIED);
+            throw new DomainException(DomainErrorCode.RESERVATION_ACCESS_DENIED);
         }
     }
 
     public void confirm() {
         if (this.status != ReservationStatus.PENDING) {
-            throw new BusinessException(ErrorCode.RESERVATION_INVALID_STATUS);
+            throw new DomainException(DomainErrorCode.RESERVATION_INVALID_STATUS);
         }
         this.status = ReservationStatus.CONFIRMED;
     }
 
     public void reject() {
         if (this.status != ReservationStatus.PENDING) {
-            throw new BusinessException(ErrorCode.RESERVATION_INVALID_STATUS);
+            throw new DomainException(DomainErrorCode.RESERVATION_INVALID_STATUS);
         }
         this.status = ReservationStatus.REJECTED;
     }
@@ -102,15 +102,15 @@ public class Reservation {
     public void cancel() {
         switch (this.status) {
             case PENDING, CONFIRMED -> this.status = ReservationStatus.CANCELED;
-            case CANCELED -> throw new BusinessException(ErrorCode.RESERVATION_ALREADY_CANCELED);
-            case REJECTED -> throw new BusinessException(ErrorCode.RESERVATION_ALREADY_REJECTED);
-            case COMPLETED -> throw new BusinessException(ErrorCode.RESERVATION_ALREADY_COMPLETED);
+            case CANCELED -> throw new DomainException(DomainErrorCode.RESERVATION_ALREADY_CANCELED);
+            case REJECTED -> throw new DomainException(DomainErrorCode.RESERVATION_ALREADY_REJECTED);
+            case COMPLETED -> throw new DomainException(DomainErrorCode.RESERVATION_ALREADY_COMPLETED);
         }
     }
 
     public void complete() {
         if (this.status != ReservationStatus.CONFIRMED) {
-            throw new BusinessException(ErrorCode.RESERVATION_INVALID_STATUS);
+            throw new DomainException(DomainErrorCode.RESERVATION_INVALID_STATUS);
         }
         this.status = ReservationStatus.COMPLETED;
     }

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -35,7 +35,7 @@ class CupDepositPolicyTest {
         assertThatThrownBy(() -> policy.depositAmountOf(11))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID);
     }
 
     @Test

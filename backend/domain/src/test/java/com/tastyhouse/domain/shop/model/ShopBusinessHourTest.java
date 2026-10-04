@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -85,7 +85,7 @@ class ShopBusinessHourTest {
         assertThatThrownBy(() -> hourOf(LocalTime.of(9, 0), LocalTime.of(9, 55)))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.SHOP_BUSINESS_HOUR_INVALID_RANGE);
+            .isEqualTo(DomainErrorCode.SHOP_BUSINESS_HOUR_INVALID_RANGE);
     }
 
     @Test
@@ -94,7 +94,7 @@ class ShopBusinessHourTest {
         assertThatThrownBy(() -> hourOf(LocalTime.of(9, 0), LocalTime.of(9, 0)))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.SHOP_BUSINESS_HOUR_INVALID_RANGE);
+            .isEqualTo(DomainErrorCode.SHOP_BUSINESS_HOUR_INVALID_RANGE);
     }
 
     @Test
@@ -103,12 +103,12 @@ class ShopBusinessHourTest {
         assertThatThrownBy(() -> hourOf(LocalTime.of(9, 3), LocalTime.of(22, 0)))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.SHOP_BUSINESS_HOUR_INVALID_UNIT);
+            .isEqualTo(DomainErrorCode.SHOP_BUSINESS_HOUR_INVALID_UNIT);
 
         assertThatThrownBy(() -> hourOf(LocalTime.of(9, 0), LocalTime.of(22, 7)))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.SHOP_BUSINESS_HOUR_INVALID_UNIT);
+            .isEqualTo(DomainErrorCode.SHOP_BUSINESS_HOUR_INVALID_UNIT);
     }
 
     @Test
@@ -124,7 +124,7 @@ class ShopBusinessHourTest {
         assertThatThrownBy(() -> hourOf(null, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.SHOP_BUSINESS_HOUR_INVALID_RANGE);
+            .isEqualTo(DomainErrorCode.SHOP_BUSINESS_HOUR_INVALID_RANGE);
     }
 
     @Test
@@ -137,7 +137,7 @@ class ShopBusinessHourTest {
         ))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.SHOP_BUSINESS_HOUR_INVALID_UNIT);
+            .isEqualTo(DomainErrorCode.SHOP_BUSINESS_HOUR_INVALID_UNIT);
 
         assertThat(businessHour.getOpenTime()).isEqualTo(LocalTime.of(9, 0));
     }

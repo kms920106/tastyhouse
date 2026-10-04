@@ -7,8 +7,6 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.application.member.port.out.MemberQueryPort;
@@ -18,6 +16,8 @@ import com.tastyhouse.application.rank.port.out.MemberRankResult;
 import com.tastyhouse.application.rank.port.out.RankDurationResult;
 import com.tastyhouse.application.rank.port.out.RankPrizeResult;
 import com.tastyhouse.application.rank.port.out.RankQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional(readOnly = true)
@@ -61,7 +61,7 @@ class RankQueryService implements RankQueryUseCase {
 
     private MemberRankResult unrankedMemberResult(MemberId memberId) {
         MemberWithProfileImageResult member = memberQueryPort.findMemberWithProfileImageById(memberId.value())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
 
         return new MemberRankResult(
             memberId.value(),

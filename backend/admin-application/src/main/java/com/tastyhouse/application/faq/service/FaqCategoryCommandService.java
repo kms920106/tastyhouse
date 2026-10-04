@@ -3,8 +3,6 @@ package com.tastyhouse.application.faq.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.faq.model.FaqCategory;
 import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 import com.tastyhouse.application.faq.port.in.FaqCategoryCommandUseCase;
@@ -12,6 +10,8 @@ import com.tastyhouse.application.faq.port.in.FaqCategoryCreateCommand;
 import com.tastyhouse.application.faq.port.in.FaqCategoryDeleteCommand;
 import com.tastyhouse.application.faq.port.in.FaqCategoryUpdateCommand;
 import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -52,6 +52,6 @@ class FaqCategoryCommandService implements FaqCategoryCommandUseCase {
 
     private FaqCategory findCategoryOrThrow(FaqCategoryId faqCategoryId) {
         return faqCategoryPersistencePort.findById(faqCategoryId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 }

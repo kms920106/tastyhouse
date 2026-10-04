@@ -3,8 +3,8 @@ package com.tastyhouse.domain.review.model;
 import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -108,13 +108,13 @@ public class ReviewBlindRequest {
 
     private void requirePending() {
         if (this.status != ReviewBlindStatus.PENDING) {
-            throw new BusinessException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_PENDING);
+            throw new DomainException(DomainErrorCode.REVIEW_BLIND_REQUEST_NOT_PENDING);
         }
     }
 
     private void requireApproved() {
         if (this.status != ReviewBlindStatus.APPROVED) {
-            throw new BusinessException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED);
+            throw new DomainException(DomainErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED);
         }
     }
 

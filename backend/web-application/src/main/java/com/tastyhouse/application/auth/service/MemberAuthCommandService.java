@@ -2,8 +2,8 @@ package com.tastyhouse.application.auth.service;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.domain.member.model.MemberSocialProvider;
 import com.tastyhouse.application.auth.port.in.AuthSignUpCommand;
@@ -104,8 +104,8 @@ class MemberAuthCommandService implements MemberAuthCommandUseCase {
             case NAVER -> naverSocialLoginService.linkAccount(tempToken, smsVerifyToken);
             case FACEBOOK -> facebookSocialLoginService.linkAccount(tempToken, smsVerifyToken);
             case APPLE -> appleSocialLoginService.linkAccount(tempToken, smsVerifyToken);
-            default -> throw new BusinessException(ErrorCode.SOCIAL_PROVIDER_TYPE_UNKNOWN,
-                ErrorCode.SOCIAL_PROVIDER_TYPE_UNKNOWN.getDefaultMessage() + ": " + provider);
+            default -> throw new DomainException(DomainErrorCode.SOCIAL_PROVIDER_TYPE_UNKNOWN,
+                DomainErrorCode.SOCIAL_PROVIDER_TYPE_UNKNOWN.getDefaultMessage() + ": " + provider);
         };
     }
 
@@ -152,8 +152,8 @@ class MemberAuthCommandService implements MemberAuthCommandUseCase {
                 command.pushNotificationEnabled(), command.marketingInfoEnabled(),
                 command.eventInfoEnabled(), command.referrerNickname()
             );
-            default -> throw new BusinessException(ErrorCode.SOCIAL_PROVIDER_TYPE_UNKNOWN,
-                ErrorCode.SOCIAL_PROVIDER_TYPE_UNKNOWN.getDefaultMessage() + ": " + command.provider());
+            default -> throw new DomainException(DomainErrorCode.SOCIAL_PROVIDER_TYPE_UNKNOWN,
+                DomainErrorCode.SOCIAL_PROVIDER_TYPE_UNKNOWN.getDefaultMessage() + ": " + command.provider());
         };
     }
 }

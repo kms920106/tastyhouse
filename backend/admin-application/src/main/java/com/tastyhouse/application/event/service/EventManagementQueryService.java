@@ -7,8 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.event.model.EventStatus;
 import com.tastyhouse.domain.event.vo.EventId;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.event.port.in.EventManagementQueryUseCase;
 import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
 import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
@@ -16,6 +14,9 @@ import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
 import com.tastyhouse.application.event.port.out.EventManagementQueryPort;
 import com.tastyhouse.application.event.port.out.EventSearchCondition;
 import com.tastyhouse.application.event.port.out.EventWinnerResult;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -40,7 +41,7 @@ class EventManagementQueryService implements EventManagementQueryUseCase {
     @Override
     public EventManagementDetailResult getEvent(Long id) {
         EventManagementDetailResult detail = eventManagementQueryPort.findEventDetailById(EventId.of(id).value())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
         requireResolvedFileUrl(detail.thumbnailImageFileId(), detail.thumbnailUrl());
         requireResolvedFileUrl(detail.bannerImageFileId(), detail.bannerUrl());
         return detail;
@@ -49,7 +50,7 @@ class EventManagementQueryService implements EventManagementQueryUseCase {
     @Override
     public EventAnnouncementResult getAnnouncement(Long id) {
         return eventManagementQueryPort.findAnnouncementByEventId(EventId.of(id).value())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
     }
 
     @Override
@@ -59,7 +60,7 @@ class EventManagementQueryService implements EventManagementQueryUseCase {
 
     private void requireResolvedFileUrl(Long fileId, String fileUrl) {
         if (fileId != null && fileUrl == null) {
-            throw new ResourceNotFoundException(ErrorCode.FILE_NOT_FOUND);
+            throw new ResourceNotFoundException(AdminErrorCode.FILE_NOT_FOUND);
         }
     }
 }

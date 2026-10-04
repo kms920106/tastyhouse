@@ -3,8 +3,6 @@ package com.tastyhouse.application.notice.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.notice.model.Notice;
 import com.tastyhouse.domain.notice.vo.NoticeId;
 import com.tastyhouse.application.notice.port.in.NoticeCommandUseCase;
@@ -12,6 +10,8 @@ import com.tastyhouse.application.notice.port.in.NoticeCreateCommand;
 import com.tastyhouse.application.notice.port.in.NoticeDeleteCommand;
 import com.tastyhouse.application.notice.port.in.NoticeUpdateCommand;
 import com.tastyhouse.application.notice.port.out.write.NoticePersistencePort;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -50,6 +50,6 @@ class NoticeCommandService implements NoticeCommandUseCase {
 
     private Notice findNoticeOrThrow(NoticeId noticeId) {
         return noticePersistencePort.findById(noticeId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.NOTICE_NOT_FOUND));
     }
 }

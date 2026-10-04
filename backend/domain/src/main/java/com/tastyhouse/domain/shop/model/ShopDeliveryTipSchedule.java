@@ -3,8 +3,8 @@ package com.tastyhouse.domain.shop.model;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -80,15 +80,15 @@ public class ShopDeliveryTipSchedule {
 
     private static void validateSchedule(DayType dayType, LocalTime startTime, LocalTime endTime, int tipAmount) {
         if (dayType == null || dayType == DayType.HOLIDAY) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_DAY_TYPE_NOT_ALLOWED);
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_DAY_TYPE_NOT_ALLOWED);
         }
         if (startTime == null || endTime == null || startTime.equals(endTime)) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP,
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP,
                 "시간별 배달팁의 시작·종료 시각은 필수이며 서로 같을 수 없습니다.");
         }
         if (tipAmount < 0 || tipAmount > DeliveryTipPolicy.EXTRA_TIP_UPPER_BOUND) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_EXTRA_AMOUNT_OUT_OF_RANGE,
-                ErrorCode.SHOP_DELIVERY_TIP_EXTRA_AMOUNT_OUT_OF_RANGE.getDefaultMessage() + " 입력: " + tipAmount + "원");
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_TIP_EXTRA_AMOUNT_OUT_OF_RANGE,
+                DomainErrorCode.SHOP_DELIVERY_TIP_EXTRA_AMOUNT_OUT_OF_RANGE.getDefaultMessage() + " 입력: " + tipAmount + "원");
         }
     }
 

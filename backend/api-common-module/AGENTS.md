@@ -13,7 +13,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + web/validation/aop starter, springdoc. ~~`domain`만 내부 의존이며 `api`~~ **(번복됨 — 덩어리 01)** 내부 의존은 `application`(**api** — 공개 시그니처에 `PageResult` 노출. 핸들러는 `ErrorResponses`·`ErrorContracts`를 쓴다)과 `security-core`(implementation)이며, `domain`은 더 이상 의존하지 않는다. **`infrastructure:redis`에 의존하지 않는다** — 챕터 02에서 방향이 역전돼 이제 redis가 이 모듈을 의존한다. `bootJar` 비활성 |
+| `build.gradle` | `java-library` + web/validation/aop starter, springdoc. ~~`domain`만 내부 의존이며 `api`~~ **(번복됨 — 덩어리 01)** 내부 의존은 `application`(**api** — 공개 시그니처에 `PageResult` 노출. 핸들러는 `ErrorResponses`를 쓰고, 필터·핸들러 에러 상수는 이 모듈의 `ApiErrorCode`다 — **(번복됨 — 에러코드 모듈 분할)** ~~`ErrorContracts`~~)과 `security-core`(implementation)이며, `domain`은 더 이상 의존하지 않는다. **`infrastructure:redis`에 의존하지 않는다** — 챕터 02에서 방향이 역전돼 이제 redis가 이 모듈을 의존한다. `bootJar` 비활성 |
 
 ## Subdirectories
 | Directory | Purpose |
@@ -82,7 +82,7 @@
   | 항목 | before | after |
   |---|---|---|
   | 내부 의존 | `api project(':domain')` | `api project(':application')` |
-  | 공용 에러 계약 | 이 노출을 타고 `domain.exception`(`BusinessException`·`ErrorCode`)이 api 3모듈의 **공용 에러 계약**이 된다 — **이 서술은 번복됨** | 표현 계층은 `domain.exception`을 보지 않는다. 판정은 `com.tastyhouse.application.shared.error.ErrorResponses#resolve`, 표현 계층이 직접 쓰는 상수는 `ErrorContracts`(`rateLimit()`·`accessDenied()`·`authRequired()`) |
+  | 공용 에러 계약 | 이 노출을 타고 `domain.exception`(`BusinessException`·`ErrorCode`)이 api 3모듈의 **공용 에러 계약**이 된다 — **이 서술은 번복됨** | 표현 계층은 `domain.exception`을 보지 않는다. 판정은 `com.tastyhouse.application.shared.error.ErrorResponses#resolve`, 표현 계층이 직접 쓰는 상수는 ~~`ErrorContracts`(`rateLimit()`·`accessDenied()`·`authRequired()`)~~ **(번복됨 — 에러코드 모듈 분할)** 이 모듈의 `com.tastyhouse.apicommon.exception.ApiErrorCode`(`RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`) |
   | presentation 컴파일 클래스패스의 `domain` | 있음(이 `api` 노출 경유) | **없음** — `application`은 `domain`을 `implementation`으로만 가진다 |
 
   `domain`이 되돌아오는 회귀는 `src/test/java/com/tastyhouse/apicommon/architecture/LayerRulesTest.java` → `shouldNotDependOnDomain`이 잡는다(이 모듈 전체 ✗ `com.tastyhouse.domain..`, 테스트 의존 `archunit-junit5` 신설).
@@ -140,20 +140,19 @@ web-api의 자체 핸들러와 단순명이 같아 기본 빈 이름 `globalExce
 둔 덕분에, 조건이 어떤 이유로 우회되더라도 `allow-bean-definition-overriding=false`로 **기동이 실패해
 조용히 덮이지 않는다.**
 
-### `RateLimitException`을 `ErrorCode`에 다시 결합하지 않는다
+### `RateLimitException`을 도메인 에러코드에 다시 결합하지 않는다
 
 **대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/ratelimit/RateLimitException.java`
 → `DEFAULT_MESSAGE` / 기본 생성자
 
 rate limiting은 domain에 대응 개념이 없는 순수 보안 관심사이므로(모듈 경계 규칙) 이 예외는
-`com.tastyhouse.domain.exception.ErrorCode`에 결합하지 않는다. 과거 생성자가
+(삭제된 단일 enum `com.tastyhouse.domain.exception.ErrorCode`를 포함한 도메인 에러코드)에 결합하지 않는다. 과거 생성자가
 `ErrorCode.RATE_LIMIT_EXCEEDED.getDefaultMessage()`로 메시지를 채웠으나, 실제 HTTP 응답은
-`GlobalExceptionHandler`가 `ErrorCode.RATE_LIMIT_EXCEEDED`의 code·message로 직접 조립하고 이 예외의
+`GlobalExceptionHandler`가 `RATE_LIMIT_EXCEEDED`의 code·message로 직접 조립하고 이 예외의
 메시지는 읽지 않는다. 결합을 끊어도 응답 계약(429 + `RATE_LIMIT_EXCEEDED`)은 그대로다.
 
-**(갱신 — 덩어리 01)** 지금 `handleRateLimitException`은 `ErrorCode`가 아니라 그 미러
-`com.tastyhouse.application.shared.error.ErrorContracts#rateLimit`의 code·message로 조립한다(값 동일 —
-`ErrorContractsConsistencyTest`가 보증). 이 모듈 클래스패스에 `domain`이 없으므로 결합은 이제 컴파일 수준에서도 불가능하다.
+**(갱신 — 덩어리 01)** `handleRateLimitException`은 `ErrorCode`가 아니라 그 미러 `ErrorContracts#rateLimit`의 code·message로 조립했다. **(번복됨 — 에러코드 모듈 분할)** `ErrorContracts`는 삭제됐고, 지금은 이 모듈의
+`backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ApiErrorCode.java`#`RATE_LIMIT_EXCEEDED`의 code·message로 조립한다(wire 값은 불변 — `application`의 `ErrorCatalogSnapshotTest`가 보증). 이 모듈 클래스패스에 `domain`이 없으므로 결합은 이제 컴파일 수준에서도 불가능하다.
 
 ### `ClientIpResolver`와 `ApiLoggingFilter#resolveClientIp`의 중복은 의도적이다
 
@@ -170,6 +169,22 @@ rate limiting은 domain에 대응 개념이 없는 순수 보안 관심사이므
 **대상**: `backend/api-common-module/src/test/java/com/tastyhouse/apicommon/architecture/LayerRulesTest.java` → `scannedComponentsShouldNotBePublic`
 
 `RateLimitAspect`·`ApiCommonRateLimitConfig`·`exception/GlobalExceptionHandler`를 package-private으로 좁혔다. 가드는 `@Configuration`·`@Aspect`·`@RestControllerAdvice`의 `public`을 금지한다. **public으로 남는 것**: `ApiResponse`·`PageRequest`·`PaginationResponse`·`RateLimit`·`RateLimitKeyType`·`RateLimitException`·`ProblemDetails`·`ClientIpResolver` — 3개 api 모듈이 공용 계약으로 import한다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+
+### `ApiErrorCode`는 `application`이 아니라 이 모듈이 소유하고, `AUTH_REQUIRED`는 미러다
+
+**대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ApiErrorCode.java` → `RATE_LIMIT_EXCEEDED`(429)·`ACCESS_DENIED`(403)·`AUTH_REQUIRED`(401)
+
+| 항목 | before | after |
+|---|---|---|
+| 필터·핸들러가 쓰는 에러 상수 | `application.shared.error.ErrorContracts`(`rateLimit()`·`accessDenied()`·`authRequired()`) | 이 모듈의 `ApiErrorCode` enum |
+| 단일 enum `domain.exception.ErrorCode` | 442개 상수 | 삭제 — 던지는 가장 안쪽 모듈별로 분할(`DomainErrorCode`·`ApplicationErrorCode`·`WebErrorCode`·`AdminErrorCode`·`CeoErrorCode`·`BatchErrorCode`) |
+| wire 계약(status·errorCode·message) | — | 불변(`application`의 `ErrorCatalogSnapshotTest`) |
+
+- **왜 `application`이 아니라 여기인가**: 429·403·401 응답은 서블릿 필터·`@RestControllerAdvice`가 조립하는 HTTP 표현 계층 계약이고, 어떤 유스케이스도 던지지 않는다. 던지는 가장 안쪽 모듈에 둔다는 분할 규칙에 따라 표현 계층이 소유한다.
+- **`ErrorCodeSpec`을 구현하지 않는다**: api 모듈은 `domain`을 볼 수 없다. 대신 `getHttpStatusCode`·`getCode`·`getDefaultMessage` 3개 getter만 같은 이름으로 둔다.
+- **`AUTH_REQUIRED`는 `WebErrorCode.AUTH_REQUIRED`의 미러**다(web-application 서비스가 던지는 쪽과 필터가 조립하는 쪽이 같은 값이어야 한다). 두 값의 일치는 `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`#`mirroredCodesStayIdentical`이 보증한다 — 한쪽만 고치지 않는다.
+- **대가**: `security-module`이 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`에서 이 enum을 읽으려고 `api-common-module`을 의존하게 됐다(`security-module → api-common-module`). 순환은 없다(`api-common-module → application, security-core`).
+- 테스트: `backend/api-common-module/src/test/java/com/tastyhouse/apicommon/architecture/LayerRulesTest.java`의 `.because`가 "필터·핸들러 에러 계약 = `ApiErrorCode`, 예외 판정 = `ErrorResponses`"로 이 구조를 서술한다.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -215,7 +230,7 @@ main 클래스패스에는 여전히 redis가 없어(표현 모듈이 구현 모
 메시지만 공백으로 join한다. 이는 우연한 차이가 아니라 **소비자별 응답 계약 차이**이므로 통합하지 않고
 web-api가 자체 `com.tastyhouse.webapi.exception.GlobalExceptionHandler`를 유지한다.
 
-외부 연동 실패는 도메인 `BusinessException`(에러코드는 `ErrorCode`)으로 표현되므로 `handleBusinessException` 하나로 처리된다(과거 `ExternalApiException`이 `BusinessException`을 상속하던 시절과 처리 경로는 같다 — 그 예외 타입 자체는 이후 완전히 삭제됐고 상수는 도메인 `ErrorCode`로 이관됐다)
+외부 연동 실패는 `BusinessException`(에러코드는 그 실패를 번역하는 app 모듈의 `WebErrorCode`·`BatchErrorCode` 등)으로 표현되므로 `handleBusinessException` 하나로 처리됐다(과거 `ExternalApiException`이 `BusinessException`을 상속하던 시절과 처리 경로는 같다 — 그 예외 타입 자체는 이후 완전히 삭제됐고 상수는 에러코드 분할로 소유 모듈의 enum으로 이관됐다)
 (전용 핸들러가 없는 것은 누락이 아니다).
 
 **번복됨 (덩어리 01) — `handleBusinessException`(`@ExceptionHandler(BusinessException.class)`)은 삭제됐다.**
@@ -224,7 +239,7 @@ web-api가 자체 `com.tastyhouse.webapi.exception.GlobalExceptionHandler`를 �
 |---|---|---|
 | `BusinessException` 처리 메서드 | `handleBusinessException` | 없음 — `@ExceptionHandler(Exception.class)` 폴백 `handleUnexpected`가 먼저 `ErrorResponses.resolve(e)`를 호출 |
 | 처리 결과 | `getErrorCode()`의 상태·code + `getMessage()` | `resolve`가 값을 주면 `warn("BusinessException [{}]: {}")` 후 그 `status`·`code`·`message`로 `ProblemDetail`, 값이 없으면 기존 500 |
-| 권한 거부(`handleAccessDenied`) | `ErrorCode.ACCESS_DENIED` | `ErrorContracts.accessDenied()` |
+| 권한 거부(`handleAccessDenied`) | `ErrorCode.ACCESS_DENIED` | ~~`ErrorContracts.accessDenied()`~~ **(번복됨 — 에러코드 모듈 분할)** `ApiErrorCode.ACCESS_DENIED` |
 | wire 계약 | — | 불변(변경 전후 jar 응답 diff로 확인) |
 
 전용 메서드를 되살리지 않는다 — 되살리면 이 모듈이 다시 `com.tastyhouse.domain.exception`을 import해야 하고

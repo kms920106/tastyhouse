@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum SuspensionReason {
 
@@ -26,8 +26,8 @@ public enum SuspensionReason {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.SHOP_SUSPENSION_REASON_UNKNOWN,
-                ErrorCode.SHOP_SUSPENSION_REASON_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.SHOP_SUSPENSION_REASON_UNKNOWN,
+                DomainErrorCode.SHOP_SUSPENSION_REASON_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

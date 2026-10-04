@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.product.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum ReleaseTarget {
 
@@ -15,8 +15,8 @@ public enum ReleaseTarget {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.PRODUCT_RELEASE_TARGET_UNKNOWN,
-                ErrorCode.PRODUCT_RELEASE_TARGET_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.PRODUCT_RELEASE_TARGET_UNKNOWN,
+                DomainErrorCode.PRODUCT_RELEASE_TARGET_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

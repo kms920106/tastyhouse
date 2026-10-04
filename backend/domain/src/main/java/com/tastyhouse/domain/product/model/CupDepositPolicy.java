@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.product.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public class CupDepositPolicy {
 
@@ -21,7 +21,7 @@ public class CupDepositPolicy {
 
     public void validateCupCount(Integer cupCount) {
         if (cupCount == null || cupCount < MIN_CUP_COUNT || cupCount > MAX_CUP_COUNT) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID);
+            throw new DomainException(DomainErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID);
         }
     }
 }

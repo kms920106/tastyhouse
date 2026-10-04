@@ -12,7 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -216,7 +216,7 @@ class ShopTest {
             assertThatThrownBy(() -> update(shop))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+                .isEqualTo(DomainErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
 
             assertThat(shop.getName()).isEqualTo("상점명");
         }
@@ -230,7 +230,7 @@ class ShopTest {
             assertThatThrownBy(shop::show)
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+                .isEqualTo(DomainErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
         }
 
         @Test
@@ -296,7 +296,7 @@ class ShopTest {
             assertThatThrownBy(() -> shop.changeMinOrderAmount(amount))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE);
+                .isEqualTo(DomainErrorCode.SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE);
 
             assertThat(shop.getMinOrderAmount()).isEqualTo(Shop.MIN_ORDER_AMOUNT_UNSET);
         }
@@ -310,7 +310,7 @@ class ShopTest {
             assertThatThrownBy(() -> shop.changeMinOrderAmount(20000))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+                .isEqualTo(DomainErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
 
             assertThat(shop.getMinOrderAmount()).isEqualTo(10000);
         }
@@ -323,7 +323,7 @@ class ShopTest {
             assertThatThrownBy(() -> shop.validateMinOrderAmount(OrderMethod.DELIVERY, 9999))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET);
+                .isEqualTo(DomainErrorCode.SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET);
         }
 
         @ParameterizedTest
@@ -366,7 +366,7 @@ class ShopTest {
         assertThatThrownBy(shop::validateCupDepositEnabled)
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.SHOP_CUP_DEPOSIT_NOT_ENABLED);
+            .isEqualTo(DomainErrorCode.SHOP_CUP_DEPOSIT_NOT_ENABLED);
     }
 
     @Test

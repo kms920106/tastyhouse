@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +42,7 @@ class ShopConvenienceInfoTest {
         assertThatThrownBy(() -> ShopConvenienceInfo.of(ShopId.of(1L), true, false, true, true, tooLong, null, null))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_DIRECTIONS_GUIDE_TOO_LONG);
+            .isEqualTo(DomainErrorCode.SHOP_DIRECTIONS_GUIDE_TOO_LONG);
     }
 
     @Test
@@ -88,6 +88,6 @@ class ShopConvenienceInfoTest {
         assertThatThrownBy(() -> shopConvenienceInfo.update(true, false, true, true, tooLong, null, null))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_DIRECTIONS_GUIDE_TOO_LONG);
+            .isEqualTo(DomainErrorCode.SHOP_DIRECTIONS_GUIDE_TOO_LONG);
     }
 }

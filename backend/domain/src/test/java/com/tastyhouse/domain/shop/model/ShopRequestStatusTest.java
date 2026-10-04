@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -17,7 +17,7 @@ class ShopRequestStatusTest {
         assertThatThrownBy(() -> ShopRequestStatus.from("COMPLETED"))
             .isInstanceOf(BusinessException.class)
             .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_REQUEST_STATUS_UNKNOWN));
+                .isEqualTo(DomainErrorCode.SHOP_REQUEST_STATUS_UNKNOWN));
     }
 
     @Test

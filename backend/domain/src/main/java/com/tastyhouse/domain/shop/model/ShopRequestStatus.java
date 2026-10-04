@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum ShopRequestStatus {
 
@@ -21,8 +21,8 @@ public enum ShopRequestStatus {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.SHOP_REQUEST_STATUS_UNKNOWN,
-                ErrorCode.SHOP_REQUEST_STATUS_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.SHOP_REQUEST_STATUS_UNKNOWN,
+                DomainErrorCode.SHOP_REQUEST_STATUS_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 

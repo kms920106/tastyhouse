@@ -15,10 +15,11 @@ import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
 import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhrasePersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 
@@ -119,7 +120,7 @@ class CeoReplyPhraseServiceTest {
         assertThatThrownBy(() -> ceoReplyPhraseService.register(OWNER_CEO_ID, "여섯번째", "감사합니다"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.CEO_REPLY_PHRASE_LIMIT_EXCEEDED);
+            .isEqualTo(CeoErrorCode.CEO_REPLY_PHRASE_LIMIT_EXCEEDED);
     }
 
     @Test
@@ -154,7 +155,7 @@ class CeoReplyPhraseServiceTest {
         assertThatThrownBy(() -> ceoReplyPhraseService.modify(OTHER_CEO_ID, phraseId, "가로채기", "고칩니다"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.CEO_REPLY_PHRASE_ACCESS_DENIED);
+            .isEqualTo(CeoErrorCode.CEO_REPLY_PHRASE_ACCESS_DENIED);
     }
 
     @Test
@@ -165,7 +166,7 @@ class CeoReplyPhraseServiceTest {
         assertThatThrownBy(() -> ceoReplyPhraseService.remove(OTHER_CEO_ID, phraseId))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.CEO_REPLY_PHRASE_ACCESS_DENIED);
+            .isEqualTo(CeoErrorCode.CEO_REPLY_PHRASE_ACCESS_DENIED);
         assertThat(ceoReplyPhrasePersistencePort.all()).hasSize(1);
     }
 
@@ -175,7 +176,7 @@ class CeoReplyPhraseServiceTest {
         assertThatThrownBy(() -> ceoReplyPhraseService.modify(OWNER_CEO_ID, 999L, "이름", "내용"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.CEO_REPLY_PHRASE_NOT_FOUND);
+            .isEqualTo(CeoErrorCode.CEO_REPLY_PHRASE_NOT_FOUND);
     }
 
     @Test
@@ -185,7 +186,7 @@ class CeoReplyPhraseServiceTest {
             ceoReplyPhraseService.register(OWNER_CEO_ID, "안내", "전화주문 주시면 할인해드립니다"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_TEXT_PROHIBITED_WORD);
+            .isEqualTo(ApplicationErrorCode.SHOP_TEXT_PROHIBITED_WORD);
         assertThat(ceoReplyPhrasePersistencePort.all()).isEmpty();
     }
 
@@ -198,7 +199,7 @@ class CeoReplyPhraseServiceTest {
             ceoReplyPhraseService.modify(OWNER_CEO_ID, phraseId, "안내", "전화주문 주세요"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_TEXT_PROHIBITED_WORD);
+            .isEqualTo(ApplicationErrorCode.SHOP_TEXT_PROHIBITED_WORD);
         assertThat(ceoReplyPhrasePersistencePort.findById(CeoReplyPhraseId.of(phraseId)))
             .get()
             .extracting(CeoReplyPhrase::getContent)

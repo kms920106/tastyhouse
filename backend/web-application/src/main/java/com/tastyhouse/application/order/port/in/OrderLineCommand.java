@@ -2,8 +2,8 @@ package com.tastyhouse.application.order.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record OrderLineCommand(
     Long productId,
@@ -14,7 +14,7 @@ public record OrderLineCommand(
 
     public OrderLineCommand {
         if (productId == null || quantity == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 

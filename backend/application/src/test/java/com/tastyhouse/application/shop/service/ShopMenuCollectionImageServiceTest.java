@@ -12,13 +12,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImagePersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
@@ -60,7 +61,7 @@ class ShopMenuCollectionImageServiceTest {
 
         assertThatThrownBy(() -> fixture.service.register(ShopId.of(99L), UploadedFileId.of(700L)))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SHOP_NOT_FOUND);
+            .hasFieldOrPropertyWithValue("errorCode", ApplicationErrorCode.SHOP_NOT_FOUND);
     }
 
     @Test
@@ -73,7 +74,7 @@ class ShopMenuCollectionImageServiceTest {
 
         assertThatThrownBy(() -> fixture.service.register(SHOP_ID, UploadedFileId.of(700L)))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_LIMIT_EXCEEDED);
+            .hasFieldOrPropertyWithValue("errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_LIMIT_EXCEEDED);
     }
 
     @Test
@@ -87,7 +88,7 @@ class ShopMenuCollectionImageServiceTest {
 
         assertThatThrownBy(() -> fixture.service.register(SHOP_ID, UploadedFileId.of(700L)))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_LIMIT_EXCEEDED);
+            .hasFieldOrPropertyWithValue("errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_LIMIT_EXCEEDED);
     }
 
     @Test
@@ -111,7 +112,7 @@ class ShopMenuCollectionImageServiceTest {
         assertThatThrownBy(() -> fixture.service.delete(SHOP_ID, ShopMenuCollectionImageId.of(10L)))
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue(
-                "errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_LAST_CANNOT_DELETE);
+                "errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_LAST_CANNOT_DELETE);
         assertThat(fixture.imagePersistencePort.idsOf(SHOP_ID)).containsExactly(10L, 11L);
     }
 
@@ -153,7 +154,7 @@ class ShopMenuCollectionImageServiceTest {
         assertThatThrownBy(() -> fixture.service.delete(SHOP_ID, ShopMenuCollectionImageId.of(10L)))
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue(
-                "errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_LAST_CANNOT_DELETE);
+                "errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_LAST_CANNOT_DELETE);
     }
 
     @Test
@@ -175,7 +176,7 @@ class ShopMenuCollectionImageServiceTest {
 
         assertThatThrownBy(() -> fixture.service.delete(SHOP_ID, ShopMenuCollectionImageId.of(20L)))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND);
+            .hasFieldOrPropertyWithValue("errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND);
         assertThat(fixture.imagePersistencePort.idsOf(OTHER_SHOP_ID)).containsExactly(20L);
     }
 
@@ -211,7 +212,7 @@ class ShopMenuCollectionImageServiceTest {
         assertThatThrownBy(() -> fixture.service.reorder(SHOP_ID, List.of(12L, 10L)))
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue(
-                "errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
+                "errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
         assertThat(fixture.imagePersistencePort.sortsOf())
             .containsExactly(entry(10L, 0), entry(11L, 1), entry(12L, 2));
     }
@@ -224,7 +225,7 @@ class ShopMenuCollectionImageServiceTest {
         assertThatThrownBy(() -> fixture.service.reorder(SHOP_ID, List.of(10L, 11L, 99L)))
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue(
-                "errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
+                "errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
     }
 
     @Test
@@ -235,7 +236,7 @@ class ShopMenuCollectionImageServiceTest {
         assertThatThrownBy(() -> fixture.service.reorder(SHOP_ID, List.of(10L, 99L)))
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue(
-                "errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
+                "errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
         assertThat(fixture.imagePersistencePort.sortsOf())
             .containsExactly(entry(10L, 0), entry(11L, 1));
     }
@@ -249,7 +250,7 @@ class ShopMenuCollectionImageServiceTest {
         assertThatThrownBy(() -> fixture.service.reorder(SHOP_ID, List.of(10L, 20L)))
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue(
-                "errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
+                "errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
         assertThat(fixture.imagePersistencePort.require(20L).getSort()).isZero();
     }
 
@@ -285,7 +286,7 @@ class ShopMenuCollectionImageServiceTest {
 
         assertThatThrownBy(() -> fixture.service.approve(ShopMenuCollectionImageId.of(10L)))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING);
+            .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING);
     }
 
     @Test
@@ -295,7 +296,7 @@ class ShopMenuCollectionImageServiceTest {
 
         assertThatThrownBy(() -> fixture.service.approve(ShopMenuCollectionImageId.of(11L)))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING);
+            .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING);
         assertThat(fixture.imagePersistencePort.require(11L).getStatus()).isEqualTo(ApprovalStatus.REJECTED);
     }
 
@@ -307,7 +308,7 @@ class ShopMenuCollectionImageServiceTest {
         assertThatThrownBy(() ->
             fixture.service.reject(ShopMenuCollectionImageId.of(10L), "다시 보니 흐립니다."))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING);
+            .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING);
         assertThat(fixture.imagePersistencePort.require(10L).getRejectReason()).isNull();
     }
 
@@ -318,7 +319,7 @@ class ShopMenuCollectionImageServiceTest {
 
         assertThatThrownBy(() -> fixture.service.approve(ShopMenuCollectionImageId.of(99L)))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND);
+            .hasFieldOrPropertyWithValue("errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND);
     }
 
     private static ShopMenuCollectionImage approved(Long id, int sort) {

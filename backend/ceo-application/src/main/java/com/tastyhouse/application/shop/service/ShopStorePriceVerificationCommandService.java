@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
 import com.tastyhouse.domain.product.model.StorePriceVerificationItemSpec;
@@ -18,6 +16,8 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
 import com.tastyhouse.application.product.service.StorePriceVerificationService;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationItemCommand;
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationRequestCommand;
@@ -94,17 +94,17 @@ class ShopStorePriceVerificationCommandService implements ShopStorePriceVerifica
 
     private List<ShopStorePriceVerificationItemCommand> parseItems(String items) {
         if (items == null || items.isBlank()) {
-            throw new BusinessException(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_TARGET_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_TARGET_EMPTY);
         }
         List<ShopStorePriceVerificationItemCommand> parsed;
         try {
             parsed = objectMapper.readValue(items, ITEMS_TYPE);
         } catch (JsonProcessingException e) {
-            throw new BusinessException(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_TARGET_EMPTY,
+            throw new ApplicationException(ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_TARGET_EMPTY,
                 "인증 대상 목록(items)의 형식이 올바르지 않습니다.");
         }
         if (parsed == null || parsed.isEmpty()) {
-            throw new BusinessException(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_TARGET_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_TARGET_EMPTY);
         }
         return parsed;
     }

@@ -5,9 +5,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.ScheduledOrderSlot;
 import com.tastyhouse.domain.shop.model.ScheduledOrderSlotCalculator;
@@ -20,6 +17,10 @@ import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
@@ -50,7 +51,7 @@ public class ScheduledOrderSlotService {
 
     public List<ScheduledOrderSlot> findAvailableSlots(ShopId shopId, OrderMethod orderMethod, LocalDateTime now) {
         Shop shop = shopPersistencePort.findById(shopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
 
         return scheduledOrderSlotCalculator.calculate(buildContext(shop, shopId, orderMethod, now));
     }
@@ -64,8 +65,8 @@ public class ScheduledOrderSlotService {
         return findAvailableSlots(shopId, orderMethod, now).stream()
             .filter(slot -> slot.matches(scheduledAt))
             .findFirst()
-            .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_SCHEDULED_AT_UNAVAILABLE,
-                ErrorCode.ORDER_SCHEDULED_AT_UNAVAILABLE.getDefaultMessage() + ": " + scheduledAt));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.ORDER_SCHEDULED_AT_UNAVAILABLE,
+                WebErrorCode.ORDER_SCHEDULED_AT_UNAVAILABLE.getDefaultMessage() + ": " + scheduledAt));
     }
 
     private ScheduledOrderSlotContext buildContext(

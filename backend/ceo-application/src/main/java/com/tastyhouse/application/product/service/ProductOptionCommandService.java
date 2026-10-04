@@ -10,9 +10,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.CupDepositOptionRule;
 import com.tastyhouse.domain.product.model.CupDepositPolicy;
 import com.tastyhouse.domain.product.model.ProductOption;
@@ -26,6 +23,9 @@ import com.tastyhouse.application.product.port.in.ProductOptionOwnerCreateComman
 import com.tastyhouse.application.product.port.in.ProductOptionUpdateCommand;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -172,7 +172,7 @@ class ProductOptionCommandService implements ProductOptionCommandUseCase {
 
         List<Long> requested = distinct(optionIds);
         if (byId.size() != requested.size() || !byId.keySet().containsAll(requested)) {
-            throw new BusinessException(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
         }
 
         for (int index = 0; index < requested.size(); index++) {
@@ -193,7 +193,7 @@ class ProductOptionCommandService implements ProductOptionCommandUseCase {
     private void validateZeroPriceOptionAfterChange(ProductOption changed) {
         ProductOptionGroup group = productOptionGroupPersistencePort
             .findById(changed.getOptionGroupId())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
         if (!group.isRequired()) {
             return;
         }

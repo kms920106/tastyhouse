@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.architecture.ModuleOrigin;
 
-import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -46,10 +45,9 @@ class BatchSchedulerRulesTest {
                     "com.tastyhouse.domain..",
                     "com.tastyhouse.infrastructure..",
                     "org.springframework.web.."
-                ).and(not(resideInAPackage("com.tastyhouse.domain.exception..")))
+                )
             )
-            .because("인바운드 포트는 도메인 모델·infra·web 타입을 경계 밖으로 노출하지 않는다"
-                + "(domain.exception은 횡단 관심사라 carve-out)");
+            .because("인바운드 포트는 도메인 모델·infra·web 타입을 경계 밖으로 노출하지 않는다");
 
         rule.check(classes);
     }

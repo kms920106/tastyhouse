@@ -4,9 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
@@ -14,6 +11,10 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberPersistencePort;
 
@@ -39,7 +40,7 @@ public class ShopPhoneNumberRegistryService {
     public Long addPhoneNumber(Long shopId, String phoneNumber, boolean virtual, ShopChangeActor actor) {
         List<ShopPhoneNumber> existingPhoneNumbers = shopPhoneNumberPersistencePort.findByShopId(shopId);
         if (existingPhoneNumbers.size() >= MAX_PHONE_NUMBER_COUNT) {
-            throw new BusinessException(ErrorCode.SHOP_PHONE_NUMBER_LIMIT_EXCEEDED);
+            throw new ApplicationException(CeoErrorCode.SHOP_PHONE_NUMBER_LIMIT_EXCEEDED);
         }
 
         boolean primary = existingPhoneNumbers.isEmpty();
@@ -73,7 +74,7 @@ public class ShopPhoneNumberRegistryService {
 
     public void deletePhoneNumber(Long id, ShopChangeActor actor) {
         ShopPhoneNumber phoneNumber = shopPhoneNumberPersistencePort.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
         shopPhoneNumberPersistencePort.deleteById(id);
 
         shopChangeHistoryRecorder.record(
@@ -111,7 +112,7 @@ public class ShopPhoneNumberRegistryService {
 
     public void designatePrimary(Long id, ShopChangeActor actor) {
         ShopPhoneNumber target = shopPhoneNumberPersistencePort.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
 
         List<ShopPhoneNumber> phoneNumbers = shopPhoneNumberPersistencePort.findByShopId(target.getShopId().value());
         String previousPrimaryPhoneNumber = null;
@@ -151,7 +152,7 @@ public class ShopPhoneNumberRegistryService {
     private void syncShopPhoneNumber(Long shopId, String phoneNumber) {
         ShopId targetShopId = ShopId.of(shopId);
         Shop shop = shopPersistencePort.findById(targetShopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
         shop.changePhoneNumber(phoneNumber);
         shopPersistencePort.save(shop);
     }

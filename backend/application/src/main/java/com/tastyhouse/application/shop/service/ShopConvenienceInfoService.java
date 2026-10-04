@@ -6,9 +6,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopAmenity;
@@ -20,6 +17,9 @@ import com.tastyhouse.domain.shop.model.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
 import com.tastyhouse.domain.shop.vo.ShopAmenityCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
@@ -110,7 +110,7 @@ public class ShopConvenienceInfoService {
 
     public Long assignAmenity(Long shopId, Long amenityCategoryId, ShopChangeActor actor) {
         ShopAmenityCategory amenityCategory = shopDetailPersistencePort.findAmenityCategoryById(amenityCategoryId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
 
         ShopAmenity amenity = shopDetailPersistencePort.saveAmenity(
             ShopAmenity.of(ShopId.of(shopId), ShopAmenityCategoryId.of(amenityCategoryId))
@@ -129,7 +129,7 @@ public class ShopConvenienceInfoService {
 
     public void unassignAmenity(Long shopId, Long amenityCategoryId, ShopChangeActor actor) {
         ShopAmenityCategory amenityCategory = shopDetailPersistencePort.findAmenityCategoryById(amenityCategoryId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
 
         shopDetailPersistencePort.deleteAmenityByShopIdAndCategoryId(shopId, amenityCategoryId);
 
@@ -180,13 +180,13 @@ public class ShopConvenienceInfoService {
 
     private void validateDisplayLocation(Long shopId, BigDecimal displayLatitude, BigDecimal displayLongitude) {
         Shop shop = shopPersistencePort.findById(ShopId.of(shopId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
 
         double distanceMeters = GeoDistance.distanceMeters(
             displayLatitude, displayLongitude, shop.getLatitude(), shop.getLongitude()
         );
         if (distanceMeters > MAX_DISPLAY_LOCATION_DISTANCE_METERS) {
-            throw new BusinessException(ErrorCode.SHOP_DISPLAY_LOCATION_OUT_OF_RANGE);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_DISPLAY_LOCATION_OUT_OF_RANGE);
         }
     }
 }

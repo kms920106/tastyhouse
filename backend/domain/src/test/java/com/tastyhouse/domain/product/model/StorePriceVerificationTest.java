@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -46,7 +46,7 @@ class StorePriceVerificationTest {
         assertThatThrownBy(() -> verification.startReview(NOW))
             .isInstanceOf(BusinessException.class)
             .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_PENDING));
+                .isEqualTo(DomainErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_PENDING));
     }
 
     @Test
@@ -90,7 +90,7 @@ class StorePriceVerificationTest {
         assertThatThrownBy(() -> rejected.approve(NOW))
             .isInstanceOf(BusinessException.class)
             .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_PENDING));
+                .isEqualTo(DomainErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_PENDING));
 
         StorePriceVerification approved = pending();
         approved.approve(NOW);
@@ -127,6 +127,6 @@ class StorePriceVerificationTest {
         assertThatThrownBy(() -> StorePriceVerificationStatus.from("UNKNOWN"))
             .isInstanceOf(BusinessException.class)
             .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_STATUS_UNKNOWN));
+                .isEqualTo(DomainErrorCode.SHOP_STORE_PRICE_VERIFICATION_STATUS_UNKNOWN));
     }
 }

@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum DeliveryAreaAdjustmentStatus {
 
@@ -15,8 +15,8 @@ public enum DeliveryAreaAdjustmentStatus {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN,
-                ErrorCode.DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN,
+                DomainErrorCode.DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

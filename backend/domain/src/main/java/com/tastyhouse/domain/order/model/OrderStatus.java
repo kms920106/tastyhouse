@@ -2,8 +2,8 @@ package com.tastyhouse.domain.order.model;
 
 import java.util.Set;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum OrderStatus {
 
@@ -17,8 +17,8 @@ public enum OrderStatus {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.ORDER_STATUS_UNKNOWN,
-                ErrorCode.ORDER_STATUS_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.ORDER_STATUS_UNKNOWN,
+                DomainErrorCode.ORDER_STATUS_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 

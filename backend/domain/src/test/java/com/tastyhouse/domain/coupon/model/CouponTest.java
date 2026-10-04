@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -171,17 +171,17 @@ class CouponTest {
         assertThatThrownBy(() -> couponOf(DiscountType.RATE, 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_DISCOUNT_RATE_INVALID);
+            .isEqualTo(DomainErrorCode.COUPON_DISCOUNT_RATE_INVALID);
 
         assertThatThrownBy(() -> couponOf(DiscountType.RATE, 101))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_DISCOUNT_RATE_INVALID);
+            .isEqualTo(DomainErrorCode.COUPON_DISCOUNT_RATE_INVALID);
 
         assertThatThrownBy(() -> couponOf(DiscountType.RATE, 200))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_DISCOUNT_RATE_INVALID);
+            .isEqualTo(DomainErrorCode.COUPON_DISCOUNT_RATE_INVALID);
     }
 
     @Test
@@ -192,12 +192,12 @@ class CouponTest {
         assertThatThrownBy(() -> couponOf(DiscountType.AMOUNT, 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_DISCOUNT_AMOUNT_INVALID);
+            .isEqualTo(DomainErrorCode.COUPON_DISCOUNT_AMOUNT_INVALID);
 
         assertThatThrownBy(() -> couponOf(DiscountType.AMOUNT, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_DISCOUNT_AMOUNT_INVALID);
+            .isEqualTo(DomainErrorCode.COUPON_DISCOUNT_AMOUNT_INVALID);
     }
 
     @Test
@@ -206,12 +206,12 @@ class CouponTest {
         assertThatThrownBy(() -> couponWithPeriod(END, START, START, END))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_PERIOD_INVALID);
+            .isEqualTo(DomainErrorCode.COUPON_PERIOD_INVALID);
 
         assertThatThrownBy(() -> couponWithPeriod(START, END, END, START))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_PERIOD_INVALID);
+            .isEqualTo(DomainErrorCode.COUPON_PERIOD_INVALID);
     }
 
     @Test
@@ -226,7 +226,7 @@ class CouponTest {
         assertThatThrownBy(() -> couponWithPeriod(START, END, START, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_USE_END_AT_REQUIRED);
+            .isEqualTo(DomainErrorCode.COUPON_USE_END_AT_REQUIRED);
     }
 
     @Test
@@ -236,13 +236,13 @@ class CouponTest {
             START, END, START, END, true))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_AMOUNT_NEGATIVE);
+            .isEqualTo(DomainErrorCode.COUPON_AMOUNT_NEGATIVE);
 
         assertThatThrownBy(() -> Coupon.of("쿠폰명", "설명", DiscountType.AMOUNT, 1000, null, -1, null,
             START, END, START, END, true))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_AMOUNT_NEGATIVE);
+            .isEqualTo(DomainErrorCode.COUPON_AMOUNT_NEGATIVE);
     }
 
     @Test
@@ -254,7 +254,7 @@ class CouponTest {
             START, END, START, END, true))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.COUPON_DISCOUNT_RATE_INVALID);
+            .isEqualTo(DomainErrorCode.COUPON_DISCOUNT_RATE_INVALID);
 
         assertThat(coupon.getDiscountType()).isEqualTo(DiscountType.AMOUNT);
         assertThat(coupon.getDiscountAmount()).isEqualTo(1000);

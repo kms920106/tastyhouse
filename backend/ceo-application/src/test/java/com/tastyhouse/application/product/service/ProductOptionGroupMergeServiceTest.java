@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
@@ -29,6 +28,9 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.testsupport.product.service.FakeProductOptionGroupLinkPersistencePort;
 import com.tastyhouse.testsupport.product.service.StubProductPersistencePort;
 
@@ -154,7 +156,7 @@ class ProductOptionGroupMergeServiceTest {
         assertThatThrownBy(fixture::merge)
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY);
+            .isEqualTo(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY);
     }
 
     @Test
@@ -165,7 +167,7 @@ class ProductOptionGroupMergeServiceTest {
         assertThatThrownBy(() -> fixture.merge(BASE_GROUP))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_BASE_INCLUDED);
+            .isEqualTo(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_BASE_INCLUDED);
     }
 
     @Test
@@ -177,7 +179,7 @@ class ProductOptionGroupMergeServiceTest {
         assertThatThrownBy(() -> fixture.merge(TARGET_GROUP))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_HIDDEN_TARGET);
+            .isEqualTo(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_HIDDEN_TARGET);
     }
 
     @Test
@@ -190,7 +192,7 @@ class ProductOptionGroupMergeServiceTest {
         assertThatThrownBy(() -> fixture.merge(TARGET_GROUP))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_SAME_PRODUCT_LINKED);
+            .isEqualTo(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_SAME_PRODUCT_LINKED);
     }
 
     @Test
@@ -205,7 +207,7 @@ class ProductOptionGroupMergeServiceTest {
         assertThatThrownBy(() -> fixture.merge(TARGET_GROUP, 300L))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_SAME_PRODUCT_LINKED);
+            .isEqualTo(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_SAME_PRODUCT_LINKED);
     }
 
     @Test
@@ -217,7 +219,7 @@ class ProductOptionGroupMergeServiceTest {
         assertThatThrownBy(() -> fixture.merge(400L))
             .isInstanceOf(ResourceNotFoundException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
     }
 
     @Test
@@ -232,7 +234,7 @@ class ProductOptionGroupMergeServiceTest {
         assertThatThrownBy(() -> fixture.merge(500L))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_SHOP_MISMATCH);
+            .isEqualTo(CeoErrorCode.PRODUCT_OPTION_GROUP_SHOP_MISMATCH);
     }
 
     @Test
@@ -251,7 +253,7 @@ class ProductOptionGroupMergeServiceTest {
         assertThatThrownBy(() -> fixture.merge(600L))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_TYPE_MISMATCH);
+            .isEqualTo(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_TYPE_MISMATCH);
     }
 
     @Test
@@ -265,7 +267,7 @@ class ProductOptionGroupMergeServiceTest {
         assertThatThrownBy(() -> fixture.merge(TARGET_GROUP))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
     }
 
     private static Fixture defaultFixture() {

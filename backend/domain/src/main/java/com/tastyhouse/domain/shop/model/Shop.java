@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -223,7 +223,7 @@ public class Shop {
 
         if (minOrderAmount != MIN_ORDER_AMOUNT_UNSET
             && (minOrderAmount < MIN_ORDER_AMOUNT_LOWER_BOUND || minOrderAmount > MIN_ORDER_AMOUNT_UPPER_BOUND)) {
-            throw new BusinessException(ErrorCode.SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE);
+            throw new DomainException(DomainErrorCode.SHOP_MIN_ORDER_AMOUNT_OUT_OF_RANGE);
         }
 
         this.minOrderAmount = minOrderAmount;
@@ -235,7 +235,7 @@ public class Shop {
         }
 
         if (orderAmountAfterProductDiscount < minOrderAmount) {
-            throw new BusinessException(ErrorCode.SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET);
+            throw new DomainException(DomainErrorCode.SHOP_MINIMUM_ORDER_AMOUNT_NOT_MET);
         }
     }
 
@@ -269,7 +269,7 @@ public class Shop {
 
     public void validateCupDepositEnabled() {
         if (!this.cupDepositEnabled) {
-            throw new BusinessException(ErrorCode.SHOP_CUP_DEPOSIT_NOT_ENABLED);
+            throw new DomainException(DomainErrorCode.SHOP_CUP_DEPOSIT_NOT_ENABLED);
         }
     }
 
@@ -289,7 +289,7 @@ public class Shop {
 
     private void validateNotPermanentlyClosed() {
         if (permanentlyClosed) {
-            throw new BusinessException(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+            throw new DomainException(DomainErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
         }
     }
 

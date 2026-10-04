@@ -11,9 +11,6 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.review.model.ReviewListTab;
@@ -39,6 +36,10 @@ import com.tastyhouse.application.review.port.out.ShopReviewSortTypeView;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsOwnerResult;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewTabFilter;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -120,9 +121,9 @@ class ShopReviewQueryService implements ShopReviewQueryUseCase {
 
         ShopReviewManagementDetailResult detail =
             shopReviewManagementQueryPort.findShopReviewDetail(ReviewId.of(reviewId).value())
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         if (!shopId.equals(detail.shopId())) {
-            throw new BusinessException(ErrorCode.SHOP_ACCESS_DENIED);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_ACCESS_DENIED);
         }
 
         return toDetailViewResult(detail.withDescriptions(
@@ -256,7 +257,7 @@ class ShopReviewQueryService implements ShopReviewQueryUseCase {
 
     private void validateDateRange(LocalDate startDate, LocalDate endDate) {
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-            throw new BusinessException(ErrorCode.REVIEW_DATE_RANGE_INVALID);
+            throw new ApplicationException(CeoErrorCode.REVIEW_DATE_RANGE_INVALID);
         }
     }
 

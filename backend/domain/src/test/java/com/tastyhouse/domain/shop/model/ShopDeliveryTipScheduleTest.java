@@ -10,7 +10,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -91,7 +91,7 @@ class ShopDeliveryTipScheduleTest {
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_DAY_TYPE_NOT_ALLOWED);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_DAY_TYPE_NOT_ALLOWED);
         }
 
         @Test
@@ -102,7 +102,7 @@ class ShopDeliveryTipScheduleTest {
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_DAY_TYPE_NOT_ALLOWED);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_DAY_TYPE_NOT_ALLOWED);
         }
 
         @Test
@@ -113,7 +113,7 @@ class ShopDeliveryTipScheduleTest {
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP);
         }
 
         @ParameterizedTest(name = "금액 {0}원은 통과한다")
@@ -134,7 +134,7 @@ class ShopDeliveryTipScheduleTest {
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_EXTRA_AMOUNT_OUT_OF_RANGE);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_EXTRA_AMOUNT_OUT_OF_RANGE);
         }
     }
 
@@ -150,7 +150,7 @@ class ShopDeliveryTipScheduleTest {
             assertThatThrownBy(() -> schedule.update(DayType.HOLIDAY, LocalTime.of(18, 0), LocalTime.of(21, 0), 1000))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_DAY_TYPE_NOT_ALLOWED);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_DAY_TYPE_NOT_ALLOWED);
 
             schedule.update(DayType.SATURDAY, LocalTime.of(11, 0), LocalTime.of(14, 0), 2000);
 

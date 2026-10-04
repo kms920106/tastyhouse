@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum RiderGuideActorType {
 
@@ -22,7 +22,7 @@ public enum RiderGuideActorType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.SHOP_RIDER_GUIDE_ACTION_TYPE_UNKNOWN,
+            throw new DomainException(DomainErrorCode.SHOP_RIDER_GUIDE_ACTION_TYPE_UNKNOWN,
                 "알 수 없는 라이더 안내 변경 주체입니다: " + code);
         }
     }

@@ -2,8 +2,8 @@ package com.tastyhouse.application.event.port.in;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record EventAnnouncementCreateCommand(
     Long eventId,
@@ -14,7 +14,7 @@ public record EventAnnouncementCreateCommand(
 
     public EventAnnouncementCreateCommand {
         if (eventId == null || name == null || content == null || announcedAt == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

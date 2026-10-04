@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
@@ -36,7 +36,7 @@ class ProductOptionSelectionRuleTest {
             ProductOptionSelectionRule.validateRemainingAfterBlocking(group, only, List.of(only)))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
     }
 
     @Test
@@ -50,7 +50,7 @@ class ProductOptionSelectionRuleTest {
             ProductOptionSelectionRule.validateRemainingAfterBlocking(group, target, options))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_MAX_SELECT_VIOLATION);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_MAX_SELECT_VIOLATION);
     }
 
     @Test
@@ -85,7 +85,7 @@ class ProductOptionSelectionRuleTest {
             required, List.of(option(1L, 500, true), option(2L, 1000, true))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_REQUIRES_ZERO_PRICE_OPTION);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_GROUP_REQUIRES_ZERO_PRICE_OPTION);
     }
 
     @Test
@@ -103,7 +103,7 @@ class ProductOptionSelectionRuleTest {
             requiredGroup(), List.of(option(1L, 0, false), option(2L, 1000, true))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_REQUIRES_ZERO_PRICE_OPTION);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_GROUP_REQUIRES_ZERO_PRICE_OPTION);
     }
 
     @Test

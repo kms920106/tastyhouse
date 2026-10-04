@@ -2,8 +2,8 @@ package com.tastyhouse.domain.member.referral.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.member.vo.MemberId;
 
@@ -69,14 +69,14 @@ public class MemberReferral {
 
     public void reward() {
         if (this.status != MemberReferralStatus.PENDING) {
-            throw new BusinessException(ErrorCode.REFERRAL_INVALID_STATUS);
+            throw new DomainException(DomainErrorCode.REFERRAL_INVALID_STATUS);
         }
         this.status = MemberReferralStatus.REWARDED;
     }
 
     public void cancel() {
         if (this.status != MemberReferralStatus.PENDING) {
-            throw new BusinessException(ErrorCode.REFERRAL_INVALID_STATUS);
+            throw new DomainException(DomainErrorCode.REFERRAL_INVALID_STATUS);
         }
         this.status = MemberReferralStatus.CANCELLED;
     }

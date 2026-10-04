@@ -2,11 +2,11 @@ package com.tastyhouse.application.shop.service;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 @Service
@@ -39,6 +39,6 @@ public class StorePriceVerificationAdapter implements StorePriceVerificationPort
 
     private Shop loadShop(Long shopId) {
         return shopPersistencePort.findById(ShopId.of(shopId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 }

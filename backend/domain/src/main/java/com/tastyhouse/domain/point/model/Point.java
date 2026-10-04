@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.point.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public class Point {
@@ -32,7 +32,7 @@ public class Point {
 
     public void deductPoints(Integer amount) {
         if (this.availablePoints < amount) {
-            throw new BusinessException(ErrorCode.POINT_INSUFFICIENT);
+            throw new DomainException(DomainErrorCode.POINT_INSUFFICIENT);
         }
         this.availablePoints -= amount;
     }

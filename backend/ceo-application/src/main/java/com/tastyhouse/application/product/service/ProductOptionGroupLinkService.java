@@ -11,8 +11,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -20,6 +18,9 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Service
 public class ProductOptionGroupLinkService {
@@ -48,10 +49,10 @@ public class ProductOptionGroupLinkService {
     public void unlink(ProductId productId, ProductOptionGroupId optionGroupId) {
         ProductOptionGroupLink link = linkPersistencePort
             .findByProductIdAndOptionGroupId(productId, optionGroupId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
 
         if (linkPersistencePort.findAllByOptionGroupId(optionGroupId).size() <= 1) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_LAST_LINK_CANNOT_UNLINK);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_LAST_LINK_CANNOT_UNLINK);
         }
 
         linkPersistencePort.delete(link);
@@ -65,7 +66,7 @@ public class ProductOptionGroupLinkService {
 
         List<Long> requested = distinctRawIds(orderedGroupIds);
         if (byGroupId.size() != requested.size() || !byGroupId.keySet().containsAll(requested)) {
-            throw new BusinessException(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
         }
 
         for (int index = 0; index < requested.size(); index++) {
@@ -115,11 +116,11 @@ public class ProductOptionGroupLinkService {
 
     private void validateSameShop(ProductId productId, ProductOptionGroupId optionGroupId) {
         Product product = productPersistencePort.findById(productId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
 
         ShopId owner = findOwningShopId(optionGroupId);
         if (owner != null && !owner.equals(product.getShopId())) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_SHOP_MISMATCH);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_SHOP_MISMATCH);
         }
     }
 

@@ -8,12 +8,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.testsupport.product.service.FakeProductOptionGroupLinkPersistencePort;
 import com.tastyhouse.testsupport.product.service.StubProductPersistencePort;
 
@@ -38,7 +39,7 @@ class ProductOptionGroupLinkServiceTest {
             fixture.service.link(ProductId.of(10L), ProductOptionGroupId.of(100L)))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_SHOP_MISMATCH);
+            .isEqualTo(CeoErrorCode.PRODUCT_OPTION_GROUP_SHOP_MISMATCH);
     }
 
     @Test
@@ -103,7 +104,7 @@ class ProductOptionGroupLinkServiceTest {
             fixture.service.unlink(ProductId.of(10L), ProductOptionGroupId.of(100L)))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_LAST_LINK_CANNOT_UNLINK);
+            .isEqualTo(CeoErrorCode.PRODUCT_OPTION_GROUP_LAST_LINK_CANNOT_UNLINK);
     }
 
     @Test
@@ -174,7 +175,7 @@ class ProductOptionGroupLinkServiceTest {
             List.of(ProductOptionGroupId.of(100L))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
     }
 
     private static final class Fixture {

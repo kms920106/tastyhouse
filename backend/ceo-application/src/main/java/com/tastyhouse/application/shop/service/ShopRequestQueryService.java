@@ -7,9 +7,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
@@ -19,6 +16,10 @@ import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthorType;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.application.review.service.ReviewBlindRequestService;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.CodeLabelResult;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -87,7 +88,7 @@ class ShopRequestQueryService implements ShopRequestQueryUseCase {
 
         ShopRequestDetailResult detail = shopRequestQueryPort.findRequestDetail(requestId)
             .filter(row -> shopId.equals(row.shopId()))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         return switch (ShopRequestType.valueOf(detail.requestType())) {
             case TRADEMARK_CHANGE, THUMBNAIL_CHANGE -> toImageChangeDetailResult(detail);
@@ -103,7 +104,7 @@ class ShopRequestQueryService implements ShopRequestQueryUseCase {
 
         ShopRequestDetailResult detail = shopRequestQueryPort.findRequestDetail(requestId)
             .filter(row -> shopId.equals(row.shopId()))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         return withAuthorTypeDescriptions(shopRequestQueryPort.findComments(detail.requestId()));
     }
@@ -134,7 +135,7 @@ class ShopRequestQueryService implements ShopRequestQueryUseCase {
 
     private void validateDateRange(LocalDate startDate, LocalDate endDate) {
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
-            throw new BusinessException(ErrorCode.SHOP_REQUEST_DATE_RANGE_INVALID);
+            throw new ApplicationException(CeoErrorCode.SHOP_REQUEST_DATE_RANGE_INVALID);
         }
     }
 
@@ -144,7 +145,7 @@ class ShopRequestQueryService implements ShopRequestQueryUseCase {
                 .map(result -> result.withImageTypeDescription(result.imageType() == null
                     ? null
                     : ShopImageType.valueOf(result.imageType()).getDescription()))
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         return toDetailViewResult(
             detail,
@@ -171,7 +172,7 @@ class ShopRequestQueryService implements ShopRequestQueryUseCase {
                 .map(result -> result.withReasonDescription(result.reason() == null
                     ? null
                     : ReviewBlindReason.valueOf(result.reason()).getDescription()))
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         return toDetailViewResult(
             detail,
@@ -197,7 +198,7 @@ class ShopRequestQueryService implements ShopRequestQueryUseCase {
     private ShopRequestDetailViewResult toAdjustmentDetailResult(ShopRequestDetailResult detail) {
         ShopRequestAdjustmentDetailResult source =
             shopRequestQueryPort.findAdjustmentDetail(detail.sourceRequestId())
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         return toDetailViewResult(
             detail,

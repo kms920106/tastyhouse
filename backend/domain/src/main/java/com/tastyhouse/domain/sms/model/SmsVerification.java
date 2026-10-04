@@ -2,8 +2,8 @@ package com.tastyhouse.domain.sms.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 import com.tastyhouse.domain.sms.vo.SmsVerificationId;
@@ -70,10 +70,10 @@ public class SmsVerification {
     public void verify(VerificationCode inputCode, LocalDateTime now) {
         if (now.isAfter(this.expiresAt)) {
             this.status = SmsVerificationStatus.EXPIRED;
-            throw new BusinessException(ErrorCode.SMS_VERIFICATION_CODE_EXPIRED);
+            throw new DomainException(DomainErrorCode.SMS_VERIFICATION_CODE_EXPIRED);
         }
         if (!this.verificationCode.equals(inputCode)) {
-            throw new BusinessException(ErrorCode.SMS_VERIFICATION_CODE_MISMATCH);
+            throw new DomainException(DomainErrorCode.SMS_VERIFICATION_CODE_MISMATCH);
         }
         this.status = SmsVerificationStatus.VERIFIED;
         this.verifiedAt = now;

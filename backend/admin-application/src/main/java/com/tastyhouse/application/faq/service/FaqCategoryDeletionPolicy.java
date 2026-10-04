@@ -2,10 +2,10 @@ package com.tastyhouse.application.faq.service;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.faq.model.FaqCategory;
 import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
 public class FaqCategoryDeletionPolicy {
@@ -18,7 +18,7 @@ public class FaqCategoryDeletionPolicy {
 
     public void delete(FaqCategory faqCategory) {
         if (faqCategoryPersistencePort.existsActiveItemsByCategoryId(faqCategory.getFaqCategoryId())) {
-            throw new BusinessException(ErrorCode.FAQ_CATEGORY_HAS_ITEMS);
+            throw new ApplicationException(AdminErrorCode.FAQ_CATEGORY_HAS_ITEMS);
         }
 
         faqCategory.delete();

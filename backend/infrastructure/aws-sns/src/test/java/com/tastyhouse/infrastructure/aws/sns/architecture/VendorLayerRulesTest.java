@@ -23,7 +23,7 @@ class VendorLayerRulesTest {
 
         noClasses()
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.domain..")
-            .because("벤더 어댑터는 application의 포트만 구현한다 — 실패는 결과 record로 돌려주고 ErrorCode 번역은 application이 맡는다")
+            .because("벤더 어댑터는 application의 포트만 구현한다 — 실패는 결과 record로 돌려주고 에러코드 번역은 application이 맡는다")
             .check(classes);
     }
 

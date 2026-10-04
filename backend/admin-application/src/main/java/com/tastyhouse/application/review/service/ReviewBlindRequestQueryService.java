@@ -5,8 +5,6 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.model.ReviewBlindReason;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.application.review.port.in.ReviewBlindRequestQueryUseCase;
@@ -14,6 +12,8 @@ import com.tastyhouse.application.review.port.out.ReviewBlindRequestDetailResult
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestManagementQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestSearchCondition;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -51,7 +51,7 @@ class ReviewBlindRequestQueryService implements ReviewBlindRequestQueryUseCase {
     public ReviewBlindRequestDetailResult getBlindRequest(Long id) {
         return reviewBlindRequestManagementQueryPort.findBlindRequestDetail(id)
             .map(detail -> detail.withDescriptions(reasonDescription(detail.reason()), statusDescription(detail.status())))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND));
     }
 
     private static String reasonDescription(String reason) {

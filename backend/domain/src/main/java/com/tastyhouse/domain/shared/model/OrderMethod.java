@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shared.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum OrderMethod {
 
@@ -24,8 +24,8 @@ public enum OrderMethod {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.ORDER_METHOD_UNKNOWN,
-                ErrorCode.ORDER_METHOD_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.ORDER_METHOD_UNKNOWN,
+                DomainErrorCode.ORDER_METHOD_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

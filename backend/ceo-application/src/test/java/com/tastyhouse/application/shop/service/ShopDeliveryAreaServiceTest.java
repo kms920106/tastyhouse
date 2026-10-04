@@ -14,8 +14,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
@@ -28,6 +26,8 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
 import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
@@ -53,7 +53,7 @@ class ShopDeliveryAreaServiceTest {
             assertThatThrownBy(() -> service.addArea(SHOP_ID, ADMIN_DONG_ID, ACTOR))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .extracting(exception -> ((BusinessException) exception).getErrorCode())
-                .isEqualTo(ErrorCode.ADMIN_DONG_NOT_FOUND);
+                .isEqualTo(CeoErrorCode.ADMIN_DONG_NOT_FOUND);
         }
 
         @Test
@@ -66,7 +66,7 @@ class ShopDeliveryAreaServiceTest {
             assertThatThrownBy(() -> service.addArea(SHOP_ID, ADMIN_DONG_ID, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting(exception -> ((BusinessException) exception).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_DUPLICATED);
+                .isEqualTo(CeoErrorCode.SHOP_DELIVERY_AREA_DUPLICATED);
         }
 
         @Test
@@ -96,7 +96,7 @@ class ShopDeliveryAreaServiceTest {
             assertThatThrownBy(() -> service.removeArea(999L, ACTOR))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .extracting(exception -> ((BusinessException) exception).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND);
+                .isEqualTo(CeoErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND);
         }
 
         @Test
@@ -111,7 +111,7 @@ class ShopDeliveryAreaServiceTest {
             assertThatThrownBy(() -> service.removeArea(deliveryAreaId, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting(exception -> ((BusinessException) exception).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_IN_USE);
+                .isEqualTo(CeoErrorCode.SHOP_DELIVERY_AREA_IN_USE);
             assertThat(areaPersistencePort.findById(deliveryAreaId)).isPresent();
         }
 

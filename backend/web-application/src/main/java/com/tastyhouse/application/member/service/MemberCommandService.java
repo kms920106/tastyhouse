@@ -4,9 +4,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
@@ -18,6 +15,10 @@ import com.tastyhouse.application.member.port.in.MemberPersonalInfoUpdateCommand
 import com.tastyhouse.application.member.port.in.MemberProfileUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberWithdrawCommand;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 @Transactional
@@ -67,11 +68,11 @@ class MemberCommandService implements MemberCommandUseCase {
         Member member = loadMember(command.memberId());
 
         if (passwordEncoder.matches(newPassword, member.getPassword())) {
-            throw new BusinessException(ErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
+            throw new ApplicationException(WebErrorCode.MEMBER_PASSWORD_SAME_AS_OLD);
         }
 
         if (!newPassword.equals(newPasswordConfirm)) {
-            throw new BusinessException(ErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
+            throw new ApplicationException(WebErrorCode.MEMBER_PASSWORD_CONFIRM_MISMATCH);
         }
 
         member.updatePassword(passwordEncoder.encode(newPassword));
@@ -89,6 +90,6 @@ class MemberCommandService implements MemberCommandUseCase {
 
     private Member loadMember(Long memberId) {
         return memberPersistencePort.findById(MemberId.of(memberId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
     }
 }

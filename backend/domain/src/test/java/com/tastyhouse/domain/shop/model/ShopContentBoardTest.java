@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -49,7 +49,7 @@ class ShopContentBoardTest {
         )
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_CONTENT_YOUTUBE_URL_INVALID);
+            .isEqualTo(DomainErrorCode.SHOP_CONTENT_YOUTUBE_URL_INVALID);
     }
 
     @Test
@@ -62,7 +62,7 @@ class ShopContentBoardTest {
         )
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_CONTENT_DESCRIPTION_TOO_LONG);
+            .isEqualTo(DomainErrorCode.SHOP_CONTENT_DESCRIPTION_TOO_LONG);
     }
 
     @Test
@@ -83,11 +83,11 @@ class ShopContentBoardTest {
         assertThatThrownBy(() -> ShopContentType.from("UNKNOWN"))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_CONTENT_TYPE_UNKNOWN);
+            .isEqualTo(DomainErrorCode.SHOP_CONTENT_TYPE_UNKNOWN);
 
         assertThatThrownBy(() -> ShopContentTopic.from("UNKNOWN"))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_CONTENT_TOPIC_UNKNOWN);
+            .isEqualTo(DomainErrorCode.SHOP_CONTENT_TOPIC_UNKNOWN);
     }
 }

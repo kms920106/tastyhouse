@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductBbq;
@@ -30,6 +28,8 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersi
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class ProductRegistrationService {
@@ -245,13 +245,13 @@ public class ProductRegistrationService {
 
     public void markBbqOptionsSynced(ProductId productId) {
         ProductBbq bbq = productBbqPersistencePort.findByProductId(productId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         bbq.markOptionsSynced();
         productBbqPersistencePort.save(bbq);
     }
 
     private Product loadProduct(ProductId productId) {
         return productPersistencePort.findById(productId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 }

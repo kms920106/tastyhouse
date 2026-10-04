@@ -2,8 +2,8 @@ package com.tastyhouse.domain.menureview.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.menureview.vo.MenuReviewId;
 import com.tastyhouse.domain.order.vo.OrderId;
@@ -127,8 +127,8 @@ public class MenuReview {
 
     private static void validateRating(Integer rating) {
         if (rating == null || rating < MIN_RATING || rating > MAX_RATING) {
-            throw new BusinessException(ErrorCode.MENU_REVIEW_NOT_ALLOWED,
-                ErrorCode.MENU_REVIEW_NOT_ALLOWED.getDefaultMessage() + " 평점: " + rating);
+            throw new DomainException(DomainErrorCode.MENU_REVIEW_NOT_ALLOWED,
+                DomainErrorCode.MENU_REVIEW_NOT_ALLOWED.getDefaultMessage() + " 평점: " + rating);
         }
     }
 

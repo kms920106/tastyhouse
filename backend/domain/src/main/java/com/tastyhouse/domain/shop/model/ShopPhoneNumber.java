@@ -3,8 +3,8 @@ package com.tastyhouse.domain.shop.model;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopPhoneNumber {
@@ -45,7 +45,7 @@ public class ShopPhoneNumber {
 
     public static ShopPhoneNumber of(ShopId shopId, String phoneNumber, boolean primary, boolean virtual) {
         if (virtual && !isValidVirtualNumber(phoneNumber)) {
-            throw new BusinessException(ErrorCode.SHOP_VIRTUAL_NUMBER_INVALID);
+            throw new DomainException(DomainErrorCode.SHOP_VIRTUAL_NUMBER_INVALID);
         }
         return new ShopPhoneNumber(null, shopId, phoneNumber, primary, virtual, null, null);
     }

@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum ShopContentType {
 
@@ -23,8 +23,8 @@ public enum ShopContentType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.SHOP_CONTENT_TYPE_UNKNOWN,
-                ErrorCode.SHOP_CONTENT_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.SHOP_CONTENT_TYPE_UNKNOWN,
+                DomainErrorCode.SHOP_CONTENT_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

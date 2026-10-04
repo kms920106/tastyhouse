@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.payment.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum PgProvider {
 
@@ -16,8 +16,8 @@ public enum PgProvider {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.PG_PROVIDER_UNKNOWN,
-                ErrorCode.PG_PROVIDER_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.PG_PROVIDER_UNKNOWN,
+                DomainErrorCode.PG_PROVIDER_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

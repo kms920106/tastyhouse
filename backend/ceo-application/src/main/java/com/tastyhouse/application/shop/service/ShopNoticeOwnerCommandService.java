@@ -7,9 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
@@ -18,6 +15,10 @@ import com.tastyhouse.domain.shop.model.ShopNotice;
 import com.tastyhouse.domain.shop.model.ShopNoticeImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopNoticeCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeExposureChangeCommand;
@@ -184,9 +185,9 @@ class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseCase {
 
     private ShopNotice loadOwnedNotice(Long shopId, Long noticeId) {
         ShopNotice notice = shopNoticePersistencePort.findById(noticeId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOTICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOTICE_NOT_FOUND));
         if (!notice.getShopId().equals(ShopId.of(shopId))) {
-            throw new ResourceNotFoundException(ErrorCode.SHOP_NOTICE_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOTICE_NOT_FOUND);
         }
         return notice;
     }
@@ -208,7 +209,7 @@ class ShopNoticeOwnerCommandService implements ShopNoticeOwnerCommandUseCase {
 
     private void validateImageCount(List<MultipartFile> images) {
         if (images.size() > MAX_NOTICE_IMAGE_COUNT) {
-            throw new BusinessException(ErrorCode.SHOP_NOTICE_IMAGE_LIMIT_EXCEEDED);
+            throw new ApplicationException(CeoErrorCode.SHOP_NOTICE_IMAGE_LIMIT_EXCEEDED);
         }
     }
 

@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record ShopDeliveryTipTiersUpdateCommand(
     Long ceoId,
@@ -13,7 +13,7 @@ public record ShopDeliveryTipTiersUpdateCommand(
 
     public ShopDeliveryTipTiersUpdateCommand {
         if (ceoId == null || shopId == null || tiers == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

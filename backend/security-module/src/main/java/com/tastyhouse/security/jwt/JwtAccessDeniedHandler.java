@@ -11,7 +11,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.application.shared.error.ErrorContracts;
+import com.tastyhouse.apicommon.exception.ApiErrorCode;
 
 @Component
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {
@@ -29,9 +29,9 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType("application/json;charset=UTF-8");
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
             HttpStatus.FORBIDDEN,
-            ErrorContracts.accessDenied().message()
+            ApiErrorCode.ACCESS_DENIED.getDefaultMessage()
         );
-        problemDetail.setProperty("errorCode", ErrorContracts.accessDenied().code());
+        problemDetail.setProperty("errorCode", ApiErrorCode.ACCESS_DENIED.getCode());
         response.getWriter().write(objectMapper.writeValueAsString(problemDetail));
     }
 }

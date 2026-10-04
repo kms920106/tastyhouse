@@ -4,9 +4,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
@@ -26,6 +25,9 @@ import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
 import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
 import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class PaymentConfirmationService {
@@ -50,14 +52,14 @@ public class PaymentConfirmationService {
     }
 
     public PaymentId open(MemberId memberId, OrderId orderId, PaymentMethod paymentMethod) {
-        Order order = orderTransitionService.loadOwnedBy(orderId, memberId, ErrorCode.PAYMENT_ORDER_ACCESS_DENIED);
+        Order order = orderTransitionService.loadOwnedBy(orderId, memberId, ApplicationErrorCode.PAYMENT_ORDER_ACCESS_DENIED);
 
         if (order.getOrderStatus() != OrderStatus.PENDING) {
-            throw new BusinessException(ErrorCode.PAYMENT_INVALID_ORDER_STATUS);
+            throw new ApplicationException(ApplicationErrorCode.PAYMENT_INVALID_ORDER_STATUS);
         }
 
         if (paymentPersistencePort.existsByOrderId(orderId)) {
-            throw new BusinessException(ErrorCode.PAYMENT_ALREADY_IN_PROGRESS);
+            throw new ApplicationException(ApplicationErrorCode.PAYMENT_ALREADY_IN_PROGRESS);
         }
 
         Payment payment = Payment.create(
@@ -93,16 +95,16 @@ public class PaymentConfirmationService {
 
     public PgConfirmationTarget preparePgConfirmation(MemberId memberId, String pgOrderId, int amount) {
         Payment payment = paymentPersistencePort.findByPgOrderId(pgOrderId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
 
-        orderTransitionService.loadOwnedBy(payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED);
+        orderTransitionService.loadOwnedBy(payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED);
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
+            throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
 
         if (!payment.getAmount().value().equals(amount)) {
-            throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
+            throw new ApplicationException(ApplicationErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
 
         return new PgConfirmationTarget(payment.getId(), pgOrderId, amount);
@@ -115,16 +117,16 @@ public class PaymentConfirmationService {
         PgConfirmResult result
     ) {
         Payment payment = paymentPersistencePort.findByPgOrderId(pgOrderId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
 
         Order order = orderTransitionService.loadOwnedBy(
-            payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
+            payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED
         );
 
         recordTossDetail(payment.getPaymentId(), result.detail());
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
+            throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
 
         payment.updatePgInfo(pgProvider, result.paymentKey(), pgOrderId);
@@ -153,7 +155,7 @@ public class PaymentConfirmationService {
 
     public void failPgConfirmation(String pgOrderId, PgConfirmResult result) {
         Payment payment = paymentPersistencePort.findByPgOrderId(pgOrderId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
 
         recordTossDetail(payment.getPaymentId(), result.detail());
 
@@ -167,18 +169,18 @@ public class PaymentConfirmationService {
 
     public PaymentId completeOnSitePayment(MemberId memberId, PaymentId paymentId) {
         Payment payment = paymentPersistencePort.findById(paymentId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
 
         Order order = orderTransitionService.loadOwnedBy(
-            payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
+            payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED
         );
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING);
+            throw new DomainException(DomainErrorCode.PAYMENT_NOT_PENDING);
         }
 
         if (!isOnSitePayment(payment.getPaymentMethod())) {
-            throw new BusinessException(ErrorCode.PAYMENT_NOT_ON_SITE);
+            throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_ON_SITE);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -211,10 +213,10 @@ public class PaymentConfirmationService {
 
     private Payment loadPendingPayment(PaymentId paymentId) {
         Payment payment = paymentPersistencePort.findById(paymentId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
+            throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
         return payment;
     }

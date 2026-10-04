@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -26,7 +26,7 @@ class ReviewSortTypeTest {
             .isInstanceOf(BusinessException.class)
             .satisfies(e -> {
                 BusinessException exception = (BusinessException) e;
-                assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_SORT_TYPE_UNKNOWN);
+                assertThat(exception.getErrorCode()).isEqualTo(DomainErrorCode.REVIEW_SORT_TYPE_UNKNOWN);
                 assertThat(exception.getErrorCode().getHttpStatusCode()).isEqualTo(400);
             });
     }

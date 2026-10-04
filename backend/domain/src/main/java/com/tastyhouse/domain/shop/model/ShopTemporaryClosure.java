@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopTemporaryClosure {
@@ -26,7 +26,7 @@ public class ShopTemporaryClosure {
 
     public static ShopTemporaryClosure of(ShopId shopId, LocalDate startDate, LocalDate endDate) {
         if (endDate.isBefore(startDate)) {
-            throw new BusinessException(ErrorCode.SHOP_TEMPORARY_CLOSURE_INVALID_PERIOD);
+            throw new DomainException(DomainErrorCode.SHOP_TEMPORARY_CLOSURE_INVALID_PERIOD);
         }
 
         return new ShopTemporaryClosure(null, shopId, startDate, endDate, null);

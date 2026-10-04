@@ -3,8 +3,8 @@ package com.tastyhouse.application.order.port.in;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record OrderCreateCommand(
     Long memberId,
@@ -26,7 +26,7 @@ public record OrderCreateCommand(
 
     public OrderCreateCommand {
         if (memberId == null || shopId == null || orderMethod == null || orderLines == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

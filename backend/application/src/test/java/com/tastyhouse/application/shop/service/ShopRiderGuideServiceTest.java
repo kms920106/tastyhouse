@@ -12,8 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.domain.shop.model.RiderGuideActionType;
 import com.tastyhouse.domain.shop.model.RiderGuideActorType;
@@ -25,6 +24,8 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
@@ -178,7 +179,7 @@ class ShopRiderGuideServiceTest {
         ))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+            .isEqualTo(DomainErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
     }
 
     @Test
@@ -222,7 +223,7 @@ class ShopRiderGuideServiceTest {
         assertThatThrownBy(() -> shopRiderGuideService.deleteVisitGuide(MISSING_SHOP_ID, 3L, "사유"))
             .isInstanceOf(ResourceNotFoundException.class)
             .extracting(exception -> ((ResourceNotFoundException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_NOT_FOUND);
+            .isEqualTo(ApplicationErrorCode.SHOP_NOT_FOUND);
     }
 
     @Test
@@ -231,7 +232,7 @@ class ShopRiderGuideServiceTest {
         assertThatThrownBy(() -> shopRiderGuideService.deleteVisitGuide(OPEN_SHOP_ID, 3L, "사유"))
             .isInstanceOf(ResourceNotFoundException.class)
             .extracting(exception -> ((ResourceNotFoundException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND);
+            .isEqualTo(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND);
     }
 
     @Test
@@ -294,7 +295,7 @@ class ShopRiderGuideServiceTest {
         assertThatThrownBy(() -> shopRiderGuideService.clearPickupLocation(CLOSED_SHOP_ID, RiderGuideActorType.CEO, 7L))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
+            .isEqualTo(DomainErrorCode.SHOP_ALREADY_PERMANENTLY_CLOSED);
     }
 
     @Test

@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.mail.event.MailVerifiedEvent;
 import com.tastyhouse.domain.mail.model.MailVerification;
 import com.tastyhouse.domain.mail.model.MailVerificationPurpose;
@@ -16,6 +14,8 @@ import com.tastyhouse.application.mail.port.out.MailSender;
 import com.tastyhouse.application.mail.port.out.write.MailVerificationPersistencePort;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 public class MailVerificationService {
@@ -39,7 +39,7 @@ public class MailVerificationService {
 
     public void issueForSignUp(String email) {
         if (memberPersistencePort.existsByUsername(email)) {
-            throw new BusinessException(ErrorCode.MEMBER_EMAIL_ALREADY_REGISTERED);
+            throw new ApplicationException(WebErrorCode.MEMBER_EMAIL_ALREADY_REGISTERED);
         }
         issue(email, MailVerificationPurpose.SIGN_UP);
     }
@@ -54,7 +54,7 @@ public class MailVerificationService {
             MailVerificationMessage.body(purpose, saved.getVerificationCode())
         );
         if (!result.success()) {
-            throw new BusinessException(ErrorCode.MAIL_SEND_FAILED, result.cause());
+            throw new ApplicationException(WebErrorCode.MAIL_SEND_FAILED, result.cause());
         }
 
         return saved;
@@ -73,7 +73,7 @@ public class MailVerificationService {
     public MailVerification confirm(String email, String verificationCode) {
         MailVerification verification = mailVerificationPersistencePort
             .findLatestPendingByEmail(email, MailVerificationStatus.PENDING)
-            .orElseThrow(() -> new BusinessException(ErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND));
 
         verification.verify(VerificationCode.of(verificationCode), LocalDateTime.now());
         return mailVerificationPersistencePort.save(verification);

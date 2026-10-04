@@ -9,9 +9,6 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.product.model.ProductAvailabilityChangeResult;
 import com.tastyhouse.domain.product.model.ProductOptionType;
 import com.tastyhouse.domain.product.model.ReleaseTarget;
 import com.tastyhouse.domain.product.vo.ProductCommonOptionId;
@@ -39,6 +36,8 @@ import com.tastyhouse.application.product.port.in.ProductSoldOutOwnerUseCase;
 import com.tastyhouse.application.product.port.in.ProductSoldOutUntilChangeCommand;
 import com.tastyhouse.application.product.port.in.ProductSoldOutUntilChangeUseCase;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityChangeView;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -212,7 +211,7 @@ class ProductAvailabilityCommandService implements ProductSoldOutOwnerUseCase, P
 
     private List<ProductId> toProductIds(List<Long> productIds) {
         if (productIds == null || productIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
         }
         return productIds.stream().map(ProductId::of).toList();
     }
@@ -231,7 +230,7 @@ class ProductAvailabilityCommandService implements ProductSoldOutOwnerUseCase, P
 
     private List<Long> filterByType(List<Long> optionIds, List<String> optionTypes, ProductOptionType wanted) {
         if (optionIds == null || optionIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
         }
         List<Long> filtered = new ArrayList<>();
         for (int i = 0; i < optionIds.size(); i++) {

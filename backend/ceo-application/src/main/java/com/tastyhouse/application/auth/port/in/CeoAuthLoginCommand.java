@@ -1,7 +1,7 @@
 package com.tastyhouse.application.auth.port.in;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record CeoAuthLoginCommand(
     String username,
@@ -13,10 +13,10 @@ public record CeoAuthLoginCommand(
 
     public CeoAuthLoginCommand {
         if (username == null || username.isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
         if (password == null || password.isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 

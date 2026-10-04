@@ -1,13 +1,13 @@
 package com.tastyhouse.application.product.port.in;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record ProductVegetarianRejectCommand(Long requestId, String rejectReason) {
 
     public ProductVegetarianRejectCommand {
         if (requestId == null || rejectReason == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

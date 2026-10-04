@@ -11,8 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
@@ -22,6 +21,8 @@ import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
 import com.tastyhouse.testsupport.review.service.FakeReviewBlindRequestPersistencePort;
@@ -107,7 +108,7 @@ class ShopRequestCancelServiceTest {
         assertThatThrownBy(() -> service.cancel(requestId, SHOP_ID))
             .isInstanceOf(BusinessException.class)
             .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_REQUEST_NOT_CANCELABLE));
+                .isEqualTo(DomainErrorCode.SHOP_REQUEST_NOT_CANCELABLE));
     }
 
     @Test
@@ -119,7 +120,7 @@ class ShopRequestCancelServiceTest {
         assertThatThrownBy(() -> service.cancel(requestId, SHOP_ID))
             .isInstanceOf(BusinessException.class)
             .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_REQUEST_NOT_CANCELABLE));
+                .isEqualTo(DomainErrorCode.SHOP_REQUEST_NOT_CANCELABLE));
     }
 
     @Test
@@ -130,7 +131,7 @@ class ShopRequestCancelServiceTest {
         assertThatThrownBy(() -> service.cancel(requestId, OTHER_SHOP_ID))
             .isInstanceOf(ResourceNotFoundException.class)
             .satisfies(thrown -> assertThat(((ResourceNotFoundException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+                .isEqualTo(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
     }
 
     @Test
@@ -143,7 +144,7 @@ class ShopRequestCancelServiceTest {
         assertThatThrownBy(() -> canceled.reject("형식 미비"))
             .isInstanceOf(BusinessException.class)
             .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED));
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED));
     }
 
     private Long registerImageChangeRequest() {

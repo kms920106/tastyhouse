@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.product.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum ProductFeedbackType {
 
@@ -17,12 +17,12 @@ public enum ProductFeedbackType {
 
     public static ProductFeedbackType from(String value) {
         if (value == null) {
-            throw new BusinessException(ErrorCode.PRODUCT_FEEDBACK_TYPE_UNKNOWN);
+            throw new DomainException(DomainErrorCode.PRODUCT_FEEDBACK_TYPE_UNKNOWN);
         }
         try {
             return valueOf(value.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.PRODUCT_FEEDBACK_TYPE_UNKNOWN);
+            throw new DomainException(DomainErrorCode.PRODUCT_FEEDBACK_TYPE_UNKNOWN);
         }
     }
 

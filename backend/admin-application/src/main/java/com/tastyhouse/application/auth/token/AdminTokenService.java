@@ -6,10 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.admin.model.Admin;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
 import com.tastyhouse.application.auth.port.out.AdminJwtResult;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.security.jwt.TokenType;
 import com.tastyhouse.security.token.BlacklistRepository;
 import com.tastyhouse.security.token.RefreshTokenRepository;
@@ -50,21 +50,21 @@ public class AdminTokenService {
     @Transactional(readOnly = true)
     public AdminJwtResult refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new BusinessException(ErrorCode.ADMIN_AUTHENTICATION_FAILED, "유효하지 않은 Refresh Token입니다.");
+            throw new ApplicationException(AdminErrorCode.ADMIN_AUTHENTICATION_FAILED, "유효하지 않은 Refresh Token입니다.");
         }
         jwtTokenProvider.validateTokenType(refreshToken, TokenType.REFRESH);
 
         String username = jwtTokenProvider.getUsernameFromJWT(refreshToken);
 
         if (refreshTokenRepository.isInvalid(username, refreshToken)) {
-            throw new BusinessException(ErrorCode.ADMIN_AUTHENTICATION_FAILED, "만료되었거나 이미 로그아웃된 Refresh Token입니다.");
+            throw new ApplicationException(AdminErrorCode.ADMIN_AUTHENTICATION_FAILED, "만료되었거나 이미 로그아웃된 Refresh Token입니다.");
         }
 
         Admin admin = adminPersistencePort.findByUsername(username)
-            .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_AUTHENTICATION_FAILED, "존재하지 않는 관리자입니다."));
+            .orElseThrow(() -> new ApplicationException(AdminErrorCode.ADMIN_AUTHENTICATION_FAILED, "존재하지 않는 관리자입니다."));
         if (!admin.isActive()) {
             refreshTokenRepository.delete(username);
-            throw new BusinessException(ErrorCode.ADMIN_ACCOUNT_INACTIVE);
+            throw new ApplicationException(AdminErrorCode.ADMIN_ACCOUNT_INACTIVE);
         }
 
         Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
@@ -89,7 +89,7 @@ public class AdminTokenService {
 
     private String extractToken(String bearerToken) {
         if (!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")) {
-            throw new BusinessException(ErrorCode.ADMIN_AUTHENTICATION_FAILED, "유효하지 않은 토큰입니다.");
+            throw new ApplicationException(AdminErrorCode.ADMIN_AUTHENTICATION_FAILED, "유효하지 않은 토큰입니다.");
         }
         return bearerToken.substring(7).trim();
     }

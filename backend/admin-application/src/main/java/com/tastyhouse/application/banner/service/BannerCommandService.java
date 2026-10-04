@@ -6,14 +6,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.banner.model.Banner;
 import com.tastyhouse.domain.banner.model.BannerType;
 import com.tastyhouse.domain.banner.vo.BannerId;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.banner.port.in.BannerCommandUseCase;
 import com.tastyhouse.application.banner.port.in.BannerCreateCommand;
 import com.tastyhouse.application.banner.port.in.BannerDeleteCommand;
 import com.tastyhouse.application.banner.port.in.BannerUpdateCommand;
 import com.tastyhouse.application.banner.port.out.write.BannerPersistencePort;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -70,6 +70,6 @@ class BannerCommandService implements BannerCommandUseCase {
 
     private Banner findBannerOrThrow(BannerId bannerId) {
         return bannerPersistencePort.findById(bannerId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BANNER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.BANNER_NOT_FOUND));
     }
 }

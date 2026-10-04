@@ -5,14 +5,14 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.faq.port.in.FaqManagementQueryUseCase;
 import com.tastyhouse.application.faq.port.out.FaqCategoryManagementResult;
 import com.tastyhouse.application.faq.port.out.FaqDetailResult;
 import com.tastyhouse.application.faq.port.out.FaqManagementListItemResult;
 import com.tastyhouse.application.faq.port.out.FaqManagementQueryPort;
 import com.tastyhouse.application.faq.port.out.FaqSearchCondition;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -34,7 +34,7 @@ class FaqManagementQueryService implements FaqManagementQueryUseCase {
     @Override
     public FaqCategoryManagementResult getCategory(Long categoryId) {
         return faqManagementQueryPort.findCategoryDetailById(categoryId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 
     @Override
@@ -47,6 +47,6 @@ class FaqManagementQueryService implements FaqManagementQueryUseCase {
     @Override
     public FaqDetailResult getFaq(Long id) {
         return faqManagementQueryPort.findFaqDetailById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.FAQ_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_NOT_FOUND));
     }
 }

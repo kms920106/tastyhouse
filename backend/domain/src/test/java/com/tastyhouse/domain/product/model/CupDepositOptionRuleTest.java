@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -21,7 +21,7 @@ class CupDepositOptionRuleTest {
             ProductOptionGroupType.CUP_DEPOSIT, true, false, 0, 1))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_DEPOSIT_CANNOT_BE_REQUIRED);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_GROUP_DEPOSIT_CANNOT_BE_REQUIRED);
     }
 
     @Test
@@ -31,13 +31,13 @@ class CupDepositOptionRuleTest {
             ProductOptionGroupType.CUP_DEPOSIT, false, false, 1, 1))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_DEPOSIT_SELECT_FIXED);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_GROUP_DEPOSIT_SELECT_FIXED);
 
         assertThatThrownBy(() -> CupDepositOptionRule.validateDepositGroupSelectRange(
             ProductOptionGroupType.CUP_DEPOSIT, false, true, 0, 1))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_GROUP_DEPOSIT_SELECT_FIXED);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_GROUP_DEPOSIT_SELECT_FIXED);
     }
 
     @Test
@@ -63,7 +63,7 @@ class CupDepositOptionRuleTest {
             depositGroup(), 0, null, null, policy))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_CUP_COUNT_REQUIRED);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_CUP_COUNT_REQUIRED);
     }
 
     @Test
@@ -73,7 +73,7 @@ class CupDepositOptionRuleTest {
             depositGroup(), 500, 1, null, policy))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_DEPOSIT_ADDITIONAL_PRICE_NOT_ALLOWED);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_DEPOSIT_ADDITIONAL_PRICE_NOT_ALLOWED);
     }
 
     @Test
@@ -83,7 +83,7 @@ class CupDepositOptionRuleTest {
             depositGroup(), 0, 11, null, policy))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_CUP_COUNT_INVALID);
     }
 
     @Test
@@ -101,7 +101,7 @@ class CupDepositOptionRuleTest {
             depositGroup(), 0, 1, 300, policy))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_CUP_COUNT_NOT_ALLOWED);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_CUP_COUNT_NOT_ALLOWED);
     }
 
     @Test
@@ -119,7 +119,7 @@ class CupDepositOptionRuleTest {
             normalGroup(), 500, 1, null, policy))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_CUP_COUNT_NOT_ALLOWED);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_CUP_COUNT_NOT_ALLOWED);
     }
 
     @Test
@@ -129,7 +129,7 @@ class CupDepositOptionRuleTest {
             normalGroup(), 0, null, 300, policy))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_PERSONAL_CUP_NOT_IN_DEPOSIT_GROUP);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_PERSONAL_CUP_NOT_IN_DEPOSIT_GROUP);
     }
 
     @Test

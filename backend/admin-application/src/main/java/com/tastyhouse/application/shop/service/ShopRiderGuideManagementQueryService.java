@@ -3,8 +3,8 @@ package com.tastyhouse.application.shop.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopRiderGuideManagementQueryUseCase;
@@ -35,7 +35,7 @@ class ShopRiderGuideManagementQueryService implements ShopRiderGuideManagementQu
     @Override
     public ShopRiderGuideDetail getRiderGuide(Long shopId) {
         ShopRiderGuideResult result = shopRiderGuideManagementQueryPort.findRiderGuide(shopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
 
         return new ShopRiderGuideDetail(result, shopRiderGuideManagementQueryPort.findHistories(shopId));
     }

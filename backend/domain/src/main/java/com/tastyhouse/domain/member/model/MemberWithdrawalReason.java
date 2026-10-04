@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.member.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum MemberWithdrawalReason {
 
@@ -25,8 +25,8 @@ public enum MemberWithdrawalReason {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.WITHDRAWAL_REASON_TYPE_UNKNOWN,
-                ErrorCode.WITHDRAWAL_REASON_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.WITHDRAWAL_REASON_TYPE_UNKNOWN,
+                DomainErrorCode.WITHDRAWAL_REASON_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

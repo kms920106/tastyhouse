@@ -3,8 +3,8 @@ package com.tastyhouse.domain.shop.model;
 import java.time.LocalDateTime;
 import java.util.regex.Pattern;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -94,15 +94,15 @@ public class ShopContentBoard {
 
     private static void validate(ShopContentType contentType, UploadedFileId imageFileId, String youtubeUrl, String description) {
         if (description != null && description.length() > MAX_DESCRIPTION_LENGTH) {
-            throw new BusinessException(ErrorCode.SHOP_CONTENT_DESCRIPTION_TOO_LONG);
+            throw new DomainException(DomainErrorCode.SHOP_CONTENT_DESCRIPTION_TOO_LONG);
         }
 
         if (contentType == ShopContentType.VIDEO) {
             if (!isValidYoutubeUrl(youtubeUrl)) {
-                throw new BusinessException(ErrorCode.SHOP_CONTENT_YOUTUBE_URL_INVALID);
+                throw new DomainException(DomainErrorCode.SHOP_CONTENT_YOUTUBE_URL_INVALID);
             }
         } else if (imageFileId == null) {
-            throw new BusinessException(ErrorCode.SHOP_IMAGE_SPEC_INVALID);
+            throw new DomainException(DomainErrorCode.SHOP_IMAGE_SPEC_INVALID);
         }
     }
 

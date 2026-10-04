@@ -24,7 +24,7 @@ class LayerRulesTest {
 
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.domain..")
-            .because("표현 계층은 application만 본다(엄격 레이어드) — 401/403 계약은 ErrorContracts로 읽는다");
+            .because("표현 계층은 application만 본다(엄격 레이어드) — 401/403 계약은 api-common-module의 ApiErrorCode로 읽는다");
 
         rule.check(classes);
     }

@@ -7,7 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +42,7 @@ class ShopDeliveryTipSettingTest {
             assertThatThrownBy(() -> setting.changeToDistance(baseDistanceMeters, DeliveryTipDistanceUnit.PER_500M, 500))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_DISTANCE_BASE_INVALID);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_DISTANCE_BASE_INVALID);
         }
     }
 
@@ -70,7 +70,7 @@ class ShopDeliveryTipSettingTest {
             assertThatThrownBy(() -> setting.changeToDistance(1000, DeliveryTipDistanceUnit.PER_100M, surchargeAmount))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_DISTANCE_SURCHARGE_OUT_OF_RANGE);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_DISTANCE_SURCHARGE_OUT_OF_RANGE);
         }
 
         @ParameterizedTest(name = "PER_500M {0}원은 통과한다")
@@ -93,7 +93,7 @@ class ShopDeliveryTipSettingTest {
             assertThatThrownBy(() -> setting.changeToDistance(1000, DeliveryTipDistanceUnit.PER_500M, surchargeAmount))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_DISTANCE_SURCHARGE_OUT_OF_RANGE);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_DISTANCE_SURCHARGE_OUT_OF_RANGE);
         }
     }
 

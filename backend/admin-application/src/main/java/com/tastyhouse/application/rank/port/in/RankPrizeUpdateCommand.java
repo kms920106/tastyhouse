@@ -1,7 +1,7 @@
 package com.tastyhouse.application.rank.port.in;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record RankPrizeUpdateCommand(
     Long rankPrizeId,
@@ -13,7 +13,7 @@ public record RankPrizeUpdateCommand(
 
     public RankPrizeUpdateCommand {
         if (rankPrizeId == null || prizeRank == null || name == null || brand == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

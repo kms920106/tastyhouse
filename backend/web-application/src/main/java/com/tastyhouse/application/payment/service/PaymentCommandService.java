@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.model.PaymentCancelCode;
@@ -25,6 +23,8 @@ import com.tastyhouse.application.payment.port.out.PaymentCancelResult;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 class PaymentCommandService implements PaymentCommandUseCase {
@@ -97,11 +97,11 @@ class PaymentCommandService implements PaymentCommandUseCase {
 
         if (!result.success()) {
             paymentConfirmationExecutor.failInNewTx(pgOrderId, result);
-            throw new BusinessException(
-                ErrorCode.PAYMENT_APPROVAL_FAILED,
+            throw new ApplicationException(
+                WebErrorCode.PAYMENT_APPROVAL_FAILED,
                 result.errorMessage() != null
                     ? result.errorMessage()
-                    : ErrorCode.PAYMENT_APPROVAL_FAILED.getDefaultMessage()
+                    : WebErrorCode.PAYMENT_APPROVAL_FAILED.getDefaultMessage()
             );
         }
 

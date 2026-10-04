@@ -3,13 +3,13 @@ package com.tastyhouse.application.notice.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.notice.port.in.NoticeManagementQueryUseCase;
 import com.tastyhouse.application.notice.port.out.NoticeDetailResult;
 import com.tastyhouse.application.notice.port.out.NoticeManagementListItemResult;
 import com.tastyhouse.application.notice.port.out.NoticeManagementQueryPort;
 import com.tastyhouse.application.notice.port.out.NoticeSearchCondition;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -33,6 +33,6 @@ class NoticeManagementQueryService implements NoticeManagementQueryUseCase {
     @Override
     public NoticeDetailResult getNotice(Long id) {
         return noticeManagementQueryPort.findDetailById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.NOTICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.NOTICE_NOT_FOUND));
     }
 }

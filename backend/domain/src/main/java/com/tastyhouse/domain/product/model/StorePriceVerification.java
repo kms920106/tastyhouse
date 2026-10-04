@@ -2,8 +2,8 @@ package com.tastyhouse.domain.product.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -86,7 +86,7 @@ public class StorePriceVerification {
 
     public void startReview(LocalDateTime now) {
         if (this.status != StorePriceVerificationStatus.PENDING) {
-            throw new BusinessException(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_PENDING);
+            throw new DomainException(DomainErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_PENDING);
         }
         this.status = StorePriceVerificationStatus.IN_PROGRESS;
         this.processedAt = now;
@@ -115,7 +115,7 @@ public class StorePriceVerification {
 
     private void requireOpen() {
         if (!this.status.isOpen()) {
-            throw new BusinessException(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_PENDING);
+            throw new DomainException(DomainErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_PENDING);
         }
     }
 

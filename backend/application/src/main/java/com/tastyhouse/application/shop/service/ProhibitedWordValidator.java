@@ -2,9 +2,9 @@ package com.tastyhouse.application.shop.service;
 
 import java.util.List;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
 
 public class ProhibitedWordValidator {
@@ -32,9 +32,9 @@ public class ProhibitedWordValidator {
         List<String> violations = findViolations(text);
 
         if (!violations.isEmpty()) {
-            throw new BusinessException(
-                ErrorCode.SHOP_TEXT_PROHIBITED_WORD,
-                ErrorCode.SHOP_TEXT_PROHIBITED_WORD.getDefaultMessage() + ": " + String.join(", ", violations)
+            throw new ApplicationException(
+                ApplicationErrorCode.SHOP_TEXT_PROHIBITED_WORD,
+                ApplicationErrorCode.SHOP_TEXT_PROHIBITED_WORD.getDefaultMessage() + ": " + String.join(", ", violations)
             );
         }
     }

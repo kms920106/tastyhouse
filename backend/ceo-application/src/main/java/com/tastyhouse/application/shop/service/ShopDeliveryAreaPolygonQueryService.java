@@ -13,8 +13,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
@@ -25,6 +23,8 @@ import com.tastyhouse.domain.shop.model.DeliveryAreaProjection;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolicy;
 import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shop.port.in.GeoPointCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonQueryUseCase;
 import com.tastyhouse.application.shop.port.out.GeoPointView;
@@ -59,7 +59,7 @@ class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPolygonQuer
     public ShopDeliveryAreaPolygonViewResult getPolygon(Long ceoId, Long shopId) {
         ShopLocationResult shopLocation =
             ShopDeliveryAreaGeoMapper.requireCoordinates(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_ACCESS_DENIED)));
+                .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.SHOP_ACCESS_DENIED)));
         ShopDeliveryAreaPolygonResult stored = shopDeliveryAreaQueryPort.findPolygon(shopId).orElse(null);
 
         if (stored == null) {
@@ -106,7 +106,7 @@ class ShopDeliveryAreaPolygonQueryService implements ShopDeliveryAreaPolygonQuer
     ) {
         ShopLocationResult shopLocation =
             ShopDeliveryAreaGeoMapper.requireCoordinates(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_ACCESS_DENIED)));
+                .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.SHOP_ACCESS_DENIED)));
         GeoPolygon polygon = ShopDeliveryAreaGeoMapper.toPolygon(rings);
         ShopDeliveryAreaPolicy.validateShape(polygon);
 

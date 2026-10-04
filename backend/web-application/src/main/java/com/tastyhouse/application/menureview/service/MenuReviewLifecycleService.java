@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.menureview.event.MenuReviewCreatedEvent;
 import com.tastyhouse.domain.menureview.event.MenuReviewDeletedEvent;
@@ -18,6 +16,8 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.menureview.port.out.write.MenuReviewPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 public class MenuReviewLifecycleService {
@@ -43,7 +43,7 @@ public class MenuReviewLifecycleService {
         String comment
     ) {
         if (menuReviewPersistencePort.existsByOrderProductId(orderProductId)) {
-            throw new BusinessException(ErrorCode.MENU_REVIEW_ALREADY_EXISTS);
+            throw new ApplicationException(WebErrorCode.MENU_REVIEW_ALREADY_EXISTS);
         }
 
         MenuReview saved = menuReviewPersistencePort.save(
@@ -92,6 +92,6 @@ public class MenuReviewLifecycleService {
 
     private MenuReview loadOwnedBy(MenuReviewId menuReviewId, MemberId memberId) {
         return menuReviewPersistencePort.findByIdAndMemberId(menuReviewId, memberId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.MENU_REVIEW_ACCESS_DENIED));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.MENU_REVIEW_ACCESS_DENIED));
     }
 }

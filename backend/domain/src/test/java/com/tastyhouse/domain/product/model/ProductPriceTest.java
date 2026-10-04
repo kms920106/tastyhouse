@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 
@@ -72,7 +72,7 @@ class ProductPriceTest {
             assertThatThrownBy(() -> ProductPrice.of(PRODUCT_ID, null, -1, null, null, 0, NOW))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                    .isEqualTo(ErrorCode.PRODUCT_PRICE_NEGATIVE));
+                    .isEqualTo(DomainErrorCode.PRODUCT_PRICE_NEGATIVE));
 
             assertThatThrownBy(() -> ProductPrice.of(PRODUCT_ID, null, 1000, -1, null, 0, NOW))
                 .isInstanceOf(BusinessException.class);
@@ -93,7 +93,7 @@ class ProductPriceTest {
             assertThatThrownBy(() -> ProductPrice.of(PRODUCT_ID, null, null, null, null, 0, NOW))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                    .isEqualTo(ErrorCode.PRODUCT_PRICE_NEGATIVE));
+                    .isEqualTo(DomainErrorCode.PRODUCT_PRICE_NEGATIVE));
         }
 
         @Test

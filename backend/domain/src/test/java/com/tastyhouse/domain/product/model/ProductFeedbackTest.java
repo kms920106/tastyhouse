@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -33,7 +33,7 @@ class ProductFeedbackTest {
         void etc_withoutContent_rejected() {
             assertThatThrownBy(() -> create(ProductFeedbackType.ETC, null))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_FEEDBACK_CONTENT_REQUIRED);
+                .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.PRODUCT_FEEDBACK_CONTENT_REQUIRED);
         }
 
         @Test
@@ -41,7 +41,7 @@ class ProductFeedbackTest {
         void etc_withBlankContent_rejected() {
             assertThatThrownBy(() -> create(ProductFeedbackType.ETC, "   "))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_FEEDBACK_CONTENT_REQUIRED);
+                .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.PRODUCT_FEEDBACK_CONTENT_REQUIRED);
         }
 
         @Test
@@ -57,7 +57,7 @@ class ProductFeedbackTest {
 
             assertThatThrownBy(() -> create(ProductFeedbackType.ETC, tooLong))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_FEEDBACK_CONTENT_TOO_LONG);
+                .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.PRODUCT_FEEDBACK_CONTENT_TOO_LONG);
         }
 
         @Test
@@ -86,7 +86,7 @@ class ProductFeedbackTest {
         void unknownType_rejected() {
             assertThatThrownBy(() -> ProductFeedbackType.from("UNKNOWN"))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_FEEDBACK_TYPE_UNKNOWN);
+                .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.PRODUCT_FEEDBACK_TYPE_UNKNOWN);
         }
 
         @Test
@@ -95,7 +95,7 @@ class ProductFeedbackTest {
         void nullType_rejected() {
             assertThatThrownBy(() -> ProductFeedbackType.from(null))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_FEEDBACK_TYPE_UNKNOWN);
+                .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.PRODUCT_FEEDBACK_TYPE_UNKNOWN);
         }
 
         @Test

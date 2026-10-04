@@ -60,7 +60,7 @@ com.tastyhouse.infrastructure.redis/
 ### Internal
 ~~`api-common-module` (implementation) — `RedisRateLimitCounter`가 구현하는 `RateLimitCounterPort`의 소유 모듈(챕터 02)~~ **(삭제됨 — `RateLimitCounterPort`가 `security-core`로 이동)**. `./gradlew :infrastructure:redis:dependencies --configuration compileClasspath | grep -cE 'project :api-common-module|starter-web'`가 0이어야 한다(2026-09-27 실측 0).
 
-**`domain`에 의존하지 않는다.** rate limiting은 domain에 대응 개념이 없는 순수 인프라 관심사라서 `RateLimitException`도 `ErrorCode`에 결합하지 않는다. HTTP 응답 조립은 각 api 모듈의 `GlobalExceptionHandler`가 `ErrorCode`로 직접 수행한다.
+**`domain`에 의존하지 않는다.** rate limiting은 domain에 대응 개념이 없는 순수 인프라 관심사라서 `RateLimitException`도 도메인 에러코드에 결합하지 않는다. HTTP 응답 조립은 각 api 모듈의 `GlobalExceptionHandler`가 `com.tastyhouse.apicommon.exception.ApiErrorCode#RATE_LIMIT_EXCEEDED`로 직접 수행한다(과거 단일 `ErrorCode.RATE_LIMIT_EXCEEDED`·`ErrorContracts#rateLimit` — 에러코드 모듈 분할로 대체).
 
 이것이 `infrastructure:persistence`와의 결정적 차이다 — persistence는 domain 포트의 어댑터라 `domain`을 `api`로 노출하지만, redis는 domain 포트가 없는 기술이라 domain을 아예 모른다.
 

@@ -6,8 +6,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductImage;
@@ -20,6 +18,8 @@ import com.tastyhouse.application.product.port.in.ProductImageDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductImageReorderCommand;
 import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -84,9 +84,9 @@ class ProductImageCommandService implements ProductImageCommandUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ProductImage image = productImagePersistencePort.findById(imageId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_IMAGE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_IMAGE_NOT_FOUND));
         if (notOwnedBy(shopId, image.getProductId())) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_IMAGE_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_IMAGE_NOT_FOUND);
         }
 
         productImagePersistencePort.delete(image);
@@ -95,7 +95,7 @@ class ProductImageCommandService implements ProductImageCommandUseCase {
     private void requireOwnedProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         if (notOwnedBy(shopId, ProductId.of(productId))) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
     }
 

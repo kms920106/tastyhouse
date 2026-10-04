@@ -35,7 +35,7 @@ com.tastyhouse.infrastructure.admdongkor/
 - **원천 URL은 버전 디렉터리 단위로 배포되어 "최신"을 가리키는 고정 URL이 없다** — 행정구역 개편이 반영된 새 버전이 나오면 yml의 `source-url` 안 `ver` 날짜를 올린다.
 - **`sidoName` 정규화**: 원천은 `"서울특별시"` 같은 정식 명칭을 쓰지만 이 저장소의 주소 데이터는 `"서울 강남구 …"`처럼 짧은 형태다. 행정동 매칭이 주소 문자열 토큰과 `sido_name`을 직접 비교하므로(회원 배달주소의 행정동 채우기) 저장 시점에 짧은 형태로 맞춘다.
 - 도메인 포트가 없어 `batch-application`(앱 마커 제거 전에는 `application`)이 소유한 아웃바운드 계약(`AdminDongBoundaryPort`·`AdminDongBoundarySource`)을 구현한다.
-- 실패는 도메인 `BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED)`로 던진다. 에러코드는 wire 계약이라 코드 문자열·HTTP 상태(502)를 그대로 유지한 채 도메인 `ErrorCode`(`backend/domain/src/main/java/com/tastyhouse/domain/exception/ErrorCode.java`)로 옮겨졌다(과거에는 코어 `infrastructure:http-client`의 `ExternalApiException(ExternalApiErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED)`였으나, 그 예외 계약 자체가 완전히 삭제됐다). **RestClient는 다운로드·파싱·용량초과의 `IOException`을 `ResourceAccessException`으로 감싸므로**, `AdminDongBoundaryClient`는 그 예외를 catch해 `ADMIN_DONG_BOUNDARY_FETCH_FAILED`로 변환한다(계약 불변 — 과거 WebClient/JDK HttpClient 시절과 응답 계약이 같다).
+- **(번복됨 — 에러코드 모듈 분할)** 어댑터는 실패를 던지지 않고 `AdminDongBoundaryFetchResult.fetchFailed()`를 돌려주며, 번역은 `AdminDongSchedulerService`(batch-application)가 `BatchErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED`(`backend/batch-application/src/main/java/com/tastyhouse/application/shared/exception/BatchErrorCode.java`)로 한다. 에러코드는 wire 계약이라 코드 문자열·HTTP 상태(502)는 그대로다. ~~실패는 도메인 `BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED)`로 던진다~~(과거 서술 — 단일 도메인 `ErrorCode`는 삭제됨. 그 이전에는 코어 `infrastructure:http-client`의 `ExternalApiException(ExternalApiErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED)`였으나, 그 예외 계약 자체가 완전히 삭제됐다). **RestClient는 다운로드·파싱·용량초과의 `IOException`을 `ResourceAccessException`으로 감싸므로**, `AdminDongBoundaryClient`는 그 예외를 catch해 `fetchFailed()` 결과로 변환한다(최종 코드 `ADMIN_DONG_BOUNDARY_FETCH_FAILED`)(계약 불변 — 과거 WebClient/JDK HttpClient 시절과 응답 계약이 같다).
 
 ## yml — `application-admdongkor.yml`
 
@@ -52,7 +52,7 @@ com.tastyhouse.infrastructure.admdongkor/
 ## Dependencies
 
 ### Internal
-- `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 도메인 `ErrorCode` 소유)
+- `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 두지 않는다 — 실패 코드는 번역하는 application 모듈의 에러코드 enum이 소유)
 - `batch-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — 구현하는 아웃바운드 계약 `AdminDongBoundaryPort`·`AdminDongBoundarySource`의 소유 모듈. adapter → port 방향이며 순환이 아니다. batch 전용 포트라 batch 앱 모듈이 소유한다
 - `domain` (implementation) — `shared/geo`의 `GeoPoint`·`GeoRing`·`InteriorPoint`
 

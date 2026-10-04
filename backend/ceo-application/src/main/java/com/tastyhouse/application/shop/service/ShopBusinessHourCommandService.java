@@ -5,12 +5,12 @@ import java.time.LocalTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerUpdateCommand;
@@ -124,13 +124,13 @@ class ShopBusinessHourCommandService implements ShopBusinessHourCommandUseCase {
 
     private void validateBusinessHourOwnership(Long ceoId, Long businessHourId) {
         ShopBusinessHour businessHour = shopDetailPersistencePort.findBusinessHourById(businessHourId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
         shopOwnershipValidator.validateOwnership(ceoId, businessHour.getShopId().value());
     }
 
     private void validateBreakTimeOwnership(Long ceoId, Long breakTimeId) {
         ShopBreakTime breakTime = shopDetailPersistencePort.findBreakTimeById(breakTimeId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
         shopOwnershipValidator.validateOwnership(ceoId, breakTime.getShopId().value());
     }
 }

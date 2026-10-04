@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopDeliveryTipTier {
@@ -38,22 +38,22 @@ public class ShopDeliveryTipTier {
 
     private static void validateTipAmount(int tipAmount) {
         if (tipAmount < 0 || tipAmount >= DeliveryTipPolicy.TIER_TIP_UPPER_BOUND_EXCLUSIVE) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE,
-                ErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE.getDefaultMessage() + " 입력: " + tipAmount + "원");
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE,
+                DomainErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE.getDefaultMessage() + " 입력: " + tipAmount + "원");
         }
     }
 
     private static void validateMinOrderAmount(int minOrderAmount) {
         if (minOrderAmount < 0) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE,
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE,
                 "구간 하한 주문금액은 0원 이상이어야 합니다. 입력: " + minOrderAmount + "원");
         }
     }
 
     private static void validateTierOrder(int tierOrder) {
         if (tierOrder < 0 || tierOrder >= DeliveryTipPolicy.TIER_MAX_COUNT) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED,
-                ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED.getDefaultMessage() + " 입력 순서: " + tierOrder);
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED,
+                DomainErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED.getDefaultMessage() + " 입력 순서: " + tierOrder);
         }
     }
 

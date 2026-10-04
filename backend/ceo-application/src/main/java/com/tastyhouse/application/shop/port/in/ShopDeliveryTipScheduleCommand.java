@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.port.in;
 
 import java.time.LocalTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record ShopDeliveryTipScheduleCommand(
     String dayType,
@@ -14,7 +14,7 @@ public record ShopDeliveryTipScheduleCommand(
 
     public ShopDeliveryTipScheduleCommand {
         if (dayType == null || startTime == null || endTime == null || tipAmount == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 

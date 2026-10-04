@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.port.in;
 
 import java.math.BigDecimal;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record ShopUpdateCommand(
     Long shopId,
@@ -19,7 +19,7 @@ public record ShopUpdateCommand(
 
     public ShopUpdateCommand {
         if (shopId == null || name == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

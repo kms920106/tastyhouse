@@ -6,9 +6,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
@@ -29,6 +26,9 @@ import com.tastyhouse.application.review.port.out.write.ReviewLikePersistencePor
 import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewTagPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
 
 @Service
@@ -73,7 +73,7 @@ public class ReviewLifecycleService {
         String deliveryComment
     ) {
         if (orderId != null && reviewPersistencePort.existsByOrderIdAndProductId(orderId, productId)) {
-            throw new BusinessException(ErrorCode.REVIEW_ALREADY_EXISTS);
+            throw new ApplicationException(ApplicationErrorCode.REVIEW_ALREADY_EXISTS);
         }
 
         Review review = Review.of(
@@ -121,7 +121,7 @@ public class ReviewLifecycleService {
         String deliveryComment
     ) {
         Review review = reviewPersistencePort.findByIdAndMemberId(reviewId, memberId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.REVIEW_ACCESS_DENIED));
 
         review.updateContent(
             content,
@@ -147,7 +147,7 @@ public class ReviewLifecycleService {
 
     public void removeOwnedBy(ReviewId reviewId, MemberId memberId, ProductId productId) {
         reviewPersistencePort.findByIdAndMemberId(reviewId, memberId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_ACCESS_DENIED));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.REVIEW_ACCESS_DENIED));
 
         deleteWithChildren(reviewId);
 
@@ -161,7 +161,7 @@ public class ReviewLifecycleService {
 
     public void remove(ReviewId reviewId) {
         Review review = reviewPersistencePort.findById(reviewId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
 
         deleteWithChildren(reviewId);
 

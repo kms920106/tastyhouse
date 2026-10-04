@@ -8,9 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.domain.member.model.MemberSocialAccount;
@@ -30,6 +27,10 @@ import com.tastyhouse.application.auth.token.MemberTokenService;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
 import com.tastyhouse.application.member.service.MemberRegistrationService;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.security.token.KakaoTempTokenRepository;
 
 @Service
@@ -79,7 +80,7 @@ public class KakaoSocialLoginService {
             memberSocialAccountPersistencePort.save(socialAccount);
 
             Member member = memberPersistencePort.findById(socialAccount.getMemberId())
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
             return SocialLoginResult.ofLogin(issueJwt(member));
         }
 
@@ -96,12 +97,12 @@ public class KakaoSocialLoginService {
     @Transactional
     public SocialLinkResult linkAccount(String kakaoTempToken, String smsVerifyToken) {
         if (jwtTokenProvider.isInvalidSmsVerifyToken(smsVerifyToken)) {
-            throw new BusinessException(ErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
+            throw new ApplicationException(WebErrorCode.MEMBER_PHONE_AUTH_EXPIRED);
         }
 
         String kakaoAccessToken = kakaoTempTokenRepository.findKakaoAccessToken(kakaoTempToken);
         if (kakaoAccessToken == null) {
-            throw new BusinessException(ErrorCode.KAKAO_TEMP_TOKEN_EXPIRED);
+            throw new ApplicationException(WebErrorCode.KAKAO_TEMP_TOKEN_EXPIRED);
         }
 
         SocialProfile kakaoUser = kakaoOAuthClient.fetchProfile(SocialCredential.of(kakaoAccessToken))
@@ -109,7 +110,7 @@ public class KakaoSocialLoginService {
         String providerId = kakaoUser.providerId();
 
         if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.KAKAO, providerId)) {
-            throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
+            throw new ApplicationException(WebErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
@@ -162,7 +163,7 @@ public class KakaoSocialLoginService {
     ) {
         String kakaoAccessToken = kakaoTempTokenRepository.findKakaoAccessToken(kakaoTempToken);
         if (kakaoAccessToken == null) {
-            throw new BusinessException(ErrorCode.KAKAO_TEMP_TOKEN_EXPIRED);
+            throw new ApplicationException(WebErrorCode.KAKAO_TEMP_TOKEN_EXPIRED);
         }
 
         SocialProfile kakaoUser = kakaoOAuthClient.fetchProfile(SocialCredential.of(kakaoAccessToken))
@@ -170,7 +171,7 @@ public class KakaoSocialLoginService {
         String providerId = kakaoUser.providerId();
 
         if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.KAKAO, providerId)) {
-            throw new BusinessException(ErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
+            throw new ApplicationException(WebErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         Member savedMember = memberRegistrationService.signUpSocial(

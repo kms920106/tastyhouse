@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.ProductOptionGroupSignature;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
@@ -23,6 +21,9 @@ import com.tastyhouse.application.product.port.out.ProductOptionGroupMergePrevie
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeSuggestionResult;
 import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -98,7 +99,7 @@ class ProductOptionGroupMergeQueryService implements ProductOptionGroupMergeQuer
 
         ProductOptionGroupManagementResult base = groupById.get(baseOptionGroupId);
         if (base == null) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
         }
 
         List<ProductOptionGroupManagementResult> candidates = new ArrayList<>();
@@ -108,7 +109,7 @@ class ProductOptionGroupMergeQueryService implements ProductOptionGroupMergeQuer
             }
             ProductOptionGroupManagementResult candidate = groupById.get(optionGroupId);
             if (candidate == null) {
-                throw new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
+                throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
             }
             candidates.add(candidate);
         }
@@ -133,14 +134,14 @@ class ProductOptionGroupMergeQueryService implements ProductOptionGroupMergeQuer
         Map<Long, List<ProductOptionGroupLinkedProductResult>> linkedByGroupId
     ) {
         if (candidates.isEmpty()) {
-            return ErrorCode.PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY.getCode();
+            return CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY.getCode();
         }
         if (!base.visible() || candidates.stream().anyMatch(candidate -> !candidate.visible())) {
-            return ErrorCode.PRODUCT_OPTION_GROUP_MERGE_HIDDEN_TARGET.getCode();
+            return CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_HIDDEN_TARGET.getCode();
         }
 
         if (candidates.stream().anyMatch(candidate -> !Objects.equals(candidate.groupType(), base.groupType()))) {
-            return ErrorCode.PRODUCT_OPTION_GROUP_MERGE_TYPE_MISMATCH.getCode();
+            return CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_TYPE_MISMATCH.getCode();
         }
 
         List<ProductOptionGroupManagementResult> all = new ArrayList<>();
@@ -153,7 +154,7 @@ class ProductOptionGroupMergeQueryService implements ProductOptionGroupMergeQuer
                 : linkedByGroupId.getOrDefault(group.id(), List.of())) {
                 Long previous = ownerGroupIdByProductId.putIfAbsent(linked.id(), group.id());
                 if (previous != null && !previous.equals(group.id())) {
-                    return ErrorCode.PRODUCT_OPTION_GROUP_MERGE_SAME_PRODUCT_LINKED.getCode();
+                    return CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_SAME_PRODUCT_LINKED.getCode();
                 }
             }
         }

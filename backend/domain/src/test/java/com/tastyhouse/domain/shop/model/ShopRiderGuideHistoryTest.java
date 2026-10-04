@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,7 +68,7 @@ class ShopRiderGuideHistoryTest {
         assertThatThrownBy(() -> RiderGuideActionType.from("APPROVED"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_GUIDE_ACTION_TYPE_UNKNOWN);
+            .isEqualTo(DomainErrorCode.SHOP_RIDER_GUIDE_ACTION_TYPE_UNKNOWN);
     }
 
     @Test
@@ -79,6 +79,6 @@ class ShopRiderGuideHistoryTest {
             .hasMessageContaining("변경 주체")
             .hasMessageContaining("RIDER")
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_GUIDE_ACTION_TYPE_UNKNOWN);
+            .isEqualTo(DomainErrorCode.SHOP_RIDER_GUIDE_ACTION_TYPE_UNKNOWN);
     }
 }

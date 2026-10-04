@@ -9,14 +9,15 @@ import com.tastyhouse.domain.bug.model.BugReportCategory;
 import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.model.BugReportStatus;
 import com.tastyhouse.domain.bug.vo.BugReportId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.application.bug.port.in.BugReportAssignCommand;
 import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
 import com.tastyhouse.application.bug.port.in.BugReportManagementCommandUseCase;
 import com.tastyhouse.application.bug.port.in.BugReportStatusChangeCommand;
 import com.tastyhouse.application.bug.port.out.write.BugReportPersistencePort;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -40,7 +41,7 @@ class BugReportManagementCommandService implements BugReportManagementCommandUse
             case RESOLVED -> bugReport.resolve(answer);
             case REJECTED -> bugReport.reject(answer);
             case ON_HOLD -> bugReport.hold();
-            case RECEIVED -> throw new BusinessException(ErrorCode.BUG_REPORT_INVALID_STATUS);
+            case RECEIVED -> throw new DomainException(DomainErrorCode.BUG_REPORT_INVALID_STATUS);
         }
 
         bugReportPersistencePort.save(bugReport);
@@ -69,6 +70,6 @@ class BugReportManagementCommandService implements BugReportManagementCommandUse
 
     private BugReport findBugReportOrThrow(BugReportId bugReportId) {
         return bugReportPersistencePort.findById(bugReportId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.BUG_REPORT_NOT_FOUND));
     }
 }

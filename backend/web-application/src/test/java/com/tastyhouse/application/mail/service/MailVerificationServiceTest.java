@@ -8,7 +8,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.mail.model.MailVerification;
 import com.tastyhouse.domain.mail.model.MailVerificationPurpose;
 import com.tastyhouse.domain.mail.model.MailVerificationStatus;
@@ -20,6 +19,7 @@ import com.tastyhouse.application.mail.port.out.MailSendResult;
 import com.tastyhouse.application.mail.port.out.MailSender;
 import com.tastyhouse.application.mail.port.out.write.MailVerificationPersistencePort;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -97,7 +97,7 @@ class MailVerificationServiceTest {
 
         assertThatThrownBy(() -> service.issue("user@tastyhouse.com", MailVerificationPurpose.SIGN_UP))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MAIL_SEND_FAILED)
+            .hasFieldOrPropertyWithValue("errorCode", WebErrorCode.MAIL_SEND_FAILED)
             .hasCause(cause);
     }
 
@@ -111,7 +111,7 @@ class MailVerificationServiceTest {
 
         assertThatThrownBy(() -> service.issueForSignUp("user@tastyhouse.com"))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_EMAIL_ALREADY_REGISTERED);
+            .hasFieldOrPropertyWithValue("errorCode", WebErrorCode.MEMBER_EMAIL_ALREADY_REGISTERED);
         assertThat(mailSender.sentCount()).isZero();
     }
 
@@ -140,7 +140,7 @@ class MailVerificationServiceTest {
 
         assertThatThrownBy(() -> service.confirm("user@tastyhouse.com", "123456"))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND);
+            .hasFieldOrPropertyWithValue("errorCode", WebErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND);
     }
 
     private static final class RecordingMailSender implements MailSender {

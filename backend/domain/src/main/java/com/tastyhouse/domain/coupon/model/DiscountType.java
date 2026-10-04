@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.coupon.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum DiscountType {
 
@@ -18,8 +18,8 @@ public enum DiscountType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.COUPON_DISCOUNT_TYPE_UNKNOWN,
-                ErrorCode.COUPON_DISCOUNT_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.COUPON_DISCOUNT_TYPE_UNKNOWN,
+                DomainErrorCode.COUPON_DISCOUNT_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 

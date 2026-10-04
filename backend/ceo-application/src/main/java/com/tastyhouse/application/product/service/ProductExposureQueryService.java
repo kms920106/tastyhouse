@@ -8,8 +8,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.ProductExposureHour;
 import com.tastyhouse.domain.product.model.ProductExposureResult;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -18,6 +16,8 @@ import com.tastyhouse.application.product.port.in.ProductExposureQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductExposurePeriodResult;
 import com.tastyhouse.application.product.port.out.ProductExposureViewResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -48,9 +48,9 @@ class ProductExposureQueryService implements ProductExposureQueryUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ProductExposurePeriodResult period = productOwnerQueryPort.findExposurePeriod(productId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!period.shopId().equals(shopId)) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
 
         ProductId targetProductId = ProductId.of(productId);

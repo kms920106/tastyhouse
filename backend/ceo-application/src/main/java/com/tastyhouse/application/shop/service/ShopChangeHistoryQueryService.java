@@ -7,11 +7,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeCategory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.port.out.CodeLabelResult;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -86,7 +86,7 @@ class ShopChangeHistoryQueryService implements ShopChangeHistoryQueryUseCase {
             return today;
         }
         if (changedDate.isAfter(today) || changedDate.isBefore(today.minusMonths(RETENTION_MONTHS))) {
-            throw new BusinessException(ErrorCode.SHOP_CHANGE_HISTORY_DATE_OUT_OF_RANGE);
+            throw new ApplicationException(CeoErrorCode.SHOP_CHANGE_HISTORY_DATE_OUT_OF_RANGE);
         }
         return changedDate;
     }

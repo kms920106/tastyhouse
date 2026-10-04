@@ -10,7 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductExposureCalculator;
 import com.tastyhouse.domain.product.model.ProductExposureHour;
@@ -20,6 +20,7 @@ import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,7 +41,7 @@ class ProductExposureServiceTest {
         )))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_EXPOSURE_DAY_TYPE_MIXED);
+            .isEqualTo(CeoErrorCode.PRODUCT_EXPOSURE_DAY_TYPE_MIXED);
     }
 
     @Test
@@ -54,7 +55,7 @@ class ProductExposureServiceTest {
         )))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_EXPOSURE_DAY_TYPE_MIXED);
+            .isEqualTo(CeoErrorCode.PRODUCT_EXPOSURE_DAY_TYPE_MIXED);
     }
 
     @Test
@@ -92,7 +93,7 @@ class ProductExposureServiceTest {
             PRODUCT_ID, LocalDate.of(2026, 8, 20), LocalDate.of(2026, 8, 19), List.of()))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_EXPOSURE_PERIOD_INVALID);
+            .isEqualTo(DomainErrorCode.PRODUCT_EXPOSURE_PERIOD_INVALID);
     }
 
     @Test

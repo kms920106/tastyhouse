@@ -1,4 +1,4 @@
-package com.tastyhouse.domain.product.model;
+package com.tastyhouse.application.product.service;
 
 import java.util.List;
 

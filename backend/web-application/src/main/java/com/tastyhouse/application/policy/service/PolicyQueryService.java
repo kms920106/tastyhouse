@@ -3,14 +3,14 @@ package com.tastyhouse.application.policy.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.application.policy.port.in.PolicyDetailQueryUseCase;
 import com.tastyhouse.application.policy.port.in.PolicyVersionListQueryUseCase;
 import com.tastyhouse.application.policy.port.out.PolicyDocumentResult;
 import com.tastyhouse.application.policy.port.out.PolicyListItemResult;
 import com.tastyhouse.application.policy.port.out.PolicyQueryPort;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -86,12 +86,12 @@ class PolicyQueryService implements PolicyDetailQueryUseCase, PolicyVersionListQ
 
     private PolicyDocumentResult getLatestByType(PolicyType type) {
         return policyQueryPort.findCurrentByType(type.name())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POLICY_CURRENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.POLICY_CURRENT_NOT_FOUND));
     }
 
     private PolicyDocumentResult getByTypeAndVersion(PolicyType type, String version) {
         return policyQueryPort.findByTypeAndVersion(type.name(), version)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POLICY_VERSION_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.POLICY_VERSION_NOT_FOUND));
     }
 
     private PageResult<PolicyListItemResult> getListByType(PolicyType type, int page, int size) {

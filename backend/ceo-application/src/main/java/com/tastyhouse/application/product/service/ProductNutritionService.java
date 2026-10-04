@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.AllergenType;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductAllergen;
@@ -14,6 +12,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.product.port.out.write.ProductAllergenPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductNutritionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class ProductNutritionService {
@@ -72,7 +73,7 @@ public class ProductNutritionService {
 
     public void deleteNutrition(ProductId productId) {
         ProductNutrition productNutrition = productNutritionPersistencePort.findByProductId(productId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NUTRITION_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.PRODUCT_NUTRITION_NOT_FOUND));
 
         productAllergenPersistencePort.deleteAllByProductId(productId);
         productNutritionPersistencePort.delete(productNutrition);
@@ -94,9 +95,9 @@ public class ProductNutritionService {
 
     private void validateProductExists(ProductId productId) {
         Product product = productPersistencePort.findById(productId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (product.isDeleted()) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
     }
 }

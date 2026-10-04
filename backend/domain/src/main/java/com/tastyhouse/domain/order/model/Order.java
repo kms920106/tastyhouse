@@ -3,8 +3,8 @@ package com.tastyhouse.domain.order.model;
 import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.order.vo.OrderId;
@@ -331,7 +331,7 @@ public class Order {
 
     public void validateOwnership(MemberId memberId) {
         if (!this.memberId.equals(memberId)) {
-            throw new BusinessException(ErrorCode.ORDER_ACCESS_DENIED);
+            throw new DomainException(DomainErrorCode.ORDER_ACCESS_DENIED);
         }
     }
 
@@ -352,15 +352,15 @@ public class Order {
             this.orderStatus = target;
             return;
         }
-        throw new BusinessException(resolveTransitionErrorCode());
+        throw new DomainException(resolveTransitionErrorCode());
     }
 
-    private ErrorCode resolveTransitionErrorCode() {
+    private DomainErrorCode resolveTransitionErrorCode() {
         return switch (this.orderStatus) {
-            case CANCELLED -> ErrorCode.ORDER_ALREADY_CANCELLED;
-            case COMPLETED -> ErrorCode.ORDER_ALREADY_COMPLETED;
-            case PREPARING -> ErrorCode.ORDER_ALREADY_PREPARING;
-            case PENDING, CONFIRMED -> ErrorCode.ORDER_INVALID_STATUS_TRANSITION;
+            case CANCELLED -> DomainErrorCode.ORDER_ALREADY_CANCELLED;
+            case COMPLETED -> DomainErrorCode.ORDER_ALREADY_COMPLETED;
+            case PREPARING -> DomainErrorCode.ORDER_ALREADY_PREPARING;
+            case PENDING, CONFIRMED -> DomainErrorCode.ORDER_INVALID_STATUS_TRANSITION;
         };
     }
 
@@ -432,20 +432,20 @@ public class Order {
         if (totalProductAmount < 0 || productDiscountAmount < 0 || couponDiscountAmount < 0
             || pointDiscountAmount < 0 || totalDiscountAmount < 0 || deliveryTipAmount < 0
             || cupDepositAmount < 0 || finalAmount < 0 || usedPoint < 0) {
-            throw new BusinessException(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+            throw new DomainException(DomainErrorCode.ORDER_AMOUNT_NEGATIVE);
         }
 
         int discountSum = productDiscountAmount + couponDiscountAmount + pointDiscountAmount;
         if (totalDiscountAmount != discountSum) {
-            throw new BusinessException(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT,
-                ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT.getDefaultMessage()
+            throw new DomainException(DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT,
+                DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT.getDefaultMessage()
                     + " 총 할인: " + totalDiscountAmount + ", 항목 합: " + discountSum);
         }
 
         int expectedFinal = totalProductAmount - totalDiscountAmount + deliveryTipAmount + cupDepositAmount;
         if (finalAmount != expectedFinal) {
-            throw new BusinessException(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT,
-                ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT.getDefaultMessage()
+            throw new DomainException(DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT,
+                DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT.getDefaultMessage()
                     + " 결제 금액: " + finalAmount
                     + ", 상품 금액 - 총 할인 + 배달팁 + 보증금: " + expectedFinal);
         }

@@ -8,9 +8,6 @@ import com.tastyhouse.domain.event.model.EventAnnouncement;
 import com.tastyhouse.domain.event.model.EventStatus;
 import com.tastyhouse.domain.event.model.EventWinner;
 import com.tastyhouse.domain.event.vo.EventId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.event.port.in.EventAnnouncementCreateCommand;
 import com.tastyhouse.application.event.port.in.EventAnnouncementUpdateCommand;
@@ -23,6 +20,10 @@ import com.tastyhouse.application.event.port.in.EventWinnerDeleteCommand;
 import com.tastyhouse.application.event.port.out.write.EventAnnouncementPersistencePort;
 import com.tastyhouse.application.event.port.out.write.EventPersistencePort;
 import com.tastyhouse.application.event.port.out.write.EventWinnerPersistencePort;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -98,7 +99,7 @@ class EventCommandService implements EventCommandUseCase {
         findEventOrThrow(eventId);
 
         if (eventAnnouncementPersistencePort.existsByEventId(eventId)) {
-            throw new BusinessException(ErrorCode.EVENT_ANNOUNCEMENT_ALREADY_EXISTS);
+            throw new ApplicationException(AdminErrorCode.EVENT_ANNOUNCEMENT_ALREADY_EXISTS);
         }
 
         EventAnnouncement announcement = EventAnnouncement.of(eventId, command.name(), command.content(), command.announcedAt());
@@ -110,7 +111,7 @@ class EventCommandService implements EventCommandUseCase {
     public void updateAnnouncement(EventAnnouncementUpdateCommand command) {
         EventId eventId = EventId.of(command.eventId());
         EventAnnouncement announcement = eventAnnouncementPersistencePort.findByEventId(eventId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
 
         announcement.update(command.name(), command.content(), command.announcedAt());
         eventAnnouncementPersistencePort.save(announcement);
@@ -129,7 +130,7 @@ class EventCommandService implements EventCommandUseCase {
     @Override
     public void deleteWinner(EventWinnerDeleteCommand command) {
         EventWinner winner = eventWinnerPersistencePort.findById(command.winnerId())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_WINNER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.EVENT_WINNER_NOT_FOUND));
 
         winner.delete();
         eventWinnerPersistencePort.save(winner);
@@ -137,6 +138,6 @@ class EventCommandService implements EventCommandUseCase {
 
     private Event findEventOrThrow(EventId eventId) {
         return eventPersistencePort.findById(eventId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
     }
 }

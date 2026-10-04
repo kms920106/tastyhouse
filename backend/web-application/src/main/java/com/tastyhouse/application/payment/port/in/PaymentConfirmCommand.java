@@ -1,7 +1,7 @@
 package com.tastyhouse.application.payment.port.in;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record PaymentConfirmCommand(
     Long paymentId,
@@ -16,7 +16,7 @@ public record PaymentConfirmCommand(
 
     public PaymentConfirmCommand {
         if (paymentId == null || pgProvider == null || pgTid == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

@@ -5,14 +5,14 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.partnership.model.PartnershipStatus;
 import com.tastyhouse.application.partnership.port.in.PartnershipQueryUseCase;
 import com.tastyhouse.application.partnership.port.out.PartnershipQueryPort;
 import com.tastyhouse.application.partnership.port.out.PartnershipRequestDetailResult;
 import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
 import com.tastyhouse.application.partnership.port.out.PartnershipSearchCondition;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -46,6 +46,6 @@ class PartnershipQueryService implements PartnershipQueryUseCase {
     @Override
     public PartnershipRequestDetailResult getPartnershipRequest(Long id) {
         return partnershipQueryPort.findDetailById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
     }
 }

@@ -9,8 +9,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.event.ReviewBlindApprovedEvent;
 import com.tastyhouse.domain.review.model.Review;
@@ -23,6 +22,8 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 import com.tastyhouse.testsupport.review.service.FakeDomainEventPublisher;
 import com.tastyhouse.testsupport.review.service.FakeReviewBlindRequestAttachmentPersistencePort;
@@ -121,7 +122,7 @@ class ReviewBlindRequestServiceTest {
                 ReviewBlindRequestServiceTest.this::request, BusinessException.class
             );
 
-            assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_BLIND_REQUEST_ALREADY_USED);
+            assertThat(exception.getErrorCode()).isEqualTo(ApplicationErrorCode.REVIEW_BLIND_REQUEST_ALREADY_USED);
         }
 
         @Test
@@ -134,7 +135,7 @@ class ReviewBlindRequestServiceTest {
                 ReviewBlindRequestServiceTest.this::request, BusinessException.class
             );
 
-            assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_BLIND_REQUEST_ALREADY_USED);
+            assertThat(exception.getErrorCode()).isEqualTo(ApplicationErrorCode.REVIEW_BLIND_REQUEST_ALREADY_USED);
         }
 
         @Test
@@ -155,7 +156,7 @@ class ReviewBlindRequestServiceTest {
                 ReviewBlindRequestServiceTest.this::request, BusinessException.class
             );
 
-            assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_BLIND_REQUEST_ALREADY_PENDING);
+            assertThat(exception.getErrorCode()).isEqualTo(ApplicationErrorCode.REVIEW_BLIND_REQUEST_ALREADY_PENDING);
         }
     }
 
@@ -231,7 +232,7 @@ class ReviewBlindRequestServiceTest {
                 ResourceNotFoundException.class
             );
 
-            assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_NOT_FOUND);
+            assertThat(exception.getErrorCode()).isEqualTo(ApplicationErrorCode.REVIEW_NOT_FOUND);
             assertThat(reviewPersistencePort.findById(ReviewId.of(REVIEW_ID))).isPresent();
         }
 
@@ -247,7 +248,7 @@ class ReviewBlindRequestServiceTest {
                 BusinessException.class
             );
 
-            assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED);
+            assertThat(exception.getErrorCode()).isEqualTo(DomainErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED);
         }
 
         @Test

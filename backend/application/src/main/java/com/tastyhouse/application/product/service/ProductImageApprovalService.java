@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.model.ProductImageChangeRequest;
@@ -18,6 +16,8 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
 public class ProductImageApprovalService {
@@ -39,7 +39,7 @@ public class ProductImageApprovalService {
     public Long requestImageChange(ProductId productId, UploadedFileId imageFileId) {
         requireProductExists(productId);
         if (requestPersistencePort.existsByProductIdAndStatus(productId, ApprovalStatus.PENDING)) {
-            throw new BusinessException(ErrorCode.PRODUCT_IMAGE_CHANGE_REQUEST_ALREADY_PENDING);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_IMAGE_CHANGE_REQUEST_ALREADY_PENDING);
         }
 
         ProductImageChangeRequest saved =
@@ -76,7 +76,7 @@ public class ProductImageApprovalService {
             : orderedImageIds.stream().filter(Objects::nonNull).distinct().toList();
 
         if (currentIds.size() != requested.size() || !currentIds.containsAll(requested)) {
-            throw new BusinessException(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
         }
 
         for (int index = 0; index < requested.size(); index++) {
@@ -84,7 +84,7 @@ public class ProductImageApprovalService {
             ProductImage image = current.stream()
                 .filter(candidate -> candidate.getId().equals(imageId))
                 .findFirst()
-                .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_IMAGE_NOT_FOUND));
+                .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_IMAGE_NOT_FOUND));
             productImagePersistencePort.save(rebuildWithSort(image, index));
         }
     }
@@ -101,12 +101,12 @@ public class ProductImageApprovalService {
 
     private ProductImageChangeRequest loadRequest(ProductImageChangeRequestId requestId) {
         return requestPersistencePort.findById(requestId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_IMAGE_CHANGE_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_IMAGE_CHANGE_REQUEST_NOT_FOUND));
     }
 
     private void requireProductExists(ProductId productId) {
         if (productPersistencePort.findById(productId).isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
     }
 }

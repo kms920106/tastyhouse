@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.DeliveryTipDistanceUnit;
@@ -33,6 +33,8 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipTierSpec;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
 
@@ -62,8 +64,8 @@ public class ShopDeliveryTipService {
         ShopChangeActor actor
     ) {
         if (specs == null || specs.isEmpty() || specs.size() > DeliveryTipPolicy.TIER_MAX_COUNT) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED,
-                ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED.getDefaultMessage()
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED,
+                DomainErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED.getDefaultMessage()
                     + " 입력 구간 수: " + (specs == null ? 0 : specs.size()));
         }
 
@@ -103,8 +105,8 @@ public class ShopDeliveryTipService {
         ShopChangeActor actor
     ) {
         if (shopDeliveryTipPersistencePort.countRegionTipsByShopId(shopId) > 0) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT,
-                ErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT.getDefaultMessage()
+            throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT,
+                CeoErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT.getDefaultMessage()
                     + " 지역별 배달팁을 모두 삭제한 뒤 거리별을 설정하세요.");
         }
 
@@ -152,8 +154,8 @@ public class ShopDeliveryTipService {
 
         ShopDeliveryTipSetting setting = loadOrCreateSetting(shopId);
         if (setting.usesDistance() && !requested.isEmpty()) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT,
-                ErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT.getDefaultMessage()
+            throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT,
+                CeoErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT.getDefaultMessage()
                     + " 거리별 배달팁을 해제한 뒤 지역별을 설정하세요.");
         }
 
@@ -330,13 +332,13 @@ public class ShopDeliveryTipService {
             ShopDeliveryTipTierSpec current = sorted.get(i);
 
             if (current.minOrderAmount() <= previous.minOrderAmount()) {
-                throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_ASCENDING,
-                    ErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_ASCENDING.getDefaultMessage()
+                throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_ASCENDING,
+                    CeoErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_ASCENDING.getDefaultMessage()
                         + " 중복 금액: " + current.minOrderAmount() + "원");
             }
             if (current.tipAmount() >= previous.tipAmount()) {
-                throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_DESCENDING,
-                    ErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_DESCENDING.getDefaultMessage()
+                throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_DESCENDING,
+                    CeoErrorCode.SHOP_DELIVERY_TIP_TIER_NOT_DESCENDING.getDefaultMessage()
                         + " " + previous.minOrderAmount() + "원 구간 팁: " + previous.tipAmount()
                         + "원, " + current.minOrderAmount() + "원 구간 팁: " + current.tipAmount() + "원");
             }
@@ -349,19 +351,19 @@ public class ShopDeliveryTipService {
 
         for (ShopDeliveryTipRegionSpec spec : specs) {
             if (!seenAdminDongIds.add(spec.adminDongId())) {
-                throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_REGION_DUPLICATED,
-                    ErrorCode.SHOP_DELIVERY_TIP_REGION_DUPLICATED.getDefaultMessage()
+                throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_TIP_REGION_DUPLICATED,
+                    CeoErrorCode.SHOP_DELIVERY_TIP_REGION_DUPLICATED.getDefaultMessage()
                         + " 행정동 ID: " + spec.adminDongId());
             }
 
             AdminDongId adminDongId = AdminDongId.of(spec.adminDongId());
             if (!adminDongPersistencePort.existsById(adminDongId)) {
-                throw new BusinessException(ErrorCode.ADMIN_DONG_NOT_FOUND,
-                    ErrorCode.ADMIN_DONG_NOT_FOUND.getDefaultMessage() + " 행정동 ID: " + spec.adminDongId());
+                throw new ApplicationException(CeoErrorCode.ADMIN_DONG_NOT_FOUND,
+                    CeoErrorCode.ADMIN_DONG_NOT_FOUND.getDefaultMessage() + " 행정동 ID: " + spec.adminDongId());
             }
             if (!shopDeliveryAreaPersistencePort.existsByShopIdAndAdminDongId(shopId, adminDongId)) {
-                throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_REGION_NOT_IN_DELIVERY_AREA,
-                    ErrorCode.SHOP_DELIVERY_TIP_REGION_NOT_IN_DELIVERY_AREA.getDefaultMessage()
+                throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_TIP_REGION_NOT_IN_DELIVERY_AREA,
+                    CeoErrorCode.SHOP_DELIVERY_TIP_REGION_NOT_IN_DELIVERY_AREA.getDefaultMessage()
                         + " 행정동 ID: " + spec.adminDongId());
             }
 
@@ -380,8 +382,8 @@ public class ShopDeliveryTipService {
                     continue;
                 }
                 if (overlaps(left, right)) {
-                    throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP,
-                        ErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP.getDefaultMessage()
+                    throw new DomainException(DomainErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP,
+                        DomainErrorCode.SHOP_DELIVERY_TIP_SCHEDULE_OVERLAP.getDefaultMessage()
                             + " " + left.dayType() + " " + left.startTime() + "~" + left.endTime()
                             + " / " + right.startTime() + "~" + right.endTime());
                 }

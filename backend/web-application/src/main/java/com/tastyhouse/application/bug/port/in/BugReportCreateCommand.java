@@ -2,8 +2,8 @@ package com.tastyhouse.application.bug.port.in;
 
 import java.util.List;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record BugReportCreateCommand(
     Long reporterId,
@@ -18,7 +18,7 @@ public record BugReportCreateCommand(
 
     public BugReportCreateCommand {
         if (reporterId == null || device == null || title == null || content == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

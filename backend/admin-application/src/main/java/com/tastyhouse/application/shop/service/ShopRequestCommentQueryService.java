@@ -5,9 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthorType;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopRequestCommentQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopRequestCommentResult;
 import com.tastyhouse.application.shop.port.out.ShopRequestManagementQueryPort;
@@ -25,7 +25,7 @@ class ShopRequestCommentQueryService implements ShopRequestCommentQueryUseCase {
     @Override
     public List<ShopRequestCommentResult> getComments(Long requestId) {
         shopRequestManagementQueryPort.findRequestDetail(requestId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
 
         return withAuthorTypeDescriptions(shopRequestManagementQueryPort.findComments(requestId));
     }

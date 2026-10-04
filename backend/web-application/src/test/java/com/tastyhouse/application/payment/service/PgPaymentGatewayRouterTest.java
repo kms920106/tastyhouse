@@ -7,11 +7,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
 import com.tastyhouse.application.payment.port.out.PgProviderGateway;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,10 +49,10 @@ class PgPaymentGatewayRouterTest {
 
         assertThatThrownBy(() -> router.confirmPayment("KAKAO", 1L, "payment-key", "pg-order-1", 21000))
             .isInstanceOf(BusinessException.class)
-            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(ErrorCode.PG_PROVIDER_UNSUPPORTED));
+            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(WebErrorCode.PG_PROVIDER_UNSUPPORTED));
         assertThatThrownBy(() -> router.cancelPayment(null, "tid-1", "고객 변심"))
             .isInstanceOf(BusinessException.class)
-            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(ErrorCode.PG_PROVIDER_UNSUPPORTED));
+            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(WebErrorCode.PG_PROVIDER_UNSUPPORTED));
     }
 
     @Test

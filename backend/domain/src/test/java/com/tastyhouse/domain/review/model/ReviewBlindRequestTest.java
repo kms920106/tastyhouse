@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -90,7 +90,7 @@ class ReviewBlindRequestTest {
 
             BusinessException exception = catchThrowableOfType(request::expire, BusinessException.class);
 
-            assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED);
+            assertThat(exception.getErrorCode()).isEqualTo(DomainErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED);
         }
 
         @Test
@@ -128,7 +128,7 @@ class ReviewBlindRequestTest {
                 request::deleteByConsent, BusinessException.class
             );
 
-            assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED);
+            assertThat(exception.getErrorCode()).isEqualTo(DomainErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED);
         }
 
         @Test

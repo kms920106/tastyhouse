@@ -2,8 +2,8 @@ package com.tastyhouse.domain.product.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
@@ -174,7 +174,7 @@ public class ProductPrice {
 
     private static void validatePriceName(String priceName) {
         if (priceName != null && priceName.length() > PRICE_NAME_MAX_LENGTH) {
-            throw new BusinessException(ErrorCode.PRODUCT_PRICE_NAME_REQUIRED,
+            throw new DomainException(DomainErrorCode.PRODUCT_PRICE_NAME_REQUIRED,
                 "가격명은 " + PRICE_NAME_MAX_LENGTH + "자 이내여야 합니다.");
         }
     }
@@ -185,15 +185,15 @@ public class ProductPrice {
         requireNonNegative(pickupPrice, "픽업 가격");
 
         if (deliveryPrice == null) {
-            throw new BusinessException(ErrorCode.PRODUCT_PRICE_NEGATIVE,
-                ErrorCode.PRODUCT_PRICE_NEGATIVE.getDefaultMessage() + " 배달 가격은 필수입니다.");
+            throw new DomainException(DomainErrorCode.PRODUCT_PRICE_NEGATIVE,
+                DomainErrorCode.PRODUCT_PRICE_NEGATIVE.getDefaultMessage() + " 배달 가격은 필수입니다.");
         }
     }
 
     private static void requireNonNegative(Integer price, String label) {
         if (price != null && price < 0) {
-            throw new BusinessException(ErrorCode.PRODUCT_PRICE_NEGATIVE,
-                ErrorCode.PRODUCT_PRICE_NEGATIVE.getDefaultMessage() + " " + label + ": " + price);
+            throw new DomainException(DomainErrorCode.PRODUCT_PRICE_NEGATIVE,
+                DomainErrorCode.PRODUCT_PRICE_NEGATIVE.getDefaultMessage() + " " + label + ": " + price);
         }
     }
 

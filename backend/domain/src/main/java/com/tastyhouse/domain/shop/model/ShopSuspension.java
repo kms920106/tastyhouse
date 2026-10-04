@@ -2,8 +2,8 @@ package com.tastyhouse.domain.shop.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -49,7 +49,7 @@ public class ShopSuspension {
         LocalDateTime endAt
     ) {
         if (endAt.isBefore(startAt)) {
-            throw new BusinessException(ErrorCode.SHOP_SUSPENSION_INVALID_PERIOD);
+            throw new DomainException(DomainErrorCode.SHOP_SUSPENSION_INVALID_PERIOD);
         }
 
         return new ShopSuspension(null, shopId, reason, orderMethod, startAt, endAt, null, null, null);

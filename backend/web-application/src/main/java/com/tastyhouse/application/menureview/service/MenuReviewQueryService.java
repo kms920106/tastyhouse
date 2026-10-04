@@ -5,14 +5,15 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.application.menureview.port.in.MenuReviewQueryUseCase;
 import com.tastyhouse.application.menureview.port.out.MenuReviewListItemResult;
 import com.tastyhouse.application.menureview.port.out.MenuReviewQueryPort;
 import com.tastyhouse.application.menureview.port.out.MenuReviewWritableItemResult;
 import com.tastyhouse.application.order.port.out.OrderQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -31,9 +32,9 @@ class MenuReviewQueryService implements MenuReviewQueryUseCase {
     @Override
     public List<MenuReviewWritableItemResult> findWritableItems(Long orderId, Long memberId) {
         Long orderMemberId = orderQueryPort.findOrderMemberId(orderId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         if (!orderMemberId.equals(memberId)) {
-            throw new BusinessException(ErrorCode.ORDER_ACCESS_DENIED);
+            throw new DomainException(DomainErrorCode.ORDER_ACCESS_DENIED);
         }
 
         return menuReviewQueryPort.findWritableItemsByOrderId(orderId);

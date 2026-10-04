@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductDiscountInfo;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -152,7 +152,7 @@ class ProductTest {
         assertThatThrownBy(() -> productWithPrices(-1, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_PRICE_NEGATIVE);
+            .isEqualTo(DomainErrorCode.PRODUCT_PRICE_NEGATIVE);
     }
 
     @Test
@@ -161,7 +161,7 @@ class ProductTest {
         assertThatThrownBy(() -> productWithPrices(10000, -1))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_PRICE_NEGATIVE);
+            .isEqualTo(DomainErrorCode.PRODUCT_PRICE_NEGATIVE);
     }
 
     @Test
@@ -170,7 +170,7 @@ class ProductTest {
         assertThatThrownBy(() -> productWithPrices(10000, 10001))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL);
+            .isEqualTo(DomainErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL);
     }
 
     @Test
@@ -184,7 +184,7 @@ class ProductTest {
         ))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL);
+            .isEqualTo(DomainErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL);
 
         assertThat(product.getName()).isEqualTo("떡볶이");
         assertThat(product.getDiscountPrice()).isEqualTo(8000);

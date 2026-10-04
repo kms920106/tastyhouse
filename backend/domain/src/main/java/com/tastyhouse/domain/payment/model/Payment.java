@@ -2,8 +2,8 @@ package com.tastyhouse.domain.payment.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
@@ -193,7 +193,7 @@ public class Payment {
 
     public void complete(String pgTid, LocalDateTime approvedAt, String receiptUrl) {
         if (this.paymentStatus != PaymentStatus.PENDING) {
-            throw new BusinessException(ErrorCode.PAYMENT_NOT_PENDING);
+            throw new DomainException(DomainErrorCode.PAYMENT_NOT_PENDING);
         }
         this.paymentStatus = PaymentStatus.COMPLETED;
         this.pgTid = pgTid;

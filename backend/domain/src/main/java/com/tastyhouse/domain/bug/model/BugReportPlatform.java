@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.bug.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum BugReportPlatform {
 
@@ -12,8 +12,8 @@ public enum BugReportPlatform {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.BUG_REPORT_PLATFORM_UNKNOWN,
-                ErrorCode.BUG_REPORT_PLATFORM_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.BUG_REPORT_PLATFORM_UNKNOWN,
+                DomainErrorCode.BUG_REPORT_PLATFORM_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

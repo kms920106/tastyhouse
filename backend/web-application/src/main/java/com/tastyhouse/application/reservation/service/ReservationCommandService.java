@@ -9,8 +9,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.model.Reservation;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
@@ -22,6 +22,8 @@ import com.tastyhouse.application.reservation.port.in.ReservationConfirmCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationCreateCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationRejectCommand;
 import com.tastyhouse.application.reservation.port.out.write.ReservationPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shared.port.out.OptimisticLockConflictException;
 
 @Service
@@ -70,7 +72,7 @@ class ReservationCommandService implements ReservationCommandUseCase {
                     attempt + 1, MAX_RETRY, shopId, reservationDate, reservationTime);
                 if (attempt == MAX_RETRY - 1) {
 
-                    throw new BusinessException(ErrorCode.RESERVATION_SLOT_FULL);
+                    throw new DomainException(DomainErrorCode.RESERVATION_SLOT_FULL);
                 }
             }
         }
@@ -111,6 +113,6 @@ class ReservationCommandService implements ReservationCommandUseCase {
 
     private Reservation getReservation(ReservationId reservationId) {
         return reservationPersistencePort.findById(reservationId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.RESERVATION_NOT_FOUND));
     }
 }

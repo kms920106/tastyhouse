@@ -6,8 +6,6 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductRepresentativeRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -17,6 +15,8 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
 public class ProductRepresentativeApprovalService {
@@ -40,7 +40,7 @@ public class ProductRepresentativeApprovalService {
     public List<Long> requestRepresentative(ShopId shopId, List<ProductId> productIds) {
         List<ProductId> distinctIds = distinct(productIds);
         if (distinctIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
         }
 
         List<Product> targets = new ArrayList<>();
@@ -102,7 +102,7 @@ public class ProductRepresentativeApprovalService {
         }
 
         if (productPersistencePort.countVisibleRepresentativeByShopId(shopId) <= 1L) {
-            throw new BusinessException(ErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE);
         }
 
         product.changeRepresentative(false);
@@ -116,36 +116,36 @@ public class ProductRepresentativeApprovalService {
         long current = productPersistencePort.countRepresentativeByShopId(shopId);
         long pending = requestPersistencePort.countByShopIdAndStatus(shopId, ApprovalStatus.PENDING);
         if (current + pending + additional > MAX_REPRESENTATIVE_COUNT) {
-            throw new BusinessException(ErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
         }
     }
 
     private void validateApprovableLimit(ShopId shopId) {
         if (productPersistencePort.countRepresentativeByShopId(shopId) + 1 > MAX_REPRESENTATIVE_COUNT) {
-            throw new BusinessException(ErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
         }
     }
 
     private void requireHasImage(ProductId productId) {
         if (productImagePersistencePort.findRepresentativeImageFileId(productId) == null) {
-            throw new BusinessException(ErrorCode.PRODUCT_REPRESENTATIVE_IMAGE_REQUIRED);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_REPRESENTATIVE_IMAGE_REQUIRED);
         }
     }
 
     private ProductRepresentativeRequest loadRequest(ProductRepresentativeRequestId requestId) {
         return requestPersistencePort.findById(requestId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_REPRESENTATIVE_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_REPRESENTATIVE_REQUEST_NOT_FOUND));
     }
 
     private Product loadProduct(ProductId productId) {
         return productPersistencePort.findById(productId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
         List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
         return found.getFirst();
     }

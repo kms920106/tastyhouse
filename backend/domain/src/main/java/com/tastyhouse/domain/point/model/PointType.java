@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.point.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum PointType {
 
@@ -13,8 +13,8 @@ public enum PointType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.POINT_TYPE_UNKNOWN,
-                ErrorCode.POINT_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.POINT_TYPE_UNKNOWN,
+                DomainErrorCode.POINT_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

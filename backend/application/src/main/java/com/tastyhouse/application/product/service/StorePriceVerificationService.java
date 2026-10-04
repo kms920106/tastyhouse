@@ -8,9 +8,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductPrice;
@@ -28,6 +25,9 @@ import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
 import com.tastyhouse.application.product.port.out.write.StorePriceVerificationPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class StorePriceVerificationService {
@@ -62,10 +62,10 @@ public class StorePriceVerificationService {
         Long requestedByCeoId
     ) {
         if (verificationPersistencePort.existsByShopIdAndStatusIn(shopId, OPEN_STATUSES)) {
-            throw new BusinessException(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_IN_PROGRESS);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_IN_PROGRESS);
         }
         if (items == null || items.isEmpty()) {
-            throw new BusinessException(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_TARGET_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_TARGET_EMPTY);
         }
 
         List<ResolvedItem> resolved = resolveItems(shopId, items);
@@ -95,16 +95,16 @@ public class StorePriceVerificationService {
                 key -> loadOwnedProduct(shopId, productId));
 
             if (product.getDiscountPrice() != null) {
-                throw new BusinessException(ErrorCode.SHOP_STORE_PRICE_VERIFICATION_DISCOUNT_IN_PROGRESS,
-                    ErrorCode.SHOP_STORE_PRICE_VERIFICATION_DISCOUNT_IN_PROGRESS.getDefaultMessage()
+                throw new ApplicationException(ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_DISCOUNT_IN_PROGRESS,
+                    ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_DISCOUNT_IN_PROGRESS.getDefaultMessage()
                         + ": " + product.getName());
             }
 
             ProductPrice price = productPricePersistencePort.findById(ProductPriceId.of(item.priceId()))
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_PRICE_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_PRICE_NOT_FOUND));
 
             if (!price.getProductId().equals(productId)) {
-                throw new ResourceNotFoundException(ErrorCode.PRODUCT_PRICE_NOT_FOUND);
+                throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_PRICE_NOT_FOUND);
             }
 
             resolved.add(new ResolvedItem(
@@ -130,7 +130,7 @@ public class StorePriceVerificationService {
         for (StorePriceVerificationItem item : verificationPersistencePort
             .findAllItemsByVerificationId(verificationId)) {
             ProductPrice price = productPricePersistencePort.findById(item.getProductPriceId())
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_PRICE_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_PRICE_NOT_FOUND));
             price.applyVerifiedStorePrice(item.getStorePrice(), item.isApplyPickupSamePrice(), now);
             productPricePersistencePort.save(price);
         }
@@ -198,13 +198,13 @@ public class StorePriceVerificationService {
     private StorePriceVerification loadVerification(StorePriceVerificationId verificationId) {
         return verificationPersistencePort.findById(verificationId)
             .orElseThrow(() -> new ResourceNotFoundException(
-                ErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_FOUND));
+                ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_FOUND));
     }
 
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
         List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
         return found.getFirst();
     }

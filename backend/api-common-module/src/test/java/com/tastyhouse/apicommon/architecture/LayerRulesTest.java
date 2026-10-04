@@ -24,7 +24,7 @@ class LayerRulesTest {
 
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.domain..")
-            .because("표현 계층은 application만 본다(엄격 레이어드) — 에러 계약은 application.shared.error가 소유한다");
+            .because("표현 계층은 application만 본다(엄격 레이어드) — 필터·핸들러 단계 에러 계약은 ApiErrorCode, 예외 판정은 application.shared.error.ErrorResponses가 맡는다");
 
         rule.check(classes);
     }

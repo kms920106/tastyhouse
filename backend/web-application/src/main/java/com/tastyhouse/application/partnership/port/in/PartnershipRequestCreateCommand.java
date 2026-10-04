@@ -2,8 +2,8 @@ package com.tastyhouse.application.partnership.port.in;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record PartnershipRequestCreateCommand(
     String businessName,
@@ -17,7 +17,7 @@ public record PartnershipRequestCreateCommand(
     public PartnershipRequestCreateCommand {
         if (businessName == null || address == null || contactName == null
             || contactPhone == null || consultationRequestedAt == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

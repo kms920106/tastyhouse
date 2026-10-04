@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.admin.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum AdminRole {
 
@@ -12,8 +12,8 @@ public enum AdminRole {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.ADMIN_ROLE_UNKNOWN,
-                ErrorCode.ADMIN_ROLE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.ADMIN_ROLE_UNKNOWN,
+                DomainErrorCode.ADMIN_ROLE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

@@ -4,9 +4,6 @@ import java.time.LocalTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.domain.shop.model.ShopBreakTime;
@@ -17,6 +14,9 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 
 @Service
@@ -70,7 +70,7 @@ public class ShopBusinessHourService {
         ShopChangeActor actor
     ) {
         ShopBusinessHour businessHour = shopDetailPersistencePort.findBusinessHourById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
         String previousValue = describeBusinessHour(businessHour);
 
         businessHour.update(dayType, openTime, closeTime, isClosed, is24Hours);
@@ -135,7 +135,7 @@ public class ShopBusinessHourService {
         ShopChangeActor actor
     ) {
         ShopBreakTime breakTime = shopDetailPersistencePort.findBreakTimeById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
         validateBreakTimeWithinBusinessHours(breakTime.getShopId().value(), dayType, startTime, endTime);
         String previousValue = describeBreakTime(breakTime);
 
@@ -173,7 +173,7 @@ public class ShopBusinessHourService {
 
     public ShopClosedDay createClosedDay(Long shopId, ClosedDayType closedDayType, ShopChangeActor actor) {
         if (shopDetailPersistencePort.findClosedDaysByShopId(shopId).size() >= MAX_REGULAR_CLOSED_DAY_COUNT) {
-            throw new BusinessException(ErrorCode.SHOP_REGULAR_CLOSED_DAY_LIMIT_EXCEEDED);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_REGULAR_CLOSED_DAY_LIMIT_EXCEEDED);
         }
         ShopClosedDay closedDay = ShopClosedDay.of(ShopId.of(shopId), closedDayType);
         ShopClosedDay saved = shopDetailPersistencePort.saveClosedDay(closedDay);
@@ -230,14 +230,14 @@ public class ShopBusinessHourService {
 
     private void validateBreakTimeWithinBusinessHours(Long shopId, DayType dayType, LocalTime breakStart, LocalTime breakEnd) {
         if (breakStart == null || breakEnd == null) {
-            throw new BusinessException(ErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS);
         }
         ShopBusinessHour businessHour = shopDetailPersistencePort.findBusinessHoursByShopId(shopId).stream()
             .filter(bh -> bh.getDayType() == dayType)
             .findFirst()
-            .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS));
         if (businessHour.isClosed()) {
-            throw new BusinessException(ErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS);
         }
         if (businessHour.is24Hours()) {
             return;
@@ -245,10 +245,10 @@ public class ShopBusinessHourService {
         LocalTime open = businessHour.getOpenTime();
         LocalTime close = businessHour.getCloseTime();
         if (open != null && close != null && open.equals(breakStart) && close.equals(breakEnd)) {
-            throw new BusinessException(ErrorCode.SHOP_BREAK_TIME_EQUALS_BUSINESS_HOURS);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_BREAK_TIME_EQUALS_BUSINESS_HOURS);
         }
         if (isOutside(open, close, breakStart) || isOutside(open, close, breakEnd)) {
-            throw new BusinessException(ErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS);
         }
     }
 

@@ -7,12 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryQueryUseCase;
 import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryQueryPort;
 import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
 import com.tastyhouse.application.ceo.port.out.CeoLoginHistorySearchCondition;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -72,10 +72,10 @@ class CeoLoginHistoryQueryService implements CeoLoginHistoryQueryUseCase {
 
     private void validateDateRange(LocalDate startDate, LocalDate endDate, LocalDate today) {
         if (startDate.isAfter(endDate)) {
-            throw new BusinessException(ErrorCode.SHOP_REQUEST_DATE_RANGE_INVALID);
+            throw new ApplicationException(CeoErrorCode.SHOP_REQUEST_DATE_RANGE_INVALID);
         }
         if (endDate.isAfter(today) || startDate.isBefore(today.minusDays(RETENTION_DAYS))) {
-            throw new BusinessException(ErrorCode.CEO_LOGIN_HISTORY_DATE_OUT_OF_RANGE);
+            throw new ApplicationException(CeoErrorCode.CEO_LOGIN_HISTORY_DATE_OUT_OF_RANGE);
         }
     }
 }

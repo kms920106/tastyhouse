@@ -2,8 +2,8 @@ package com.tastyhouse.domain.product.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 
 public class ProductCommonOption {
@@ -108,7 +108,7 @@ public class ProductCommonOption {
 
     public void changeSoldOutUntil(LocalDateTime until) {
         if (!this.soldOut) {
-            throw new BusinessException(ErrorCode.PRODUCT_NOT_SOLD_OUT);
+            throw new DomainException(DomainErrorCode.PRODUCT_NOT_SOLD_OUT);
         }
         this.soldOutUntil = until;
     }

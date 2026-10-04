@@ -2,8 +2,8 @@ package com.tastyhouse.application.event.port.in;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record EventWinnerCreateCommand(
     Long eventId,
@@ -15,7 +15,7 @@ public record EventWinnerCreateCommand(
 
     public EventWinnerCreateCommand {
         if (eventId == null || rankNo == null || winnerName == null || phoneNumber == null || announcedAt == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

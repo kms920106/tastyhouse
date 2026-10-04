@@ -12,7 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.event.ReviewOwnerReplyCreatedEvent;
 import com.tastyhouse.domain.review.model.Review;
@@ -22,6 +21,7 @@ import com.tastyhouse.domain.review.vo.ReviewOwnerReplyId;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyPersistencePort;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.testsupport.review.service.FakeDomainEventPublisher;
@@ -103,7 +103,7 @@ class ReviewOwnerReplyServiceTest {
         assertThatThrownBy(() -> reviewOwnerReplyService.register(SHOP_ID, reviewId, CEO_ID, CONTENT, today))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.REVIEW_OWNER_REPLY_PERIOD_EXPIRED);
+            .isEqualTo(CeoErrorCode.REVIEW_OWNER_REPLY_PERIOD_EXPIRED);
     }
 
     @Test
@@ -155,7 +155,7 @@ class ReviewOwnerReplyServiceTest {
         assertThatThrownBy(() -> reviewOwnerReplyService.register(SHOP_ID, reviewId, CEO_ID, "전화주문 하세요", today))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.REVIEW_OWNER_REPLY_PERIOD_EXPIRED);
+            .isEqualTo(CeoErrorCode.REVIEW_OWNER_REPLY_PERIOD_EXPIRED);
     }
 
     private static class FakeReviewOwnerReplyPersistencePort implements ReviewOwnerReplyPersistencePort {

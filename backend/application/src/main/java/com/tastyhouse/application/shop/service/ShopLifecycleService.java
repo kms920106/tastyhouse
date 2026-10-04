@@ -5,9 +5,6 @@ import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.model.Shop;
@@ -19,6 +16,9 @@ import com.tastyhouse.domain.shop.model.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopBookmarkPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
@@ -147,7 +147,7 @@ public class ShopLifecycleService {
 
     public void changeVisibility(ShopId shopId, boolean hidden, ShopChangeActor actor) {
         if (shopImageApprovalService.existsPendingByShopId(shopId.value())) {
-            throw new BusinessException(ErrorCode.SHOP_STATUS_CHANGE_BLOCKED_BY_PENDING_REQUEST);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_STATUS_CHANGE_BLOCKED_BY_PENDING_REQUEST);
         }
         Shop shop = loadShop(shopId);
         String previousValue = describeVisibility(shop.isHidden());
@@ -179,7 +179,7 @@ public class ShopLifecycleService {
 
     public void createOwnerMessage(Long shopId, String message, ShopChangeActor actor) {
         if (message != null && message.length() > SHOP_INTRODUCTION_MAX_LENGTH) {
-            throw new BusinessException(ErrorCode.SHOP_INTRODUCTION_TOO_LONG);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_INTRODUCTION_TOO_LONG);
         }
         prohibitedWordValidator.validate(message);
 
@@ -218,12 +218,12 @@ public class ShopLifecycleService {
 
     private Shop loadShop(ShopId shopId) {
         return shopPersistencePort.findById(shopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 
     private void validateStationExists(Long stationId) {
         if (!stationPersistencePort.existsById(stationId)) {
-            throw new ResourceNotFoundException(ErrorCode.STATION_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.STATION_NOT_FOUND);
         }
     }
 }

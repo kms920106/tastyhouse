@@ -58,7 +58,7 @@ com.tastyhouse.infrastructure.aws.s3/
 ### Internal
 - `application` (implementation) — `FileStoragePort`(`com.tastyhouse.application.file.port.out`)
 
-`S3FileStorage#delete`는 `ErrorCode.FILE_DELETE_FAILED`를 던지는 대신 `FileDeleteResult`(성공/실패 + cause)를 반환한다 — `domain`의 `BusinessException`/`ErrorCode`를 참조하지 않는다.
+`S3FileStorage#delete`는 (구 단일 `ErrorCode`의) `FILE_DELETE_FAILED`를 던지는 대신 `FileDeleteResult`(성공/실패 + cause)를 반환한다 — `domain`의 `BusinessException`/에러코드를 참조하지 않는다(`FILE_DELETE_FAILED`는 에러코드 모듈 분할로 삭제됐다).
 
 ### External
 - `io.awspring.cloud:spring-cloud-aws-starter-s3` — 라이브러리가 아니라 **스타터**여야 한다. autoconfigure가 동반돼야 `S3Operations`·`S3Client` 빈이 생긴다(위 결함 2).

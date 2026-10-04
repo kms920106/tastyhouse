@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum OriginSourceType {
 
@@ -23,8 +23,8 @@ public enum OriginSourceType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException | NullPointerException e) {
-            throw new BusinessException(ErrorCode.SHOP_ORIGIN_SOURCE_TYPE_UNKNOWN,
-                ErrorCode.SHOP_ORIGIN_SOURCE_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.SHOP_ORIGIN_SOURCE_TYPE_UNKNOWN,
+                DomainErrorCode.SHOP_ORIGIN_SOURCE_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

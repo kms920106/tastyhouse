@@ -22,7 +22,7 @@ com.tastyhouse.infrastructure.javamail/
 
 ## Dependencies
 
-- `web-application` (implementation) — `MailSender`·`MailSendResult` 포트의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`** (메일 발송 포트가 web 전용이라 web 앱 모듈로 옮겨갔다). ~~`domain` (implementation) — `MailSender` 포트 + `BusinessException`·`ErrorCode.MAIL_SEND_FAILED`~~ (02-vendor-ports 이전 기록 — 지금 `build.gradle`의 프로젝트 의존은 `:web-application` 하나다)
+- `web-application` (implementation) — `MailSender`·`MailSendResult` 포트의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`** (메일 발송 포트가 web 전용이라 web 앱 모듈로 옮겨갔다). ~~`domain` (implementation) — `MailSender` 포트 + `BusinessException`·`ErrorCode.MAIL_SEND_FAILED`~~ (02-vendor-ports 이전 기록. 지금 `MAIL_SEND_FAILED`는 `WebErrorCode`이고 `MailVerificationService`가 번역한다 — 지금 `build.gradle`의 프로젝트 의존은 `:web-application` 하나다)
 - `spring-boot-starter-mail` — `JavaMailSender`. **이 좌표를 클래스패스에 올리는 유일한 모듈이다.**
 - `infrastructure:mail`을 의존하지 않는다 — 발신자 주소는 `@Value("${mail.sender-address}")`로 키만 읽는다(순환 방지, `../mail/AGENTS.md` 봉인 목록)
 

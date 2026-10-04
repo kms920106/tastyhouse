@@ -8,14 +8,14 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.event.FileUploadedEvent;
 import com.tastyhouse.domain.file.model.UploadedFile;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.file.port.out.FileStoragePort;
 import com.tastyhouse.application.file.port.out.write.UploadedFilePersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
 public class FileUploadService {
@@ -70,27 +70,27 @@ public class FileUploadService {
 
     private void validate(FileUploadCommand command) {
         if (command.content() == null || command.content().length == 0) {
-            throw new BusinessException(ErrorCode.FILE_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.FILE_EMPTY);
         }
 
         if (command.fileSize() > MAX_FILE_SIZE) {
-            throw new BusinessException(ErrorCode.FILE_SIZE_EXCEEDED);
+            throw new ApplicationException(ApplicationErrorCode.FILE_SIZE_EXCEEDED);
         }
 
         String contentType = command.contentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            throw new BusinessException(ErrorCode.FILE_TYPE_NOT_ALLOWED);
+            throw new ApplicationException(ApplicationErrorCode.FILE_TYPE_NOT_ALLOWED);
         }
 
         String extension = extractExtension(command.originalFilename());
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new BusinessException(ErrorCode.FILE_EXTENSION_NOT_ALLOWED);
+            throw new ApplicationException(ApplicationErrorCode.FILE_EXTENSION_NOT_ALLOWED);
         }
     }
 
     private String extractExtension(String filename) {
         if (filename == null || !filename.contains(".")) {
-            throw new BusinessException(ErrorCode.FILE_EXTENSION_UNKNOWN);
+            throw new ApplicationException(ApplicationErrorCode.FILE_EXTENSION_UNKNOWN);
         }
         return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
     }

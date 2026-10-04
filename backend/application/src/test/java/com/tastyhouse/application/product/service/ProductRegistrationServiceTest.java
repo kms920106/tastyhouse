@@ -8,7 +8,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductBbq;
@@ -33,6 +32,7 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkP
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.testsupport.product.service.FakeProductShopLinkPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;

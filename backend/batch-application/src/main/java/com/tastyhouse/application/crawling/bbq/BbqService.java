@@ -7,8 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqMenuPort;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductCategoryResponse;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqProductResponse;
@@ -18,6 +16,8 @@ import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadResult;
 import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
 import com.tastyhouse.application.file.service.FileUploadCommand;
 import com.tastyhouse.application.file.service.FileUploadService;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.BatchJobException;
 
 @Service
@@ -160,10 +160,10 @@ public class BbqService {
         if (result.success()) {
             return result.image();
         }
-        ErrorCode errorCode = switch (result.failure()) {
-            case EMPTY -> ErrorCode.FILE_EMPTY;
-            case SIZE_EXCEEDED -> ErrorCode.FILE_SIZE_EXCEEDED;
+        ApplicationErrorCode errorCode = switch (result.failure()) {
+            case EMPTY -> ApplicationErrorCode.FILE_EMPTY;
+            case SIZE_EXCEEDED -> ApplicationErrorCode.FILE_SIZE_EXCEEDED;
         };
-        throw new BusinessException(errorCode);
+        throw new ApplicationException(errorCode);
     }
 }

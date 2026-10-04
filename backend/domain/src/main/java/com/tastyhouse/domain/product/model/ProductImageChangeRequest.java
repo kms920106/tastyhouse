@@ -2,8 +2,8 @@ package com.tastyhouse.domain.product.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductImageChangeRequestId;
@@ -120,7 +120,7 @@ public class ProductImageChangeRequest {
 
     private void requirePending() {
         if (this.status != ApprovalStatus.PENDING) {
-            throw new BusinessException(ErrorCode.PRODUCT_IMAGE_CHANGE_REQUEST_NOT_PENDING);
+            throw new DomainException(DomainErrorCode.PRODUCT_IMAGE_CHANGE_REQUEST_NOT_PENDING);
         }
     }
 }

@@ -8,9 +8,6 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.CupDepositPolicy;
 import com.tastyhouse.domain.product.model.OrderLineOptionSelection;
@@ -35,6 +32,10 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersi
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 public class OrderProductValidationService {
@@ -85,17 +86,17 @@ public class OrderProductValidationService {
 
     private OrderProductSnapshot validateLine(OrderLineSelection line, OrderMethod orderMethod, LocalDateTime now) {
         Product product = productPersistencePort.findById(ProductId.of(line.productId()))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND,
-                ErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + line.productId()));
+            .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_PRODUCT_NOT_FOUND,
+                WebErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + line.productId()));
 
         if (!isExposed(product, now)) {
-            throw new BusinessException(ErrorCode.ORDER_PRODUCT_NOT_AVAILABLE,
-                ErrorCode.ORDER_PRODUCT_NOT_AVAILABLE.getDefaultMessage() + ": " + product.getName());
+            throw new ApplicationException(WebErrorCode.ORDER_PRODUCT_NOT_AVAILABLE,
+                WebErrorCode.ORDER_PRODUCT_NOT_AVAILABLE.getDefaultMessage() + ": " + product.getName());
         }
 
         if (product.isSoldOut()) {
-            throw new BusinessException(ErrorCode.ORDER_PRODUCT_SOLD_OUT,
-                ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
+            throw new ApplicationException(WebErrorCode.ORDER_PRODUCT_SOLD_OUT,
+                WebErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + product.getName());
         }
 
         UploadedFileId representativeImageFileId =
@@ -128,7 +129,7 @@ public class OrderProductValidationService {
         return prices.stream()
             .filter(price -> line.priceId().equals(price.getId()))
             .findFirst()
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_PRICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_PRICE_NOT_FOUND));
     }
 
     private boolean isExposed(Product product, LocalDateTime now) {
@@ -153,26 +154,26 @@ public class OrderProductValidationService {
             ProductOptionGroupId groupId = ProductOptionGroupId.of(selected.groupId());
             ProductOptionGroup optionGroup = productOptionGroupPersistencePort
                 .findById(groupId)
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
 
             if (!productOptionGroupLinkPersistencePort.existsByProductIdAndOptionGroupId(productId, groupId)) {
-                throw new ResourceNotFoundException(ErrorCode.ORDER_OPTION_GROUP_NOT_FOUND);
+                throw new ResourceNotFoundException(WebErrorCode.ORDER_OPTION_GROUP_NOT_FOUND);
             }
 
             ProductOption option = productOptionPersistencePort
                 .findById(ProductOptionId.of(selected.optionId()))
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_OPTION_NOT_FOUND));
 
             if (!option.getOptionGroupId().equals(groupId)) {
-                throw new ResourceNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND);
+                throw new ResourceNotFoundException(WebErrorCode.ORDER_OPTION_NOT_FOUND);
             }
 
             if (!option.isVisible()) {
-                throw new ResourceNotFoundException(ErrorCode.ORDER_OPTION_NOT_FOUND);
+                throw new ResourceNotFoundException(WebErrorCode.ORDER_OPTION_NOT_FOUND);
             }
             if (option.isSoldOut()) {
-                throw new BusinessException(ErrorCode.ORDER_PRODUCT_SOLD_OUT,
-                    ErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + option.getName());
+                throw new ApplicationException(WebErrorCode.ORDER_PRODUCT_SOLD_OUT,
+                    WebErrorCode.ORDER_PRODUCT_SOLD_OUT.getDefaultMessage() + ": " + option.getName());
             }
 
             selectedGroups.putIfAbsent(groupId.value(), optionGroup);
@@ -223,8 +224,8 @@ public class OrderProductValidationService {
 
     private void validateSelectCount(ProductOptionGroup group, int selectedCount) {
         if (group.isRequired() && selectedCount == 0) {
-            throw new BusinessException(ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID,
-                ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID.getDefaultMessage() + ": " + group.getName());
+            throw new ApplicationException(WebErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID,
+                WebErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID.getDefaultMessage() + ": " + group.getName());
         }
 
         if (selectedCount == 0) {
@@ -233,14 +234,14 @@ public class OrderProductValidationService {
 
         Integer minSelect = group.getMinSelect();
         if (minSelect != null && selectedCount < minSelect) {
-            throw new BusinessException(ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID,
-                ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID.getDefaultMessage() + ": " + group.getName());
+            throw new ApplicationException(WebErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID,
+                WebErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID.getDefaultMessage() + ": " + group.getName());
         }
 
         Integer maxSelect = group.getMaxSelect();
         if (maxSelect != null && selectedCount > maxSelect) {
-            throw new BusinessException(ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID,
-                ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID.getDefaultMessage() + ": " + group.getName());
+            throw new ApplicationException(WebErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID,
+                WebErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID.getDefaultMessage() + ": " + group.getName());
         }
     }
 }

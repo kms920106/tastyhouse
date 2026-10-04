@@ -8,11 +8,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.application.auth.port.out.MemberJwtResult;
 import com.tastyhouse.application.auth.security.MemberUserDetails;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.security.token.BlacklistRepository;
 import com.tastyhouse.security.token.RefreshTokenRepository;
 
@@ -61,13 +61,13 @@ public class MemberTokenService {
 
     public MemberJwtResult refresh(String refreshToken) {
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            throw new BusinessException(ErrorCode.AUTH_REFRESH_TOKEN_INVALID);
+            throw new ApplicationException(WebErrorCode.AUTH_REFRESH_TOKEN_INVALID);
         }
 
         String username = jwtTokenProvider.getUsernameFromJWT(refreshToken);
 
         if (refreshTokenRepository.isInvalid(username, refreshToken)) {
-            throw new BusinessException(ErrorCode.AUTH_REFRESH_TOKEN_EXPIRED);
+            throw new ApplicationException(WebErrorCode.AUTH_REFRESH_TOKEN_EXPIRED);
         }
 
         Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
@@ -105,7 +105,7 @@ public class MemberTokenService {
 
     private String extractToken(String bearerToken) {
         if (!StringUtils.hasText(bearerToken) || !bearerToken.startsWith("Bearer ")) {
-            throw new BusinessException(ErrorCode.AUTH_TOKEN_INVALID);
+            throw new ApplicationException(WebErrorCode.AUTH_TOKEN_INVALID);
         }
         return bearerToken.substring(7).trim();
     }

@@ -5,14 +5,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.coupon.model.DiscountType;
 import com.tastyhouse.domain.coupon.vo.CouponId;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.coupon.port.in.CouponManagementQueryUseCase;
 import com.tastyhouse.application.coupon.port.out.CouponDetailResult;
 import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
 import com.tastyhouse.application.coupon.port.out.CouponManagementQueryPort;
 import com.tastyhouse.application.coupon.port.out.CouponSearchCondition;
 import com.tastyhouse.application.coupon.port.out.MemberCouponItemResult;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -44,7 +44,7 @@ class CouponManagementQueryService implements CouponManagementQueryUseCase {
     @Override
     public CouponDetailResult getCoupon(Long id) {
         return couponManagementQueryPort.findCouponDetailById(CouponId.of(id).value())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.COUPON_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.COUPON_NOT_FOUND));
     }
 
     @Override

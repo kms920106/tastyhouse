@@ -4,9 +4,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
@@ -16,6 +13,10 @@ import com.tastyhouse.domain.shop.model.ShopContentTopic;
 import com.tastyhouse.domain.shop.model.ShopContentType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteCommand;
@@ -60,7 +61,7 @@ class ShopContentBoardOwnerCommandService implements ShopContentBoardOwnerComman
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         if (shopContentBoardPersistencePort.countByShopId(shopId) >= MAX_CONTENT_BOARD_COUNT) {
-            throw new BusinessException(ErrorCode.SHOP_CONTENT_BOARD_LIMIT_EXCEEDED);
+            throw new ApplicationException(CeoErrorCode.SHOP_CONTENT_BOARD_LIMIT_EXCEEDED);
         }
 
         ShopContentType type = ShopContentType.from(contentType);
@@ -148,9 +149,9 @@ class ShopContentBoardOwnerCommandService implements ShopContentBoardOwnerComman
 
     private ShopContentBoard loadOwnedContentBoard(Long shopId, Long contentBoardId) {
         ShopContentBoard shopContentBoard = shopContentBoardPersistencePort.findById(contentBoardId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
         if (!shopContentBoard.getShopId().equals(ShopId.of(shopId))) {
-            throw new ResourceNotFoundException(ErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND);
         }
         return shopContentBoard;
     }

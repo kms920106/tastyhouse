@@ -5,9 +5,6 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
@@ -16,6 +13,9 @@ import com.tastyhouse.domain.shop.model.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayOwnerCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayOwnerDeleteCommand;
@@ -101,7 +101,7 @@ class ShopClosedDayCommandService implements ShopClosedDayCommandUseCase {
             .mapToLong(ShopTemporaryClosure::days)
             .sum();
         if (accumulatedDays + temporaryClosure.days() > MAX_ACCUMULATED_CLOSURE_DAYS) {
-            throw new BusinessException(ErrorCode.SHOP_TEMPORARY_CLOSURE_LIMIT_EXCEEDED);
+            throw new ApplicationException(CeoErrorCode.SHOP_TEMPORARY_CLOSURE_LIMIT_EXCEEDED);
         }
 
         ShopTemporaryClosure saved = shopTemporaryClosurePersistencePort.save(temporaryClosure);
@@ -124,7 +124,7 @@ class ShopClosedDayCommandService implements ShopClosedDayCommandUseCase {
         Long temporaryClosureId = command.temporaryClosureId();
 
         ShopTemporaryClosure temporaryClosure = shopTemporaryClosurePersistencePort.findById(temporaryClosureId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_TEMPORARY_CLOSURE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_TEMPORARY_CLOSURE_NOT_FOUND));
         shopTemporaryClosurePersistencePort.deleteById(temporaryClosureId);
 
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);

@@ -5,8 +5,6 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.rank.model.RankPeriod;
 import com.tastyhouse.domain.rank.model.RankPrize;
@@ -23,6 +21,8 @@ import com.tastyhouse.application.rank.port.in.RankPrizeDeleteCommand;
 import com.tastyhouse.application.rank.port.in.RankPrizeUpdateCommand;
 import com.tastyhouse.application.rank.port.out.write.RankPeriodPersistencePort;
 import com.tastyhouse.application.rank.port.out.write.RankPrizePersistencePort;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -116,11 +116,11 @@ class RankCommandService implements RankCommandUseCase {
 
     private RankPeriod findPeriodOrThrow(RankPeriodId periodId) {
         return rankPeriodPersistencePort.findById(periodId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PERIOD_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.RANK_PERIOD_NOT_FOUND));
     }
 
     private RankPrize findPrizeOrThrow(RankPrizeId prizeId) {
         return rankPrizePersistencePort.findById(prizeId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.RANK_PRIZE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.RANK_PRIZE_NOT_FOUND));
     }
 }

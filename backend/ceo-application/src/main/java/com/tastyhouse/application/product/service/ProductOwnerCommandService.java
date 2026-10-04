@@ -5,11 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.Product;
-import com.tastyhouse.domain.product.model.ProductAvailabilityChangeResult;
 import com.tastyhouse.domain.product.model.ProductShopLinkSpec;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -23,6 +19,9 @@ import com.tastyhouse.application.product.port.in.ProductOwnerUpdateUseCase;
 import com.tastyhouse.application.product.port.in.ProductShopLinkItemCommand;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityChangeView;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.OwnedShopIdProvider;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -183,9 +182,9 @@ class ProductOwnerCommandService implements ProductOwnerCreateUseCase, ProductOw
 
     private Product loadOwnedProduct(Long shopId, Long productId) {
         Product product = productPersistencePort.findById(ProductId.of(productId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
         return product;
     }
@@ -207,7 +206,7 @@ class ProductOwnerCommandService implements ProductOwnerCreateUseCase, ProductOw
 
     private List<ProductId> toProductIds(List<Long> productIds) {
         if (productIds == null || productIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
         }
         return productIds.stream().map(ProductId::of).toList();
     }

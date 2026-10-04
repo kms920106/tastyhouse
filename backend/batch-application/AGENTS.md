@@ -22,6 +22,8 @@
 
 - **`@Configuration`과 도메인 이벤트 리스너(`@TransactionalEventListener`)를 여기 두지 않는다** — 코어에만 둔다(`backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `listenersAndConfigsShouldResideInCore`). 리스너가 앱 모듈에 있으면 다른 앱이 같은 이벤트를 발행할 때 후속 처리가 조용히 사라진다.
 - **빈이면 `@Service`/`@Component`를 단다.** 앱 마커는 없다.
+- **이 모듈 전용 에러코드는 `BatchErrorCode`(`backend/batch-application/src/main/java/com/tastyhouse/application/shared/exception/BatchErrorCode.java`)에 둔다; 두 번째 앱이 쓰면 코어 `ApplicationErrorCode`로 올린다.** 예외는 `ApplicationException(BatchErrorCode.X)`로 던진다. 규칙 정본은 `backend/application/AGENTS.md`의 봉인·가드 목록 "에러 카탈로그 가드" 항목이다.
+- 현재 `BatchErrorCode`는 `ADMIN_DONG_BOUNDARY_FETCH_FAILED` 1건뿐이다.
 - **두 번째 앱이 쓰게 되면 코어로 옮긴다.** 이 모듈에는 batch 하나만 쓰는 것만 둔다.
 - **batch 전용 SPI 포트를 코어로 옮기지 않는다.** 코어로 가면 web·admin·ceo의 코어 빈이 그 포트를 주입해도 컴파일이 통과하고, 구현이 없는 앱에서 기동 시점에야 실패한다.
 - **batch 고유 ArchUnit 규칙은 "이 모듈에서 온 클래스"를 대상으로 한다** — 코어 `application`의 `BatchSchedulerRulesTest`와 `LayerRulesTest#commandRecordsShouldBeBoundaryTyped`(batch 제외)는 과거 `@BatchApp` 마커 대신 testFixtures `com.tastyhouse.architecture.ModuleOrigin.from("batch-application")` 술어로 대상을 고른다. 이 술어는 main 출력(`build/classes/java/main`, main jar)만 인정하므로 아키텍처 테스트는 Gradle로 실행해야 한다(IntelliJ 자체 빌드 출력 `out/production/...`은 예외). 이 모듈의 이름을 바꾸면 그 판정이 함께 바뀐다.

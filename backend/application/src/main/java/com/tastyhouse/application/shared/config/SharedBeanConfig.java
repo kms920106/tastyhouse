@@ -7,8 +7,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.product.model.CupDepositPolicy;
 import com.tastyhouse.domain.product.model.ProductExposureCalculator;
 import com.tastyhouse.domain.product.model.StorePriceBadgePolicy;
@@ -79,8 +79,8 @@ class SharedBeanConfig {
             DeliveryTipPolicy.EXTRA_TIP_UPPER_BOUND,
             Arrays.stream(DeliveryTipDistanceUnit.values())
                 .collect(Collectors.toMap(DeliveryTipDistanceUnit::name, DeliveryTipDistanceUnit::getUnitMeters)),
-            code -> new BusinessException(ErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN,
-                ErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN.getDefaultMessage() + ": " + code),
+            code -> new DomainException(DomainErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN,
+                DomainErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN.getDefaultMessage() + ": " + code),
             DeliveryTipExtraType.DISTANCE.name(),
             DeliveryTipExtraType.REGION.name()
         );

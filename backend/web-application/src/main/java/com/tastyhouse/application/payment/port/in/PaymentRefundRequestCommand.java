@@ -1,7 +1,7 @@
 package com.tastyhouse.application.payment.port.in;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record PaymentRefundRequestCommand(
     Long memberId,
@@ -12,7 +12,7 @@ public record PaymentRefundRequestCommand(
 
     public PaymentRefundRequestCommand {
         if (memberId == null || paymentId == null || refundAmount == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

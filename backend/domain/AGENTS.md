@@ -13,7 +13,7 @@
 | `<ctx>/model/`·`<ctx>/vo/`·`<ctx>/event/`(이벤트 타입) | `<ctx>/repository/` write 포트 106개 + 보조 타입 2개 → `application/<ctx>/port/out/write/` |
 | 포트를 주입받지 않는 순수 서비스(`CupDepositPolicy`·`EditorChoicePolicy`·`ShopDeliveryTipCalculator` 등)와 그 입출력 record | `<ctx>/port/` 출력 포트 10개 → `application/<ctx>/port/out/` |
 | `shared/{vo,geo,model}` | 포트를 주입받는 서비스 71개 + `NotificationMessage` → `application/<ctx>/service/` |
-| `exception/`(`BusinessException`·`ErrorCode` 등) | `DomainEventPublisher` → `application/shared/event/`, `OptimisticLockConflictException` → `application/shared/port/out/` |
+| `exception/`(`BusinessException`·`DomainErrorCode`·`DomainException` 등. ~~`ErrorCode`~~ **(번복됨 — 에러코드 모듈 분할)** 단일 `ErrorCode`는 삭제됐다) | `DomainEventPublisher` → `application/shared/event/`, `OptimisticLockConflictException` → `application/shared/port/out/` |
 
 ### 컨텍스트 하위 패키지는 `model`·`vo`·`event` 셋이다 (domain `service` → `model` 흡수)
 
@@ -50,7 +50,7 @@
 ## For AI Agents
 
 ### Working In This Directory
-- **프레임워크 import 금지**: `org.springframework.*`(`@Transactional`/`@Service`/`@Component` 포함)·`jakarta.persistence.*`·`com.querydsl.*`를 이 모듈에 추가하지 않는다. build.gradle에 해당 의존이 아예 없으므로 추가하려면 컴파일이 깨진다 — 필요한 관심사는 `infrastructure:persistence`로 보낸다. HTTP 상태는 `exception/ErrorCode`의 `httpStatusCode`(int)로만 표현한다.
+- **프레임워크 import 금지**: `org.springframework.*`(`@Transactional`/`@Service`/`@Component` 포함)·`jakarta.persistence.*`·`com.querydsl.*`를 이 모듈에 추가하지 않는다. build.gradle에 해당 의존이 아예 없으므로 추가하려면 컴파일이 깨진다 — 필요한 관심사는 `infrastructure:persistence`로 보낸다. HTTP 상태는 `exception/DomainErrorCode`(~~`ErrorCode`~~ **번복됨 — 에러코드 모듈 분할**)의 `httpStatusCode`(int)로만 표현한다. 도메인 코드는 `DomainException(DomainErrorCode)`로만 던진다 — `BusinessException`은 abstract라 직접 `new`할 수 없다.
 - **`@Entity`는 이 모듈에 없다**: 도메인 모델은 전 도메인(22개) 순수 POJO이며, JPA 엔티티(`XxxJpaEntity`)·매퍼(`XxxMapper`)·`XxxPersistenceAdapter`·`AttributeConverter`·`BaseEntity`는 전부 `infrastructure:persistence`(`com.tastyhouse.infrastructure.persistence.<ctx>.persistence`)에 있다. `AttributeConverter`는 0건이고, 이 모듈의 모델을 `reconstitute`로 재구성하는 것은 persistence `XxxMapper`다(엔티티 필드는 `String`·`XxxEmbeddable`이므로 enum `valueOf`·VO `of`도 그 매퍼가 한다). ~~**(03b)** 그 persistence는 이제 이 모듈을 모른다 — 엔티티·매퍼는 `application`의 `XxxState` record만 다루고(`XxxPersistenceAdapter`은 `XxxStatePortImpl`로 개명), 재구성은 `application/<ctx>/store/XxxStateMapper`다.~~ **(번복됨 — persistence domain 재허용)** 외부 애그리거트 참조는 ID VO(`MemberId` 등)로 하고, 자식 애그리거트도 별도 Repository로 분리한다(JPA 연관관계 매핑 자체가 이 모듈에 존재할 수 없다).
 - **도메인 모델 규칙**:
   - 신규 생성 `of(...)`(또는 `create(...)`/`register(...)`)와 DB 재구성 전용 `reconstitute(id, ..., createdAt, updatedAt)` 두 팩토리만 공개한다. `reconstitute`는 인프라(매퍼)만 호출하며(불변식 우회 방지, Javadoc 명시), `id`는 미영속이면 null이다. Java 계층에 생성 경로가 없는 read-only 애그리거트는 `reconstitute`만 둔다(reference: `shop/model/ProhibitedWord`). 조회 전용이고 도메인 불변식도 없는 데이터는 애그리거트를 두지 않고 infra `<ctx>/query/`의 Result DTO로만 노출한다(reference: `search`의 추천 검색어 — 도메인 모델 없이 `infrastructure/search/query/RecommendedKeywordResult`만 존재).
@@ -95,37 +95,39 @@
 
 이 절의 항목은 **코드의 특정 지점을 이렇게 바꾸지 말라는 금지 지시**다. 원문 주석은 챕터 03에서 제거되므로, 이 문서가 그 지시의 유일한 소재지다.
 
-### `ErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND` 외 3건 — 이름과 상태코드 불일치 봉인
+### `SMS_VERIFICATION_CODE_NOT_FOUND` 외 3건 — 이름과 상태코드 불일치 봉인
 
-**대상**: `backend/domain/src/test/java/com/tastyhouse/domain/exception/ErrorCodeConventionTest.java`
+> **이관 (에러코드 모듈 분할)** — 가드 테스트가 `backend/domain/src/test/java/com/tastyhouse/domain/exception/ErrorCodeConventionTest.java`(삭제됨)에서 `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`로 옮겨졌다. 이 테스트는 7개 카탈로그(`DomainErrorCode`·`ApplicationErrorCode`·`WebErrorCode`·`AdminErrorCode`·`CeoErrorCode`·`BatchErrorCode`·`ApiErrorCode`)를 한꺼번에 검사한다. 봉인 구성원은 같고, 상수가 사는 enum만 소유 모듈 규칙(던지는 가장 안쪽 모듈)에 따라 갈렸다 — 정본은 `backend/application/AGENTS.md`의 봉인·가드 목록 "에러 카탈로그 가드" 항목이다.
+
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`
 → `NOT_FOUND_NAME_WITH_NON_404_STATUS`
 
 이름이 `*_NOT_FOUND`인데 404가 아닌 기존 상수들. 이미 프론트엔드가 분기하는 wire 계약(응답 status + code)이므로 지금 고치면 클라이언트가 깨진다. 교정 대상이 아니라 **봉인 대상**이다. **여기에 새 항목을 추가하지 말고, 신규 상수는 규약을 지킨다.**
 
 봉인 구성원 4개 — 코드를 열지 않고 대조할 수 있도록 전부 열거한다.
 
-- `ErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND`
-- `ErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND`
-- `ErrorCode.REFERRAL_REFERRER_NOT_FOUND`
-- `ErrorCode.FOLLOW_NOT_FOUND`
+- `SMS_VERIFICATION_CODE_NOT_FOUND`
+- `MAIL_VERIFICATION_CODE_NOT_FOUND`
+- `REFERRAL_REFERRER_NOT_FOUND`
+- `FOLLOW_NOT_FOUND`
 
-**짝 테스트(노후 감지)**: `ErrorCodeConventionTest.whitelistIsNotStale()` — 봉인 목록의 상수가 404로 고쳐졌으면 실패해서 목록에서 지우라고 알린다. 봉인이 영구 면죄부가 되지 않게 하는 장치다.
+**짝 테스트(노후 감지)**: `ErrorCatalogConventionTest.whitelistIsNotStale()` — 봉인 목록의 상수가 404로 고쳐졌으면 실패해서 목록에서 지우라고 알린다. 봉인이 영구 면죄부가 되지 않게 하는 장치다.
 
-### `ErrorCode` code 문자열이 상수명과 의도적으로 다른 6건 — 봉인
+### 에러코드 `code` 문자열이 상수명과 의도적으로 다른 6건 — 봉인
 
-**대상**: `backend/domain/src/test/java/com/tastyhouse/domain/exception/ErrorCodeConventionTest.java`
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`(이관 — 과거 domain의 `ErrorCodeConventionTest`)
 → `CODE_INTENTIONALLY_DIFFERS_FROM_NAME`
 
 채널 도메인 어휘 통일(mail/sms)로 상수명은 `SMS_`·`MAIL_` 접두어로 대칭화했지만, 응답 `code` 문자열은 프론트가 분기하는 wire 계약이라 예전 값(`VERIFICATION_CODE_*`·`EMAIL_VERIFICATION_CODE_*`)을 유지했다. 루트 `CLAUDE.md`의 "채널 도메인 어휘 통일 규칙"에 명시된 **의도적 불일치이므로 교정 대상이 아니다.**
 
 봉인 구성원 6개.
 
-- `ErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND`
-- `ErrorCode.SMS_VERIFICATION_CODE_EXPIRED`
-- `ErrorCode.SMS_VERIFICATION_CODE_MISMATCH`
-- `ErrorCode.MAIL_VERIFICATION_CODE_NOT_FOUND`
-- `ErrorCode.MAIL_VERIFICATION_CODE_EXPIRED`
-- `ErrorCode.MAIL_VERIFICATION_CODE_MISMATCH`
+- `SMS_VERIFICATION_CODE_NOT_FOUND`
+- `SMS_VERIFICATION_CODE_EXPIRED`
+- `SMS_VERIFICATION_CODE_MISMATCH`
+- `MAIL_VERIFICATION_CODE_NOT_FOUND`
+- `MAIL_VERIFICATION_CODE_EXPIRED`
+- `MAIL_VERIFICATION_CODE_MISMATCH`
 
 ### 컨텍스트 경계 위반 1건 — 현상 동결 봉인
 
@@ -274,9 +276,16 @@ backend 전체 `*.java`를 소스 파일로 읽어(`build`·`bin`·`.gradle` 제
 
 `storePrice`·`pickupPrice`는 **매장 가격 인증 승인 후에만** 설정할 수 있다. 그 판정은 가게 애그리거트를 함께 읽어야 하므로 모델이 아니라 `ProductPriceService`가 소유한다.
 
-### `ErrorCode` 카탈로그 규약 — 그룹 주석에서 이관
+### 에러 카탈로그 규약 — 그룹 주석에서 이관 (에러코드 모듈 분할로 `ErrorCode` 해체)
 
-**대상**: `domain/src/main/java/com/tastyhouse/domain/exception/ErrorCode.java`
+**대상**: `domain/src/main/java/com/tastyhouse/domain/exception/DomainErrorCode.java`(이 모듈 소유 153개). 아래 표의 `INVALID_INPUT`은 `backend/application/src/main/java/com/tastyhouse/application/shared/exception/ApplicationErrorCode.java`, `AUTH_REQUIRED`는 `WebErrorCode`(미러 `ApiErrorCode`)로 갔고 `ENTITY_NOT_FOUND`는 호출부가 없어 삭제됐다.
+
+| 항목 | before | after |
+|---|---|---|
+| 카탈로그 | `domain.exception.ErrorCode` 442개 단일 enum | 소유 모듈별 7개 — `DomainErrorCode`(153)·`ApplicationErrorCode`(84)·`WebErrorCode`(86)·`AdminErrorCode`(28)·`CeoErrorCode`(65)·`BatchErrorCode`(1)·`ApiErrorCode`(api-common-module). 던지지 않는 23개는 삭제 |
+| 배치 규칙 | 전부 domain | 그 코드를 던지는 가장 안쪽 모듈 |
+| `BusinessException` | 구체 클래스 | abstract(protected 생성자, `ErrorCodeSpec` 수신). domain은 `DomainException(DomainErrorCode)`만 던진다 |
+| 동작 | — | wire 계약(HTTP 상태·code 문자열·메시지) 불변 |
 
 상수 그룹의 단순 분류 라벨(`// 주문`·`// 쿠폰`)은 상수명 접두어(`ORDER_`·`COUPON_`)가 같은 정보를 담으므로 이관하지 않고 삭제했다. **아래는 코드만 읽어서는 알 수 없는 규약**이다. 봉인 목록 관련 서술(이름·상태코드 불일치 4건, code 문자열 상이 6건)은 위 [봉인·가드 목록](#봉인가드-목록)에 있다.
 

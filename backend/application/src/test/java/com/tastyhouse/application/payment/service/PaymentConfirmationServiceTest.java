@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
@@ -32,6 +31,7 @@ import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
 import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
 import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -68,7 +68,7 @@ class PaymentConfirmationServiceTest {
             PgProvider.TOSS, "tid-1", "pg-order-1", null, null, null, null
         )))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_NOT_PENDING_APPROVAL.getDefaultMessage());
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL.getDefaultMessage());
 
         assertThat(fixture.paymentPersistencePort.lastSaved).isNull();
         assertThat(fixture.orderPersistencePort.lastSaved).isNull();
@@ -143,7 +143,7 @@ class PaymentConfirmationServiceTest {
 
         assertThatThrownBy(() -> fixture.service.preparePgConfirmation(MEMBER_ID, "pg-order-1", 999))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_AMOUNT_MISMATCH.getDefaultMessage());
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_AMOUNT_MISMATCH.getDefaultMessage());
 
         assertThat(fixture.paymentPersistencePort.lastSaved).isNull();
         assertThat(fixture.orderPersistencePort.lastSaved).isNull();
@@ -169,12 +169,12 @@ class PaymentConfirmationServiceTest {
         Fixture prepareFixture = Fixture.withPendingPayment(OrderStatus.PENDING);
         assertThatThrownBy(() -> prepareFixture.service.preparePgConfirmation(OTHER_MEMBER_ID, "pg-order-1", 21000))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
         Fixture applyFixture = Fixture.withPendingPayment(OrderStatus.PENDING);
         assertThatThrownBy(() -> applyFixture.service.applyPgConfirmation(OTHER_MEMBER_ID, PgProvider.TOSS, "pg-order-1", successConfirmResult()))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
         assertThat(applyFixture.paymentPersistencePort.lastSaved).isNull();
         assertThat(applyFixture.orderPersistencePort.lastSaved).isNull();
@@ -203,7 +203,7 @@ class PaymentConfirmationServiceTest {
 
         assertThatThrownBy(() -> fixture.service.completeOnSitePayment(MEMBER_ID, PAYMENT_ID))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_NOT_ON_SITE.getDefaultMessage());
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_ON_SITE.getDefaultMessage());
 
         assertThat(fixture.paymentPersistencePort.lastSaved).isNull();
         assertThat(fixture.orderPersistencePort.lastSaved).isNull();
@@ -226,7 +226,7 @@ class PaymentConfirmationServiceTest {
 
         assertThatThrownBy(() -> fixture.service.open(MEMBER_ID, ORDER_ID, PaymentMethod.CREDIT_CARD))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_INVALID_ORDER_STATUS.getDefaultMessage());
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_INVALID_ORDER_STATUS.getDefaultMessage());
     }
 
     @Test
@@ -237,7 +237,7 @@ class PaymentConfirmationServiceTest {
 
         assertThatThrownBy(() -> fixture.service.open(MEMBER_ID, ORDER_ID, PaymentMethod.CREDIT_CARD))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_ALREADY_IN_PROGRESS.getDefaultMessage());
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_ALREADY_IN_PROGRESS.getDefaultMessage());
     }
 
     private static PgConfirmResult successConfirmResult() {

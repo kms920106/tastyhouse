@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.event.MemberRegisteredEvent;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
@@ -13,6 +11,8 @@ import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.member.referral.service.ReferralRegistrationService;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 public class MemberRegistrationService {
@@ -45,13 +45,13 @@ public class MemberRegistrationService {
         String referrerNickname
     ) {
         if (memberPersistencePort.existsByUsername(username)) {
-            throw new BusinessException(ErrorCode.MEMBER_USERNAME_DUPLICATED);
+            throw new ApplicationException(WebErrorCode.MEMBER_USERNAME_DUPLICATED);
         }
         if (memberPersistencePort.existsByNickname(nickname)) {
-            throw new BusinessException(ErrorCode.MEMBER_NICKNAME_DUPLICATED);
+            throw new ApplicationException(WebErrorCode.MEMBER_NICKNAME_DUPLICATED);
         }
         if (memberPersistencePort.existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED)) {
-            throw new BusinessException(ErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
+            throw new ApplicationException(WebErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
         }
 
         Member member = memberPersistencePort.save(Member.of(
@@ -93,11 +93,11 @@ public class MemberRegistrationService {
             return;
         }
         if (referrerNickname.equals(nickname)) {
-            throw new BusinessException(ErrorCode.REFERRAL_SELF_NOT_ALLOWED);
+            throw new ApplicationException(WebErrorCode.REFERRAL_SELF_NOT_ALLOWED);
         }
 
         Member referrer = memberPersistencePort.findByNickname(referrerNickname)
-            .orElseThrow(() -> new BusinessException(ErrorCode.REFERRAL_REFERRER_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.REFERRAL_REFERRER_NOT_FOUND));
 
         referralRegistrationService.register(referrer.getMemberId(), member.getMemberId());
     }

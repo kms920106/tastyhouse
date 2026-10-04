@@ -10,8 +10,6 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductExposureCalculator;
 import com.tastyhouse.domain.product.model.ProductExposureContext;
@@ -21,6 +19,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Service
 public class ProductExposureService {
@@ -94,7 +95,7 @@ public class ProductExposureService {
         for (ProductExposureHour hour : hours) {
             DayType dayType = Objects.requireNonNull(hour.getDayType(), "dayType은 필수입니다.");
             if (!dayTypes.add(dayType)) {
-                throw new BusinessException(ErrorCode.PRODUCT_EXPOSURE_DAY_TYPE_MIXED);
+                throw new ApplicationException(CeoErrorCode.PRODUCT_EXPOSURE_DAY_TYPE_MIXED);
             }
             ordered.add(dayType);
         }
@@ -102,12 +103,12 @@ public class ProductExposureService {
         boolean hasGroup = ordered.stream().anyMatch(GROUP_DAY_TYPES::contains);
         boolean hasSpecific = ordered.stream().anyMatch(dayType -> !GROUP_DAY_TYPES.contains(dayType));
         if (hasGroup && hasSpecific) {
-            throw new BusinessException(ErrorCode.PRODUCT_EXPOSURE_DAY_TYPE_MIXED);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_EXPOSURE_DAY_TYPE_MIXED);
         }
     }
 
     private Product loadProduct(ProductId productId) {
         return productPersistencePort.findById(productId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 }

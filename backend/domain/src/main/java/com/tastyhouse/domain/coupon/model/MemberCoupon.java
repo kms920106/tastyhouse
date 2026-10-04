@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public class MemberCoupon {
@@ -60,7 +60,7 @@ public class MemberCoupon {
 
     public void use() {
         if (!isAvailable()) {
-            throw new BusinessException(ErrorCode.COUPON_NOT_AVAILABLE);
+            throw new DomainException(DomainErrorCode.COUPON_NOT_AVAILABLE);
         }
         this.used = true;
         this.usedAt = LocalDateTime.now();

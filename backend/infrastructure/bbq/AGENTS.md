@@ -41,9 +41,9 @@ com.tastyhouse.infrastructure.bbq/
 ## Dependencies
 
 ### Internal
-- `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 도메인 `ErrorCode` 소유)
+- `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 두지 않는다 — 실패 코드는 번역하는 application 모듈의 에러코드 enum이 소유)
 - `batch-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — 구현하는 아웃바운드 계약 `BbqMenuPort`·`RemoteImagePort`와 포트 DTO의 소유 모듈. adapter → port 방향이며 순환이 아니다. batch 전용 포트라 batch 앱 모듈이 소유한다
-- `domain` (implementation) — 예외 계약(`BusinessException`·`ErrorCode`)만
+- ~~`domain` (implementation) — 예외 계약(`BusinessException`·`ErrorCode`)만~~ **(번복됨 — 에러코드 모듈 분할)** `domain` 의존은 없다(`build.gradle`은 `restclient`·`batch-application`만 선언). 이 모듈은 에러코드를 참조하지 않는다
 
 ### External
 - webflux 없음 — BBQ API 호출은 **동기 `RestClient`**(`BbqApiClient`의 `getMenuCategories`·`getMenusByCategoryId`·`getMenuDetail`·`getMenuSubOptions` 4개 메서드, 과거 Mono 반환 + `...Sync()` 래퍼는 제거됐다). 코어 `infrastructure:restclient`가 `api`로 노출하는 `spring-web`·`spring-boot-starter-json`을 전이로 받는다. `RemoteImageDownloader`도 RestClient(`exchange()`로 상태·헤더·본문을 직접 읽는다)를 쓴다.
@@ -54,7 +54,7 @@ com.tastyhouse.infrastructure.bbq/
 - **크롤링 대상은 남의 서비스다** — `base-url`·응답 형태가 예고 없이 바뀔 수 있고, 그 실패는 빌드가 아니라 배치 실행에서 드러난다. 배치 잡은 실패를 잡아 로그로 남기고 다음 주기에 재실행하는 잡 단위 격리가 정상 설계다.
 - **application 쪽 패키지명에는 `crawling`이 남아 있다**(`com.tastyhouse.application.crawling.bbq`). 이번 분리는 infrastructure 모듈만 대상이었으며, application 패키지 평탄화는 후속 판단 항목이다.
 - **`RemoteImageDownloader`는 URI를 문자열이 아니라 `URI.create(imageUrl)`로 넘긴다** — `.uri(String)` 오버로드는 URI 템플릿 확장 과정에서 `%`를 재인코딩하므로, 원격 이미지 URL이 이미 퍼센트 인코딩(`%20`·한글 인코딩 등)돼 있으면 이중 인코딩되어 404가 났다. `URI.create(...)`로 넘기면 그 문자열을 있는 그대로 쓴다.
-- **`RemoteImageDownloader`는 응답 크기 상한(10MB, `FileUploadService` 업로드 한도와 동일)을 둔다** — `exchange()`로 응답을 받아 초과하면 `BusinessException(ErrorCode.FILE_SIZE_EXCEEDED)`를 던진다. WebClient 시절의 `maxInMemorySize`(2MB) 같은 버퍼 상한이 RestClient에는 없어 생긴 공백을 메운 것이다. 그 밖의 계약은 무변경 — 비정상 상태는 `FILE_EMPTY`, 그 밖의 IO 실패는 `RuntimeException`으로 던진다.
+- **`RemoteImageDownloader`는 응답 크기 상한(10MB, `FileUploadService` 업로드 한도와 동일)을 둔다** — `exchange()`로 응답을 받아 초과하면 `ImageDownloadResult.failed(ImageDownloadFailure.SIZE_EXCEEDED)`를 돌려주고, `BbqService`(batch-application)가 `ApplicationErrorCode.FILE_SIZE_EXCEEDED`로 번역한다(과거에는 어댑터가 `BusinessException(ErrorCode.FILE_SIZE_EXCEEDED)`를 직접 던졌다 — 번복됨, 에러코드 모듈 분할). WebClient 시절의 `maxInMemorySize`(2MB) 같은 버퍼 상한이 RestClient에는 없어 생긴 공백을 메운 것이다. 그 밖의 계약은 무변경 — 비정상 상태는 `ImageDownloadFailure.EMPTY`(번역 시 `FILE_EMPTY`), 그 밖의 IO 실패는 `RuntimeException`으로 던진다.
 
 ## 봉인·가드 목록
 

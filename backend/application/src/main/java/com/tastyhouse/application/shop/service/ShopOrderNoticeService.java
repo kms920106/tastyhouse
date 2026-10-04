@@ -2,11 +2,11 @@ package com.tastyhouse.application.shop.service;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.ShopOrderNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticePersistencePort;
 
 @Service
@@ -45,18 +45,18 @@ public class ShopOrderNoticeService {
 
     private String validateContent(String content) {
         if (content == null || content.isBlank()) {
-            throw new BusinessException(ErrorCode.SHOP_ORDER_NOTICE_CONTENT_REQUIRED);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_ORDER_NOTICE_CONTENT_REQUIRED);
         }
 
         String trimmed = content.trim();
         if (trimmed.length() > MAX_CONTENT_LENGTH) {
-            throw new BusinessException(ErrorCode.SHOP_ORDER_NOTICE_CONTENT_TOO_LONG);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_ORDER_NOTICE_CONTENT_TOO_LONG);
         }
         return trimmed;
     }
 
     private ShopOrderNotice loadByShopId(ShopId shopId) {
         return shopOrderNoticePersistencePort.findByShopId(shopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_ORDER_NOTICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_ORDER_NOTICE_NOT_FOUND));
     }
 }

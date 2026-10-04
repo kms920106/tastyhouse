@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +39,7 @@ class ShopTemporaryClosureTest {
         assertThatThrownBy(() -> ShopTemporaryClosure.of(ShopId.of(1L), startDate, endDate))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_TEMPORARY_CLOSURE_INVALID_PERIOD);
+            .isEqualTo(DomainErrorCode.SHOP_TEMPORARY_CLOSURE_INVALID_PERIOD);
     }
 
     @Test

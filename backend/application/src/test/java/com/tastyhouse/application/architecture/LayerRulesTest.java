@@ -125,11 +125,10 @@ class LayerRulesTest {
                     "com.tastyhouse.domain..",
                     "com.tastyhouse.infrastructure..",
                     "org.springframework.web.."
-                ).and(not(resideInAPackage("com.tastyhouse.domain.exception..")))
-                 .and(not(resideInAPackage("org.springframework.web.multipart..")))
+                ).and(not(resideInAPackage("org.springframework.web.multipart..")))
             )
             .because("Command는 도메인 모델·infra·web 타입을 싣지 않는다"
-                + "(에러 계약은 횡단 관심사라 예외)");
+                + "(구조적 가드는 application의 ApplicationException·ApplicationErrorCode로 던진다)");
 
         rule.check(classes);
     }

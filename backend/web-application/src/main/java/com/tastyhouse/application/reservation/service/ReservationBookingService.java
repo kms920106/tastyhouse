@@ -7,9 +7,6 @@ import java.time.ZoneId;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.model.Reservation;
 import com.tastyhouse.domain.reservation.model.ReservationSlot;
@@ -21,6 +18,10 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.reservation.port.out.write.ReservationPersistencePort;
 import com.tastyhouse.application.reservation.port.out.write.ReservationSlotPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.service.ShopOrderAvailabilityService;
 
@@ -59,21 +60,21 @@ public class ReservationBookingService {
         boolean agreedRequiredTerms
     ) {
         if (!agreedRequiredTerms) {
-            throw new BusinessException(ErrorCode.RESERVATION_TERMS_NOT_AGREED);
+            throw new ApplicationException(WebErrorCode.RESERVATION_TERMS_NOT_AGREED);
         }
 
         if (!SlotPolicy.isValidSlot(time)) {
-            throw new BusinessException(ErrorCode.RESERVATION_INVALID_TIME);
+            throw new ApplicationException(WebErrorCode.RESERVATION_INVALID_TIME);
         }
 
         if (LocalDateTime.of(date, time).isBefore(LocalDateTime.now(KST))) {
-            throw new BusinessException(ErrorCode.RESERVATION_PAST_NOT_ALLOWED);
+            throw new ApplicationException(WebErrorCode.RESERVATION_PAST_NOT_ALLOWED);
         }
 
         Shop shop = shopPersistencePort.findVisibleById(shopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
         if (memberPersistencePort.findById(memberId).isEmpty()) {
-            throw new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND);
         }
 
         shopOrderAvailabilityService.validateOrderable(
@@ -81,7 +82,7 @@ public class ReservationBookingService {
         );
 
         if (reservationPersistencePort.existsBlockingByMemberShopDate(memberId, shopId, date)) {
-            throw new BusinessException(ErrorCode.DUPLICATE_RESERVATION);
+            throw new ApplicationException(WebErrorCode.DUPLICATE_RESERVATION);
         }
 
         ReservationSlot slot = slotPersistencePort
@@ -114,7 +115,7 @@ public class ReservationBookingService {
 
     private Reservation getReservation(ReservationId reservationId) {
         return reservationPersistencePort.findById(reservationId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.RESERVATION_NOT_FOUND));
     }
 
     private void releaseSlot(Reservation reservation) {

@@ -4,8 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
@@ -13,6 +11,8 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -114,7 +114,7 @@ class ShopRequestIndexRecorderTest {
         ))
             .isInstanceOf(ResourceNotFoundException.class)
             .satisfies(thrown -> assertThat(((ResourceNotFoundException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+                .isEqualTo(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
     }
 
     @Test
@@ -126,7 +126,7 @@ class ShopRequestIndexRecorderTest {
         assertThatThrownBy(() -> recorder.getRequestOfShop(requestId, 999L))
             .isInstanceOf(ResourceNotFoundException.class)
             .satisfies(thrown -> assertThat(((ResourceNotFoundException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+                .isEqualTo(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
     }
 
     private void assertImageChangeMapping(ApprovalStatus source, ShopRequestStatus expected) {

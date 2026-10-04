@@ -3,12 +3,13 @@ package com.tastyhouse.application.shop.service;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
 @Service
@@ -34,7 +35,7 @@ public class ShopCeoAssignmentService {
 
         CeoId currentCeoId = shop.getCeoId();
         if (ceoId.equals(currentCeoId)) {
-            throw new BusinessException(ErrorCode.SHOP_CEO_ALREADY_ASSIGNED);
+            throw new ApplicationException(AdminErrorCode.SHOP_CEO_ALREADY_ASSIGNED);
         }
 
         shop.assignCeo(ceoId);
@@ -51,7 +52,7 @@ public class ShopCeoAssignmentService {
 
         CeoId currentCeoId = shop.getCeoId();
         if (currentCeoId == null) {
-            throw new BusinessException(ErrorCode.SHOP_CEO_NOT_ASSIGNED);
+            throw new ApplicationException(AdminErrorCode.SHOP_CEO_NOT_ASSIGNED);
         }
 
         shop.assignCeo(null);
@@ -62,12 +63,12 @@ public class ShopCeoAssignmentService {
 
     private Shop loadShop(ShopId shopId) {
         return shopPersistencePort.findById(shopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 
     private void validateCeoExists(CeoId ceoId) {
         if (ceoPersistencePort.findById(ceoId).isEmpty()) {
-            throw new ResourceNotFoundException(ErrorCode.CEO_NOT_FOUND);
+            throw new ResourceNotFoundException(AdminErrorCode.CEO_NOT_FOUND);
         }
     }
 }

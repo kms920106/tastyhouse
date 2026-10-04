@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.coupon.model.CouponUseResult;
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.model.OrdererSnapshot;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
@@ -43,6 +41,8 @@ import com.tastyhouse.application.order.port.out.write.OrderProductOptionPersist
 import com.tastyhouse.application.order.port.out.write.OrderProductPersistencePort;
 import com.tastyhouse.application.point.service.PointLedgerService;
 import com.tastyhouse.application.product.service.OrderProductValidationService;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shop.service.ShopOrderContextService;
 
 @Service
@@ -214,7 +214,7 @@ public class OrderPlacementService {
         }
 
         if (placement.deliveryAddressId() == null) {
-            throw new BusinessException(ErrorCode.ORDER_DELIVERY_ADDRESS_REQUIRED);
+            throw new ApplicationException(WebErrorCode.ORDER_DELIVERY_ADDRESS_REQUIRED);
         }
 
         var address = memberDeliveryAddressService.findOwnedAddress(memberId, placement.deliveryAddressId());
@@ -300,38 +300,38 @@ public class OrderPlacementService {
         int finalAmount
     ) {
         if (!placement.totalProductAmount().equals(totalProductAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_PRODUCT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_PRODUCT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.totalProductAmount() + ", 계산: " + totalProductAmount);
+            throw new ApplicationException(WebErrorCode.ORDER_PRODUCT_AMOUNT_MISMATCH,
+                WebErrorCode.ORDER_PRODUCT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.totalProductAmount() + ", 계산: " + totalProductAmount);
         }
         if (!placement.productDiscountAmount().equals(productDiscountAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_PRODUCT_DISCOUNT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_PRODUCT_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.productDiscountAmount() + ", 계산: " + productDiscountAmount);
+            throw new ApplicationException(WebErrorCode.ORDER_PRODUCT_DISCOUNT_AMOUNT_MISMATCH,
+                WebErrorCode.ORDER_PRODUCT_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.productDiscountAmount() + ", 계산: " + productDiscountAmount);
         }
         if (!placement.couponDiscountAmount().equals(couponDiscountAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_COUPON_DISCOUNT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_COUPON_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.couponDiscountAmount() + ", 계산: " + couponDiscountAmount);
+            throw new ApplicationException(WebErrorCode.ORDER_COUPON_DISCOUNT_AMOUNT_MISMATCH,
+                WebErrorCode.ORDER_COUPON_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.couponDiscountAmount() + ", 계산: " + couponDiscountAmount);
         }
         if (!placement.usePoint().equals(pointDiscountAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_POINT_DISCOUNT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_POINT_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.usePoint() + ", 계산: " + pointDiscountAmount);
+            throw new ApplicationException(WebErrorCode.ORDER_POINT_DISCOUNT_AMOUNT_MISMATCH,
+                WebErrorCode.ORDER_POINT_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.usePoint() + ", 계산: " + pointDiscountAmount);
         }
         if (!placement.totalDiscountAmount().equals(totalDiscountAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.totalDiscountAmount() + ", 계산: " + totalDiscountAmount);
+            throw new ApplicationException(WebErrorCode.ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH,
+                WebErrorCode.ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.totalDiscountAmount() + ", 계산: " + totalDiscountAmount);
         }
         if (!placement.deliveryTipAmount().equals(deliveryTipAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_DELIVERY_TIP_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_DELIVERY_TIP_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.deliveryTipAmount() + ", 계산: " + deliveryTipAmount);
+            throw new ApplicationException(WebErrorCode.ORDER_DELIVERY_TIP_AMOUNT_MISMATCH,
+                WebErrorCode.ORDER_DELIVERY_TIP_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.deliveryTipAmount() + ", 계산: " + deliveryTipAmount);
         }
 
         if (!orZero(placement.cupDepositAmount()).equals(cupDepositAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_CUP_DEPOSIT_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_CUP_DEPOSIT_AMOUNT_MISMATCH.getDefaultMessage()
+            throw new ApplicationException(WebErrorCode.ORDER_CUP_DEPOSIT_AMOUNT_MISMATCH,
+                WebErrorCode.ORDER_CUP_DEPOSIT_AMOUNT_MISMATCH.getDefaultMessage()
                     + " 요청: " + placement.cupDepositAmount() + ", 계산: " + cupDepositAmount);
         }
         if (!placement.finalAmount().equals(finalAmount)) {
-            throw new BusinessException(ErrorCode.ORDER_FINAL_AMOUNT_MISMATCH,
-                ErrorCode.ORDER_FINAL_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.finalAmount() + ", 계산: " + finalAmount);
+            throw new ApplicationException(WebErrorCode.ORDER_FINAL_AMOUNT_MISMATCH,
+                WebErrorCode.ORDER_FINAL_AMOUNT_MISMATCH.getDefaultMessage() + " 요청: " + placement.finalAmount() + ", 계산: " + finalAmount);
         }
     }
 

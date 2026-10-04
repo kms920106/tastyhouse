@@ -6,8 +6,6 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.CupDepositPolicy;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
@@ -16,6 +14,8 @@ import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementR
 import com.tastyhouse.application.product.port.out.ProductOptionGroupViewResult;
 import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -57,7 +57,7 @@ class ProductOptionGroupQueryService implements ProductOptionGroupQueryUseCase {
             productOwnerQueryPort.findLinkedProductsByOptionGroupId(optionGroupId);
         boolean ownedByRequestedShop = linked.stream().anyMatch(row -> shopId.equals(row.shopId()));
         if (!ownedByRequestedShop) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
         }
 
         return linked.stream()

@@ -11,8 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.CupDepositPolicy;
 import com.tastyhouse.domain.product.model.OrderLineOptionSelection;
@@ -38,6 +36,9 @@ import com.tastyhouse.application.product.port.out.write.ProductImagePersistence
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.testsupport.product.service.FakeProductOptionGroupLinkPersistencePort;
 import com.tastyhouse.testsupport.product.service.StubProductPersistencePort;
 
@@ -60,7 +61,7 @@ class OrderProductValidationServiceTest {
         assertThatThrownBy(() -> fixture.validate(List.of()))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID);
+            .isEqualTo(WebErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID);
     }
 
     @Test
@@ -84,7 +85,7 @@ class OrderProductValidationServiceTest {
         assertThatThrownBy(() -> fixture.validate(List.of(option(200L, 201L))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID);
+            .isEqualTo(WebErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID);
     }
 
     @Test
@@ -99,7 +100,7 @@ class OrderProductValidationServiceTest {
         assertThatThrownBy(() -> fixture.validate(List.of(option(200L, 201L), option(200L, 202L))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID);
+            .isEqualTo(WebErrorCode.ORDER_OPTION_SELECT_COUNT_INVALID);
     }
 
     @Test
@@ -135,7 +136,7 @@ class OrderProductValidationServiceTest {
         assertThatThrownBy(() -> fixture.validate(List.of(option(REQUIRED_GROUP, 101L))))
             .isInstanceOf(ResourceNotFoundException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_OPTION_NOT_FOUND);
+            .isEqualTo(WebErrorCode.ORDER_OPTION_NOT_FOUND);
     }
 
     @Test
@@ -147,7 +148,7 @@ class OrderProductValidationServiceTest {
         assertThatThrownBy(() -> fixture.validate(List.of(option(REQUIRED_GROUP, 101L))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_PRODUCT_SOLD_OUT);
+            .isEqualTo(WebErrorCode.ORDER_PRODUCT_SOLD_OUT);
     }
 
     @Test
@@ -278,7 +279,7 @@ class OrderProductValidationServiceTest {
         assertThatThrownBy(() -> fixture.validate(List.of(), 999L, OrderMethod.DELIVERY))
             .isInstanceOf(ResourceNotFoundException.class)
             .satisfies(thrown -> assertThat(((ResourceNotFoundException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.PRODUCT_PRICE_NOT_FOUND));
+                .isEqualTo(ApplicationErrorCode.PRODUCT_PRICE_NOT_FOUND));
     }
 
     private static Fixture requiredGroupFixture() {

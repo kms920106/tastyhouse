@@ -10,14 +10,14 @@ import java.util.function.Predicate;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.ErrorCodeSpec;
 import com.tastyhouse.domain.product.model.Product;
-import com.tastyhouse.domain.product.model.ProductAvailabilityChangeResult;
-import com.tastyhouse.domain.product.model.ProductAvailabilityFailure;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Service
 public class ProductDeletionService {
@@ -31,7 +31,7 @@ public class ProductDeletionService {
     public ProductAvailabilityChangeResult deleteProducts(ShopId shopId, List<ProductId> productIds) {
         List<ProductId> distinctIds = distinct(productIds);
         if (distinctIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
         }
 
         List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, distinctIds);
@@ -41,7 +41,7 @@ public class ProductDeletionService {
         List<ProductAvailabilityFailure> failed = new ArrayList<>();
         for (ProductId productId : distinctIds) {
             if (!byId.containsKey(productId.value())) {
-                failed.add(ProductAvailabilityFailure.of(productId.value(), null, ErrorCode.PRODUCT_NOT_FOUND));
+                failed.add(ProductAvailabilityFailure.of(productId.value(), null, ApplicationErrorCode.PRODUCT_NOT_FOUND));
             }
         }
 
@@ -58,9 +58,9 @@ public class ProductDeletionService {
 
         Map<Long, ProductAvailabilityFailure> rejected = new LinkedHashMap<>();
         rejectFromTail(visibleTargets, rejected, representativeShortfall,
-            ErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE, Product::isRepresentative);
+            ApplicationErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE, Product::isRepresentative);
         rejectFromTail(visibleTargets, rejected, visibleShortfall - rejected.size(),
-            ErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE, product -> true);
+            CeoErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE, product -> true);
 
         failed.addAll(rejected.values());
 
@@ -85,7 +85,7 @@ public class ProductDeletionService {
         List<Product> candidates,
         Map<Long, ProductAvailabilityFailure> rejected,
         long shortfall,
-        ErrorCode errorCode,
+        ErrorCodeSpec errorCode,
         Predicate<Product> predicate
     ) {
         long remaining = shortfall;

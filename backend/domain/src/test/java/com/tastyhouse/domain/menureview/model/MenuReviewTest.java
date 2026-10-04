@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.menureview.vo.MenuReviewId;
 import com.tastyhouse.domain.order.vo.OrderId;
@@ -55,7 +55,7 @@ class MenuReviewTest {
         assertThatThrownBy(() -> menuReview(0, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.MENU_REVIEW_NOT_ALLOWED);
+            .isEqualTo(DomainErrorCode.MENU_REVIEW_NOT_ALLOWED);
         assertThatThrownBy(() -> menuReview(6, null)).isInstanceOf(BusinessException.class);
         assertThatThrownBy(() -> menuReview(null, null)).isInstanceOf(BusinessException.class);
     }
@@ -80,7 +80,7 @@ class MenuReviewTest {
         assertThatThrownBy(() -> menuReview.updateRating(6, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.MENU_REVIEW_NOT_ALLOWED);
+            .isEqualTo(DomainErrorCode.MENU_REVIEW_NOT_ALLOWED);
         assertThat(menuReview.getRating()).isEqualTo(5);
     }
 

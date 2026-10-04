@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
 import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhrasePersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class CeoReplyPhraseService {
@@ -33,7 +33,7 @@ public class CeoReplyPhraseService {
 
         long count = ceoReplyPhrasePersistencePort.countByCeoId(ownerId);
         if (count >= MAX_PHRASE_COUNT) {
-            throw new BusinessException(ErrorCode.CEO_REPLY_PHRASE_LIMIT_EXCEEDED);
+            throw new ApplicationException(CeoErrorCode.CEO_REPLY_PHRASE_LIMIT_EXCEEDED);
         }
 
         CeoReplyPhrase saved = ceoReplyPhrasePersistencePort.save(
@@ -57,9 +57,9 @@ public class CeoReplyPhraseService {
 
     private CeoReplyPhrase loadOwnPhrase(Long ceoId, Long phraseId) {
         CeoReplyPhrase phrase = ceoReplyPhrasePersistencePort.findById(CeoReplyPhraseId.of(phraseId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.CEO_REPLY_PHRASE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.CEO_REPLY_PHRASE_NOT_FOUND));
         if (!phrase.getCeoId().equals(CeoId.of(ceoId))) {
-            throw new BusinessException(ErrorCode.CEO_REPLY_PHRASE_ACCESS_DENIED);
+            throw new ApplicationException(CeoErrorCode.CEO_REPLY_PHRASE_ACCESS_DENIED);
         }
         return phrase;
     }

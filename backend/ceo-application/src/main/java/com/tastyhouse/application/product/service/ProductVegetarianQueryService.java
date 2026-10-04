@@ -6,13 +6,13 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.product.port.in.ProductVegetarianQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianSettingResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianStatusResult;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopFoodTypeCategoryReader;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -42,9 +42,9 @@ class ProductVegetarianQueryService implements ProductVegetarianQueryUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ProductVegetarianSettingResult setting = productOwnerQueryPort.findVegetarianSetting(productId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!setting.shopId().equals(shopId)) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
 
         List<ProductVegetarianRequestResult> requests = productOwnerQueryPort.findVegetarianRequests(productId);

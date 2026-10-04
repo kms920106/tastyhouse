@@ -3,8 +3,8 @@ package com.tastyhouse.application.reservation.port.in;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record ReservationCreateCommand(
     Long memberId,
@@ -19,7 +19,7 @@ public record ReservationCreateCommand(
     public ReservationCreateCommand {
         if (memberId == null || shopId == null || reservationDate == null
             || reservationTime == null || partySize == null || agreedRequiredTerms == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

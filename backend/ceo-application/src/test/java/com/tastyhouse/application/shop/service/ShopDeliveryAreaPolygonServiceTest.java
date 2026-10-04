@@ -14,7 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
@@ -31,6 +30,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
@@ -60,7 +60,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         assertThatThrownBy(fixture::savePolygon)
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_EMPTY_PROJECTION);
+            .isEqualTo(CeoErrorCode.SHOP_DELIVERY_AREA_EMPTY_PROJECTION);
 
         assertThat(fixture.polygonPersistencePort.stored).isNull();
     }
@@ -125,7 +125,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         assertThatThrownBy(fixture::savePolygon)
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_IN_USE);
+            .isEqualTo(CeoErrorCode.SHOP_DELIVERY_AREA_IN_USE);
 
         assertThat(fixture.areaPersistencePort.findByShopId(SHOP_ID))
             .extracting(area -> area.getAdminDongId().value())

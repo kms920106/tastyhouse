@@ -123,7 +123,7 @@ public class PgRouterConfig {
 
 - **실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - ~~벤더 auto-configuration(`TossPaymentsModuleAutoConfiguration`)은 조건이 없어 `--debug` 리포트의 "Unconditional classes" 절에 나온다.~~ **(번복됨 — imports 제거)** 벤더 설정은 이제 `TossPaymentsModuleConfig`(일반 `@Configuration`)라 `--debug` 조건 리포트에 나오지 않는다. 스캔된 라우터·어댑터 빈은 리포트에 나오지 않으므로, 배선 확인은 `--logging.level.org.springframework.beans.factory.support=DEBUG`로 띄워 `Autowiring by type from bean name 'pgPaymentGatewayRouter' via factory method to bean named 'tossPaymentGatewayAdapter'` 로그를 본다.
-- 결제 실패는 도메인 `BusinessException(ErrorCode.X)`으로 표현한다. 전용 예외 타입과 모듈별 `@ExceptionHandler`를 추가하지 않는다.
+- 결제 실패는 `BusinessException`(에러코드는 던지는 모듈의 enum — 단일 `ErrorCode`는 삭제됨, `PG_PROVIDER_UNSUPPORTED` 등은 `WebErrorCode`)으로 표현한다. 전용 예외 타입과 모듈별 `@ExceptionHandler`를 추가하지 않는다.
 
 ## 봉인·가드 목록
 

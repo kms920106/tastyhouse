@@ -8,8 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
@@ -19,6 +18,7 @@ import com.tastyhouse.domain.order.vo.OrderSchedule;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -112,7 +112,7 @@ class OrderTransitionServiceTest {
         assertThatThrownBy(() -> fixture.service.confirm(order))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_ALREADY_CANCELLED);
+            .isEqualTo(DomainErrorCode.ORDER_ALREADY_CANCELLED);
 
         assertThat(fixture.orderPersistencePort.saved).isEmpty();
     }
@@ -127,7 +127,7 @@ class OrderTransitionServiceTest {
         assertThatThrownBy(() -> fixture.service.cancel(order))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_ALREADY_PREPARING);
+            .isEqualTo(DomainErrorCode.ORDER_ALREADY_PREPARING);
 
         assertThat(fixture.orderPersistencePort.saved).isEmpty();
     }

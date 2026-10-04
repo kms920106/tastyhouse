@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.mail.vo.MailVerificationId;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 
@@ -49,7 +49,7 @@ class MailVerificationTest {
 
         assertThatThrownBy(() -> verification.verify(verification.getVerificationCode(), afterExpiry))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MAIL_VERIFICATION_CODE_EXPIRED);
+            .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.MAIL_VERIFICATION_CODE_EXPIRED);
         assertThat(verification.getStatus()).isEqualTo(MailVerificationStatus.EXPIRED);
     }
 
@@ -61,7 +61,7 @@ class MailVerificationTest {
 
         assertThatThrownBy(() -> verification.verify(VerificationCode.of("000000"), now))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MAIL_VERIFICATION_CODE_MISMATCH);
+            .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.MAIL_VERIFICATION_CODE_MISMATCH);
         assertThat(verification.getStatus()).isEqualTo(MailVerificationStatus.PENDING);
     }
 

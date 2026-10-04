@@ -1,7 +1,7 @@
 package com.tastyhouse.application.payment.port.in;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record PaymentCancelCommand(
     Long memberId,
@@ -11,7 +11,7 @@ public record PaymentCancelCommand(
 
     public PaymentCancelCommand {
         if (memberId == null || paymentId == null || cancelReason == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

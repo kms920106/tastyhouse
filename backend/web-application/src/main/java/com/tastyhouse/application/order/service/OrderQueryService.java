@@ -7,9 +7,8 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.model.PaymentStatus;
@@ -23,6 +22,8 @@ import com.tastyhouse.application.order.port.out.OrderProductResult;
 import com.tastyhouse.application.order.port.out.OrderProductViewResult;
 import com.tastyhouse.application.order.port.out.OrderQueryPort;
 import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -50,10 +51,10 @@ class OrderQueryService implements OrderQueryUseCase {
     @Override
     public OrderDetailViewResult getOrderDetail(Long memberId, Long orderId) {
         OrderDetailResult result = orderQueryPort.findOrderDetail(OrderId.of(orderId).value())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
 
         if (!memberId.equals(result.memberId())) {
-            throw new BusinessException(ErrorCode.ORDER_ACCESS_DENIED);
+            throw new DomainException(DomainErrorCode.ORDER_ACCESS_DENIED);
         }
 
         return toOrderDetailViewResult(result, memberId);

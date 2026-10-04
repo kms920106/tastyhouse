@@ -4,9 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductFeedback;
@@ -17,6 +14,9 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductFeedbackPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class ProductFeedbackService {
@@ -46,11 +46,11 @@ public class ProductFeedbackService {
     ) {
         Product product = productPersistencePort.findById(productId)
             .filter(found -> !found.isDeleted())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
 
         LocalDateTime windowStart = now.minusDays(FEEDBACK_WINDOW_DAYS);
         if (productFeedbackPersistencePort.existsRecentDuplicate(memberId, productId, feedbackType, windowStart)) {
-            throw new BusinessException(ErrorCode.PRODUCT_FEEDBACK_ALREADY_SUBMITTED);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_FEEDBACK_ALREADY_SUBMITTED);
         }
 
         ProductFeedback feedback = ProductFeedback.of(

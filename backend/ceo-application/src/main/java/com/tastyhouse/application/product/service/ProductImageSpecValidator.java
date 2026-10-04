@@ -9,8 +9,8 @@ import javax.imageio.ImageIO;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Component
 public class ProductImageSpecValidator {
@@ -30,7 +30,7 @@ public class ProductImageSpecValidator {
 
     private void validateNotEmpty(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_IMAGE_SPEC_INVALID, "이미지 파일이 비어있습니다.");
+            throw new ApplicationException(CeoErrorCode.PRODUCT_IMAGE_SPEC_INVALID, "이미지 파일이 비어있습니다.");
         }
     }
 
@@ -41,19 +41,19 @@ public class ProductImageSpecValidator {
                 return;
             }
         }
-        throw new BusinessException(ErrorCode.PRODUCT_IMAGE_SPEC_INVALID, "허용되지 않는 이미지 형식입니다: " + contentType);
+        throw new ApplicationException(CeoErrorCode.PRODUCT_IMAGE_SPEC_INVALID, "허용되지 않는 이미지 형식입니다: " + contentType);
     }
 
     private void validateMaxSize(MultipartFile file) {
         if (file.getSize() > MAX_SIZE_BYTES) {
-            throw new BusinessException(ErrorCode.PRODUCT_IMAGE_SPEC_INVALID,
+            throw new ApplicationException(CeoErrorCode.PRODUCT_IMAGE_SPEC_INVALID,
                 "이미지 용량이 허용치를 초과했습니다: " + file.getSize());
         }
     }
 
     private void validateMinResolution(BufferedImage image) {
         if (image.getWidth() < MIN_WIDTH || image.getHeight() < MIN_HEIGHT) {
-            throw new BusinessException(ErrorCode.PRODUCT_IMAGE_SPEC_INVALID,
+            throw new ApplicationException(CeoErrorCode.PRODUCT_IMAGE_SPEC_INVALID,
                 "이미지 해상도가 최소 기준(" + MIN_WIDTH + "x" + MIN_HEIGHT + ")보다 작습니다.");
         }
     }
@@ -62,11 +62,11 @@ public class ProductImageSpecValidator {
         try (InputStream inputStream = file.getInputStream()) {
             BufferedImage image = ImageIO.read(inputStream);
             if (image == null) {
-                throw new BusinessException(ErrorCode.PRODUCT_IMAGE_SPEC_INVALID, "이미지 파일을 읽을 수 없습니다.");
+                throw new ApplicationException(CeoErrorCode.PRODUCT_IMAGE_SPEC_INVALID, "이미지 파일을 읽을 수 없습니다.");
             }
             return image;
         } catch (IOException e) {
-            throw new BusinessException(ErrorCode.PRODUCT_IMAGE_SPEC_INVALID, "이미지 파일을 읽을 수 없습니다.");
+            throw new ApplicationException(CeoErrorCode.PRODUCT_IMAGE_SPEC_INVALID, "이미지 파일을 읽을 수 없습니다.");
         }
     }
 }

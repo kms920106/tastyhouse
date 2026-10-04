@@ -8,8 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.bug.model.BugReportCategory;
 import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.model.BugReportStatus;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.bug.port.in.BugReportQueryUseCase;
 import com.tastyhouse.application.bug.port.out.BugReportDetailResult;
@@ -20,6 +18,8 @@ import com.tastyhouse.application.bug.port.out.BugReportQueryPort;
 import com.tastyhouse.application.bug.port.out.BugReportSearchCondition;
 import com.tastyhouse.application.member.port.out.MemberManagementQueryPort;
 import com.tastyhouse.application.member.port.out.MemberWithProfileImageResult;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -69,7 +69,7 @@ class BugReportQueryService implements BugReportQueryUseCase {
     @Override
     public BugReportDetailWithMemberResult getBugReport(Long id) {
         BugReportDetailResult detail = bugReportQueryPort.findDetailById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.BUG_REPORT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.BUG_REPORT_NOT_FOUND));
 
         MemberWithProfileImageResult member = memberManagementQueryPort.findMemberWithProfileImageById(MemberId.of(detail.memberId()).value())
             .orElse(null);

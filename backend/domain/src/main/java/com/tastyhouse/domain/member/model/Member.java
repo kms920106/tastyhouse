@@ -2,8 +2,8 @@ package com.tastyhouse.domain.member.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.vo.PhoneNumber;
@@ -168,27 +168,27 @@ public class Member {
 
     public void withdraw() {
         if (this.memberStatus == MemberStatus.DELETED) {
-            throw new BusinessException(ErrorCode.ALREADY_WITHDRAWN);
+            throw new DomainException(DomainErrorCode.ALREADY_WITHDRAWN);
         }
         this.memberStatus = MemberStatus.DELETED;
     }
 
     public void suspend() {
         if (this.memberStatus == MemberStatus.DELETED) {
-            throw new BusinessException(ErrorCode.MEMBER_STATUS_CHANGE_NOT_ALLOWED);
+            throw new DomainException(DomainErrorCode.MEMBER_STATUS_CHANGE_NOT_ALLOWED);
         }
         if (this.memberStatus == MemberStatus.SUSPENDED) {
-            throw new BusinessException(ErrorCode.MEMBER_ALREADY_SUSPENDED);
+            throw new DomainException(DomainErrorCode.MEMBER_ALREADY_SUSPENDED);
         }
         this.memberStatus = MemberStatus.SUSPENDED;
     }
 
     public void activate() {
         if (this.memberStatus == MemberStatus.DELETED) {
-            throw new BusinessException(ErrorCode.MEMBER_STATUS_CHANGE_NOT_ALLOWED);
+            throw new DomainException(DomainErrorCode.MEMBER_STATUS_CHANGE_NOT_ALLOWED);
         }
         if (this.memberStatus == MemberStatus.ACTIVE) {
-            throw new BusinessException(ErrorCode.MEMBER_ALREADY_ACTIVE);
+            throw new DomainException(DomainErrorCode.MEMBER_ALREADY_ACTIVE);
         }
         this.memberStatus = MemberStatus.ACTIVE;
     }

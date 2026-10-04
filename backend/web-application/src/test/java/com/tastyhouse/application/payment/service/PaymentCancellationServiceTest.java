@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
@@ -34,6 +33,8 @@ import com.tastyhouse.application.order.service.OrderTransitionService;
 import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
 import com.tastyhouse.application.payment.port.out.write.PaymentRefundPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -154,12 +155,12 @@ class PaymentCancellationServiceTest {
         Fixture prepareFixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
         assertThatThrownBy(() -> prepareFixture.service.prepareCancellation(OTHER_MEMBER_ID, PAYMENT_ID))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
         Fixture applyFixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
         assertThatThrownBy(() -> applyFixture.service.applyCancellation(OTHER_MEMBER_ID, PAYMENT_ID, "사유"))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
         assertThat(applyFixture.paymentPersistencePort.lastSaved).isNull();
         assertThat(applyFixture.orderPersistencePort.lastSaved).isNull();
@@ -189,7 +190,7 @@ class PaymentCancellationServiceTest {
 
         assertThatThrownBy(() -> fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 5000, "사유"))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_NOT_COMPLETED.getDefaultMessage());
+            .hasMessageContaining(WebErrorCode.PAYMENT_NOT_COMPLETED.getDefaultMessage());
 
         assertThat(fixture.paymentRefundPersistencePort.saved).isEmpty();
     }
@@ -201,7 +202,7 @@ class PaymentCancellationServiceTest {
 
         assertThatThrownBy(() -> fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 21001, "사유"))
             .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED.getDefaultMessage());
+            .hasMessageContaining(WebErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED.getDefaultMessage());
 
         assertThat(fixture.paymentRefundPersistencePort.saved).isEmpty();
     }

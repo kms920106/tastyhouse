@@ -7,7 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,7 +36,7 @@ class ShopDeliveryTipTierTest {
             assertThatThrownBy(() -> ShopDeliveryTipTier.of(SHOP_ID, 0, 5000, 5000))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE);
         }
 
         @Test
@@ -45,7 +45,7 @@ class ShopDeliveryTipTierTest {
             assertThatThrownBy(() -> ShopDeliveryTipTier.of(SHOP_ID, 0, 5000, -1))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE);
         }
     }
 
@@ -67,7 +67,7 @@ class ShopDeliveryTipTierTest {
             assertThatThrownBy(() -> ShopDeliveryTipTier.of(SHOP_ID, 0, -1, 2000))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_AMOUNT_OUT_OF_RANGE);
         }
     }
 
@@ -91,7 +91,7 @@ class ShopDeliveryTipTierTest {
             assertThatThrownBy(() -> ShopDeliveryTipTier.of(SHOP_ID, tierOrder, 5000, 2000))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED);
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_TIP_TIER_LIMIT_EXCEEDED);
         }
     }
 

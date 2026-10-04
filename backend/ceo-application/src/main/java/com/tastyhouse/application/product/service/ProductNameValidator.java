@@ -4,11 +4,11 @@ import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Component
 public class ProductNameValidator {
@@ -25,20 +25,20 @@ public class ProductNameValidator {
     public void validateForCreate(Long shopId, String name) {
         validateCharacters(name);
         if (productPersistencePort.existsByShopIdAndName(ShopId.of(shopId), name)) {
-            throw new BusinessException(ErrorCode.PRODUCT_NAME_DUPLICATED);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_NAME_DUPLICATED);
         }
     }
 
     public void validateForUpdate(Long shopId, Long productId, String name) {
         validateCharacters(name);
         if (productPersistencePort.existsByShopIdAndNameAndIdNot(ShopId.of(shopId), name, ProductId.of(productId))) {
-            throw new BusinessException(ErrorCode.PRODUCT_NAME_DUPLICATED);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_NAME_DUPLICATED);
         }
     }
 
     private void validateCharacters(String name) {
         if (name != null && !ALLOWED_NAME.matcher(name).matches()) {
-            throw new BusinessException(ErrorCode.PRODUCT_NAME_INVALID_CHARACTER);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_NAME_INVALID_CHARACTER);
         }
     }
 }

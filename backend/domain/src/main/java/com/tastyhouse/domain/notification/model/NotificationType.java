@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.notification.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum NotificationType {
 
@@ -13,8 +13,8 @@ public enum NotificationType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.NOTIFICATION_TYPE_UNKNOWN,
-                ErrorCode.NOTIFICATION_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.NOTIFICATION_TYPE_UNKNOWN,
+                DomainErrorCode.NOTIFICATION_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

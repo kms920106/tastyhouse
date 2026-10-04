@@ -7,8 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
@@ -32,6 +30,9 @@ import com.tastyhouse.domain.shop.model.Tag;
 import com.tastyhouse.domain.shop.vo.ShopFoodTypeCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopAmenityAssignUseCase;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryCreateUseCase;
@@ -380,7 +381,7 @@ class ShopManagementCommandService implements
         Boolean visible = command.visible();
 
         ShopAmenityCategory amenityCategory = shopDetailPersistencePort.findAmenityCategoryById(categoryId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
         amenityCategory.update(
             displayName,
             UploadedFileId.of(activeImageFileId),
@@ -421,7 +422,7 @@ class ShopManagementCommandService implements
         Boolean visible = command.visible();
 
         ShopFoodTypeCategory foodTypeCategory = shopDetailPersistencePort.findFoodTypeCategoryById(categoryId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
         foodTypeCategory.update(
             displayName,
             UploadedFileId.of(activeImageFileId),
@@ -458,7 +459,7 @@ class ShopManagementCommandService implements
         Long foodTypeCategoryId = command.foodTypeCategoryId();
 
         shopDetailPersistencePort.findFoodTypeCategoryById(foodTypeCategoryId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
         ShopFoodType foodType = shopDetailPersistencePort.saveFoodType(ShopFoodType.of(ShopId.of(id), ShopFoodTypeCategoryId.of(foodTypeCategoryId)));
         return foodType.getId();
     }
@@ -539,7 +540,7 @@ class ShopManagementCommandService implements
         String name = command.name();
 
         ShopPhotoCategory photoCategory = shopDetailPersistencePort.findPhotoCategoryById(categoryId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHOTO_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_PHOTO_CATEGORY_NOT_FOUND));
         photoCategory.update(name);
         shopDetailPersistencePort.savePhotoCategory(photoCategory);
     }
@@ -577,7 +578,7 @@ class ShopManagementCommandService implements
         Boolean visible = command.visible();
 
         ShopPhotoCategoryImage image = shopDetailPersistencePort.findPhotoCategoryImageById(imageId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_PHOTO_CATEGORY_IMAGE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_PHOTO_CATEGORY_IMAGE_NOT_FOUND));
         image.update(UploadedFileId.of(imageFileId), sort, visible);
         shopDetailPersistencePort.savePhotoCategoryImage(image);
     }
@@ -606,7 +607,7 @@ class ShopManagementCommandService implements
         String content = command.content();
 
         ShopChoice shopChoice = shopChoicePersistencePort.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_CHOICE_NOT_FOUND));
         shopChoice.update(title, content);
         shopChoicePersistencePort.save(shopChoice);
     }

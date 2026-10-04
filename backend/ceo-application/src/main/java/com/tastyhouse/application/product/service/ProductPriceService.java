@@ -10,9 +10,8 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.model.ProductPriceSpec;
@@ -22,6 +21,10 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class ProductPriceService {
@@ -91,8 +94,8 @@ public class ProductPriceService {
                 .filter(price -> spec.id().equals(price.getId()))
                 .findFirst()
 
-                .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_PRICE_NOT_FOUND,
-                    ErrorCode.PRODUCT_PRICE_NOT_FOUND.getDefaultMessage() + ": " + spec.id()));
+                .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_PRICE_NOT_FOUND,
+                    ApplicationErrorCode.PRODUCT_PRICE_NOT_FOUND.getDefaultMessage() + ": " + spec.id()));
 
             target.change(
                 spec.priceName(),
@@ -121,7 +124,7 @@ public class ProductPriceService {
 
     private static void validateSpecs(List<ProductPriceSpec> specs) {
         if (specs == null || specs.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_PRICE_EMPTY);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_PRICE_EMPTY);
         }
 
         if (specs.size() == 1) {
@@ -132,11 +135,11 @@ public class ProductPriceService {
         for (ProductPriceSpec spec : specs) {
             String priceName = spec.priceName();
             if (priceName == null || priceName.isBlank()) {
-                throw new BusinessException(ErrorCode.PRODUCT_PRICE_NAME_REQUIRED);
+                throw new DomainException(DomainErrorCode.PRODUCT_PRICE_NAME_REQUIRED);
             }
             if (!names.add(priceName)) {
-                throw new BusinessException(ErrorCode.PRODUCT_PRICE_NAME_DUPLICATED,
-                    ErrorCode.PRODUCT_PRICE_NAME_DUPLICATED.getDefaultMessage() + ": " + priceName);
+                throw new ApplicationException(CeoErrorCode.PRODUCT_PRICE_NAME_DUPLICATED,
+                    CeoErrorCode.PRODUCT_PRICE_NAME_DUPLICATED.getDefaultMessage() + ": " + priceName);
             }
         }
     }
@@ -148,13 +151,13 @@ public class ProductPriceService {
             return;
         }
         if (!storePriceVerificationPort.isStorePriceVerified(shopId.value())) {
-            throw new BusinessException(ErrorCode.PRODUCT_PRICE_STORE_NOT_VERIFIED);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_PRICE_STORE_NOT_VERIFIED);
         }
     }
 
     private static void requireNoDiscountInProgress(Product product) {
         if (product.getDiscountPrice() != null) {
-            throw new BusinessException(ErrorCode.PRODUCT_PRICE_DISCOUNT_IN_PROGRESS);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_PRICE_DISCOUNT_IN_PROGRESS);
         }
     }
 
@@ -191,7 +194,7 @@ public class ProductPriceService {
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
         List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
         return found.getFirst();
     }

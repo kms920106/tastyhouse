@@ -11,7 +11,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.model.UploadedFile;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.crawling.bbq.port.out.BbqMenuPort;
@@ -25,6 +24,7 @@ import com.tastyhouse.application.file.port.out.FileDeleteResult;
 import com.tastyhouse.application.file.port.out.FileStoragePort;
 import com.tastyhouse.application.file.port.out.write.UploadedFilePersistencePort;
 import com.tastyhouse.application.file.service.FileUploadService;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.BatchJobException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -100,7 +100,7 @@ class BbqServiceTest {
         "SIZE_EXCEEDED, FILE_SIZE_EXCEEDED"
     })
     @DisplayName("이미지 다운로드 실패 결과는 기존과 같은 파일 ErrorCode로 번역되어 크롤링을 실패시킨다")
-    void translatesDownloadFailureToFileErrorCode(ImageDownloadFailure failure, ErrorCode expected) {
+    void translatesDownloadFailureToFileErrorCode(ImageDownloadFailure failure, ApplicationErrorCode expected) {
         when(bbqMenuPort.fetchMenuDetail(BBQ_MENU_ID)).thenReturn(menu(IMAGE_URL));
         when(remoteImagePort.download(IMAGE_URL)).thenReturn(ImageDownloadResult.failed(failure));
 

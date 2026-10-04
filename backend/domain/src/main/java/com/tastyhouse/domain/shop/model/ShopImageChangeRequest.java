@@ -2,8 +2,8 @@ package com.tastyhouse.domain.shop.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -60,14 +60,14 @@ public class ShopImageChangeRequest {
 
     public void approve() {
         if (this.status != ApprovalStatus.PENDING) {
-            throw new BusinessException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_PENDING);
+            throw new DomainException(DomainErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_PENDING);
         }
         this.status = ApprovalStatus.APPROVED;
     }
 
     public void reject(String reason) {
         if (this.status != ApprovalStatus.PENDING) {
-            throw new BusinessException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_PENDING);
+            throw new DomainException(DomainErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_PENDING);
         }
         this.status = ApprovalStatus.REJECTED;
         this.rejectReason = reason;
@@ -75,7 +75,7 @@ public class ShopImageChangeRequest {
 
     public void cancel() {
         if (this.status != ApprovalStatus.PENDING) {
-            throw new BusinessException(ErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
+            throw new DomainException(DomainErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
         }
         this.status = ApprovalStatus.CANCELED;
     }

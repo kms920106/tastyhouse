@@ -7,9 +7,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.event.ReviewBlindApprovedEvent;
@@ -27,6 +26,9 @@ import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttach
 import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 
 @Service
@@ -68,10 +70,10 @@ public class ReviewBlindRequestService {
         validateDetailReason(reason, detailReason);
 
         if (reviewBlindRequestPersistencePort.existsByReviewIdAndStatus(targetReviewId, ReviewBlindStatus.PENDING)) {
-            throw new BusinessException(ErrorCode.REVIEW_BLIND_REQUEST_ALREADY_PENDING);
+            throw new ApplicationException(ApplicationErrorCode.REVIEW_BLIND_REQUEST_ALREADY_PENDING);
         }
         if (reviewBlindRequestPersistencePort.existsTerminatedByReviewId(targetReviewId)) {
-            throw new BusinessException(ErrorCode.REVIEW_BLIND_REQUEST_ALREADY_USED);
+            throw new ApplicationException(ApplicationErrorCode.REVIEW_BLIND_REQUEST_ALREADY_USED);
         }
 
         ReviewBlindRequest saved = reviewBlindRequestPersistencePort.save(
@@ -97,7 +99,7 @@ public class ReviewBlindRequestService {
         request = reviewBlindRequestPersistencePort.save(request);
 
         Review review = reviewPersistencePort.findById(request.getReviewId())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         review.hide();
         reviewPersistencePort.save(review);
 
@@ -123,7 +125,7 @@ public class ReviewBlindRequestService {
     public void cancel(Long requestId, Long shopId) {
         ReviewBlindRequest request = loadRequest(requestId);
         if (!request.getShopId().equals(ShopId.of(shopId))) {
-            throw new ResourceNotFoundException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND);
         }
         request.cancel();
         request = reviewBlindRequestPersistencePort.save(request);
@@ -135,7 +137,7 @@ public class ReviewBlindRequestService {
         Review review = loadOwnedReview(reviewId, memberId);
 
         ReviewBlindRequest request = reviewBlindRequestPersistencePort.findApprovedByReviewId(reviewId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED));
+            .orElseThrow(() -> new DomainException(DomainErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED));
 
         request.deleteByConsent();
         request = reviewBlindRequestPersistencePort.save(request);
@@ -149,7 +151,7 @@ public class ReviewBlindRequestService {
         loadOwnedReview(reviewId, memberId);
 
         reviewBlindRequestPersistencePort.findApprovedByReviewId(reviewId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED));
+            .orElseThrow(() -> new DomainException(DomainErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED));
     }
 
     public void expire(Long requestId) {
@@ -199,7 +201,7 @@ public class ReviewBlindRequestService {
 
     private void validateDetailReason(ReviewBlindReason reason, String detailReason) {
         if (reason == ReviewBlindReason.ETC && (detailReason == null || detailReason.isBlank())) {
-            throw new BusinessException(ErrorCode.REVIEW_BLIND_DETAIL_REASON_REQUIRED);
+            throw new ApplicationException(ApplicationErrorCode.REVIEW_BLIND_DETAIL_REASON_REQUIRED);
         }
     }
 
@@ -210,22 +212,22 @@ public class ReviewBlindRequestService {
 
     private ReviewBlindRequest loadRequest(Long requestId) {
         return reviewBlindRequestPersistencePort.findById(ReviewBlindRequestId.of(requestId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND));
     }
 
     private void loadReviewOfShop(ReviewId reviewId, Long shopId) {
         Review review = reviewPersistencePort.findById(reviewId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         if (!review.getShopId().equals(ShopId.of(shopId))) {
-            throw new BusinessException(ErrorCode.SHOP_ACCESS_DENIED);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_ACCESS_DENIED);
         }
     }
 
     private Review loadOwnedReview(ReviewId reviewId, MemberId memberId) {
         Review review = reviewPersistencePort.findById(reviewId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         if (!review.getMemberId().equals(memberId)) {
-            throw new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND);
         }
         return review;
     }

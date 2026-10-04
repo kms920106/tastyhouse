@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
@@ -19,6 +17,10 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCodeSpec;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Service
 public class ProductSortService {
@@ -40,7 +42,7 @@ public class ProductSortService {
             .collect(Collectors.toMap(ProductCategory::getId, Function.identity()));
 
         List<Long> requested = distinctRawIds(orderedIds);
-        requireSameSet(byId.keySet(), requested, ErrorCode.PRODUCT_CATEGORY_ORDER_TARGET_MISMATCH);
+        requireSameSet(byId.keySet(), requested, CeoErrorCode.PRODUCT_CATEGORY_ORDER_TARGET_MISMATCH);
 
         for (int index = 0; index < requested.size(); index++) {
             ProductCategory category = byId.get(requested.get(index));
@@ -59,7 +61,7 @@ public class ProductSortService {
             .collect(Collectors.toMap(Product::getId, Function.identity()));
 
         List<Long> requested = distinctRawIds(orderedIds);
-        requireSameSet(byId.keySet(), requested, ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+        requireSameSet(byId.keySet(), requested, ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
 
         for (int index = 0; index < requested.size(); index++) {
             Product product = byId.get(requested.get(index));
@@ -75,13 +77,13 @@ public class ProductSortService {
         List<ProductId> targetOrderedIds
     ) {
         if (movedIds == null || movedIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
         }
 
         List<Long> movedRawIds = distinctRawIds(movedIds);
         List<Product> moved = productPersistencePort.findAllByShopIdAndIdIn(shopId, movedIds);
         if (moved.size() != movedRawIds.size()) {
-            throw new BusinessException(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
         }
 
         Set<Long> sourceCategoryIds = new LinkedHashSet<>();
@@ -96,7 +98,7 @@ public class ProductSortService {
 
         List<Long> targetRawIds = distinctRawIds(targetOrderedIds);
         if (!new LinkedHashSet<>(targetRawIds).containsAll(movedRawIds)) {
-            throw new BusinessException(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
         }
 
         List<Product> targetGroup = productPersistencePort.findAllByShopIdAndCategoryId(shopId, targetCategoryId);
@@ -107,7 +109,7 @@ public class ProductSortService {
 
         Set<Long> expected = new LinkedHashSet<>(targetById.keySet());
         expected.addAll(movedRawIds);
-        requireSameSet(expected, targetRawIds, ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+        requireSameSet(expected, targetRawIds, ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
 
         for (int index = 0; index < targetRawIds.size(); index++) {
             Long rawId = targetRawIds.get(index);
@@ -154,9 +156,9 @@ public class ProductSortService {
         return raw;
     }
 
-    private void requireSameSet(Set<Long> current, List<Long> requested, ErrorCode mismatchCode) {
+    private void requireSameSet(Set<Long> current, List<Long> requested, ApplicationErrorCodeSpec mismatchCode) {
         if (current.size() != requested.size() || !current.containsAll(requested)) {
-            throw new BusinessException(mismatchCode);
+            throw new ApplicationException(mismatchCode);
         }
     }
 }

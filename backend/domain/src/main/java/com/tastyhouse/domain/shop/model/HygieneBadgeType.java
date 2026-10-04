@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum HygieneBadgeType {
 
@@ -23,8 +23,8 @@ public enum HygieneBadgeType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.HYGIENE_BADGE_TYPE_UNKNOWN,
-                ErrorCode.HYGIENE_BADGE_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.HYGIENE_BADGE_TYPE_UNKNOWN,
+                DomainErrorCode.HYGIENE_BADGE_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

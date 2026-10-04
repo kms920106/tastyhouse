@@ -3,8 +3,8 @@ package com.tastyhouse.domain.shop.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopRiderGuide {
@@ -118,13 +118,13 @@ public class ShopRiderGuide {
 
     private static void validateVisitGuide(String visitGuide) {
         if (visitGuide != null && visitGuide.length() > VISIT_GUIDE_MAX_LENGTH) {
-            throw new BusinessException(ErrorCode.SHOP_RIDER_VISIT_GUIDE_TOO_LONG);
+            throw new DomainException(DomainErrorCode.SHOP_RIDER_VISIT_GUIDE_TOO_LONG);
         }
     }
 
     private static void validatePickupDetailAddress(String detailAddress) {
         if (detailAddress != null && detailAddress.length() > PICKUP_DETAIL_ADDRESS_MAX_LENGTH) {
-            throw new BusinessException(ErrorCode.SHOP_RIDER_PICKUP_DETAIL_ADDRESS_TOO_LONG);
+            throw new DomainException(DomainErrorCode.SHOP_RIDER_PICKUP_DETAIL_ADDRESS_TOO_LONG);
         }
     }
 
@@ -133,7 +133,7 @@ public class ShopRiderGuide {
         boolean allAbsent = roadAddress == null && latitude == null && longitude == null;
 
         if (!allPresent && !allAbsent) {
-            throw new BusinessException(ErrorCode.SHOP_RIDER_PICKUP_LOCATION_INCOMPLETE);
+            throw new DomainException(DomainErrorCode.SHOP_RIDER_PICKUP_LOCATION_INCOMPLETE);
         }
     }
 
@@ -145,7 +145,7 @@ public class ShopRiderGuide {
         boolean latitudeOutOfRange = latitude.compareTo(LATITUDE_MIN) < 0 || latitude.compareTo(LATITUDE_MAX) > 0;
         boolean longitudeOutOfRange = longitude.compareTo(LONGITUDE_MIN) < 0 || longitude.compareTo(LONGITUDE_MAX) > 0;
         if (latitudeOutOfRange || longitudeOutOfRange) {
-            throw new BusinessException(ErrorCode.SHOP_RIDER_PICKUP_LOCATION_INVALID);
+            throw new DomainException(DomainErrorCode.SHOP_RIDER_PICKUP_LOCATION_INVALID);
         }
     }
 

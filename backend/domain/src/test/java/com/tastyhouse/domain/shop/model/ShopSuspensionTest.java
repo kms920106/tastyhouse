@@ -6,7 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -42,7 +42,7 @@ class ShopSuspensionTest {
         assertThatThrownBy(() -> ShopSuspension.of(ShopId.of(1L), SuspensionReason.BAD_WEATHER, OrderMethod.DELIVERY, startAt, endAt))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_SUSPENSION_INVALID_PERIOD);
+            .isEqualTo(DomainErrorCode.SHOP_SUSPENSION_INVALID_PERIOD);
     }
 
     @Test
@@ -162,6 +162,6 @@ class ShopSuspensionTest {
         assertThatThrownBy(() -> SuspensionReason.from("UNKNOWN_CODE"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_SUSPENSION_REASON_UNKNOWN);
+            .isEqualTo(DomainErrorCode.SHOP_SUSPENSION_REASON_UNKNOWN);
     }
 }

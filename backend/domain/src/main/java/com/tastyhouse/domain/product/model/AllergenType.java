@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.product.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum AllergenType {
 
@@ -41,8 +41,8 @@ public enum AllergenType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException | NullPointerException e) {
-            throw new BusinessException(ErrorCode.PRODUCT_ALLERGEN_TYPE_UNKNOWN,
-                ErrorCode.PRODUCT_ALLERGEN_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.PRODUCT_ALLERGEN_TYPE_UNKNOWN,
+                DomainErrorCode.PRODUCT_ALLERGEN_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

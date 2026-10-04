@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.banner.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum BannerType {
 
@@ -11,8 +11,8 @@ public enum BannerType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.BANNER_TYPE_UNKNOWN,
-                ErrorCode.BANNER_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.BANNER_TYPE_UNKNOWN,
+                DomainErrorCode.BANNER_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

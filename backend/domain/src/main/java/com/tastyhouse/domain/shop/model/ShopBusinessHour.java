@@ -2,8 +2,8 @@ package com.tastyhouse.domain.shop.model;
 
 import java.time.LocalTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -123,14 +123,14 @@ public class ShopBusinessHour {
             return;
         }
         if (openTime == null || closeTime == null) {
-            throw new BusinessException(ErrorCode.SHOP_BUSINESS_HOUR_INVALID_RANGE);
+            throw new DomainException(DomainErrorCode.SHOP_BUSINESS_HOUR_INVALID_RANGE);
         }
         if (isNotFiveMinuteUnit(openTime) || isNotFiveMinuteUnit(closeTime)) {
-            throw new BusinessException(ErrorCode.SHOP_BUSINESS_HOUR_INVALID_UNIT);
+            throw new DomainException(DomainErrorCode.SHOP_BUSINESS_HOUR_INVALID_UNIT);
         }
         long durationMinutes = minutesBetween(openTime, closeTime);
         if (durationMinutes < MIN_DURATION_MINUTES || durationMinutes > MAX_DURATION_MINUTES) {
-            throw new BusinessException(ErrorCode.SHOP_BUSINESS_HOUR_INVALID_RANGE);
+            throw new DomainException(DomainErrorCode.SHOP_BUSINESS_HOUR_INVALID_RANGE);
         }
     }
 

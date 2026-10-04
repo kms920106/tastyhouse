@@ -1,7 +1,7 @@
 package com.tastyhouse.application.product.port.in;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record ProductShopLinkItemCommand(
     Long shopId,
@@ -10,7 +10,7 @@ public record ProductShopLinkItemCommand(
 
     public ProductShopLinkItemCommand {
         if (shopId == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

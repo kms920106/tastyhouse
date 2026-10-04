@@ -3,8 +3,8 @@ package com.tastyhouse.domain.shop.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopConvenienceInfo {
@@ -104,7 +104,7 @@ public class ShopConvenienceInfo {
 
     private static void validateDirectionsGuide(String directionsGuide) {
         if (directionsGuide != null && directionsGuide.length() > DIRECTIONS_GUIDE_MAX_LENGTH) {
-            throw new BusinessException(ErrorCode.SHOP_DIRECTIONS_GUIDE_TOO_LONG);
+            throw new DomainException(DomainErrorCode.SHOP_DIRECTIONS_GUIDE_TOO_LONG);
         }
     }
 

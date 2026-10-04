@@ -3,8 +3,8 @@ package com.tastyhouse.domain.reservation.model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ReservationSlot {
@@ -62,7 +62,7 @@ public class ReservationSlot {
 
     public void reserve() {
         if (isFull()) {
-            throw new BusinessException(ErrorCode.RESERVATION_SLOT_FULL);
+            throw new DomainException(DomainErrorCode.RESERVATION_SLOT_FULL);
         }
         this.reservedCount++;
     }

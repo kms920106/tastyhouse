@@ -4,11 +4,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.ceo.model.Ceo;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.application.ceo.port.in.CeoCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoCreateCommand;
 import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Service
 @Transactional
@@ -27,7 +27,7 @@ class CeoCommandService implements CeoCommandUseCase {
         String name = command.name();
 
         if (ceoPersistencePort.existsByUsername(username)) {
-            throw new BusinessException(ErrorCode.CEO_USERNAME_DUPLICATED);
+            throw new ApplicationException(CeoErrorCode.CEO_USERNAME_DUPLICATED);
         }
 
         Ceo ceo = Ceo.create(username, encodedPassword, name);

@@ -9,8 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeEntryType;
@@ -23,6 +21,8 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommand
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -81,7 +81,7 @@ class ProductOptionGroupMergeCommandService implements ProductOptionGroupMergeCo
 
         List<Long> targetIds = distinct(optionGroupIds);
         if (targetIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY);
         }
         validateSignature(shopId, signature, targetIds);
 
@@ -102,7 +102,7 @@ class ProductOptionGroupMergeCommandService implements ProductOptionGroupMergeCo
                 productOptionPersistencePort.findAllByOptionGroupId(group.getProductOptionGroupId());
 
             if (!Objects.equals(signature, ProductOptionGroupSignature.of(group, options))) {
-                throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_SIGNATURE_MISMATCH);
+                throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_SIGNATURE_MISMATCH);
             }
         }
     }

@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -77,7 +77,7 @@ class ShopRiderGuideTest {
         assertThatThrownBy(() -> riderGuide.changeVisitGuide(tooLong))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_VISIT_GUIDE_TOO_LONG);
+            .isEqualTo(DomainErrorCode.SHOP_RIDER_VISIT_GUIDE_TOO_LONG);
     }
 
     @Test
@@ -108,7 +108,7 @@ class ShopRiderGuideTest {
         ))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_PICKUP_LOCATION_INCOMPLETE);
+            .isEqualTo(DomainErrorCode.SHOP_RIDER_PICKUP_LOCATION_INCOMPLETE);
     }
 
     @Test
@@ -121,7 +121,7 @@ class ShopRiderGuideTest {
         ))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_PICKUP_LOCATION_INCOMPLETE);
+            .isEqualTo(DomainErrorCode.SHOP_RIDER_PICKUP_LOCATION_INCOMPLETE);
     }
 
     @Test
@@ -144,7 +144,7 @@ class ShopRiderGuideTest {
         ))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_PICKUP_LOCATION_INVALID);
+            .isEqualTo(DomainErrorCode.SHOP_RIDER_PICKUP_LOCATION_INVALID);
     }
 
     @Test
@@ -157,7 +157,7 @@ class ShopRiderGuideTest {
         ))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_PICKUP_LOCATION_INVALID);
+            .isEqualTo(DomainErrorCode.SHOP_RIDER_PICKUP_LOCATION_INVALID);
     }
 
     @Test
@@ -171,7 +171,7 @@ class ShopRiderGuideTest {
         ))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_PICKUP_DETAIL_ADDRESS_TOO_LONG);
+            .isEqualTo(DomainErrorCode.SHOP_RIDER_PICKUP_DETAIL_ADDRESS_TOO_LONG);
     }
 
     @Test

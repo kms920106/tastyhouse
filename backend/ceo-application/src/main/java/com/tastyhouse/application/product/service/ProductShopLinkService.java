@@ -7,9 +7,6 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.model.ProductShopLink;
@@ -20,6 +17,10 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class ProductShopLinkService {
@@ -46,7 +47,7 @@ public class ProductShopLinkService {
         Product product = loadProduct(productId);
 
         if (specs == null || specs.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK);
         }
 
         Map<Long, ProductShopLinkSpec> requested = toDistinctSpecsByShopId(specs);
@@ -89,7 +90,7 @@ public class ProductShopLinkService {
         validateCategory(targetShopId, productCategoryId);
 
         if (productShopLinkPersistencePort.existsByProductIdAndShopId(productId, targetShopId)) {
-            throw new BusinessException(ErrorCode.PRODUCT_SHOP_LINK_ALREADY_LINKED);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_ALREADY_LINKED);
         }
 
         productShopLinkPersistencePort.save(
@@ -101,10 +102,10 @@ public class ProductShopLinkService {
         Product product = loadProduct(productId);
 
         ProductShopLink link = productShopLinkPersistencePort.findByProductIdAndShopId(productId, targetShopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_SHOP_LINK_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.PRODUCT_SHOP_LINK_NOT_FOUND));
 
         if (productShopLinkPersistencePort.countByProductId(productId) <= 1) {
-            throw new BusinessException(ErrorCode.PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK);
         }
 
         validateShopKeepsVisibleProduct(product, targetShopId);
@@ -138,14 +139,14 @@ public class ProductShopLinkService {
     private Product loadProduct(ProductId productId) {
         return productPersistencePort.findById(productId)
             .filter(found -> !found.isDeleted())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 
     private Map<Long, ProductShopLinkSpec> toDistinctSpecsByShopId(List<ProductShopLinkSpec> specs) {
         Map<Long, ProductShopLinkSpec> distinct = new LinkedHashMap<>();
         for (ProductShopLinkSpec spec : specs) {
             if (spec.shopId() == null) {
-                throw new BusinessException(ErrorCode.PRODUCT_SHOP_LINK_NOT_OWNED);
+                throw new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_NOT_OWNED);
             }
             distinct.put(spec.shopId(), spec);
         }
@@ -154,20 +155,20 @@ public class ProductShopLinkService {
 
     private void validateOwned(Long shopId, Set<Long> ownedShopIds) {
         if (ownedShopIds == null || !ownedShopIds.contains(shopId)) {
-            throw new BusinessException(ErrorCode.PRODUCT_SHOP_LINK_NOT_OWNED);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_NOT_OWNED);
         }
     }
 
     private void validateCategory(ShopId shopId, Long productCategoryId) {
         if (productCategoryId == null) {
-            throw new BusinessException(ErrorCode.PRODUCT_SHOP_LINK_CATEGORY_REQUIRED);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_CATEGORY_REQUIRED);
         }
 
         ProductCategory category = productCategoryPersistencePort.findById(ProductCategoryId.of(productCategoryId))
-            .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_SHOP_LINK_CATEGORY_MISMATCH));
+            .orElseThrow(() -> new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_CATEGORY_MISMATCH));
 
         if (!shopId.equals(category.getShopId())) {
-            throw new BusinessException(ErrorCode.PRODUCT_SHOP_LINK_CATEGORY_MISMATCH);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_CATEGORY_MISMATCH);
         }
     }
 
@@ -176,7 +177,7 @@ public class ProductShopLinkService {
             return;
         }
         if (productPersistencePort.countVisibleByShopId(shopId) <= 1) {
-            throw new BusinessException(ErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE);
         }
     }
 

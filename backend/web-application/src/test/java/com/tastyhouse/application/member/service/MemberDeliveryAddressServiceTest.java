@@ -18,8 +18,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.region.model.AdminDong;
@@ -28,6 +26,8 @@ import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
 import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,7 +59,7 @@ class MemberDeliveryAddressServiceTest {
             assertThatThrownBy(() -> create(service, false))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
-                .isEqualTo(ErrorCode.MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED);
+                .isEqualTo(WebErrorCode.MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED);
         }
 
         @Test
@@ -174,7 +174,7 @@ class MemberDeliveryAddressServiceTest {
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
-                .isEqualTo(ErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
+                .isEqualTo(WebErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
         }
 
         @Test
@@ -226,7 +226,7 @@ class MemberDeliveryAddressServiceTest {
             assertThatThrownBy(() -> service.delete(MEMBER_ID, othersAddress.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
-                .isEqualTo(ErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
+                .isEqualTo(WebErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
             assertThat(addressPersistencePort.findById(othersAddress.getId())).isPresent();
         }
 
@@ -292,7 +292,7 @@ class MemberDeliveryAddressServiceTest {
             assertThatThrownBy(() -> service.changeDefault(MEMBER_ID, othersAddress.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
-                .isEqualTo(ErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
+                .isEqualTo(WebErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
         }
     }
 

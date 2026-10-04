@@ -6,9 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
@@ -18,6 +17,8 @@ import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaCommandUseCase;
@@ -77,7 +78,7 @@ class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUseCase {
         Long deliveryAreaId = command.deliveryAreaId();
 
         ShopDeliveryArea deliveryArea = shopDeliveryAreaPersistencePort.findById(deliveryAreaId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND));
         shopOwnershipValidator.validateOwnership(ceoId, deliveryArea.getShopId().value());
 
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
@@ -170,8 +171,8 @@ class ShopDeliveryAreaCommandService implements ShopDeliveryAreaCommandUseCase {
 
     private GeoPoint shopLocationOf(Shop shop) {
         if (shop.getLatitude() == null || shop.getLongitude() == null) {
-            throw new BusinessException(
-                ErrorCode.SHOP_DELIVERY_AREA_RADIUS_EXCEEDED,
+            throw new DomainException(
+                DomainErrorCode.SHOP_DELIVERY_AREA_RADIUS_EXCEEDED,
                 "가게 좌표가 등록돼 있지 않아 배달지역을 설정할 수 없습니다."
             );
         }

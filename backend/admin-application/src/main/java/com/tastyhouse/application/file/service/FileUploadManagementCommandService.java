@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.file.port.in.FileUploadManagementCommandUseCase;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
 class FileUploadManagementCommandService implements FileUploadManagementCommandUseCase {
@@ -24,7 +24,7 @@ class FileUploadManagementCommandService implements FileUploadManagementCommandU
     @Transactional
     public Long upload(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new BusinessException(ErrorCode.FILE_EMPTY);
+            throw new ApplicationException(ApplicationErrorCode.FILE_EMPTY);
         }
 
         byte[] content = readBytes(file);
@@ -42,7 +42,7 @@ class FileUploadManagementCommandService implements FileUploadManagementCommandU
         try {
             return file.getBytes();
         } catch (IOException e) {
-            throw new BusinessException(ErrorCode.FILE_STORE_FAILED);
+            throw new ApplicationException(ApplicationErrorCode.FILE_STORE_FAILED);
         }
     }
 }

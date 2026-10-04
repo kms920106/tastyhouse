@@ -2,8 +2,8 @@ package com.tastyhouse.application.shop.service;
 
 import java.util.List;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shared.geo.GeoPolygon;
 import com.tastyhouse.domain.shared.geo.GeoRing;
@@ -18,8 +18,8 @@ final class ShopDeliveryAreaGeoMapper {
 
     static ShopLocationResult requireCoordinates(ShopLocationResult shopLocation) {
         if (shopLocation.latitude() == null || shopLocation.longitude() == null) {
-            throw new BusinessException(
-                ErrorCode.SHOP_DELIVERY_AREA_RADIUS_EXCEEDED,
+            throw new DomainException(
+                DomainErrorCode.SHOP_DELIVERY_AREA_RADIUS_EXCEEDED,
                 "가게 좌표가 등록돼 있지 않아 배달지역을 설정할 수 없습니다."
             );
         }
@@ -28,7 +28,7 @@ final class ShopDeliveryAreaGeoMapper {
 
     static GeoPolygon toPolygon(List<List<GeoPointCommand>> rings) {
         if (rings == null || rings.isEmpty()) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_POLYGON_INVALID);
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_AREA_POLYGON_INVALID);
         }
 
         try {
@@ -36,9 +36,9 @@ final class ShopDeliveryAreaGeoMapper {
                 .map(ShopDeliveryAreaGeoMapper::toRing)
                 .toList());
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(
-                ErrorCode.SHOP_DELIVERY_AREA_POLYGON_INVALID,
-                ErrorCode.SHOP_DELIVERY_AREA_POLYGON_INVALID.getDefaultMessage() + ": " + e.getMessage()
+            throw new DomainException(
+                DomainErrorCode.SHOP_DELIVERY_AREA_POLYGON_INVALID,
+                DomainErrorCode.SHOP_DELIVERY_AREA_POLYGON_INVALID.getDefaultMessage() + ": " + e.getMessage()
             );
         }
     }

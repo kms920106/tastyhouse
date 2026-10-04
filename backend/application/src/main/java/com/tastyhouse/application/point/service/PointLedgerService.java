@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.event.PointEarnedEvent;
 import com.tastyhouse.domain.point.event.PointRefundedEvent;
@@ -16,6 +14,8 @@ import com.tastyhouse.domain.point.model.PointType;
 import com.tastyhouse.application.point.port.out.write.PointHistoryPersistencePort;
 import com.tastyhouse.application.point.port.out.write.PointPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class PointLedgerService {
@@ -98,7 +98,7 @@ public class PointLedgerService {
 
     private Point findPointOrThrow(MemberId memberId) {
         return pointPersistencePort.findByMemberId(memberId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.POINT_NOT_FOUND,
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.POINT_NOT_FOUND,
                 "포인트 정보를 찾을 수 없습니다. memberId=" + memberId.value()));
     }
 }

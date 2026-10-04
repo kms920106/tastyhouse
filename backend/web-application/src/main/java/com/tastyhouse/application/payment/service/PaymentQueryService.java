@@ -3,9 +3,8 @@ package com.tastyhouse.application.payment.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;
@@ -15,6 +14,10 @@ import com.tastyhouse.application.payment.port.out.PaymentRefundResult;
 import com.tastyhouse.application.payment.port.out.PaymentRefundViewResult;
 import com.tastyhouse.application.payment.port.out.PaymentResult;
 import com.tastyhouse.application.payment.port.out.PaymentViewResult;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 @Transactional(readOnly = true)
@@ -29,7 +32,7 @@ class PaymentQueryService implements PaymentQueryUseCase {
     @Override
     public PaymentViewResult getPayment(Long memberId, Long id) {
         return toPaymentViewResult(
-            validateOwnership(loadPayment(id), memberId, ErrorCode.PAYMENT_ACCESS_DENIED)
+            validatePaymentOwnership(loadPayment(id), memberId)
         );
     }
 
@@ -40,26 +43,33 @@ class PaymentQueryService implements PaymentQueryUseCase {
 
     private PaymentResult loadPayment(Long id) {
         return paymentQueryPort.findPaymentById(PaymentId.of(id).value())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
     }
 
     @Override
     public PaymentViewResult getPaymentByOrderId(Long memberId, Long orderId) {
         PaymentResult result = paymentQueryPort.findPaymentByOrderId(OrderId.of(orderId).value())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
-        return toPaymentViewResult(validateOwnership(result, memberId, ErrorCode.ORDER_ACCESS_DENIED));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
+        return toPaymentViewResult(validateOrderOwnership(result, memberId));
     }
 
     @Override
     public PaymentRefundViewResult getRefund(Long refundId) {
         PaymentRefundResult result = paymentQueryPort.findRefundById(PaymentRefundId.of(refundId).value())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_REFUND_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.PAYMENT_REFUND_NOT_FOUND));
         return toPaymentRefundViewResult(result);
     }
 
-    private PaymentResult validateOwnership(PaymentResult result, Long memberId, ErrorCode accessDeniedCode) {
+    private PaymentResult validateOrderOwnership(PaymentResult result, Long memberId) {
         if (!memberId.equals(result.memberId())) {
-            throw new BusinessException(accessDeniedCode);
+            throw new DomainException(DomainErrorCode.ORDER_ACCESS_DENIED);
+        }
+        return result;
+    }
+
+    private PaymentResult validatePaymentOwnership(PaymentResult result, Long memberId) {
+        if (!memberId.equals(result.memberId())) {
+            throw new ApplicationException(ApplicationErrorCode.PAYMENT_ACCESS_DENIED);
         }
         return result;
     }

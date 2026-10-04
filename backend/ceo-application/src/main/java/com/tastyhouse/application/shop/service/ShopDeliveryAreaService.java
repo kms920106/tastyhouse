@@ -10,9 +10,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaSource;
@@ -24,6 +21,9 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolicy;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
 
@@ -49,11 +49,11 @@ public class ShopDeliveryAreaService {
 
     public Long addArea(ShopId shopId, AdminDongId adminDongId, ShopChangeActor actor) {
         if (!adminDongPersistencePort.existsById(adminDongId)) {
-            throw new ResourceNotFoundException(ErrorCode.ADMIN_DONG_NOT_FOUND);
+            throw new ResourceNotFoundException(CeoErrorCode.ADMIN_DONG_NOT_FOUND);
         }
 
         if (shopDeliveryAreaPersistencePort.existsByShopIdAndAdminDongId(shopId, adminDongId)) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_DUPLICATED);
+            throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_AREA_DUPLICATED);
         }
 
         ShopDeliveryAreaPolicy.validateTotalCount((int) shopDeliveryAreaPersistencePort.countByShopId(shopId) + 1);
@@ -96,7 +96,7 @@ public class ShopDeliveryAreaService {
 
         Set<AdminDongId> existingDongs = adminDongPersistencePort.filterExistingIds(requested);
         if (existingDongs.size() != requested.size()) {
-            throw new ResourceNotFoundException(ErrorCode.ADMIN_DONG_NOT_FOUND);
+            throw new ResourceNotFoundException(CeoErrorCode.ADMIN_DONG_NOT_FOUND);
         }
 
         Set<AdminDongId> alreadyRegistered = shopDeliveryAreaPersistencePort.findAdminDongIdsByShopId(shopId);
@@ -167,11 +167,11 @@ public class ShopDeliveryAreaService {
         }
 
         List<String> blockedNames = adminDongNamesById == null ? List.of() : adminDongNamesById.apply(blocked);
-        String message = ErrorCode.SHOP_DELIVERY_AREA_IN_USE.getDefaultMessage();
+        String message = CeoErrorCode.SHOP_DELIVERY_AREA_IN_USE.getDefaultMessage();
         if (!blockedNames.isEmpty()) {
             message = message + ": " + String.join(", ", blockedNames);
         }
-        throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_IN_USE, message);
+        throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_AREA_IN_USE, message);
     }
 
     public record BulkResult(
@@ -184,14 +184,14 @@ public class ShopDeliveryAreaService {
 
     public void removeArea(Long deliveryAreaId, ShopChangeActor actor) {
         ShopDeliveryArea deliveryArea = shopDeliveryAreaPersistencePort.findById(deliveryAreaId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND));
 
         boolean referencedByRegionTip = shopDeliveryTipRegionLookupPort.existsRegionTipByShopIdAndAdminDongId(
             deliveryArea.getShopId(),
             deliveryArea.getAdminDongId()
         );
         if (referencedByRegionTip) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_IN_USE);
+            throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_AREA_IN_USE);
         }
 
         String previousValue = describeArea(deliveryArea.getAdminDongId());

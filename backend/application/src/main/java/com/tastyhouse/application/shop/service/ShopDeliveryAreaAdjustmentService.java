@@ -4,9 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
@@ -15,6 +12,9 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
 
 @Service
@@ -47,7 +47,7 @@ public class ShopDeliveryAreaAdjustmentService {
         ShopChangeActor actor
     ) {
         if (shopDeliveryAreaAdjustmentRequestPersistencePort.existsByShopIdAndStatusIn(shopId, OPEN_STATUSES)) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_PENDING);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_PENDING);
         }
 
         ShopDeliveryAreaAdjustmentRequest saved = shopDeliveryAreaAdjustmentRequestPersistencePort.save(
@@ -108,6 +108,6 @@ public class ShopDeliveryAreaAdjustmentService {
 
     private ShopDeliveryAreaAdjustmentRequest findRequest(Long requestId) {
         return shopDeliveryAreaAdjustmentRequestPersistencePort.findById(requestId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_FOUND));
     }
 }

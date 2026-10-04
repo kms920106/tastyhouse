@@ -17,6 +17,7 @@ dependencies {
     testImplementation project(':admin-application')
     testImplementation project(':ceo-application')
     testImplementation project(':batch-application')
+    testImplementation project(':api-common-module')
 
     testFixturesApi 'com.tngtech.archunit:archunit-junit5:1.2.1'
     testFixturesImplementation 'org.springframework.boot:spring-boot-autoconfigure'

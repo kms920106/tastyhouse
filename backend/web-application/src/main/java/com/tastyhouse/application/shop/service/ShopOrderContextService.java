@@ -5,9 +5,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.shared.model.OrderMethod;
@@ -19,6 +16,10 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipBreakdown;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipContext;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
@@ -51,7 +52,7 @@ public class ShopOrderContextService {
 
     public OrderableShop loadOrderableShop(ShopId shopId, OrderMethod orderMethod, LocalDateTime at) {
         Shop shop = shopPersistencePort.findVisibleById(shopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
         shopOrderAvailabilityService.validateOrderable(shop, orderMethod, at);
         return new OrderableShop(shop);
     }
@@ -104,11 +105,11 @@ public class ShopOrderContextService {
         LocalDateTime at
     ) {
         if (!shop.value().isScheduledOrderEnabled()) {
-            throw new BusinessException(ErrorCode.SHOP_SCHEDULED_ORDER_DISABLED);
+            throw new ApplicationException(WebErrorCode.SHOP_SCHEDULED_ORDER_DISABLED);
         }
         if (!ScheduledOrderPolicy.supports(orderMethod)) {
-            throw new BusinessException(ErrorCode.ORDER_SCHEDULE_METHOD_NOT_SUPPORTED,
-                ErrorCode.ORDER_SCHEDULE_METHOD_NOT_SUPPORTED.getDefaultMessage() + ": " + orderMethod);
+            throw new ApplicationException(WebErrorCode.ORDER_SCHEDULE_METHOD_NOT_SUPPORTED,
+                WebErrorCode.ORDER_SCHEDULE_METHOD_NOT_SUPPORTED.getDefaultMessage() + ": " + orderMethod);
         }
 
         return scheduledOrderSlotService.resolveSlot(shopId, orderMethod, scheduledAt, at);
@@ -120,7 +121,7 @@ public class ShopOrderContextService {
         }
         if (adminDongId == null
             || !shopDeliveryAreaPersistencePort.existsByShopIdAndAdminDongId(shopId, adminDongId)) {
-            throw new BusinessException(ErrorCode.ORDER_DELIVERY_AREA_NOT_COVERED);
+            throw new ApplicationException(WebErrorCode.ORDER_DELIVERY_AREA_NOT_COVERED);
         }
     }
 

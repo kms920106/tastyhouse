@@ -125,8 +125,8 @@
 - **등록 클래스 5종은 모두 `@Configuration` + 마커, `@Bean` 팩토리 하나(또는 관련 빈 여러 개)**: `file/config/FileServiceConfig`(`@SharedApp`, `fileUploadService`) · `mail/config/MailServiceConfig`(`@WebApp`, `mailVerificationService`) · `sms/config/SmsServiceConfig`(`@WebApp`, `smsVerificationService`) · `payment/config/PaymentServiceConfig`(`@SharedApp`, `paymentConfirmationService`) · `payment/config/PgRouterConfig`(`@WebApp`, `pgPaymentGatewayRouter` — `List<PgProviderGateway>`를 주입받아 라우터를 조립). 이 다섯이 위 "(번복) `@SharedApp` 허용 대상 확대" 절이 예고한 **"리스너 외 첫 사용처"**다 — `LayerRulesTest#sharedConfigsShouldOnlyDeclareUnmarkedBeans`가 처음으로 실제 대상(`file/payment`의 두 `@SharedApp` 설정)을 갖게 됐다. **(번복됨 — application `*ServiceConfig` 삭제)** 이 다섯 설정은 전부 삭제됐고, 각 서비스 클래스에 마커만 붙는다(`FileUploadService`·`PaymentConfirmationService` `@SharedApp`, `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PaymentCancellationService` `@WebApp`).
 - **`FileDomainConfig`·`PaymentDomainConfig`의 관련 빈은 `infrastructure:persistence`에서 삭제됐다.** ~~`PaymentDomainConfig`는 `paymentCancellationService`(도메인에 남은 `PaymentCancellationService`용) 하나만 남았다.~~ **(03a로 소멸)** 남은 `paymentCancellationService`도 서비스와 함께 이 모듈로 와 `PaymentServiceConfig`에 합쳐졌고, persistence의 `*DomainConfig`는 0개가 됐다(아래 "덩어리 03a" 절). `MailDomainConfig`/`SmsDomainConfig`가 이미 채널 모듈(`infrastructure:mail`/`infrastructure:sms`)로 옮겨가 있던 선례와 마찬가지로, 판정 기준은 "외부 연동 포트인가"가 아니라 "이 서비스가 지금 어디 있는가"다.
 - **`PgProviderGateway.provider()`는 domain `PgProvider`가 아니라 이 모듈 신설 enum `PgProviderCode`를 반환한다.** `PgPaymentGateway`(라우터가 구현하는, 소비 측이 호출하는 계약)는 여전히 domain `PgProvider`를 쓴다 — 라우터(`PgPaymentGatewayRouter`)가 `PgProviderCode.name()` → `PgProvider.valueOf(...)`로 두 enum을 **상수명으로만** 연결한다. 벤더(`infrastructure:tosspayments`)가 `PgProviderGateway`를 구현하며 domain을 몰라도 되게 하려는 것이 이 우회의 목적이다 — `PgProviderCode`가 `domain`을 참조하지 않으므로 벤더 모듈도 `domain` 의존 없이 채널 어댑터를 만들 수 있다. **두 enum은 상수명·순서가 항상 같아야 하며**, `application/src/test/.../architecture/EnumCodeConstantsTest#pgProviderCodeMatchesPgProvider`가 `Enum::name` 배열을 대조해 어긋남을 잡는다. 한쪽에만 상수를 추가하면 이 테스트가 즉시 실패한다(라우터의 `PgProvider.valueOf(code.name())`이 매핑되지 않는 상수에서 `IllegalArgumentException`을 내는 런타임 위험의 컴파일 타임 방어선).
-- **`SocialOAuthClient` SPI가 예외 없는 `Optional`형 결과로 바뀌었다** — `exchange`/`fetchProfile`이 이제 예외를 던지지 않고 `SocialOAuthResult<T>`(`value` XOR `failure`인 record, compact constructor가 강제)를 반환한다. 실패는 enum `SocialOAuthFailure{APPLE_ID_TOKEN_INVALID,ACCESS_TOKEN_REJECTED}`로 표현하고, 4개 `*SocialLoginService`는 `.orElseThrow(SocialOAuthFailures::toException)`로 소비한다. 신설 `auth/service/SocialOAuthFailures`(정적 유틸)가 `APPLE_ID_TOKEN_INVALID → ErrorCode.APPLE_ID_TOKEN_INVALID`·`ACCESS_TOKEN_REJECTED → ErrorCode.SOCIAL_OAUTH_FAILED`로 매핑한다 — 카카오·네이버는 항상 `success(...)`로 감싸 던지던 예외를 값으로 옮겼을 뿐이고, 응답 계약(`ErrorCode` 문자열·HTTP 상태)은 이전과 동일하다.
-- **`RemoteImagePort.download`도 같은 형태로 전환됐다** — `ImageDownloadResult(image, failure)` record(`image` XOR `failure`)를 반환하고, 실패는 enum `ImageDownloadFailure{EMPTY,SIZE_EXCEEDED}`로 표현한다. `BbqService`가 `success()`를 확인해 각각 `ErrorCode.FILE_EMPTY`/`FILE_SIZE_EXCEEDED`로 번역한다 — 과거 `RemoteImagePort`가 던지던 예외를 값으로 옮긴 것으로, 위 소셜 OAuth SPI 전환과 동일한 패턴이다.
+- **`SocialOAuthClient` SPI가 예외 없는 `Optional`형 결과로 바뀌었다** — `exchange`/`fetchProfile`이 이제 예외를 던지지 않고 `SocialOAuthResult<T>`(`value` XOR `failure`인 record, compact constructor가 강제)를 반환한다. 실패는 enum `SocialOAuthFailure{APPLE_ID_TOKEN_INVALID,ACCESS_TOKEN_REJECTED}`로 표현하고, 4개 `*SocialLoginService`는 `.orElseThrow(SocialOAuthFailures::toException)`로 소비한다. 신설 `auth/service/SocialOAuthFailures`(정적 유틸)가 `APPLE_ID_TOKEN_INVALID → WebErrorCode.APPLE_ID_TOKEN_INVALID`·`ACCESS_TOKEN_REJECTED → WebErrorCode.SOCIAL_OAUTH_FAILED`(에러코드 모듈 분할 후 — 과거 `ErrorCode`)로 매핑한다 — 카카오·네이버는 항상 `success(...)`로 감싸 던지던 예외를 값으로 옮겼을 뿐이고, 응답 계약(`ErrorCode` 문자열·HTTP 상태)은 이전과 동일하다.
+- **`RemoteImagePort.download`도 같은 형태로 전환됐다** — `ImageDownloadResult(image, failure)` record(`image` XOR `failure`)를 반환하고, 실패는 enum `ImageDownloadFailure{EMPTY,SIZE_EXCEEDED}`로 표현한다. `BbqService`가 `success()`를 확인해 각각 `ApplicationErrorCode.FILE_EMPTY`/`FILE_SIZE_EXCEEDED`로 번역한다(에러코드 모듈 분할 후 — 과거 `ErrorCode`) — 과거 `RemoteImagePort`가 던지던 예외를 값으로 옮긴 것으로, 위 소셜 OAuth SPI 전환과 동일한 패턴이다.
 - **`AdminDongBoundaryPort.fetchAll()`도 결과 record로 전환됐다** — `AdminDongBoundaryFetchResult(sources, failed)`를 반환하고, `AdminDongBoundarySource`는 더 이상 domain `GeoPoint`/`GeoRing`을 담지 않는다. 대신 `List<BoundaryRing>`(`BoundaryRing(List<BoundaryCoordinate>)`, `BoundaryCoordinate(double latitude, double longitude)`)라는 이 모듈 소유의 좌표 전용 타입을 담는다 — 어댑터(`infrastructure:admdongkor`)는 원시 좌표만 돌려주고, `GeoRing` 조립(퇴화 링 스킵)·중심점 계산(`InteriorPoint`)·중심점 없는 행 스킵·전량 실패시 `ADMIN_DONG_BOUNDARY_FETCH_FAILED`는 전부 `region/service/AdminDongSchedulerService`(이 모듈)가 수행한다. 어댑터가 domain 기하 타입을 몰라도 되게 하려는 것이 이 분리의 목적이며, 위 `PgProviderCode`·`SocialOAuthFailure`와 같은 "어댑터는 벤더 무관 원시 타입만, 판단은 유스케이스 계층"이라는 원칙의 반복 적용이다.
 - **ArchUnit 신설 2종**: `AppIsolationTest#sharedBeansShouldNotDependOnWebOnlyServices`(`@SharedApp` 빈은 `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PgPaymentGateway`를 의존하지 않는다 — web 전용 설정만 등록하는 서비스를 공통 빈이 주입하면 admin·ceo·batch가 그 빈을 못 찾아 기동하지 못한다는 것을 빌드 시점에 잡는다) · `architecture/EnumCodeConstantsTest`(위 `PgProviderCode`↔`PgProvider` 대조, 현재 1개 케이스). **(번복됨 — 앱 마커 제거)** `sharedBeansShouldNotDependOnWebOnlyServices`는 `AppIsolationTest`와 함께 삭제됐다 — 그 4개 타입이 지금 `web-application`에 있어 코어 빈은 컴파일 단계에서 볼 수 없다.
 - **domain 쪽 정리**: `domain/AGENTS.md`의 `ContextBoundaryTest.SEALED_VIOLATIONS`에서 `MailVerificationService`·`PaymentConfirmationService` 2건이 빠졌다(대상이 domain 밖으로 나갔으므로 봉인 목록도 그 파일의 관할이 아니게 됐다) — 16개 → 14개.
@@ -411,10 +411,11 @@ com.tastyhouse.application/
   ├── shared/marker/{WebApp,AdminApp,CeoApp,BatchApp}.java   순수 마커 애노테이션 4종 — 앱 소속의 유일한 단서
   ├── shared/marker/SharedApp.java   5번째 마커 — 리스너 + 공유 @Configuration(덩어리 01로 확대), "앱 소속 없음 = 4앱 전부"
   ├── shared/exception/BatchJobException.java   (챕터 03 이동 — 과거 batchapplication/exception/)
+  ├── shared/exception/{ApplicationErrorCode,ApplicationErrorCodeSpec,ApplicationException,ResourceNotFoundException}.java   (에러코드 모듈 분할 신설·이동 — 코어 소유 84개 코드·앱 계층 예외. split package: `{Web,Admin,Ceo,Batch}ErrorCode`는 각 앱 모듈이 같은 패키지에 둔다)
   ├── shared/error/                 (덩어리 01 신설) 표현 계층용 에러 판정 — 빈 아님, 정적 유틸
   │     ├── ErrorDescriptor.java    record(int status, String code, String message)
-  │     ├── ErrorResponses.java     resolve(Throwable) → Optional<ErrorDescriptor> (최상위가 BusinessException일 때만)
-  │     └── ErrorContracts.java     rateLimit()/accessDenied()/authRequired() — ErrorCode 3종의 미러
+  │     └── ErrorResponses.java     resolve(Throwable) → Optional<ErrorDescriptor> (최상위가 BusinessException일 때만)
+  │     (~~ErrorContracts.java~~ 삭제 — 에러코드 모듈 분할. 미러는 `api-common-module`의 `apicommon.exception.ApiErrorCode`가 대신한다)
   ├── shared/port/out/CodeLabelResult.java   (덩어리 01 신설) record(String code, String label) — enum 카탈로그 응답용
   ├── shared/port/out/page/{PageQuery,PageResult}.java   (덩어리 01 이동 — 과거 domain의 shared/page/)
   ├── shared/port/out/OptimisticLockConflictException.java   (덩어리 03a 이동 — 과거 domain의 shared/exception/)
@@ -516,7 +517,7 @@ com.tastyhouse.application/
 
 ## ceo 고유 — 소유권·규격 검증이 이 모듈에 있다
 
-`ShopOwnershipValidator`(`shop.ceoId == 로그인 ceoId` 확인, 불일치 시 `ErrorCode.SHOP_ACCESS_DENIED` 403)와 `ShopImageSpecValidator`/`ProductImageSpecValidator`(이미지 규격)는 **application 계층 협력자**라 이 모듈에 있다. 서블릿 타입을 쓰지 않으므로 `applicationMustBeServletFree`에 걸리지 않으며, 검증기가 쓰는 `javax.imageio.ImageIO`는 java 표준이라 규칙 대상이 아니다.
+`ShopOwnershipValidator`(`shop.ceoId == 로그인 ceoId` 확인, 불일치 시 `ApplicationErrorCode.SHOP_ACCESS_DENIED` 403)와 `ShopImageSpecValidator`/`ProductImageSpecValidator`(이미지 규격)는 **application 계층 협력자**라 이 모듈에 있다. 서블릿 타입을 쓰지 않으므로 `applicationMustBeServletFree`에 걸리지 않으며, 검증기가 쓰는 `javax.imageio.ImageIO`는 java 표준이라 규칙 대상이 아니다.
 
 규격 검증기가 `MultipartFile`을 파라미터로 받는 것은 **업로드 경계 파라미터**로 허용된 형태다(`applicationMustBeServletFree`의 유일한 carve-out). Command record에 담는 것은 `commandRecordsShouldNotHoldMultipartFile`이 별도로 금지한다 — Command에는 업로드 결과 참조(파일 식별자·URL)만 담는다.
 
@@ -578,7 +579,7 @@ write 포트는 **≥ 107**(`RuleAnchorTest#writePortsExist` — `port.out.write
 ### Internal
 - **(앱 마커 제거) 이 모듈은 앱 모듈을 main에서 의존하지 않는다** — 반대로 `{web,admin,ceo,batch}-application`이 `api project(':application')`로 이 모듈을 의존한다. 코어가 앱 모듈 타입(예: `MailSender`)을 import하면 컴파일 에러인 것이 앱 경계의 1차 방어선이다.
 - `domain` (implementation) — 도메인 모델·VO·write 포트·도메인 서비스. **`implementation`이어서 이 모듈을 의존하는 쪽에 전이 노출되지 않는다** — 덩어리 01로 `api-common-module`(`api project(':application')`)·`security-module`(`implementation project(':application')`)이 `domain` 대신 이 모듈을 의존하게 되면서, presentation(web·admin·ceo-api, batch-module, api-common, security-module)의 컴파일 클래스패스에 `domain`이 사라졌다. **이 줄을 `api`로 바꾸지 않는다** — 바꾸는 순간 표현 계층에 domain이 되돌아오고 `shouldNotDependOnDomain`·`apiModuleShouldBeDomainModelFree`가 휴면 방어선에서 실제 실패로 바뀐다
-- **표현 계층이 이 모듈에서 보는 domain 대체물 (덩어리 01)**: 에러 판정 `shared/error/`(`ErrorResponses`·`ErrorDescriptor`·`ErrorContracts`), 페이징 `shared/port/out/page/`(`PageQuery`·`PageResult`), enum 카탈로그 `shared/port/out/CodeLabelResult`, 그리고 enum 필드를 `String`으로 강등한 `*Result`
+- **표현 계층이 이 모듈에서 보는 domain 대체물 (덩어리 01)**: 에러 판정 `shared/error/`(`ErrorResponses`·`ErrorDescriptor`. ~~`ErrorContracts`~~ 는 삭제되고 `api-common-module`의 `ApiErrorCode`로 대체), 페이징 `shared/port/out/page/`(`PageQuery`·`PageResult`), enum 카탈로그 `shared/port/out/CodeLabelResult`, 그리고 enum 필드를 `String`으로 강등한 `*Result`
 - `security-core` (implementation) — `JwtTokenProvider`·토큰 저장소 **포트**. **web·admin·ceo auth가 쓰는 서블릿-프리 타입 한정**. 챕터 01로 `security-core → infrastructure:redis` 간선이 끊겨, 이 모듈의 runtimeClasspath에서 `infrastructure:redis`·`api-common-module`이 사라졌다(전이 수신 0)
 - **외부 연동 모듈(`infrastructure:{restclient,file-storage,firebase,aws-s3,aws-ses,aws-sns,oauth,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`) 의존은 두지 않는다** — 소셜 로그인 SPI(web)·크롤링 클라이언트(batch) 계약은 이 모듈이 소유하고 어댑터가 그것을 구현한다(**의존 역전**). 실제로 이 모듈의 계약을 구현하는 쪽은 `infrastructure:{kakao,naver,apple,facebook}-oauth`(소셜 SPI — 스타터 `infrastructure:oauth`는 코드가 없어 조립만 한다)와 `infrastructure:bbq`·`infrastructure:admdongkor`(배치 포트)이며, 이 줄을 되살리면 그 모듈들과 `application` 사이가 순환이 되어 빌드가 깨진다
 - **`security-module`·`api-common-module`을 추가하지 않는다** — 서블릿 스택이 유입된다
@@ -807,6 +808,8 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 ### `commandRecordsShouldBeBoundaryTyped` carve-out 3건 — 느슨한 판을 batch에 적용하지 않는다
 
+> **갱신 (에러코드 모듈 분할) — carve-out은 이제 1건(`MultipartFile`)이다.** 아래 1번 `domain.exception..`도 소멸했다.
+
 > **갱신 (덩어리 01) — carve-out은 이제 2건이다.** 3번 `domain.shared.page..`는 **소멸**했다 — `PageQuery`/`PageResult`가 `com.tastyhouse.application.shared.port.out.page`로 옮겨가 더 이상 domain 타입이 아니므로 제외할 대상이 없다. 1번 `domain.exception..`은 **유지**한다(표현 계층은 domain을 끊었지만 Command는 `application`에 살아 여전히 domain을 보고, compact constructor 가드가 `BusinessException`을 던진다). 제목의 "3건"은 앵커 호환을 위해 그대로 둔다.
 
 **대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`
@@ -814,7 +817,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유지**한다.
 
-1. `com.tastyhouse.domain.exception..` — `BusinessException`·`ErrorCode`는 애그리거트가 아니라 전 계층이 공유하는 **횡단 관심사(에러 계약)**이고, compact constructor의 구조적 가드가 이를 던져야 응답 코드가 나머지 경로와 같은 형태로 나간다.
+1. ~~`com.tastyhouse.domain.exception..` — `BusinessException`·`ErrorCode`는 애그리거트가 아니라 전 계층이 공유하는 **횡단 관심사(에러 계약)**이고, compact constructor의 구조적 가드가 이를 던져야 응답 코드가 나머지 경로와 같은 형태로 나간다.~~ **(소멸 — 에러코드 모듈 분할, 아래 "에러 카탈로그 가드" 항목 참고)** Command의 구조적 가드는 이제 `ApplicationException(ApplicationErrorCode.INVALID_INPUT)`을 던지고 domain 타입을 import하지 않으므로 제외할 대상이 없다. 같은 carve-out이 `BatchSchedulerRulesTest#inboundPortsShouldBeBoundaryTyped`에서도 제거됐다.
 2. `org.springframework.web.multipart..`(`MultipartFile`) — 업로드를 받는 연산은 `method(XxxCommand, MultipartFile)`처럼 별도 파라미터로 두는 것이 규정된 형태이고, ArchUnit 의존 그래프는 같은 패키지 UseCase 인터페이스의 메서드 파라미터까지 함께 잡는다. Command **필드**로 실리는 것은 `commandRecordsShouldNotHoldMultipartFile`이 따로 막는다.
 3. ~~`com.tastyhouse.domain.shared.page..`~~ **(소멸 — 덩어리 01, 위 갱신 참고)** — 근거는 `MultipartFile` carve-out과 **동일한 구조**다. 이 규칙이 겨냥하는 것은 Command record가 **필드로** 도메인 모델을 싣는 것인데, ArchUnit은 같은 `..port.in..` 패키지에 사는 **QueryUseCase의 메서드 시그니처**까지 함께 잡는다. 목록 반환 타입이 `PaginationResponse`에서 `PageResult`로 바뀌면서 걸린 건들은 **전부 반환 타입이며 Command 필드는 한 건도 없다**(실측 확인).
 
@@ -880,7 +883,7 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
 
 | 대상 (`backend/application/src/main/java/com/tastyhouse/application/...`) | 봉인 취지 |
 |---|---|
-| `product/port/out/ProductAvailabilityChangeView.java` | **거처는 앱 네임스페이스이고 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 아니다.** 판매상태 변경은 **Command 경로**의 반환값이라 조회 계약이 아니며, 읽기 계약 패키지에 두면 `commandServicesShouldNotDependOnQueryPorts`(CQRS 교차 주입 금지)가 CommandService의 반환 타입을 위반으로 잡는다. ~~`ErrorCode`는 그대로 담는다 — 에러 계약은 **횡단 관심사**라 api 모듈에서도 참조가 허용된 carve-out(`domain.exception..`)이다~~ **번복됨(덩어리 01)**: `Failure`는 `ErrorCode errorCode` 대신 `String code, String message`를 싣는다 — api 모듈의 `domain.exception..` carve-out이 사라졌기 때문이다 |
+| `product/port/out/ProductAvailabilityChangeView.java` | **거처는 앱 네임스페이스이고 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 아니다.** 판매상태 변경은 **Command 경로**의 반환값이라 조회 계약이 아니며, 읽기 계약 패키지에 두면 `commandServicesShouldNotDependOnQueryPorts`(CQRS 교차 주입 금지)가 CommandService의 반환 타입을 위반으로 잡는다. ~~`ErrorCode`는 그대로 담는다 — 에러 계약은 **횡단 관심사**라 api 모듈에서도 참조가 허용된 carve-out(`domain.exception..`)이다~~ **번복됨(덩어리 01)**: `Failure`는 `ErrorCode errorCode` 대신 `String code, String message`를 싣는다 — api 모듈의 `domain.exception..` carve-out이 사라졌기 때문이다. **(번복됨 — 에러코드 모듈 분할)** 이 타입은 `ProductAvailabilityChangeResult`(domain `product/model`에서 이동)와 함께 `backend/ceo-application/src/main/java/com/tastyhouse/application/product/service/`로 옮겨져 `ProductAvailabilityFailure`가 됐다 — ceo-application만 만들고 쓰기 때문이다. 상세는 `backend/ceo-application/AGENTS.md` |
 | `region/port/out/AdminDongBoundaryViewResult.java` | `AdminDongBoundaryResult`는 DAO가 읽어 온 **인코딩된** `boundary` 문자열을 그대로 들고 있어 그 자체로는 응답을 만들 수 없다. 디코딩은 ~~`GeoRingsPort`가~~ **(03b 번복 — `GeoRingsQueryPort`·persistence `GeoRingsResolver`는 삭제됐고, `region/service/AdminDongQueryService`가 `domain/shared/geo/GeoPolygonTextCodec.decodeRings`를 직접 호출해)** 수행하므로 **application에 남아야 하고**, 표현 계약이 `from(Result)` 한 번으로 끝낼 수 있도록 디코딩을 마친 이 타입을 따로 둔다. 좌표를 `GeoRing`·`GeoPoint`가 아니라 낱개 `BigDecimal` 쌍(`Point`)으로 내리는 이유는 **`controllersShouldBeDomainFree`의 carve-out이 `domain.shared.page..`와 도메인 enum뿐이고 `domain.shared.geo..`는 포함되지 않기** 때문이다(덩어리 01 이후로는 carve-out 자체가 없어 더 분명하다). 리포 전체에서 api 모듈이 geo 타입을 참조하는 곳은 한 곳도 없으며, **그 경계를 깨지 않는다** |
 | `review/port/out/ReviewBlindReasonView.java` | 카탈로그는 도메인 enum의 `values()`를 훑어 만드는데 그 메서드는 api 모듈에 허용된 accessor가 아니므로(`apiModuleShouldOnlyReadDomainEnums` — 덩어리 01로 삭제됐고, 지금은 api 모듈이 domain을 아예 못 봐서 같은 결론) 목록 구성이 application에 남는다. **도메인 enum을 그대로 담지 않고 문자열로 강등해 나른다** — 인바운드 포트의 반환 타입에 `com.tastyhouse.domain..`이 실리면 `commandRecordsShouldBeBoundaryTyped`(carve-out은 예외·페이징 계약뿐)에 걸린다. **목록 요소는 제네릭 타입 인자로도 잡힌다** |
 | `shop/port/out/GeoPointView.java` | 도형 계산은 도메인 기하 타입으로 수행하는데 api 모듈은 그 타입을 알 수 없다 — `apiModuleShouldBeDomainModelFree`의 carve-out은 `domain.exception..`·`domain.shared.page..`·도메인 enum뿐이고 **`domain.shared.geo..`는 포함되지 않는다**(덩어리 01로 carve-out이 전부 사라졌다). 추가로 **컴포넌트 선언 순서는 알파벳순(`latitude` → `longitude`)이다** — 둘 다 `BigDecimal`이라 순서가 어긋나면 컴파일은 통과하고 **값만 조용히 뒤바뀐다** |
@@ -1747,16 +1750,40 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 ### `ErrorResponses` — 정적 유틸이고, cause를 따라가지 않으며, AOP로 하지 않는다
 
 **대상**: `backend/application/src/main/java/com/tastyhouse/application/shared/error/ErrorResponses.java` → `resolve(Throwable)`
-· `backend/application/src/main/java/com/tastyhouse/application/shared/error/ErrorContracts.java` → `rateLimit()`·`accessDenied()`·`authRequired()`
 · `backend/application/src/main/java/com/tastyhouse/application/shared/error/ErrorDescriptor.java`
-· 가드: `backend/application/src/test/java/com/tastyhouse/application/shared/error/ErrorContractsConsistencyTest.java`
+· 가드: `backend/application/src/test/java/com/tastyhouse/application/shared/error/ErrorResponsesTest.java`(~~`ErrorContractsConsistencyTest`~~ 를 대체)
 
 표현 계층(web-api·api-common-module의 `GlobalExceptionHandler`, security-module의 필터 단계 핸들러)이 `com.tastyhouse.domain.exception`을 보지 않고도 에러 응답을 만들게 하는 번역점이다(덩어리 01). 규칙 본문은 `backend/CLAUDE.md` "예외·에러코드 소유 규칙".
 
 - **최상위 예외만 본다 — `getCause()`를 따라가지 않는다.** `resolve`는 넘겨받은 예외 자체가 `BusinessException`(하위 타입 `ResourceNotFoundException` 등 포함)일 때만 `ErrorDescriptor(status, code, message)`를 돌려주고, 그 밖은 `Optional.empty()`다(`message`는 `getMessage()`). 삭제된 전용 `@ExceptionHandler(BusinessException.class)`도 최상위 타입으로만 매칭했으므로 이것이 기존 동작과 같은 의미다. cause를 따라가면 **오늘 500으로 응답되는, 다른 예외에 감싸인 `BusinessException`이 조용히 4xx로 바뀐다** — wire 계약 변경이다. "더 친절하게" 만들려고 cause 탐색을 넣지 않는다.
 - **빈이 아니라 정적 유틸이다.** 빈으로 만들면 이 모듈 규칙상 앱 마커가 필요하고(`beansShouldHaveExactlyOneAppMarker`), 마커 스캔은 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 하므로 api-common의 `ApiCommonAutoConfigurationTest`(imports 제거 후 `ratelimit/ApiCommonRateLimitConfigTest`)처럼 앱 부트스트랩 없이 뜨는 컨텍스트에서는 빈을 찾지 못해 실패한다. 상태 없는 순수 번역이라 빈일 이유도 없다(`ProblemDetails`가 static인 것과 같은 판단).
 - **AOP로 예외를 번역하지 않는다.** 서비스 경계에서 `BusinessException`을 다른 타입으로 감싸는 aspect를 두면, 예약 경로(`reservation/service/ReservationCommandService` → `ReservationBookingExecutor`)가 **`OptimisticLockConflictException`을 잡아 재시도**하는 루프가 감싼 예외를 못 알아봐 재시도가 깨진다. 게다가 이 모듈에는 aspectjweaver가 없다. 번역은 응답 직전(핸들러)에서 한 번만 한다.
-- **`ErrorContracts`는 `ErrorCode` 3종의 미러다.** 표현 계층이 특정 코드를 직접 내야 하는 자리(rate limit 429·권한 403·인증 401)는 `resolve`로 판정할 예외가 없으므로 상수가 필요한데, `ErrorCode`를 import할 수 없어 값을 복제했다. 복제는 갈라질 수 있으므로 `ErrorContractsConsistencyTest`가 각 미러의 상태·code·메시지를 `ErrorCode.RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`와 대조하고, `resolve`의 의미(최상위만·cause 무시·하위 타입 포함)도 함께 단정한다. **새 미러를 추가하면 이 테스트에 대조 케이스도 추가한다.**
+- ~~**`ErrorContracts`는 `ErrorCode` 3종의 미러다.**~~ **(번복됨 — 에러코드 모듈 분할)** `ErrorContracts`와 `ErrorContractsConsistencyTest`는 삭제됐다. 표현 계층이 직접 내는 코드(rate limit 429·권한 403·인증 401)는 `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ApiErrorCode.java`의 `RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`가 갖는다(`security-module`이 `api-common-module`을 `implementation`으로 의존한다). `AUTH_REQUIRED`는 `WebErrorCode.AUTH_REQUIRED`의 미러라 같은 값이어야 하며, 전역 유일성 검사의 **봉인 예외 1건**이다(아래 "에러 카탈로그 가드").
+
+### 에러 카탈로그 가드 — 코드는 던지는 가장 안쪽 모듈에 두고, 봉인 집합을 늘리지 않는다 (에러코드 모듈 분할)
+
+**대상**:
+- `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`
+- `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogSnapshotTest.java` + `backend/application/src/test/resources/error-catalog-before.tsv`
+- `backend/application/src/test/java/com/tastyhouse/application/shared/error/ErrorResponsesTest.java`
+
+| 항목 | before | after |
+|---|---|---|
+| 카탈로그 | `domain.exception.ErrorCode` 단일 enum 442개 | 7개 — `DomainErrorCode`(153, domain)·`ApplicationErrorCode`(84, 코어)·`WebErrorCode`(86)·`AdminErrorCode`(28)·`CeoErrorCode`(65)·`BatchErrorCode`(1: `ADMIN_DONG_BOUNDARY_FETCH_FAILED`)·`ApiErrorCode`(`api-common-module`) |
+| 배치 규칙 | 전부 domain | **그 코드를 던지는 가장 안쪽 모듈.** domain이 던지면 `DomainErrorCode`(application도 함께 던지는 22개 포함), 코어 또는 2개 이상 앱 모듈이 던지면 `ApplicationErrorCode`, 앱 하나만 던지면 그 앱의 `{X}ErrorCode` |
+| 예외 | `BusinessException`(구체) · `ResourceNotFoundException`(domain) | `BusinessException`은 abstract. domain은 `DomainException(DomainErrorCode)`, application은 `ApplicationException(ApplicationErrorCodeSpec)` 또는 domain 코드면 `DomainException`. `ResourceNotFoundException`은 `application.shared.exception`으로 이동해 `ApplicationException`을 상속 |
+| 가드 | `domain/.../ErrorCodeConventionTest`(`ErrorCode` 하나), `ErrorContractsConsistencyTest` | `ErrorCatalogConventionTest`(7개 카탈로그 전체), `ErrorCatalogSnapshotTest`, `ErrorResponsesTest` |
+| Command 가드 | `BusinessException(ErrorCode.INVALID_INPUT)` + carve-out `domain.exception..` | `ApplicationException(ApplicationErrorCode.INVALID_INPUT)`, carve-out 제거 |
+| 동작 | — | wire 계약(HTTP 상태·code 문자열·메시지) 불변. 호출부가 없던 23개(`ENTITY_NOT_FOUND`·`ADMIN_NOT_FOUND`·`TAG_NOT_FOUND` 등)만 삭제 |
+
+**규칙**
+- 새 코드는 던지는 가장 안쪽 모듈에 둔다. 앱 전용 코드를 **두 번째 앱이 쓰게 되면 코어 `ApplicationErrorCode`로 올린다**(split package라 import 경로는 같다). 앱 모듈의 `{X}ErrorCode`는 같은 앱 안에서만 던진다.
+- 코드를 인자로 받는 메서드는 가장 좁은 enum 타입을 쓴다. 앱 코드가 섞이면 `ApplicationErrorCodeSpec`(5개 application 계층 enum이 구현, `ErrorCodeSpec`을 확장), domain 코드와 앱 코드가 섞이면 오버로드한다. **예외 1건**: 코드를 던지지 않고 **싣기만** 하는 값 record는 `ErrorCodeSpec`을 써도 된다 — `backend/ceo-application/src/main/java/com/tastyhouse/application/product/service/ProductAvailabilityFailure.java`뿐이다.
+- `ErrorResponses.resolve`는 `instanceof BusinessException`으로 판정하고 cause를 따라가지 않는다(변경 없음). HTTP 상태는 각 enum에서 `int`로 둔다 — api 모듈이 코드 enum을 볼 수 없기 때문이다.
+
+**`ErrorCatalogConventionTest`가 검사하는 것과 봉인 집합** — 전역 code 유일성(봉인: `AUTH_REQUIRED` 미러 1건), `name == code`(봉인: `*_VERIFICATION_CODE_*` 6건 — `SMS_`/`MAIL_` × `NOT_FOUND`·`EXPIRED`·`MISMATCH`), `*_NOT_FOUND → 404`(봉인 4건: `SMS_VERIFICATION_CODE_NOT_FOUND`·`MAIL_VERIFICATION_CODE_NOT_FOUND`·`REFERRAL_REFERRER_NOT_FOUND`·`FOLLOW_NOT_FOUND`), HTTP 상태 400~599, 메시지 비공백, 계층 계약(각 enum이 자기 계층 예외로만 던져지는 구조). 봉인 사유는 프론트가 분기하는 wire 계약이라 지금 고치면 클라이언트가 깨지는 것이다 — `backend/domain/AGENTS.md`의 같은 이름 봉인 항목 참고. **봉인 집합에 새 항목을 추가하지 않는다.** 노후 감지 짝 테스트(`whitelistIsNotStale`)가 고쳐진 봉인을 알려준다.
+
+**`ErrorCatalogSnapshotTest`** — 7개 카탈로그의 `(code, status, message)` 합집합이 분할 전 스냅샷 `error-catalog-before.tsv`(442행)에서 삭제한 23개를 뺀 **419건**과 같음을 단정한다. 분할이 wire 계약을 바꾸지 않았다는 증거다. **스냅샷 파일을 갱신해 테스트를 맞추지 않는다** — 코드·상태·메시지를 바꾸면 이 테스트가 실패해야 정상이다. 의도한 wire 변경이라면 그 사실을 문서에 먼저 적는다. `application`의 build.gradle에 `testImplementation project(':api-common-module')`가 추가됐다(`ApiErrorCode`를 검사하기 위함).
 
 ### 03a로 domain에서 옮겨 온 설계 근거 (도메인 서비스)
 

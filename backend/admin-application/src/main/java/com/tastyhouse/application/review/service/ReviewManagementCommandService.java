@@ -3,8 +3,6 @@ package com.tastyhouse.application.review.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.review.model.ReviewComment;
 import com.tastyhouse.domain.review.model.ReviewReply;
@@ -21,6 +19,9 @@ import com.tastyhouse.application.review.port.in.ReviewReplyHiddenChangeCommand;
 import com.tastyhouse.application.review.port.out.write.ReviewCommentPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewReplyPersistencePort;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -49,7 +50,7 @@ class ReviewManagementCommandService implements ReviewManagementCommandUseCase {
         boolean hidden = command.hidden();
         ReviewId reviewId = ReviewId.of(id);
         Review review = reviewPersistencePort.findById(reviewId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
 
         if (hidden) {
             review.hide();
@@ -73,7 +74,7 @@ class ReviewManagementCommandService implements ReviewManagementCommandUseCase {
         boolean hidden = command.hidden();
         ReviewCommentId reviewCommentId = ReviewCommentId.of(commentId);
         ReviewComment comment = reviewCommentPersistencePort.findById(reviewCommentId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_COMMENT_NOT_FOUND));
 
         if (hidden) {
             comment.hide();
@@ -89,7 +90,7 @@ class ReviewManagementCommandService implements ReviewManagementCommandUseCase {
         Long commentId = command.commentId();
         ReviewCommentId reviewCommentId = ReviewCommentId.of(commentId);
         reviewCommentPersistencePort.findById(reviewCommentId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_COMMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_COMMENT_NOT_FOUND));
 
         reviewCommentPersistencePort.deleteById(reviewCommentId);
     }
@@ -100,7 +101,7 @@ class ReviewManagementCommandService implements ReviewManagementCommandUseCase {
         boolean hidden = command.hidden();
         ReviewReplyId reviewReplyId = ReviewReplyId.of(replyId);
         ReviewReply reply = reviewReplyPersistencePort.findById(reviewReplyId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_REPLY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.REVIEW_REPLY_NOT_FOUND));
 
         if (hidden) {
             reply.hide();
@@ -116,7 +117,7 @@ class ReviewManagementCommandService implements ReviewManagementCommandUseCase {
         Long replyId = command.replyId();
         ReviewReplyId reviewReplyId = ReviewReplyId.of(replyId);
         reviewReplyPersistencePort.findById(reviewReplyId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_REPLY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.REVIEW_REPLY_NOT_FOUND));
 
         reviewReplyPersistencePort.deleteById(reviewReplyId);
     }

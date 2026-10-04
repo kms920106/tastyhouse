@@ -9,10 +9,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.product.model.Product;
-import com.tastyhouse.domain.product.model.ProductAvailabilityChangeResult;
-import com.tastyhouse.domain.product.model.ProductAvailabilityFailure;
 import com.tastyhouse.domain.product.model.ProductCommonOption;
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroup;
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroupLink;
@@ -34,6 +32,8 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkP
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -54,7 +54,7 @@ class ProductAvailabilityServiceTest {
 
         assertThat(result.succeeded()).isEmpty();
         assertThat(result.failed()).hasSize(1);
-        assertThat(result.failed().getFirst().errorCode()).isEqualTo(ErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE);
+        assertThat(result.failed().getFirst().errorCode()).isEqualTo(CeoErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE);
         assertThat(only.isVisible()).isTrue();
     }
 
@@ -70,7 +70,7 @@ class ProductAvailabilityServiceTest {
         assertThat(result.succeeded()).isEmpty();
         assertThat(result.failed()).hasSize(1);
         assertThat(result.failed().getFirst().errorCode())
-            .isEqualTo(ErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE);
         assertThat(representative.isVisible()).isTrue();
     }
 
@@ -88,7 +88,7 @@ class ProductAvailabilityServiceTest {
         assertThat(result.failed()).hasSize(1);
         assertThat(result.failed().getFirst().id()).isEqualTo(101L);
         assertThat(result.failed().getFirst().errorCode())
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
         assertThat(first.isSoldOut()).isTrue();
         assertThat(second.isSoldOut()).isFalse();
     }
@@ -105,7 +105,7 @@ class ProductAvailabilityServiceTest {
         assertThat(result.succeeded()).isEmpty();
         assertThat(result.failed()).hasSize(1);
         assertThat(result.failed().getFirst().errorCode())
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
     }
 
     @Test
@@ -134,7 +134,7 @@ class ProductAvailabilityServiceTest {
         assertThat(result.failed()).hasSize(3);
         assertThat(result.failed())
             .allSatisfy(failure -> assertThat(failure.errorCode())
-                .isEqualTo(ErrorCode.PRODUCT_OPTION_MAX_SELECT_VIOLATION));
+                .isEqualTo(DomainErrorCode.PRODUCT_OPTION_MAX_SELECT_VIOLATION));
     }
 
     @Test
@@ -199,7 +199,7 @@ class ProductAvailabilityServiceTest {
         assertThatThrownBy(() -> fixture.service.validateSoldOutUntil(NOW.plusMinutes(29), NOW))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_SOON);
+            .isEqualTo(CeoErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_SOON);
 
         fixture.service.validateSoldOutUntil(NOW.plusMinutes(30), NOW);
     }
@@ -214,7 +214,7 @@ class ProductAvailabilityServiceTest {
         assertThatThrownBy(() -> fixture.service.validateSoldOutUntil(NOW.plusDays(7).plusMinutes(1), NOW))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_FAR);
+            .isEqualTo(CeoErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_FAR);
     }
 
     @Test
@@ -265,7 +265,7 @@ class ProductAvailabilityServiceTest {
         assertThat(result.succeeded()).containsExactly(10L);
         assertThat(result.failed()).hasSize(1);
         assertThat(result.failed().getFirst().id()).isEqualTo(11L);
-        assertThat(result.failed().getFirst().errorCode()).isEqualTo(ErrorCode.PRODUCT_NOT_SOLD_OUT);
+        assertThat(result.failed().getFirst().errorCode()).isEqualTo(DomainErrorCode.PRODUCT_NOT_SOLD_OUT);
         assertThat(soldOut.getSoldOutUntil()).isEqualTo(NOW.plusHours(6));
     }
 
@@ -299,7 +299,7 @@ class ProductAvailabilityServiceTest {
         assertThat(result.succeeded()).containsExactly(10L);
         assertThat(result.failed()).hasSize(1);
         assertThat(result.failed().getFirst().id()).isEqualTo(999L);
-        assertThat(result.failed().getFirst().errorCode()).isEqualTo(ErrorCode.PRODUCT_NOT_FOUND);
+        assertThat(result.failed().getFirst().errorCode()).isEqualTo(ApplicationErrorCode.PRODUCT_NOT_FOUND);
     }
 
     @Test
@@ -316,7 +316,7 @@ class ProductAvailabilityServiceTest {
         assertThat(result.succeeded()).containsExactly(200L);
         assertThat(result.failed()).hasSize(1);
         assertThat(result.failed().getFirst().errorCode())
-            .isEqualTo(ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
+            .isEqualTo(DomainErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
     }
 
     private static Product product(Long id, String name, boolean visible, boolean representative, int sort) {

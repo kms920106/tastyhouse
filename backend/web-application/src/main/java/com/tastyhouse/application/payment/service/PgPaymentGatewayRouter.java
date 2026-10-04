@@ -6,14 +6,14 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.payment.model.PgProvider;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
 import com.tastyhouse.application.payment.port.out.PgProviderGateway;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 public class PgPaymentGatewayRouter implements PgPaymentGateway {
@@ -50,8 +50,8 @@ public class PgPaymentGatewayRouter implements PgPaymentGateway {
 
     private PgProviderGateway resolve(String pgProvider) {
         if (!supports(pgProvider)) {
-            throw new BusinessException(ErrorCode.PG_PROVIDER_UNSUPPORTED,
-                ErrorCode.PG_PROVIDER_UNSUPPORTED.getDefaultMessage() + ": " + pgProvider);
+            throw new ApplicationException(WebErrorCode.PG_PROVIDER_UNSUPPORTED,
+                WebErrorCode.PG_PROVIDER_UNSUPPORTED.getDefaultMessage() + ": " + pgProvider);
         }
         return gateways.get(pgProvider);
     }

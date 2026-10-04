@@ -4,8 +4,6 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductVegetarianRequest;
 import com.tastyhouse.domain.product.model.VegetarianType;
@@ -14,6 +12,8 @@ import com.tastyhouse.domain.product.vo.ProductVegetarianRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
 public class ProductVegetarianApprovalService {
@@ -44,7 +44,7 @@ public class ProductVegetarianApprovalService {
         validateShopCategoryAllowed(shopCategoryNames);
 
         if (requestPersistencePort.existsByProductIdAndStatus(productId, ApprovalStatus.PENDING)) {
-            throw new BusinessException(ErrorCode.PRODUCT_VEGETARIAN_REQUEST_ALREADY_PENDING);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_VEGETARIAN_REQUEST_ALREADY_PENDING);
         }
 
         ProductVegetarianRequest saved = requestPersistencePort.save(
@@ -89,17 +89,17 @@ public class ProductVegetarianApprovalService {
 
     private void validateShopCategoryAllowed(Set<String> shopCategoryNames) {
         if (!isShopCategoryAllowed(shopCategoryNames)) {
-            throw new BusinessException(ErrorCode.PRODUCT_VEGETARIAN_CATEGORY_NOT_ALLOWED);
+            throw new ApplicationException(ApplicationErrorCode.PRODUCT_VEGETARIAN_CATEGORY_NOT_ALLOWED);
         }
     }
 
     private ProductVegetarianRequest loadRequest(ProductVegetarianRequestId requestId) {
         return requestPersistencePort.findById(requestId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_VEGETARIAN_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_VEGETARIAN_REQUEST_NOT_FOUND));
     }
 
     private Product loadProduct(ProductId productId) {
         return productPersistencePort.findById(productId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 }

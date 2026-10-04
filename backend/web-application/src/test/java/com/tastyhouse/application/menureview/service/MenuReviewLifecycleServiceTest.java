@@ -5,7 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.menureview.event.MenuReviewCreatedEvent;
 import com.tastyhouse.domain.menureview.event.MenuReviewDeletedEvent;
@@ -15,6 +15,7 @@ import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.testsupport.menureview.service.FakeMenuReviewPersistencePort;
 import com.tastyhouse.testsupport.review.service.FakeDomainEventPublisher;
 
@@ -72,7 +73,7 @@ class MenuReviewLifecycleServiceTest {
         assertThatThrownBy(() -> register(ORDER_PRODUCT_ID, 4, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.MENU_REVIEW_ALREADY_EXISTS);
+            .isEqualTo(WebErrorCode.MENU_REVIEW_ALREADY_EXISTS);
     }
 
     @Test
@@ -91,7 +92,7 @@ class MenuReviewLifecycleServiceTest {
         assertThatThrownBy(() -> register(ORDER_PRODUCT_ID, 0, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.MENU_REVIEW_NOT_ALLOWED);
+            .isEqualTo(DomainErrorCode.MENU_REVIEW_NOT_ALLOWED);
         assertThatThrownBy(() -> register(ORDER_PRODUCT_ID, 6, null)).isInstanceOf(BusinessException.class);
     }
 
@@ -121,7 +122,7 @@ class MenuReviewLifecycleServiceTest {
         assertThatThrownBy(() -> menuReviewLifecycleService.modify(MenuReviewId.of(menuReviewId), OTHER_MEMBER_ID, 1, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.MENU_REVIEW_ACCESS_DENIED);
+            .isEqualTo(WebErrorCode.MENU_REVIEW_ACCESS_DENIED);
     }
 
     @Test
@@ -130,7 +131,7 @@ class MenuReviewLifecycleServiceTest {
         assertThatThrownBy(() -> menuReviewLifecycleService.modify(MenuReviewId.of(999L), MEMBER_ID, 3, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.MENU_REVIEW_ACCESS_DENIED);
+            .isEqualTo(WebErrorCode.MENU_REVIEW_ACCESS_DENIED);
     }
 
     @Test
@@ -156,7 +157,7 @@ class MenuReviewLifecycleServiceTest {
         assertThatThrownBy(() -> menuReviewLifecycleService.remove(MenuReviewId.of(menuReviewId), OTHER_MEMBER_ID))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.MENU_REVIEW_ACCESS_DENIED);
+            .isEqualTo(WebErrorCode.MENU_REVIEW_ACCESS_DENIED);
     }
 
     private Long register(OrderProductId orderProductId, Integer rating, String comment) {

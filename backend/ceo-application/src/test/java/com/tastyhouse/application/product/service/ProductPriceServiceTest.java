@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.model.ProductPriceSpec;
@@ -25,6 +25,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -74,7 +75,7 @@ class ProductPriceServiceTest {
             assertThatThrownBy(() -> new Fixture().replace(List.of()))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                    .isEqualTo(ErrorCode.PRODUCT_PRICE_EMPTY));
+                    .isEqualTo(CeoErrorCode.PRODUCT_PRICE_EMPTY));
         }
 
         @Test
@@ -93,7 +94,7 @@ class ProductPriceServiceTest {
             )))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                    .isEqualTo(ErrorCode.PRODUCT_PRICE_NAME_REQUIRED));
+                    .isEqualTo(DomainErrorCode.PRODUCT_PRICE_NAME_REQUIRED));
         }
 
         @Test
@@ -105,7 +106,7 @@ class ProductPriceServiceTest {
             )))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                    .isEqualTo(ErrorCode.PRODUCT_PRICE_NAME_DUPLICATED));
+                    .isEqualTo(CeoErrorCode.PRODUCT_PRICE_NAME_DUPLICATED));
         }
     }
 
@@ -121,7 +122,7 @@ class ProductPriceServiceTest {
             assertThatThrownBy(() -> fixture.replace(List.of(spec(null, null, 9000, 9000, null, 0))))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                    .isEqualTo(ErrorCode.PRODUCT_PRICE_STORE_NOT_VERIFIED));
+                    .isEqualTo(CeoErrorCode.PRODUCT_PRICE_STORE_NOT_VERIFIED));
         }
 
         @Test
@@ -132,7 +133,7 @@ class ProductPriceServiceTest {
             assertThatThrownBy(() -> fixture.replace(List.of(spec(null, null, 9000, null, 8000, 0))))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                    .isEqualTo(ErrorCode.PRODUCT_PRICE_STORE_NOT_VERIFIED));
+                    .isEqualTo(CeoErrorCode.PRODUCT_PRICE_STORE_NOT_VERIFIED));
         }
 
         @Test
@@ -165,7 +166,7 @@ class ProductPriceServiceTest {
             assertThatThrownBy(() -> fixture.replace(List.of(spec(null, null, 9000, null, null, 0))))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                    .isEqualTo(ErrorCode.PRODUCT_PRICE_DISCOUNT_IN_PROGRESS));
+                    .isEqualTo(CeoErrorCode.PRODUCT_PRICE_DISCOUNT_IN_PROGRESS));
         }
     }
 

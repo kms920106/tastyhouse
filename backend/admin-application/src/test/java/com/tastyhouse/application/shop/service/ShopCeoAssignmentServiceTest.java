@@ -12,13 +12,14 @@ import org.junit.jupiter.api.Test;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.testsupport.shop.service.RecordingShopCeoAssignmentHistoryPersistencePort;
 
@@ -86,7 +87,7 @@ class ShopCeoAssignmentServiceTest {
             shopCeoAssignmentService.assign(ShopId.of(SHOP_ID), CeoId.of(CEO_A), ADMIN_ID))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_CEO_ALREADY_ASSIGNED);
+            .isEqualTo(AdminErrorCode.SHOP_CEO_ALREADY_ASSIGNED);
 
         assertThat(historyPersistencePort.saved()).isEmpty();
         assertThat(shopPersistencePort.find().getCeoId()).isEqualTo(CeoId.of(CEO_A));
@@ -111,7 +112,7 @@ class ShopCeoAssignmentServiceTest {
         assertThatThrownBy(() -> shopCeoAssignmentService.revoke(ShopId.of(SHOP_ID), ADMIN_ID))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_CEO_NOT_ASSIGNED);
+            .isEqualTo(AdminErrorCode.SHOP_CEO_NOT_ASSIGNED);
 
         assertThat(historyPersistencePort.saved()).isEmpty();
     }
@@ -125,7 +126,7 @@ class ShopCeoAssignmentServiceTest {
             shopCeoAssignmentService.assign(ShopId.of(SHOP_ID), CeoId.of(unknownCeoId), ADMIN_ID))
             .isInstanceOf(ResourceNotFoundException.class)
             .extracting(e -> ((ResourceNotFoundException) e).getErrorCode())
-            .isEqualTo(ErrorCode.CEO_NOT_FOUND);
+            .isEqualTo(AdminErrorCode.CEO_NOT_FOUND);
 
         assertThat(historyPersistencePort.saved()).isEmpty();
         assertThat(shopPersistencePort.find().getCeoId()).isNull();
@@ -138,7 +139,7 @@ class ShopCeoAssignmentServiceTest {
             shopCeoAssignmentService.assign(ShopId.of(999L), CeoId.of(CEO_A), ADMIN_ID))
             .isInstanceOf(ResourceNotFoundException.class)
             .extracting(e -> ((ResourceNotFoundException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_NOT_FOUND);
+            .isEqualTo(ApplicationErrorCode.SHOP_NOT_FOUND);
 
         assertThat(historyPersistencePort.saved()).isEmpty();
     }

@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum DeliveryTipDistanceUnit {
 
@@ -25,8 +25,8 @@ public enum DeliveryTipDistanceUnit {
 
     public void validateAmount(int amount) {
         if (amount < minAmount || amount > maxAmount) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_DISTANCE_SURCHARGE_OUT_OF_RANGE,
-                ErrorCode.SHOP_DELIVERY_TIP_DISTANCE_SURCHARGE_OUT_OF_RANGE.getDefaultMessage()
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_TIP_DISTANCE_SURCHARGE_OUT_OF_RANGE,
+                DomainErrorCode.SHOP_DELIVERY_TIP_DISTANCE_SURCHARGE_OUT_OF_RANGE.getDefaultMessage()
                     + " " + name() + " 허용 범위: " + minAmount + "~" + maxAmount + "원, 입력: " + amount + "원");
         }
     }
@@ -35,8 +35,8 @@ public enum DeliveryTipDistanceUnit {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN,
-                ErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN,
+                DomainErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

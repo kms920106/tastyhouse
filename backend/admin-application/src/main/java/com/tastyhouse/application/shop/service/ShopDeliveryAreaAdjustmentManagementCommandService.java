@@ -3,8 +3,8 @@ package com.tastyhouse.application.shop.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentManagementCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentRejectCommand;
@@ -29,8 +29,8 @@ class ShopDeliveryAreaAdjustmentManagementCommandService implements ShopDelivery
         switch (targetStatus) {
             case IN_PROGRESS -> shopDeliveryAreaAdjustmentService.startProgress(requestId);
             case COMPLETED -> shopDeliveryAreaAdjustmentService.complete(requestId);
-            default -> throw new BusinessException(ErrorCode.DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN,
-                ErrorCode.DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN.getDefaultMessage() + ": " + status);
+            default -> throw new DomainException(DomainErrorCode.DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN,
+                DomainErrorCode.DELIVERY_AREA_ADJUSTMENT_STATUS_UNKNOWN.getDefaultMessage() + ": " + status);
         }
     }
 

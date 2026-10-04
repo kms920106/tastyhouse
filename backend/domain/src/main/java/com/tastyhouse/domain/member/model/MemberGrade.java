@@ -3,8 +3,8 @@ package com.tastyhouse.domain.member.model;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum MemberGrade {
 
@@ -28,8 +28,8 @@ public enum MemberGrade {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.MEMBER_GRADE_TYPE_UNKNOWN,
-                ErrorCode.MEMBER_GRADE_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.MEMBER_GRADE_TYPE_UNKNOWN,
+                DomainErrorCode.MEMBER_GRADE_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 

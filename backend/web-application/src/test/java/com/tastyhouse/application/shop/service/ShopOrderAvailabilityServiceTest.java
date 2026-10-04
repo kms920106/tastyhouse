@@ -10,7 +10,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
@@ -33,6 +32,7 @@ import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.domain.shop.model.SuspensionReason;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
@@ -66,7 +66,7 @@ class ShopOrderAvailabilityServiceTest {
         assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON.withHour(23)))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_NOT_ORDERABLE);
+            .isEqualTo(WebErrorCode.SHOP_NOT_ORDERABLE);
     }
 
     @Test
@@ -78,7 +78,7 @@ class ShopOrderAvailabilityServiceTest {
         assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_NOT_ORDERABLE);
+            .isEqualTo(WebErrorCode.SHOP_NOT_ORDERABLE);
     }
 
     @Test
@@ -89,7 +89,7 @@ class ShopOrderAvailabilityServiceTest {
         assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_ORDER_METHOD_NOT_SUPPORTED);
+            .isEqualTo(WebErrorCode.SHOP_ORDER_METHOD_NOT_SUPPORTED);
     }
 
     @Test
@@ -102,7 +102,7 @@ class ShopOrderAvailabilityServiceTest {
         assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_ORDER_METHOD_SUSPENDED);
+            .isEqualTo(WebErrorCode.SHOP_ORDER_METHOD_SUSPENDED);
     }
 
     @Test
@@ -125,7 +125,7 @@ class ShopOrderAvailabilityServiceTest {
         assertThatThrownBy(() -> service.validateOrderable(shop, OrderMethod.DELIVERY, MONDAY_NOON))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_ORDER_METHOD_NOT_SUPPORTED);
+            .isEqualTo(WebErrorCode.SHOP_ORDER_METHOD_NOT_SUPPORTED);
     }
 
     @Test
@@ -163,7 +163,7 @@ class ShopOrderAvailabilityServiceTest {
         assertThatThrownBy(() -> service.validateOrderable(hiddenShop, OrderMethod.DELIVERY, MONDAY_NOON))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_NOT_ORDERABLE);
+            .isEqualTo(WebErrorCode.SHOP_NOT_ORDERABLE);
     }
 
     private ShopOrderAvailabilityService service(

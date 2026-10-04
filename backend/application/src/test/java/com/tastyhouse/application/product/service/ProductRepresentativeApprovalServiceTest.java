@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductImage;
@@ -24,6 +23,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -54,7 +54,7 @@ class ProductRepresentativeApprovalServiceTest {
         assertThatThrownBy(() -> fixture.service.requestRepresentative(SHOP_ID, List.of(ProductId.of(10L))))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.PRODUCT_REPRESENTATIVE_IMAGE_REQUIRED);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_REPRESENTATIVE_IMAGE_REQUIRED);
     }
 
     @Test
@@ -71,7 +71,7 @@ class ProductRepresentativeApprovalServiceTest {
             SHOP_ID, List.of(ProductId.of(10L), ProductId.of(11L))))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
     }
 
     @Test
@@ -120,7 +120,7 @@ class ProductRepresentativeApprovalServiceTest {
         assertThatThrownBy(() -> fixture.service.approve(ProductRepresentativeRequestId.of(1L)))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
     }
 
     @Test
@@ -131,7 +131,7 @@ class ProductRepresentativeApprovalServiceTest {
         assertThatThrownBy(() -> fixture.service.approve(ProductRepresentativeRequestId.of(99L)))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.PRODUCT_REPRESENTATIVE_REQUEST_NOT_FOUND);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_REPRESENTATIVE_REQUEST_NOT_FOUND);
     }
 
     @Test
@@ -171,7 +171,7 @@ class ProductRepresentativeApprovalServiceTest {
         assertThatThrownBy(() -> fixture.service.clearRepresentative(SHOP_ID, ProductId.of(10L)))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE);
         assertThat(product.isRepresentative()).isTrue();
     }
 
@@ -195,7 +195,7 @@ class ProductRepresentativeApprovalServiceTest {
         assertThatThrownBy(() -> fixture.service.requestRepresentative(SHOP_ID, List.of(ProductId.of(10L))))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.PRODUCT_NOT_FOUND);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_NOT_FOUND);
     }
 
     private static Product product(Long id, boolean representative) {
@@ -242,7 +242,7 @@ class ProductRepresentativeApprovalServiceTest {
 
         assertThatThrownBy(() -> fixture.service.requestRepresentative(SHOP_ID, List.of(ProductId.of(20L))))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
+            .hasFieldOrPropertyWithValue("errorCode", ApplicationErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
     }
 
     private static Fixture fixture(List<Product> products, List<Long> productIdsWithImage) {

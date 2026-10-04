@@ -49,7 +49,7 @@ file:
 ### Internal
 - `application` (implementation) — 구현하는 포트 `FileStoragePort`(`com.tastyhouse.application.file.port.out`). **내부 의존은 이것 하나뿐이다.**
 
-`FirebaseFileStorage#delete`는 `ErrorCode.FILE_DELETE_FAILED`를 던지는 대신 `FileDeleteResult`(성공/실패 + cause)를 반환한다 — 실패를 예외로 전파하지 않고 결과 레코드로 표현하므로, 이 모듈은 `domain`의 `BusinessException`/`ErrorCode`를 더 이상 참조하지 않는다. 다만 지금 `delete()`를 호출하는 소비처가 없어 실패를 번역하는 호출부 자체가 아직 없고, `ErrorCode.FILE_DELETE_FAILED`는 domain에 남아 있지만 어디서도 참조되지 않는다.
+`FirebaseFileStorage#delete`는 (구 단일 `ErrorCode`의) `FILE_DELETE_FAILED`를 던지는 대신 `FileDeleteResult`(성공/실패 + cause)를 반환한다 — 실패를 예외로 전파하지 않고 결과 레코드로 표현하므로, 이 모듈은 `domain`의 `BusinessException`/에러코드를 참조하지 않는다. 다만 지금 `delete()`를 호출하는 소비처가 없어 실패를 번역하는 호출부 자체가 아직 없다. **(번복됨 — 에러코드 모듈 분할)** `FILE_DELETE_FAILED` 상수는 단일 `ErrorCode`와 함께 삭제돼 어느 에러코드 enum에도 남아 있지 않다.
 
 `infrastructure:restclient`(구 `infrastructure:http-client`) 의존은 파일 저장 SPI 삭제와 함께 제거됐다 — 이 모듈은 코어의 SPI도 예외 계약도 쓰지 않는다. 그래서 스타터를 통해 이 모듈만 받는 admin-api·ceo-api의 런타임 클래스패스에 코어(`infrastructure:restclient`)가 딸려 오지 않는다.
 

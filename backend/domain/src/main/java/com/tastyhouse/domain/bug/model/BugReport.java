@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.admin.vo.AdminId;
 import com.tastyhouse.domain.bug.vo.BugReportId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.vo.MemberId;
 
 public class BugReport {
@@ -119,14 +119,14 @@ public class BugReport {
 
     public void startProgress() {
         if (this.status != BugReportStatus.RECEIVED && this.status != BugReportStatus.ON_HOLD) {
-            throw new BusinessException(ErrorCode.BUG_REPORT_INVALID_STATUS);
+            throw new DomainException(DomainErrorCode.BUG_REPORT_INVALID_STATUS);
         }
         this.status = BugReportStatus.IN_PROGRESS;
     }
 
     public void resolve(String answer) {
         if (this.status == BugReportStatus.RESOLVED || this.status == BugReportStatus.REJECTED) {
-            throw new BusinessException(ErrorCode.BUG_REPORT_INVALID_STATUS);
+            throw new DomainException(DomainErrorCode.BUG_REPORT_INVALID_STATUS);
         }
         this.status = BugReportStatus.RESOLVED;
         this.adminAnswer = answer;
@@ -135,7 +135,7 @@ public class BugReport {
 
     public void reject(String answer) {
         if (this.status == BugReportStatus.RESOLVED || this.status == BugReportStatus.REJECTED) {
-            throw new BusinessException(ErrorCode.BUG_REPORT_INVALID_STATUS);
+            throw new DomainException(DomainErrorCode.BUG_REPORT_INVALID_STATUS);
         }
         this.status = BugReportStatus.REJECTED;
         this.adminAnswer = answer;
@@ -144,7 +144,7 @@ public class BugReport {
 
     public void hold() {
         if (this.status != BugReportStatus.RECEIVED && this.status != BugReportStatus.IN_PROGRESS) {
-            throw new BusinessException(ErrorCode.BUG_REPORT_INVALID_STATUS);
+            throw new DomainException(DomainErrorCode.BUG_REPORT_INVALID_STATUS);
         }
         this.status = BugReportStatus.ON_HOLD;
     }

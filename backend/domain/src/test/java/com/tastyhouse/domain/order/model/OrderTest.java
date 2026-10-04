@@ -10,7 +10,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.vo.OrderDeliveryDestination;
 import com.tastyhouse.domain.order.vo.OrderId;
@@ -162,7 +162,7 @@ class OrderTest {
         assertThatThrownBy(order::confirm)
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_ALREADY_CANCELLED);
+            .isEqualTo(DomainErrorCode.ORDER_ALREADY_CANCELLED);
 
         assertThat(order.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
     }
@@ -173,17 +173,17 @@ class OrderTest {
         assertThatThrownBy(() -> orderWithStatus(OrderStatus.CANCELLED).cancel())
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_ALREADY_CANCELLED);
+            .isEqualTo(DomainErrorCode.ORDER_ALREADY_CANCELLED);
 
         assertThatThrownBy(() -> orderWithStatus(OrderStatus.COMPLETED).cancel())
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_ALREADY_COMPLETED);
+            .isEqualTo(DomainErrorCode.ORDER_ALREADY_COMPLETED);
 
         assertThatThrownBy(() -> orderWithStatus(OrderStatus.PREPARING).cancel())
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_ALREADY_PREPARING);
+            .isEqualTo(DomainErrorCode.ORDER_ALREADY_PREPARING);
     }
 
     @Test
@@ -229,7 +229,7 @@ class OrderTest {
         assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1700, 0, 0, 8300, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 300))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+            .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
 
         assertThat(order.getTotalProductAmount()).isEqualTo(0);
     }
@@ -242,7 +242,7 @@ class OrderTest {
         assertThatThrownBy(() -> order.updateAmounts(10000, 1000, 500, 300, 1800, 0, 0, 9000, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 300))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+            .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
     }
 
     @Test
@@ -253,17 +253,17 @@ class OrderTest {
         assertThatThrownBy(() -> order.updateAmounts(-100, 0, 0, 0, 0, 0, 0, -100, null, null, null, 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+            .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NEGATIVE);
 
         assertThatThrownBy(() -> order.updateAmounts(10000, -500, 0, 0, -500, 0, 0, 10500, null, null, null, 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+            .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NEGATIVE);
 
         assertThatThrownBy(() -> order.updateAmounts(10000, 0, 0, 0, 0, 0, 0, 10000, null, null, null, -1))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+            .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NEGATIVE);
     }
 
     @Test
@@ -274,7 +274,7 @@ class OrderTest {
         assertThatThrownBy(() -> order.updateAmounts(10000, 0, 15000, 0, 15000, 0, 0, -5000, OrderDeliveryDestination.none(), OrderSchedule.none(), MemberCouponId.of(99L), 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+            .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NEGATIVE);
     }
 
     @Test
@@ -306,7 +306,7 @@ class OrderTest {
         assertThatThrownBy(() -> order.updateAmounts(10000, null, null, null, null, null, 0, 9000, null, null, null, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+            .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
     }
 
     @Test
@@ -433,7 +433,7 @@ class OrderTest {
         assertThatThrownBy(() -> orderWithAmounts(-1, 0, 0, 0, 0, -1, 0))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+            .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NEGATIVE);
     }
 
     @Test
@@ -442,7 +442,7 @@ class OrderTest {
         assertThatThrownBy(() -> orderWithAmounts(10000, 1000, 500, 300, 9999, 1, 300))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+            .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
     }
 
     @Test
@@ -451,7 +451,7 @@ class OrderTest {
         assertThatThrownBy(() -> orderWithAmounts(10000, 1000, 500, 300, 1800, 9999, 300))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+            .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
     }
 
     @Test
@@ -504,7 +504,7 @@ class OrderTest {
             assertThatThrownBy(() -> orderWithDeliveryTip(1000, 500, 300, 1800, 3000, 8200))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+                .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
         }
 
         @Test
@@ -513,7 +513,7 @@ class OrderTest {
             assertThatThrownBy(() -> orderWithDeliveryTip(0, 0, 0, 0, -500, 9500))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+                .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NEGATIVE);
         }
 
         @Test
@@ -531,7 +531,7 @@ class OrderTest {
             ))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+                .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
         }
 
         @Test
@@ -634,7 +634,7 @@ class OrderTest {
                 OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
+                .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NOT_CONSISTENT);
         }
 
         @Test
@@ -658,7 +658,7 @@ class OrderTest {
                 OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.ORDER_AMOUNT_NEGATIVE);
+                .isEqualTo(DomainErrorCode.ORDER_AMOUNT_NEGATIVE);
         }
 
         @Test

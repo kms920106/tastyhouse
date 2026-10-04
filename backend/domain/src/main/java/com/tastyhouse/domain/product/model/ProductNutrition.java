@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Objects;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.product.vo.ProductId;
 
 public class ProductNutrition {
@@ -181,14 +181,14 @@ public class ProductNutrition {
     private static void validateRequiredTogether(Integer... requiredValues) {
         long filled = Arrays.stream(requiredValues).filter(Objects::nonNull).count();
         if (filled != 0 && filled != requiredValues.length) {
-            throw new BusinessException(ErrorCode.PRODUCT_NUTRITION_REQUIRED_FIELD_MISSING);
+            throw new DomainException(DomainErrorCode.PRODUCT_NUTRITION_REQUIRED_FIELD_MISSING);
         }
     }
 
     private static void validateNonNegative(Integer... values) {
         for (Integer value : values) {
             if (value != null && value < 0) {
-                throw new BusinessException(ErrorCode.PRODUCT_NUTRITION_VALUE_NEGATIVE);
+                throw new DomainException(DomainErrorCode.PRODUCT_NUTRITION_VALUE_NEGATIVE);
             }
         }
     }

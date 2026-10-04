@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
-import com.tastyhouse.application.shared.error.ErrorContracts;
 import com.tastyhouse.application.shared.error.ErrorDescriptor;
 import com.tastyhouse.application.shared.error.ErrorResponses;
 import com.tastyhouse.apicommon.ratelimit.RateLimitException;
@@ -36,8 +35,8 @@ class GlobalExceptionHandler {
         log.warn("RateLimitException: {}", e.getMessage());
         return problemDetail(
             HttpStatus.TOO_MANY_REQUESTS.value(),
-            ErrorContracts.rateLimit().code(),
-            ErrorContracts.rateLimit().message()
+            ApiErrorCode.RATE_LIMIT_EXCEEDED.getCode(),
+            ApiErrorCode.RATE_LIMIT_EXCEEDED.getDefaultMessage()
         );
     }
 
@@ -72,9 +71,9 @@ class GlobalExceptionHandler {
     public ProblemDetail handleAccessDenied(AccessDeniedException e) {
         log.warn("Access denied: {}", e.getMessage());
         return problemDetail(
-            ErrorContracts.accessDenied().status(),
-            ErrorContracts.accessDenied().code(),
-            ErrorContracts.accessDenied().message()
+            ApiErrorCode.ACCESS_DENIED.getHttpStatusCode(),
+            ApiErrorCode.ACCESS_DENIED.getCode(),
+            ApiErrorCode.ACCESS_DENIED.getDefaultMessage()
         );
     }
 

@@ -11,7 +11,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.application.shared.error.ErrorContracts;
+import com.tastyhouse.apicommon.exception.ApiErrorCode;
 
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -29,9 +29,9 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType("application/json;charset=UTF-8");
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
             HttpStatus.UNAUTHORIZED,
-            ErrorContracts.authRequired().message()
+            ApiErrorCode.AUTH_REQUIRED.getDefaultMessage()
         );
-        problemDetail.setProperty("errorCode", ErrorContracts.authRequired().code());
+        problemDetail.setProperty("errorCode", ApiErrorCode.AUTH_REQUIRED.getCode());
         response.getWriter().write(objectMapper.writeValueAsString(problemDetail));
     }
 }

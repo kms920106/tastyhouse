@@ -5,13 +5,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
 import com.tastyhouse.application.product.port.in.StorePriceVerificationQueryUseCase;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationItemResult;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -40,7 +40,7 @@ class StorePriceVerificationQueryService implements StorePriceVerificationQueryU
     public StorePriceVerificationListItemResult getVerification(Long verificationId) {
         return storePriceVerificationQueryPort.findVerificationById(verificationId)
             .orElseThrow(() -> new ResourceNotFoundException(
-                ErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_FOUND));
+                ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_FOUND));
     }
 
     @Override

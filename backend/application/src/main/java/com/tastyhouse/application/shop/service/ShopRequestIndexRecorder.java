@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
@@ -13,6 +11,8 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexPersistencePort;
 
 @Service
@@ -84,7 +84,7 @@ public class ShopRequestIndexRecorder {
     ) {
         ShopRequestIndex index = shopRequestIndexPersistencePort
             .findByRequestTypeAndSourceRequestId(requestType, sourceRequestId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
         index.syncStatus(status, rejectReason, LocalDateTime.now());
         shopRequestIndexPersistencePort.save(index);
     }
@@ -110,13 +110,13 @@ public class ShopRequestIndexRecorder {
 
     public ShopRequestIndex getRequest(Long requestId) {
         return shopRequestIndexPersistencePort.findById(requestId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
     }
 
     public ShopRequestIndex getRequestOfShop(Long requestId, Long shopId) {
         ShopRequestIndex index = getRequest(requestId);
         if (!index.getShopId().equals(ShopId.of(shopId))) {
-            throw new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND);
         }
         return index;
     }

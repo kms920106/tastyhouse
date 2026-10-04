@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.shop.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum Amenity {
 
@@ -28,8 +28,8 @@ public enum Amenity {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.AMENITY_UNKNOWN,
-                ErrorCode.AMENITY_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.AMENITY_UNKNOWN,
+                DomainErrorCode.AMENITY_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

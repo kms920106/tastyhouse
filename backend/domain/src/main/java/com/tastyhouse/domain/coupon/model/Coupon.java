@@ -3,8 +3,8 @@ package com.tastyhouse.domain.coupon.model;
 import java.time.LocalDateTime;
 
 import com.tastyhouse.domain.coupon.vo.CouponId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public class Coupon {
 
@@ -209,25 +209,25 @@ public class Coupon {
     ) {
         if (discountType == DiscountType.RATE) {
             if (discountAmount == null || discountAmount < 1 || discountAmount > 100) {
-                throw new BusinessException(ErrorCode.COUPON_DISCOUNT_RATE_INVALID,
-                    ErrorCode.COUPON_DISCOUNT_RATE_INVALID.getDefaultMessage() + ": " + discountAmount);
+                throw new DomainException(DomainErrorCode.COUPON_DISCOUNT_RATE_INVALID,
+                    DomainErrorCode.COUPON_DISCOUNT_RATE_INVALID.getDefaultMessage() + ": " + discountAmount);
             }
         } else if (discountAmount == null || discountAmount < 1) {
-            throw new BusinessException(ErrorCode.COUPON_DISCOUNT_AMOUNT_INVALID,
-                ErrorCode.COUPON_DISCOUNT_AMOUNT_INVALID.getDefaultMessage() + ": " + discountAmount);
+            throw new DomainException(DomainErrorCode.COUPON_DISCOUNT_AMOUNT_INVALID,
+                DomainErrorCode.COUPON_DISCOUNT_AMOUNT_INVALID.getDefaultMessage() + ": " + discountAmount);
         }
 
         if (maxDiscountAmount != null && maxDiscountAmount < 0) {
-            throw new BusinessException(ErrorCode.COUPON_AMOUNT_NEGATIVE,
-                ErrorCode.COUPON_AMOUNT_NEGATIVE.getDefaultMessage() + " 최대 할인 금액: " + maxDiscountAmount);
+            throw new DomainException(DomainErrorCode.COUPON_AMOUNT_NEGATIVE,
+                DomainErrorCode.COUPON_AMOUNT_NEGATIVE.getDefaultMessage() + " 최대 할인 금액: " + maxDiscountAmount);
         }
         if (minOrderAmount != null && minOrderAmount < 0) {
-            throw new BusinessException(ErrorCode.COUPON_AMOUNT_NEGATIVE,
-                ErrorCode.COUPON_AMOUNT_NEGATIVE.getDefaultMessage() + " 최소 주문 금액: " + minOrderAmount);
+            throw new DomainException(DomainErrorCode.COUPON_AMOUNT_NEGATIVE,
+                DomainErrorCode.COUPON_AMOUNT_NEGATIVE.getDefaultMessage() + " 최소 주문 금액: " + minOrderAmount);
         }
 
         if (useEndAt == null) {
-            throw new BusinessException(ErrorCode.COUPON_USE_END_AT_REQUIRED);
+            throw new DomainException(DomainErrorCode.COUPON_USE_END_AT_REQUIRED);
         }
 
         validatePeriodOrder(issueStartAt, issueEndAt, "발급");
@@ -236,8 +236,8 @@ public class Coupon {
 
     private static void validatePeriodOrder(LocalDateTime startAt, LocalDateTime endAt, String periodName) {
         if (startAt != null && endAt != null && startAt.isAfter(endAt)) {
-            throw new BusinessException(ErrorCode.COUPON_PERIOD_INVALID,
-                ErrorCode.COUPON_PERIOD_INVALID.getDefaultMessage()
+            throw new DomainException(DomainErrorCode.COUPON_PERIOD_INVALID,
+                DomainErrorCode.COUPON_PERIOD_INVALID.getDefaultMessage()
                     + " " + periodName + " 기간: " + startAt + " ~ " + endAt);
         }
     }
@@ -252,7 +252,7 @@ public class Coupon {
 
     public void validateMinOrderAmount(int orderAmount) {
         if (orderAmount < minOrderAmount) {
-            throw new BusinessException(ErrorCode.ORDER_MINIMUM_AMOUNT_NOT_MET);
+            throw new DomainException(DomainErrorCode.ORDER_MINIMUM_AMOUNT_NOT_MET);
         }
     }
 

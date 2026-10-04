@@ -1,7 +1,7 @@
 package com.tastyhouse.application.shop.port.in;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record ShopNoticeExposureChangeCommand(
     Long ceoId,
@@ -12,7 +12,7 @@ public record ShopNoticeExposureChangeCommand(
 
     public ShopNoticeExposureChangeCommand {
         if (ceoId == null || shopId == null || noticeId == null || exposed == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

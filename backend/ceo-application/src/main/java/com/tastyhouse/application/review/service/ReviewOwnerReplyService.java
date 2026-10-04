@@ -6,9 +6,6 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.review.event.ReviewOwnerReplyCreatedEvent;
 import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.review.model.ReviewOwnerReply;
@@ -18,6 +15,10 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyPersistencePort;
 import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 
 @Service
@@ -47,7 +48,7 @@ public class ReviewOwnerReplyService {
         prohibitedWordValidator.validate(content);
 
         if (reviewOwnerReplyPersistencePort.existsByReviewId(targetReviewId)) {
-            throw new BusinessException(ErrorCode.REVIEW_OWNER_REPLY_ALREADY_EXISTS);
+            throw new ApplicationException(CeoErrorCode.REVIEW_OWNER_REPLY_ALREADY_EXISTS);
         }
 
         ReviewOwnerReply saved = reviewOwnerReplyPersistencePort.save(
@@ -68,7 +69,7 @@ public class ReviewOwnerReplyService {
     private void validateWithinReplyPeriod(Review review, LocalDate today) {
         LocalDate deadline = review.getCreatedAt().toLocalDate().plusDays(ReviewOwnerReply.REPLY_PERIOD_DAYS);
         if (today.isAfter(deadline)) {
-            throw new BusinessException(ErrorCode.REVIEW_OWNER_REPLY_PERIOD_EXPIRED);
+            throw new ApplicationException(CeoErrorCode.REVIEW_OWNER_REPLY_PERIOD_EXPIRED);
         }
     }
 
@@ -92,15 +93,15 @@ public class ReviewOwnerReplyService {
 
     private Review loadReviewOfShop(ReviewId reviewId, Long shopId) {
         Review review = reviewPersistencePort.findById(reviewId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         if (!review.getShopId().equals(ShopId.of(shopId))) {
-            throw new BusinessException(ErrorCode.SHOP_ACCESS_DENIED);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_ACCESS_DENIED);
         }
         return review;
     }
 
     private ReviewOwnerReply loadReplyOfReview(ReviewId reviewId) {
         return reviewOwnerReplyPersistencePort.findByReviewId(reviewId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_OWNER_REPLY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.REVIEW_OWNER_REPLY_NOT_FOUND));
     }
 }

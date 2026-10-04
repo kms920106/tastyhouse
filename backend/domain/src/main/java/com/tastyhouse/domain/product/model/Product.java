@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductDiscountInfo;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -317,22 +317,22 @@ public class Product {
 
     private static void validateWeightText(String weightText) {
         if (weightText != null && weightText.length() > WEIGHT_TEXT_MAX_LENGTH) {
-            throw new BusinessException(ErrorCode.PRODUCT_WEIGHT_TEXT_TOO_LONG);
+            throw new DomainException(DomainErrorCode.PRODUCT_WEIGHT_TEXT_TOO_LONG);
         }
     }
 
     private static void validatePrices(Integer originalPrice, Integer discountPrice) {
         if (originalPrice != null && originalPrice < 0) {
-            throw new BusinessException(ErrorCode.PRODUCT_PRICE_NEGATIVE,
-                ErrorCode.PRODUCT_PRICE_NEGATIVE.getDefaultMessage() + " 정가: " + originalPrice);
+            throw new DomainException(DomainErrorCode.PRODUCT_PRICE_NEGATIVE,
+                DomainErrorCode.PRODUCT_PRICE_NEGATIVE.getDefaultMessage() + " 정가: " + originalPrice);
         }
         if (discountPrice != null && discountPrice < 0) {
-            throw new BusinessException(ErrorCode.PRODUCT_PRICE_NEGATIVE,
-                ErrorCode.PRODUCT_PRICE_NEGATIVE.getDefaultMessage() + " 할인가: " + discountPrice);
+            throw new DomainException(DomainErrorCode.PRODUCT_PRICE_NEGATIVE,
+                DomainErrorCode.PRODUCT_PRICE_NEGATIVE.getDefaultMessage() + " 할인가: " + discountPrice);
         }
         if (originalPrice != null && discountPrice != null && discountPrice > originalPrice) {
-            throw new BusinessException(ErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL,
-                ErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL.getDefaultMessage()
+            throw new DomainException(DomainErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL,
+                DomainErrorCode.PRODUCT_DISCOUNT_PRICE_EXCEEDS_ORIGINAL.getDefaultMessage()
                     + " 정가: " + originalPrice + ", 할인가: " + discountPrice);
         }
     }
@@ -372,7 +372,7 @@ public class Product {
 
     public void changeSoldOutUntil(LocalDateTime until) {
         if (!this.soldOut) {
-            throw new BusinessException(ErrorCode.PRODUCT_NOT_SOLD_OUT);
+            throw new DomainException(DomainErrorCode.PRODUCT_NOT_SOLD_OUT);
         }
         this.soldOutUntil = until;
     }
@@ -418,7 +418,7 @@ public class Product {
 
     public void delete() {
         if (this.deleted) {
-            throw new BusinessException(ErrorCode.PRODUCT_ALREADY_DELETED);
+            throw new DomainException(DomainErrorCode.PRODUCT_ALREADY_DELETED);
         }
         this.deleted = true;
         this.visible = false;
@@ -435,7 +435,7 @@ public class Product {
 
     public void changeExposurePeriod(LocalDate startDate, LocalDate endDate) {
         if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
-            throw new BusinessException(ErrorCode.PRODUCT_EXPOSURE_PERIOD_INVALID);
+            throw new DomainException(DomainErrorCode.PRODUCT_EXPOSURE_PERIOD_INVALID);
         }
         this.exposureStartDate = startDate;
         this.exposureEndDate = endDate;

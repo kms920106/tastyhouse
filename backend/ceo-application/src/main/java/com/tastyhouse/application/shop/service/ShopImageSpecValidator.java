@@ -9,8 +9,8 @@ import javax.imageio.ImageIO;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 @Component
 public class ShopImageSpecValidator {
@@ -63,7 +63,7 @@ public class ShopImageSpecValidator {
 
     private void validateNotEmpty(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new BusinessException(ErrorCode.SHOP_IMAGE_SPEC_INVALID, "이미지 파일이 비어있습니다.");
+            throw new DomainException(DomainErrorCode.SHOP_IMAGE_SPEC_INVALID, "이미지 파일이 비어있습니다.");
         }
     }
 
@@ -74,25 +74,25 @@ public class ShopImageSpecValidator {
                 return;
             }
         }
-        throw new BusinessException(ErrorCode.SHOP_IMAGE_SPEC_INVALID, "허용되지 않는 이미지 형식입니다: " + contentType);
+        throw new DomainException(DomainErrorCode.SHOP_IMAGE_SPEC_INVALID, "허용되지 않는 이미지 형식입니다: " + contentType);
     }
 
     private void validateMaxSize(MultipartFile file, long maxSizeBytes) {
         if (file.getSize() > maxSizeBytes) {
-            throw new BusinessException(ErrorCode.SHOP_IMAGE_SPEC_INVALID, "이미지 용량이 허용치를 초과했습니다: " + file.getSize());
+            throw new DomainException(DomainErrorCode.SHOP_IMAGE_SPEC_INVALID, "이미지 용량이 허용치를 초과했습니다: " + file.getSize());
         }
     }
 
     private void validateMinResolution(BufferedImage image, int minWidth, int minHeight) {
         if (image.getWidth() < minWidth || image.getHeight() < minHeight) {
-            throw new BusinessException(ErrorCode.SHOP_IMAGE_SPEC_INVALID,
+            throw new DomainException(DomainErrorCode.SHOP_IMAGE_SPEC_INVALID,
                 "이미지 해상도가 최소 기준(" + minWidth + "x" + minHeight + ")보다 작습니다.");
         }
     }
 
     private void validateSquareRatio(BufferedImage image) {
         if (image.getWidth() != image.getHeight()) {
-            throw new BusinessException(ErrorCode.SHOP_IMAGE_SPEC_INVALID, "이미지 비율은 1:1이어야 합니다.");
+            throw new DomainException(DomainErrorCode.SHOP_IMAGE_SPEC_INVALID, "이미지 비율은 1:1이어야 합니다.");
         }
     }
 
@@ -100,11 +100,11 @@ public class ShopImageSpecValidator {
         try (InputStream inputStream = file.getInputStream()) {
             BufferedImage image = ImageIO.read(inputStream);
             if (image == null) {
-                throw new BusinessException(ErrorCode.SHOP_IMAGE_SPEC_INVALID, "이미지 파일을 읽을 수 없습니다.");
+                throw new DomainException(DomainErrorCode.SHOP_IMAGE_SPEC_INVALID, "이미지 파일을 읽을 수 없습니다.");
             }
             return image;
         } catch (IOException e) {
-            throw new BusinessException(ErrorCode.SHOP_IMAGE_SPEC_INVALID, "이미지 파일을 읽을 수 없습니다.");
+            throw new DomainException(DomainErrorCode.SHOP_IMAGE_SPEC_INVALID, "이미지 파일을 읽을 수 없습니다.");
         }
     }
 }

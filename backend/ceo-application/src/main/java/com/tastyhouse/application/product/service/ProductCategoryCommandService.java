@@ -3,9 +3,6 @@ package com.tastyhouse.application.product.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -15,6 +12,9 @@ import com.tastyhouse.application.product.port.in.ProductCategoryOwnerCreateComm
 import com.tastyhouse.application.product.port.in.ProductCategoryUpdateCommand;
 import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -92,16 +92,16 @@ class ProductCategoryCommandService implements ProductCategoryCommandUseCase {
 
         ProductCategory category = loadOwnedCategory(shopId, productCategoryId);
         if (productPersistencePort.countByCategoryId(ProductCategoryId.of(productCategoryId)) > 0) {
-            throw new BusinessException(ErrorCode.PRODUCT_CATEGORY_HAS_PRODUCTS);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_CATEGORY_HAS_PRODUCTS);
         }
         productCategoryPersistencePort.delete(category);
     }
 
     private ProductCategory loadOwnedCategory(Long shopId, Long productCategoryId) {
         ProductCategory category = productCategoryPersistencePort.findById(ProductCategoryId.of(productCategoryId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_CATEGORY_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.PRODUCT_CATEGORY_NOT_FOUND));
         if (!category.getShopId().equals(ShopId.of(shopId))) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_CATEGORY_NOT_FOUND);
+            throw new ResourceNotFoundException(CeoErrorCode.PRODUCT_CATEGORY_NOT_FOUND);
         }
         return category;
     }

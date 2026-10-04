@@ -5,8 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.CupDepositPolicy;
 import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.application.product.port.in.ProductManagementQueryUseCase;
@@ -16,6 +14,8 @@ import com.tastyhouse.application.product.port.out.ProductListItemResult;
 import com.tastyhouse.application.product.port.out.ProductManagementQueryPort;
 import com.tastyhouse.application.product.port.out.ProductOptionsResult;
 import com.tastyhouse.application.product.port.out.ProductSearchCondition;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -52,7 +52,7 @@ class ProductManagementQueryService implements ProductManagementQueryUseCase {
     @Override
     public ProductDetailResult getProduct(Long id) {
         return productManagementQueryPort.findProductDetailById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 
     @Override

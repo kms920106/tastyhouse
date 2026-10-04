@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
 import com.tastyhouse.domain.reservation.model.SlotPolicy;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
@@ -26,6 +26,8 @@ import com.tastyhouse.application.reservation.port.out.ReservationResult;
 import com.tastyhouse.application.reservation.port.out.ReservationSlotAvailabilityResult;
 import com.tastyhouse.application.reservation.port.out.ReservationSlotResult;
 import com.tastyhouse.application.reservation.port.out.SlotOccupancyResult;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 @Transactional(readOnly = true)
@@ -75,13 +77,13 @@ class ReservationQueryService implements ReservationQueryUseCase {
     @Override
     public ReservationResult getReservation(Long id) {
         return reservationQueryPort.findReservationById(ReservationId.of(id).value())
-            .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.RESERVATION_NOT_FOUND));
     }
 
     @Override
     public ReservationCompleteDetailResult getCompleteDetail(Long memberId, Long id) {
         ReservationResult result = reservationQueryPort.findReservationById(ReservationId.of(id).value())
-            .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.RESERVATION_NOT_FOUND));
         validateOwnership(result.memberId(), memberId);
 
         return new ReservationCompleteDetailResult(
@@ -96,7 +98,7 @@ class ReservationQueryService implements ReservationQueryUseCase {
     @Override
     public ReservationDetailViewResult getReservationDetail(Long memberId, Long id) {
         ReservationDetailResult result = reservationQueryPort.findReservationDetailById(ReservationId.of(id).value())
-            .orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.RESERVATION_NOT_FOUND));
         validateOwnership(result.memberId(), memberId);
 
         return new ReservationDetailViewResult(
@@ -120,7 +122,7 @@ class ReservationQueryService implements ReservationQueryUseCase {
 
     private void validateOwnership(Long ownerId, Long requesterId) {
         if (!Objects.equals(ownerId, requesterId)) {
-            throw new BusinessException(ErrorCode.RESERVATION_ACCESS_DENIED);
+            throw new DomainException(DomainErrorCode.RESERVATION_ACCESS_DENIED);
         }
     }
 }

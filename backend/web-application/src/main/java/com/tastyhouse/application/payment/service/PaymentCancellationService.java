@@ -4,9 +4,6 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
@@ -24,6 +21,10 @@ import com.tastyhouse.application.order.service.OrderTransitionService;
 import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
 import com.tastyhouse.application.payment.port.out.write.PaymentRefundPersistencePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 public class PaymentCancellationService {
@@ -48,7 +49,7 @@ public class PaymentCancellationService {
     public PaymentCancellationTarget prepareCancellation(MemberId memberId, PaymentId paymentId) {
         Payment payment = loadPayment(paymentId);
         Order order = orderTransitionService.loadOwnedBy(
-            payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
+            payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED
         );
 
         PaymentCancelCode cancelCode = resolveCancelCode(order.getOrderStatus());
@@ -66,7 +67,7 @@ public class PaymentCancellationService {
     public PaymentCancelCode applyCancellation(MemberId memberId, PaymentId paymentId, String cancelReason) {
         Payment payment = loadPayment(paymentId);
         Order order = orderTransitionService.loadOwnedBy(
-            payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED
+            payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED
         );
 
         PaymentCancelCode cancelCode = resolveCancelCode(order.getOrderStatus());
@@ -100,14 +101,14 @@ public class PaymentCancellationService {
         String refundReason
     ) {
         Payment payment = loadPayment(paymentId);
-        orderTransitionService.loadOwnedBy(payment.getOrderId(), memberId, ErrorCode.PAYMENT_ACCESS_DENIED);
+        orderTransitionService.loadOwnedBy(payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED);
 
         if (payment.getPaymentStatus() != PaymentStatus.COMPLETED) {
-            throw new BusinessException(ErrorCode.PAYMENT_NOT_COMPLETED);
+            throw new ApplicationException(WebErrorCode.PAYMENT_NOT_COMPLETED);
         }
 
         if (refundAmount > payment.getAmount().value()) {
-            throw new BusinessException(ErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED);
+            throw new ApplicationException(WebErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED);
         }
 
         Amount amount = new Amount(refundAmount);
@@ -129,7 +130,7 @@ public class PaymentCancellationService {
 
     private Payment loadPayment(PaymentId paymentId) {
         return paymentPersistencePort.findById(paymentId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
     }
 
     private PaymentCancelCode resolveCancelCode(OrderStatus orderStatus) {

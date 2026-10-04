@@ -5,9 +5,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.EditorChoicePolicy;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
@@ -76,7 +77,7 @@ class ShopManagementQueryService implements ShopManagementQueryUseCase {
     @Override
     public ShopDetail getShop(Long id) {
         ShopManagementDetailResult shop = shopManagementQueryPort.findManagementDetailById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
 
         String thumbnailImageUrl = shopBasicInfoQueryPort.findShopImageUrls(shop.id())
             .map(ShopImageUrlsResult::thumbnailImageUrl)
@@ -153,7 +154,7 @@ class ShopManagementQueryService implements ShopManagementQueryUseCase {
     @Override
     public ShopChoiceDetailResult getShopChoice(Long id) {
         return shopChoiceManagementQueryPort.findShopChoiceById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_CHOICE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_CHOICE_NOT_FOUND));
     }
 
 }

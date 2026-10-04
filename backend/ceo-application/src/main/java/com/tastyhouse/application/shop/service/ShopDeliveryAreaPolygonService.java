@@ -11,8 +11,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
@@ -29,6 +27,8 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolicy;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
@@ -70,7 +70,7 @@ public class ShopDeliveryAreaPolygonService {
 
         DeliveryAreaProjection.Result projection = project(polygon);
         if (projection.isEmpty()) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_EMPTY_PROJECTION);
+            throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_AREA_EMPTY_PROJECTION);
         }
 
         Set<AdminDongId> manualDongIds = adminDongIdsOf(DeliveryAreaSource.MANUAL, shopId);
@@ -200,10 +200,10 @@ public class ShopDeliveryAreaPolygonService {
         }
 
         List<String> blockedNames = adminDongNamesById == null ? List.of() : adminDongNamesById.apply(blocked);
-        String message = ErrorCode.SHOP_DELIVERY_AREA_IN_USE.getDefaultMessage();
+        String message = CeoErrorCode.SHOP_DELIVERY_AREA_IN_USE.getDefaultMessage();
         if (!blockedNames.isEmpty()) {
             message = message + ": " + String.join(", ", blockedNames);
         }
-        throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_IN_USE, message);
+        throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_AREA_IN_USE, message);
     }
 }

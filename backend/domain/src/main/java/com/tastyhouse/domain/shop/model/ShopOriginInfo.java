@@ -2,8 +2,8 @@ package com.tastyhouse.domain.shop.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopOriginInfo {
@@ -68,7 +68,7 @@ public class ShopOriginInfo {
 
     private static void validate(OriginSourceType sourceType, String content, String url) {
         if (sourceType == null) {
-            throw new BusinessException(ErrorCode.SHOP_ORIGIN_SOURCE_TYPE_UNKNOWN);
+            throw new DomainException(DomainErrorCode.SHOP_ORIGIN_SOURCE_TYPE_UNKNOWN);
         }
         if (sourceType == OriginSourceType.DIRECT) {
             validateContent(content);
@@ -79,22 +79,22 @@ public class ShopOriginInfo {
 
     private static void validateContent(String content) {
         if (content == null || content.isBlank()) {
-            throw new BusinessException(ErrorCode.SHOP_ORIGIN_CONTENT_REQUIRED);
+            throw new DomainException(DomainErrorCode.SHOP_ORIGIN_CONTENT_REQUIRED);
         }
         if (content.length() > CONTENT_MAX_LENGTH) {
-            throw new BusinessException(ErrorCode.SHOP_ORIGIN_CONTENT_TOO_LONG);
+            throw new DomainException(DomainErrorCode.SHOP_ORIGIN_CONTENT_TOO_LONG);
         }
     }
 
     private static void validateUrl(String url) {
         if (url == null || url.isBlank()) {
-            throw new BusinessException(ErrorCode.SHOP_ORIGIN_URL_REQUIRED);
+            throw new DomainException(DomainErrorCode.SHOP_ORIGIN_URL_REQUIRED);
         }
         if (url.length() > URL_MAX_LENGTH) {
-            throw new BusinessException(ErrorCode.SHOP_ORIGIN_URL_TOO_LONG);
+            throw new DomainException(DomainErrorCode.SHOP_ORIGIN_URL_TOO_LONG);
         }
         if (!url.startsWith(HTTP_SCHEME) && !url.startsWith(HTTPS_SCHEME)) {
-            throw new BusinessException(ErrorCode.SHOP_ORIGIN_URL_INVALID);
+            throw new DomainException(DomainErrorCode.SHOP_ORIGIN_URL_INVALID);
         }
     }
 

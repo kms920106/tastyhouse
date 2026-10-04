@@ -2,9 +2,8 @@ package com.tastyhouse.application.shop.service;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.review.model.ReviewBlindRequest;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
@@ -12,6 +11,8 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
 
@@ -50,7 +51,7 @@ public class ShopRequestCancelService {
 
     private void cancelImageChange(Long sourceRequestId) {
         ShopImageChangeRequest request = shopImageChangeRequestPersistencePort.findById(sourceRequestId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
         request.cancel();
         shopImageChangeRequestPersistencePort.save(request);
     }
@@ -58,9 +59,9 @@ public class ShopRequestCancelService {
     private void cancelReviewBlind(Long sourceRequestId) {
         ReviewBlindRequest request = reviewBlindRequestPersistencePort
             .findById(ReviewBlindRequestId.of(sourceRequestId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
         if (request.getStatus() != ReviewBlindStatus.PENDING) {
-            throw new BusinessException(ErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
+            throw new DomainException(DomainErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
         }
         request.cancel();
         reviewBlindRequestPersistencePort.save(request);
@@ -68,7 +69,7 @@ public class ShopRequestCancelService {
 
     private void cancelAdjustment(Long sourceRequestId) {
         ShopDeliveryAreaAdjustmentRequest request = shopDeliveryAreaAdjustmentRequestPersistencePort.findById(sourceRequestId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
         request.cancel();
         shopDeliveryAreaAdjustmentRequestPersistencePort.save(request);
     }

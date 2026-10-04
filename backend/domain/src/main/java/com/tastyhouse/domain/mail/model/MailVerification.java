@@ -2,8 +2,8 @@ package com.tastyhouse.domain.mail.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.mail.vo.MailVerificationId;
 import com.tastyhouse.domain.shared.vo.VerificationCode;
 
@@ -69,10 +69,10 @@ public class MailVerification {
     public void verify(VerificationCode inputCode, LocalDateTime now) {
         if (now.isAfter(this.expiresAt)) {
             this.status = MailVerificationStatus.EXPIRED;
-            throw new BusinessException(ErrorCode.MAIL_VERIFICATION_CODE_EXPIRED);
+            throw new DomainException(DomainErrorCode.MAIL_VERIFICATION_CODE_EXPIRED);
         }
         if (!this.verificationCode.equals(inputCode)) {
-            throw new BusinessException(ErrorCode.MAIL_VERIFICATION_CODE_MISMATCH);
+            throw new DomainException(DomainErrorCode.MAIL_VERIFICATION_CODE_MISMATCH);
         }
         this.status = MailVerificationStatus.VERIFIED;
         this.verifiedAt = now;

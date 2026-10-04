@@ -5,9 +5,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.notification.model.Notification;
 import com.tastyhouse.domain.notification.model.NotificationTargetType;
@@ -15,6 +12,9 @@ import com.tastyhouse.domain.notification.model.NotificationType;
 import com.tastyhouse.domain.notification.vo.NotificationId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.notification.port.out.write.NotificationPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class NotificationService {
@@ -63,10 +63,10 @@ public class NotificationService {
 
     public void markAsRead(NotificationId notificationId, MemberId memberId, LocalDateTime readAt) {
         Notification notification = notificationPersistencePort.findById(notificationId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.NOTIFICATION_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.NOTIFICATION_NOT_FOUND));
 
         if (!notification.getMemberId().equals(memberId)) {
-            throw new BusinessException(ErrorCode.NOTIFICATION_NOT_FOUND);
+            throw new ApplicationException(ApplicationErrorCode.NOTIFICATION_NOT_FOUND);
         }
 
         notification.markAsRead(readAt);

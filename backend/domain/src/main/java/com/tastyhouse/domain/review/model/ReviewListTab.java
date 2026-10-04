@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.review.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum ReviewListTab {
 
@@ -14,8 +14,8 @@ public enum ReviewListTab {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.REVIEW_TAB_UNKNOWN,
-                ErrorCode.REVIEW_TAB_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.REVIEW_TAB_UNKNOWN,
+                DomainErrorCode.REVIEW_TAB_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

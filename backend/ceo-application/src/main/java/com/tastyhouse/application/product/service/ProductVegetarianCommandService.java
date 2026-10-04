@@ -6,8 +6,6 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -16,6 +14,8 @@ import com.tastyhouse.application.product.port.in.ProductVegetarianClearCommand;
 import com.tastyhouse.application.product.port.in.ProductVegetarianCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductVegetarianRequestCommand;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopFoodTypeCategoryReader;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -76,7 +76,7 @@ class ProductVegetarianCommandService implements ProductVegetarianCommandUseCase
         List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(
             ShopId.of(shopId), List.of(ProductId.of(productId)));
         if (found.isEmpty()) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
     }
 }

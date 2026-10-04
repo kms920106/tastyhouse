@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
@@ -19,6 +18,8 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -54,7 +55,7 @@ class ProductSortServiceTest {
             List.of(ProductCategoryId.of(100L))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_CATEGORY_ORDER_TARGET_MISMATCH);
+            .isEqualTo(CeoErrorCode.PRODUCT_CATEGORY_ORDER_TARGET_MISMATCH);
     }
 
     @Test
@@ -98,7 +99,7 @@ class ProductSortServiceTest {
             List.of(ProductId.of(10L))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
     }
 
     @Test
@@ -175,7 +176,7 @@ class ProductSortServiceTest {
             List.of(ProductId.of(20L))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
     }
 
     @Test
@@ -191,7 +192,7 @@ class ProductSortServiceTest {
             List.of(ProductId.of(10L), ProductId.of(20L))))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
     }
 
     @Test
@@ -203,7 +204,7 @@ class ProductSortServiceTest {
             List.of(), List.of()))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
     }
 
     private static final class Fixture {

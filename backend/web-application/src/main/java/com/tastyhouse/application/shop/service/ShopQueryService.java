@@ -14,9 +14,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shared.geo.GeoDistance;
@@ -45,6 +42,10 @@ import com.tastyhouse.application.product.port.out.ShopProductItemResult;
 import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsResult;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopDetailQueryUseCase;
@@ -399,9 +400,9 @@ class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQueryUseCase
         }
 
         MemberDeliveryAddress deliveryAddress = memberDeliveryAddressPersistencePort.findById(deliveryAddressId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_DELIVERY_ADDRESS_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.MEMBER_DELIVERY_ADDRESS_NOT_FOUND));
         if (!deliveryAddress.isOwnedBy(MemberId.of(memberId))) {
-            throw new BusinessException(ErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
+            throw new ApplicationException(WebErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -702,12 +703,12 @@ class ShopQueryService implements ShopSearchQueryUseCase, ShopDetailQueryUseCase
 
     private ShopVisibleDetailResult findVisibleShop(Long shopId) {
         return shopQueryPort.findVisibleDetailById(shopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 
     private Shop findVisibleShopAggregate(Long shopId) {
         return shopPersistencePort.findVisibleById(ShopId.of(shopId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 
 }

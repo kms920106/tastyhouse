@@ -5,6 +5,7 @@ plugins {
 
 dependencies {
     implementation project(':application')
+    implementation project(':api-common-module')
     api project(':security-core')
 
     implementation 'org.springframework.boot:spring-boot-starter-web'

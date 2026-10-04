@@ -10,10 +10,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.sms.model.SmsVerification;
 import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.sms.port.out.SmsSendFailure;
 import com.tastyhouse.application.sms.port.out.SmsSendResult;
 import com.tastyhouse.application.sms.port.out.SmsSender;
@@ -74,7 +74,7 @@ class SmsVerificationServiceTest {
         "API_ERROR, SMS_SEND_API_ERROR"
     })
     @DisplayName("issue는 발송 실패 종류를 기존과 같은 SMS ErrorCode로 번역한다")
-    void issue_translatesFailureKindToErrorCode(SmsSendFailure failure, ErrorCode expected) {
+    void issue_translatesFailureKindToErrorCode(SmsSendFailure failure, WebErrorCode expected) {
         SmsSender failingSender = (to, content) -> SmsSendResult.failed(failure);
         SmsVerificationService service = new SmsVerificationService(
             new FakeSmsVerificationPersistencePort(), failingSender, event -> {
@@ -97,7 +97,7 @@ class SmsVerificationServiceTest {
 
         assertThatThrownBy(() -> service.issue("01012345678"))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SMS_SEND_API_ERROR)
+            .hasFieldOrPropertyWithValue("errorCode", WebErrorCode.SMS_SEND_API_ERROR)
             .hasCause(cause);
     }
 
@@ -110,7 +110,7 @@ class SmsVerificationServiceTest {
 
         assertThatThrownBy(() -> service.confirm("01012345678", "123456"))
             .isInstanceOf(BusinessException.class)
-            .hasFieldOrPropertyWithValue("errorCode", ErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND);
+            .hasFieldOrPropertyWithValue("errorCode", WebErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND);
     }
 
     @Test

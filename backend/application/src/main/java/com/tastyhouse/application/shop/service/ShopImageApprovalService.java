@@ -2,9 +2,6 @@ package com.tastyhouse.application.shop.service;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.Shop;
@@ -15,6 +12,9 @@ import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
 
@@ -40,7 +40,7 @@ public class ShopImageApprovalService {
 
     public Long requestImageChange(Long shopId, ShopImageType imageType, Long imageFileId, ShopChangeActor actor) {
         if (shopImageChangeRequestPersistencePort.existsByShopIdAndImageTypeAndStatus(shopId, imageType, ApprovalStatus.PENDING)) {
-            throw new BusinessException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_ALREADY_PENDING);
+            throw new ApplicationException(ApplicationErrorCode.SHOP_IMAGE_CHANGE_REQUEST_ALREADY_PENDING);
         }
 
         ShopImageChangeRequest saved = shopImageChangeRequestPersistencePort.save(
@@ -85,13 +85,13 @@ public class ShopImageApprovalService {
 
     public void approveImageChange(Long id) {
         ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestPersistencePort.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
         shopImageChangeRequest.approve();
         shopImageChangeRequestPersistencePort.save(shopImageChangeRequest);
 
         ShopId shopId = shopImageChangeRequest.getShopId();
         Shop shop = shopPersistencePort.findById(shopId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
         if (shopImageChangeRequest.getImageType() == ShopImageType.TRADEMARK) {
             shop.changeTrademarkImage(shopImageChangeRequest.getImageFileId());
         } else {
@@ -109,7 +109,7 @@ public class ShopImageApprovalService {
 
     public void rejectImageChange(Long id, String reason) {
         ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestPersistencePort.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
         shopImageChangeRequest.reject(reason);
         shopImageChangeRequestPersistencePort.save(shopImageChangeRequest);
         shopRequestIndexRecorder.syncImageChangeStatus(

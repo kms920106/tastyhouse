@@ -2,8 +2,8 @@ package com.tastyhouse.domain.shop.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -129,7 +129,7 @@ public class ShopMenuCollectionImage {
 
     private void requirePending() {
         if (this.status != ApprovalStatus.PENDING) {
-            throw new BusinessException(ErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING);
+            throw new DomainException(DomainErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING);
         }
     }
 }

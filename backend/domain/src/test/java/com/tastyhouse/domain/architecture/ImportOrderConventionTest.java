@@ -70,7 +70,7 @@ class ImportOrderConventionTest {
             .as("스캔한 java 파일 수가 너무 적다. backend 루트(%s)를 잘못 찾았을 수 있다", backendRoot)
             .isGreaterThan(MINIMUM_SCANNED_FILES);
         assertThat(violations)
-            .as("import 순서 위반. backend 디렉터리에서 python3 import_order.py fix 로 재정렬하거나 backend/CLAUDE.md 규칙대로 고친다")
+            .as("import 순서 위반. 위 기대·실제 줄과 backend/CLAUDE.md 규칙대로 고친다")
             .isEmpty();
     }
 

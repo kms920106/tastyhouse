@@ -3,11 +3,11 @@ package com.tastyhouse.application.product.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.product.port.in.ProductOwnerQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductManagementDetailResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -27,9 +27,9 @@ class ProductOwnerQueryService implements ProductOwnerQueryUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ProductManagementDetailResult dto = productOwnerQueryPort.findProductManagementDetailById(productId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!dto.shopId().equals(shopId)) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
         return dto;
     }

@@ -5,15 +5,15 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 public class MemberDeliveryAddressService {
@@ -44,7 +44,7 @@ public class MemberDeliveryAddressService {
         boolean isDefault
     ) {
         if (memberDeliveryAddressPersistencePort.countByMemberId(memberId) >= MAX_ADDRESS_COUNT) {
-            throw new BusinessException(ErrorCode.MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED);
+            throw new ApplicationException(WebErrorCode.MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED);
         }
 
         AdminDongId adminDongId = matchAdminDongId(roadAddress, lotAddress);
@@ -110,9 +110,9 @@ public class MemberDeliveryAddressService {
 
     private MemberDeliveryAddress loadOwnedAddress(MemberId memberId, Long addressId) {
         MemberDeliveryAddress address = memberDeliveryAddressPersistencePort.findById(addressId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_DELIVERY_ADDRESS_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.MEMBER_DELIVERY_ADDRESS_NOT_FOUND));
         if (!address.isOwnedBy(memberId)) {
-            throw new BusinessException(ErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
+            throw new ApplicationException(WebErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
         }
         return address;
     }

@@ -6,13 +6,13 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.geo.GeoCircle;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolicy;
 import com.tastyhouse.application.region.port.out.AdminDongCandidateResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaCandidateView;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaQueryPort;
@@ -40,7 +40,7 @@ class ShopDeliveryAreaRadiusQueryService implements ShopDeliveryAreaRadiusQueryU
 
         ShopLocationResult shopLocation =
             ShopDeliveryAreaGeoMapper.requireCoordinates(shopDeliveryAreaQueryPort.findShopLocation(ceoId, shopId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.SHOP_ACCESS_DENIED)));
+                .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.SHOP_ACCESS_DENIED)));
         GeoPoint center = GeoPoint.of(shopLocation.latitude(), shopLocation.longitude());
 
         var circle = GeoCircle.approximate(center, radiusMeters, ShopDeliveryAreaPolicy.CIRCLE_SEGMENTS);

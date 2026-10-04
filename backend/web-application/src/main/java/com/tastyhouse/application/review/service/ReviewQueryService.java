@@ -12,9 +12,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
@@ -43,6 +40,10 @@ import com.tastyhouse.application.review.port.out.ReviewWriteInfoView;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
 import com.tastyhouse.application.review.port.out.ShopReviewDisplaySettingQueryPort;
 import com.tastyhouse.application.review.port.out.ShopReviewStatisticsResult;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -103,7 +104,7 @@ class ReviewQueryService implements ReviewQueryUseCase {
     @Override
     public ReviewSubmitResultView getReviewSubmitResult(Long reviewId, Long authorMemberId) {
         ReviewDetailResult detail = findReviewDetailResult(ReviewId.of(reviewId), authorMemberId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
 
         return new ReviewSubmitResultView(
             detail.id(),
@@ -221,21 +222,21 @@ class ReviewQueryService implements ReviewQueryUseCase {
     @Override
     public ReviewWriteInfoView getReviewWriteInfo(Long orderProductId, Long memberId) {
         if (memberId == null) {
-            throw new BusinessException(ErrorCode.AUTH_REQUIRED);
+            throw new ApplicationException(WebErrorCode.AUTH_REQUIRED);
         }
 
         OrderProductOwnershipResult ownership = orderQueryPort.findOrderProductOwnership(orderProductId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
 
         if (ownership.orderMemberId() == null) {
-            throw new ResourceNotFoundException(ErrorCode.ORDER_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND);
         }
         if (!ownership.orderMemberId().equals(memberId)) {
-            throw new BusinessException(ErrorCode.REVIEW_ORDER_ACCESS_DENIED);
+            throw new ApplicationException(WebErrorCode.REVIEW_ORDER_ACCESS_DENIED);
         }
 
         ProductDetailResult product = productQueryPort.findProductDetailById(ownership.productId())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.ORDER_PRODUCT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         Integer price = product.discountPrice() != null
             ? product.discountPrice()
@@ -362,7 +363,7 @@ class ReviewQueryService implements ReviewQueryUseCase {
     @Override
     public void requireVisibleReview(Long reviewId, Long viewerMemberId) {
         findReviewDetailResult(ReviewId.of(reviewId), viewerMemberId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
     }
 
     private Optional<ReviewDetailResult> findReviewDetailResult(ReviewId reviewId, Long viewerMemberId) {
@@ -377,7 +378,7 @@ class ReviewQueryService implements ReviewQueryUseCase {
 
     private Long findProductIdOfReview(Long reviewId) {
         return reviewQueryPort.findProductIdByReviewId(reviewId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.REVIEW_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
     }
 
     private PageResult<LatestReviewListItemResult> findLatestReviewsByFollowing(MemberId memberId, int page, int size) {

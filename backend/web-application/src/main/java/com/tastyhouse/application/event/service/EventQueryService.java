@@ -5,13 +5,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.event.model.EventStatus;
 import com.tastyhouse.domain.event.vo.EventId;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.application.event.port.in.EventQueryUseCase;
 import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
 import com.tastyhouse.application.event.port.out.EventDetailResult;
 import com.tastyhouse.application.event.port.out.EventListItemResult;
 import com.tastyhouse.application.event.port.out.EventQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -34,7 +34,7 @@ class EventQueryService implements EventQueryUseCase {
     @Override
     public EventDetailResult getEventDetail(Long eventId) {
         return eventQueryPort.findEventBannerById(EventId.of(eventId).value())
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.EVENT_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
     }
 
     @Override

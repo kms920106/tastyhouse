@@ -11,9 +11,8 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
@@ -27,6 +26,10 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkP
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class ProductOptionGroupMergeService {
@@ -80,7 +83,7 @@ public class ProductOptionGroupMergeService {
         List<ProductOptionGroupId> targetOptionGroupIds
     ) {
         if (targetOptionGroupIds == null || targetOptionGroupIds.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY);
         }
 
         Set<Long> unique = new LinkedHashSet<>();
@@ -89,22 +92,22 @@ public class ProductOptionGroupMergeService {
             .forEach(id -> unique.add(id.value()));
 
         if (unique.contains(baseOptionGroupId.value())) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_BASE_INCLUDED);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_BASE_INCLUDED);
         }
         if (unique.isEmpty()) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_TARGET_EMPTY);
         }
         return List.copyOf(unique);
     }
 
     private ProductOptionGroup loadGroup(Long optionGroupId) {
         return optionGroupPersistencePort.findById(ProductOptionGroupId.of(optionGroupId))
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
     }
 
     private void validateNotHidden(ProductOptionGroup group) {
         if (!group.isVisible()) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_HIDDEN_TARGET);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_HIDDEN_TARGET);
         }
     }
 
@@ -123,7 +126,7 @@ public class ProductOptionGroupMergeService {
 
         for (ProductOptionGroupId groupId : groupIds) {
             if (byGroupId.getOrDefault(groupId.value(), List.of()).isEmpty()) {
-                throw new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
+                throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
             }
         }
         return byGroupId;
@@ -133,10 +136,10 @@ public class ProductOptionGroupMergeService {
         for (Long groupId : linksByGroupId.keySet()) {
             ShopId owner = linkService.findOwningShopId(ProductOptionGroupId.of(groupId));
             if (owner == null) {
-                throw new ResourceNotFoundException(ErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
+                throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);
             }
             if (!owner.equals(shopId)) {
-                throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_SHOP_MISMATCH);
+                throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_SHOP_MISMATCH);
             }
         }
     }
@@ -157,7 +160,7 @@ public class ProductOptionGroupMergeService {
                 Long productId = link.getProductId().value();
                 Long previous = ownerGroupIdByProductId.putIfAbsent(productId, groupId);
                 if (previous != null && !previous.equals(groupId)) {
-                    throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_SAME_PRODUCT_LINKED);
+                    throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_SAME_PRODUCT_LINKED);
                 }
             }
         }
@@ -166,7 +169,7 @@ public class ProductOptionGroupMergeService {
     private void validateSameGroupType(ProductOptionGroup base, List<ProductOptionGroup> targets) {
         for (ProductOptionGroup target : targets) {
             if (target.getGroupType() != base.getGroupType()) {
-                throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_MERGE_TYPE_MISMATCH);
+                throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_TYPE_MISMATCH);
             }
         }
     }
@@ -176,7 +179,7 @@ public class ProductOptionGroupMergeService {
             optionPersistencePort.findAllByOptionGroupId(base.getProductOptionGroupId());
         long selectable = baseOptions.stream().filter(ProductOptionSelectionRule::selectable).count();
         if (selectable < ProductOptionSelectionRule.minRemaining(base)) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
+            throw new DomainException(DomainErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
         }
     }
 

@@ -10,14 +10,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.product.model.Product;
-import com.tastyhouse.domain.product.model.ProductAvailabilityChangeResult;
-import com.tastyhouse.domain.product.model.ProductAvailabilityFailure;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,7 +37,7 @@ class ProductDeletionServiceTest {
         assertThat(result.succeeded()).isEmpty();
         assertThat(result.failed()).hasSize(1);
         assertThat(result.failed().getFirst().errorCode())
-            .isEqualTo(ErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE);
+            .isEqualTo(CeoErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE);
         assertThat(only.isDeleted()).isFalse();
     }
 
@@ -53,7 +52,7 @@ class ProductDeletionServiceTest {
 
         assertThat(result.failed()).hasSize(1);
         assertThat(result.failed().getFirst().errorCode())
-            .isEqualTo(ErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE);
         assertThat(representative.isDeleted()).isFalse();
     }
 
@@ -154,7 +153,7 @@ class ProductDeletionServiceTest {
         assertThatThrownBy(() -> fixture.service.deleteProducts(SHOP_ID, List.of()))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
+            .isEqualTo(ApplicationErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
     }
 
     @Test
@@ -167,7 +166,7 @@ class ProductDeletionServiceTest {
 
         assertThat(result.succeeded()).containsExactly(10L);
         assertThat(result.failed()).hasSize(1);
-        assertThat(result.failed().getFirst().errorCode()).isEqualTo(ErrorCode.PRODUCT_NOT_FOUND);
+        assertThat(result.failed().getFirst().errorCode()).isEqualTo(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         assertThat(result.failed().getFirst().id()).isEqualTo(999L);
     }
 

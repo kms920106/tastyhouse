@@ -7,8 +7,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.shared.geo.GeoPolygonTextCodec;
 import com.tastyhouse.domain.shared.geo.GeoRing;
 import com.tastyhouse.application.region.port.in.AdminDongQueryUseCase;
@@ -19,6 +17,8 @@ import com.tastyhouse.application.region.port.out.AdminDongItemResult;
 import com.tastyhouse.application.region.port.out.AdminDongQueryPort;
 import com.tastyhouse.application.region.port.out.AdminDongTreeItemResult;
 import com.tastyhouse.application.region.port.out.AdminDongTreeResult;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -51,8 +51,8 @@ class AdminDongQueryService implements AdminDongQueryUseCase {
         boolean hasSigungu = StringUtils.hasText(sigunguName);
 
         if (hasSigungu && !hasSido) {
-            throw new BusinessException(
-                ErrorCode.ADMIN_DONG_QUERY_INVALID,
+            throw new ApplicationException(
+                CeoErrorCode.ADMIN_DONG_QUERY_INVALID,
                 "시/군/구를 지정하려면 시/도도 함께 지정해야 합니다."
             );
         }
@@ -82,14 +82,14 @@ class AdminDongQueryService implements AdminDongQueryUseCase {
         boolean hasBoundingBox = swLat != null && swLng != null && neLat != null && neLng != null;
 
         if (hasIds && hasBoundingBox) {
-            throw new BusinessException(
-                ErrorCode.ADMIN_DONG_QUERY_INVALID,
+            throw new ApplicationException(
+                CeoErrorCode.ADMIN_DONG_QUERY_INVALID,
                 "조회 영역(bbox)과 행정동 ID는 함께 지정할 수 없습니다."
             );
         }
         if (!hasIds && !hasBoundingBox) {
-            throw new BusinessException(
-                ErrorCode.ADMIN_DONG_QUERY_INVALID,
+            throw new ApplicationException(
+                CeoErrorCode.ADMIN_DONG_QUERY_INVALID,
                 "조회 영역(bbox) 또는 행정동 ID 중 하나는 반드시 지정해야 합니다."
             );
         }
@@ -99,7 +99,7 @@ class AdminDongQueryService implements AdminDongQueryUseCase {
         }
 
         if (level == null) {
-            throw new BusinessException(ErrorCode.ADMIN_DONG_QUERY_INVALID, "조회 영역(bbox)에는 줌 레벨이 필요합니다.");
+            throw new ApplicationException(CeoErrorCode.ADMIN_DONG_QUERY_INVALID, "조회 영역(bbox)에는 줌 레벨이 필요합니다.");
         }
         if (exceedsBoundingBoxLimit(swLat, swLng, neLat, neLng)) {
             return new AdminDongBoundariesResult(true, List.of());

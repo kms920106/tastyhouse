@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shared.geo.GeoCircle;
 import com.tastyhouse.domain.shared.geo.GeoDistance;
 import com.tastyhouse.domain.shared.geo.GeoPoint;
@@ -45,7 +45,7 @@ class ShopDeliveryAreaPolicyTest {
         assertThatThrownBy(() -> ShopDeliveryAreaPolicy.validateWithinMaxRadius(polygon, SHOP))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_RADIUS_EXCEEDED);
+            .isEqualTo(DomainErrorCode.SHOP_DELIVERY_AREA_RADIUS_EXCEEDED);
     }
 
     @Test
@@ -59,7 +59,7 @@ class ShopDeliveryAreaPolicyTest {
         assertThatThrownBy(() -> ShopDeliveryAreaPolicy.validateWithinMaxRadius(polygon, SHOP))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_RADIUS_EXCEEDED);
+            .isEqualTo(DomainErrorCode.SHOP_DELIVERY_AREA_RADIUS_EXCEEDED);
     }
 
     @Test
@@ -73,7 +73,7 @@ class ShopDeliveryAreaPolicyTest {
         assertThatThrownBy(() -> ShopDeliveryAreaPolicy.validateShape(GeoPolygon.of(rings)))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_POLYGON_INVALID);
+            .isEqualTo(DomainErrorCode.SHOP_DELIVERY_AREA_POLYGON_INVALID);
     }
 
     @Test
@@ -96,7 +96,7 @@ class ShopDeliveryAreaPolicyTest {
         assertThatThrownBy(() -> ShopDeliveryAreaPolicy.validateShape(polygon))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_POLYGON_INVALID);
+            .isEqualTo(DomainErrorCode.SHOP_DELIVERY_AREA_POLYGON_INVALID);
     }
 
     @Test
@@ -108,7 +108,7 @@ class ShopDeliveryAreaPolicyTest {
         assertThatThrownBy(() -> ShopDeliveryAreaPolicy.validateTotalCount(ShopDeliveryAreaPolicy.MAX_DELIVERY_AREA_COUNT + 1))
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_COUNT_EXCEEDED);
+            .isEqualTo(DomainErrorCode.SHOP_DELIVERY_AREA_COUNT_EXCEEDED);
     }
 
     @Test

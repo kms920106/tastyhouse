@@ -2,8 +2,8 @@ package com.tastyhouse.domain.product.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -77,10 +77,10 @@ public class ProductFeedback {
 
     private static void validateContent(ProductFeedbackType feedbackType, String content) {
         if (feedbackType.requiresContent() && content == null) {
-            throw new BusinessException(ErrorCode.PRODUCT_FEEDBACK_CONTENT_REQUIRED);
+            throw new DomainException(DomainErrorCode.PRODUCT_FEEDBACK_CONTENT_REQUIRED);
         }
         if (content != null && content.length() > CONTENT_MAX_LENGTH) {
-            throw new BusinessException(ErrorCode.PRODUCT_FEEDBACK_CONTENT_TOO_LONG);
+            throw new DomainException(DomainErrorCode.PRODUCT_FEEDBACK_CONTENT_TOO_LONG);
         }
     }
 

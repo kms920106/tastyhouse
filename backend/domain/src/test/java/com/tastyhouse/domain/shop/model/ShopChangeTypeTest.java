@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,7 +43,7 @@ class ShopChangeTypeTest {
         assertThatThrownBy(() -> ShopChangeType.from("NOT_A_CHANGE_TYPE"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_CHANGE_TYPE_UNKNOWN);
+            .isEqualTo(DomainErrorCode.SHOP_CHANGE_TYPE_UNKNOWN);
     }
 
     @Test
@@ -52,6 +52,6 @@ class ShopChangeTypeTest {
         assertThatThrownBy(() -> ShopChangeCategory.from("NOT_A_CATEGORY"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_CHANGE_CATEGORY_UNKNOWN);
+            .isEqualTo(DomainErrorCode.SHOP_CHANGE_CATEGORY_UNKNOWN);
     }
 }

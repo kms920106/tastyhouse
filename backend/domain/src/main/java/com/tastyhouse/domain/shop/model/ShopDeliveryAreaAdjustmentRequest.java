@@ -2,8 +2,8 @@ package com.tastyhouse.domain.shop.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
@@ -100,14 +100,14 @@ public class ShopDeliveryAreaAdjustmentRequest {
 
     public void startProgress() {
         if (this.status != DeliveryAreaAdjustmentStatus.PENDING) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_PENDING);
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_PENDING);
         }
         this.status = DeliveryAreaAdjustmentStatus.IN_PROGRESS;
     }
 
     public void complete() {
         if (this.status != DeliveryAreaAdjustmentStatus.IN_PROGRESS) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_IN_PROGRESS);
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_IN_PROGRESS);
         }
         this.status = DeliveryAreaAdjustmentStatus.COMPLETED;
     }
@@ -116,7 +116,7 @@ public class ShopDeliveryAreaAdjustmentRequest {
         if (this.status == DeliveryAreaAdjustmentStatus.COMPLETED
             || this.status == DeliveryAreaAdjustmentStatus.REJECTED
             || this.status == DeliveryAreaAdjustmentStatus.CANCELED) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED);
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED);
         }
         this.status = DeliveryAreaAdjustmentStatus.REJECTED;
         this.rejectReason = reason;
@@ -124,7 +124,7 @@ public class ShopDeliveryAreaAdjustmentRequest {
 
     public void cancel() {
         if (this.status != DeliveryAreaAdjustmentStatus.PENDING) {
-            throw new BusinessException(ErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
+            throw new DomainException(DomainErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
         }
         this.status = DeliveryAreaAdjustmentStatus.CANCELED;
     }

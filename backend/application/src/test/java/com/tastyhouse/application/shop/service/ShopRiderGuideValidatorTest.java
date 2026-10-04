@@ -8,9 +8,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.domain.shop.model.Shop;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,7 +75,7 @@ class ShopRiderGuideValidatorTest {
     void findViolations_detectsShopAddress() {
         List<String> violations = shopRiderGuideValidator.findViolations(shop, "서울시 송파구 위례성대로 10으로 오세요.");
 
-        assertThat(violations).contains(ErrorCode.SHOP_RIDER_VISIT_GUIDE_CONTAINS_ADDRESS.getDefaultMessage());
+        assertThat(violations).contains(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_CONTAINS_ADDRESS.getDefaultMessage());
     }
 
     @Test
@@ -90,7 +91,7 @@ class ShopRiderGuideValidatorTest {
     void findViolations_detectsLotAddress() {
         List<String> violations = shopRiderGuideValidator.findViolations(shop, "서울시 송파구 방이동 44-1 입니다.");
 
-        assertThat(violations).contains(ErrorCode.SHOP_RIDER_VISIT_GUIDE_CONTAINS_ADDRESS.getDefaultMessage());
+        assertThat(violations).contains(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_CONTAINS_ADDRESS.getDefaultMessage());
     }
 
     @Test
@@ -120,7 +121,7 @@ class ShopRiderGuideValidatorTest {
     void findViolations_includesLengthViolation() {
         List<String> violations = shopRiderGuideValidator.findViolations(shop, "가".repeat(201));
 
-        assertThat(violations).contains(ErrorCode.SHOP_RIDER_VISIT_GUIDE_TOO_LONG.getDefaultMessage());
+        assertThat(violations).contains(DomainErrorCode.SHOP_RIDER_VISIT_GUIDE_TOO_LONG.getDefaultMessage());
     }
 
     @Test
@@ -136,7 +137,7 @@ class ShopRiderGuideValidatorTest {
         assertThatThrownBy(() -> shopRiderGuideValidator.validate(shop, "서울시 송파구 위례성대로 10"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_VISIT_GUIDE_CONTAINS_ADDRESS);
+            .isEqualTo(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_CONTAINS_ADDRESS);
     }
 
     @Test
@@ -145,7 +146,7 @@ class ShopRiderGuideValidatorTest {
         assertThatThrownBy(() -> shopRiderGuideValidator.validate(shop, "면이라 금방 불어버리니 잡지 말아주세요."))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_RIDER_VISIT_GUIDE_DISPATCH_RESTRICTION);
+            .isEqualTo(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_DISPATCH_RESTRICTION);
     }
 
     @Test
@@ -154,7 +155,7 @@ class ShopRiderGuideValidatorTest {
         assertThatThrownBy(() -> shopRiderGuideValidator.validate(shop, "전화주문 환영합니다."))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
-            .isEqualTo(ErrorCode.SHOP_TEXT_PROHIBITED_WORD);
+            .isEqualTo(ApplicationErrorCode.SHOP_TEXT_PROHIBITED_WORD);
     }
 
     @Test

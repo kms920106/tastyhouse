@@ -2,8 +2,8 @@ package com.tastyhouse.domain.shop.model;
 
 import java.time.LocalDateTime;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ShopDeliveryTipSetting {
@@ -58,11 +58,11 @@ public class ShopDeliveryTipSetting {
 
     public void changeToDistance(int baseDistanceMeters, DeliveryTipDistanceUnit unit, int surchargeAmount) {
         if (!DeliveryTipPolicy.BASE_DISTANCE_OPTIONS.contains(baseDistanceMeters)) {
-            throw new BusinessException(ErrorCode.SHOP_DELIVERY_TIP_DISTANCE_BASE_INVALID,
-                ErrorCode.SHOP_DELIVERY_TIP_DISTANCE_BASE_INVALID.getDefaultMessage() + " 입력: " + baseDistanceMeters + "m");
+            throw new DomainException(DomainErrorCode.SHOP_DELIVERY_TIP_DISTANCE_BASE_INVALID,
+                DomainErrorCode.SHOP_DELIVERY_TIP_DISTANCE_BASE_INVALID.getDefaultMessage() + " 입력: " + baseDistanceMeters + "m");
         }
         if (unit == null) {
-            throw new BusinessException(ErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN);
+            throw new DomainException(DomainErrorCode.DELIVERY_TIP_DISTANCE_UNIT_UNKNOWN);
         }
         unit.validateAmount(surchargeAmount);
 

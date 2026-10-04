@@ -15,7 +15,7 @@
 ## Key Files
 | File | Description |
 |------|-------------|
-| `build.gradle` | `java-library` + `application`(implementation — `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`의 `ErrorContracts` 참조. **덩어리 01에서 `domain`을 대체** — 과거 `domain`(implementation — ErrorCode 참조)) + **`api project(':security-core')`**(챕터 03 — 서블릿-프리 타입 재노출, jjwt는 이 좌표를 통해 전이 수신) + starter-web(implementation) + starter-security(`api`, 서블릿 결합 타입이 spring-security-web 필요). `bootJar` 비활성. **챕터 02** — `{web,admin,ceo}-api`는 이 모듈을 여전히 `implementation`으로 의존한다(`TokenService`가 `JwtTokenProvider`를 구체 타입으로 직접 주입하는 컴파일 타임 결합이 있어 `runtimeOnly`로 내릴 수 없다) |
+| `build.gradle` | `java-library` + `application`(implementation — **덩어리 01에서 `domain`을 대체**, 과거 `domain`(implementation — ErrorCode 참조)) + `api-common-module`(implementation — **(에러코드 모듈 분할)** `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`의 `ApiErrorCode` 참조, 과거에는 `application`의 `ErrorContracts` 참조) + **`api project(':security-core')`**(챕터 03 — 서블릿-프리 타입 재노출, jjwt는 이 좌표를 통해 전이 수신) + starter-web(implementation) + starter-security(`api`, 서블릿 결합 타입이 spring-security-web 필요). `bootJar` 비활성. **챕터 02** — `{web,admin,ceo}-api`는 이 모듈을 여전히 `implementation`으로 의존한다(`TokenService`가 `JwtTokenProvider`를 구체 타입으로 직접 주입하는 컴파일 타임 결합이 있어 `runtimeOnly`로 내릴 수 없다) |
 
 ## Subdirectories
 | Directory | Purpose |
@@ -27,8 +27,8 @@
 
 ### Working In This Directory
 - 이 모듈이 domain 어댑터가 아니라 presentation 공유 유틸이기 때문에 `spring-boot-starter-web` 의존이 허용된다(외부 연동 모듈에는 이런 선례가 없다 — 코어 `infrastructure:restclient`가 한때 `MultipartFile` 1종 때문에 `spring-web` 단일 좌표를 썼으나, `FileStorageStrategy`가 `byte[]`를 받도록 바뀌며 그 의존이 사라졌고, 이후 그 전략 인터페이스 자체가 도메인 포트 `FileStoragePort`와 동형이라 삭제됐다. 이후 RestClient 전환으로 `spring-web`은 코어의 정식 `api` 의존으로 되돌아왔다 — 다만 그것은 벤더 어댑터가 `RestClient.Builder`를 조립하기 위한 것이지, 이 모듈처럼 서블릿 스택(`starter-web`)을 쓰기 위한 것이 아니다).
-- ~~**이 모듈이 `domain`을 의존하는 유일한 이유**는 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`가 401/403 응답을 조립할 때 쓰는 `com.tastyhouse.domain.exception.ErrorCode` 참조뿐이다(그 밖의 도메인 타입 참조 0건).~~ **번복됨 (덩어리 01)** — 이제 `domain`을 의존하지 않는다. 두 클래스는 `application`의 `com.tastyhouse.application.shared.error.ErrorContracts`(`authRequired()`·`accessDenied()` — `ErrorCode.AUTH_REQUIRED`·`ACCESS_DENIED`의 미러)를 쓰고, 의존은 `implementation project(':application')`이다. **이 모듈에 `com.tastyhouse.domain..`을 다시 끌어들이지 않는다** — `LayerRulesTest#shouldNotDependOnDomain`이 막는다. 새 에러코드가 필요하면 `ErrorContracts`에 미러를 추가한다.
-- 새 관심사를 어디에 둘지 판단하는 기준 (챕터 05 개정, 챕터 03으로 세분화): **domain 포트가 있으면** `infrastructure:persistence`(JPA/조회) 또는 외부 연동 모듈 — 코어 계약(`RestClientConfig`뿐 — 예외·에러코드는 도메인 `ErrorCode` 소유)은 `infrastructure:restclient`(구 `infrastructure:external` → `infrastructure:http-client`), 실제 어댑터(도메인 포트를 직접 구현)는 기술별로 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`(코드 없는 조립 스타터 `file-storage`·`oauth`는 어댑터를 갖지 않는다). **domain 포트가 없는 순수 기술**이면 그 기술의 인프라 모듈(Redis는 `infrastructure:redis`). **domain 포트가 없고 여러 presentation이 공유하는 보안 관심사**면, **서블릿 결합 여부로 다시 갈린다** — 서블릿-프리(토큰 발급/검증·저장소)면 `security-core`, 서블릿 결합(필터·EntryPoint·AccessDeniedHandler)이면 이 모듈. 특정 앱 하나만 쓰면 그 앱 모듈에 잔류.
+- ~~**이 모듈이 `domain`을 의존하는 유일한 이유**는 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`가 401/403 응답을 조립할 때 쓰는 `com.tastyhouse.domain.exception.ErrorCode` 참조뿐이다(그 밖의 도메인 타입 참조 0건).~~ **번복됨 (덩어리 01)** — 이제 `domain`을 의존하지 않는다. 두 클래스는 `application`의 `com.tastyhouse.application.shared.error.ErrorContracts`(`authRequired()`·`accessDenied()` — `ErrorCode.AUTH_REQUIRED`·`ACCESS_DENIED`의 미러)를 썼고, 의존은 `implementation project(':application')`이었다. **(번복됨 — 에러코드 모듈 분할)** `ErrorContracts`는 삭제되어 지금은 `com.tastyhouse.apicommon.exception.ApiErrorCode`(`AUTH_REQUIRED`·`ACCESS_DENIED`)를 쓰고, 그 의존은 `implementation project(':api-common-module')`다. **이 모듈에 `com.tastyhouse.domain..`을 다시 끌어들이지 않는다** — `LayerRulesTest#shouldNotDependOnDomain`이 막는다. 새 401/403 계열 에러코드가 필요하면 `ApiErrorCode`에 추가한다.
+- 새 관심사를 어디에 둘지 판단하는 기준 (챕터 05 개정, 챕터 03으로 세분화): **domain 포트가 있으면** `infrastructure:persistence`(JPA/조회) 또는 외부 연동 모듈 — 코어 계약(`RestClientConfig`뿐 — 예외·에러코드는 두지 않고, 실패 코드는 번역하는 application 모듈의 `WebErrorCode`·`BatchErrorCode`가 소유)은 `infrastructure:restclient`(구 `infrastructure:external` → `infrastructure:http-client`), 실제 어댑터(도메인 포트를 직접 구현)는 기술별로 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`(코드 없는 조립 스타터 `file-storage`·`oauth`는 어댑터를 갖지 않는다). **domain 포트가 없는 순수 기술**이면 그 기술의 인프라 모듈(Redis는 `infrastructure:redis`). **domain 포트가 없고 여러 presentation이 공유하는 보안 관심사**면, **서블릿 결합 여부로 다시 갈린다** — 서블릿-프리(토큰 발급/검증·저장소)면 `security-core`, 서블릿 결합(필터·EntryPoint·AccessDeniedHandler)이면 이 모듈. 특정 앱 하나만 쓰면 그 앱 모듈에 잔류.
 - **Redis를 쓴다는 이유만으로 이 모듈에 두지 않는다** — 그것이 챕터 05에서 rate limiting을 내보낸 이유다. 이 모듈에 남는 기준은 "보안 관심사인가"이지 "Redis를 쓰는가"가 아니다.
 - **`OncePerRequestFilter`·`jakarta.servlet`·`AuthenticationEntryPoint`/`AccessDeniedHandler` 등 서블릿 결합 타입을 새로 추가할 때만 이 모듈에 둔다.** 서블릿-프리 보안 로직(토큰 서명/파싱, 새 Redis 토큰 저장소 등)은 `security-core`로 보낸다 — application 4모듈의 컴파일 클래스패스를 서블릿 스택으로 오염시키지 않기 위해서다(아래 [security-core 분리](#security-core-분리-챕터-03) 참고).
 - **`SecurityModuleConfig`(~~`SecurityModuleAutoConfiguration`~~ — imports 제거로 리네임)는 `@ConditionalOnWebApplication(type = SERVLET)`을 갖는다 (챕터 02, imports 제거 후에도 유지 — 환경 조건이라 일반 `@Configuration`에서도 정확하다)** — batch-module은 jar 자체가 없어 무관하지만, 혹시 이 모듈이 non-servlet 컨텍스트의 클래스패스에 실리는 경우에도 서블릿 필터·EntryPoint 빈이 조용히 발화하지 않도록 조건을 명시했다.
@@ -75,7 +75,8 @@
 ## Dependencies
 
 ### Internal
-- `application` (implementation) — `com.tastyhouse.application.shared.error.ErrorContracts` 참조(`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`). **before**: `domain` (implementation) — `com.tastyhouse.domain.exception.ErrorCode` 참조 → **after**: `application`(덩어리 01). 응답 동작 불변
+- `api-common-module` (implementation) — `com.tastyhouse.apicommon.exception.ApiErrorCode` 참조(`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`). **before**: `application` — `ErrorContracts` 참조(그 이전은 `domain`의 `ErrorCode`) → **after**: `api-common-module`(에러코드 모듈 분할). 응답 동작 불변. 순환 없음(`api-common-module → application, security-core`)
+- `application` (implementation) — 덩어리 01에서 `domain`을 대체한 의존이며 `build.gradle`에 남아 있다
 - `security-core` (api) — (챕터 03) 서블릿-프리 보안 코어(`JwtTokenProvider`·Redis 토큰 저장소 6종·`JwtProperties` 등) 재노출. 이 모듈에 남은 서블릿 결합 타입이 그 타입들을 쓰고, api 3모듈도 이 좌표를 통해 전이로 수신
 
 ### External
@@ -158,6 +159,14 @@ property를 함께 담는 이유는 전역 예외 핸들러(advice 단계)의 40
 한다. 이 property를 빼면 프론트의 에러 분기가 필터 단계 응답에서만 조용히 실패한다.
 
 **(갱신 — 덩어리 01)** 상태·`errorCode`·메시지의 출처가 `ErrorCode.AUTH_REQUIRED`/`ErrorCode.ACCESS_DENIED`에서
-`ErrorContracts.authRequired()`/`ErrorContracts.accessDenied()`로 바뀌었다. 값은 동일하며
-(`application`의 `ErrorContractsConsistencyTest`가 두 쪽의 일치를 단정), 응답 계약은 변경 전후 jar diff로 불변을 확인했다.
-advice 단계(`GlobalExceptionHandler`)도 같은 `ErrorContracts`를 쓰므로 두 단계의 값이 한 곳에서 나온다.
+`ErrorContracts.authRequired()`/`ErrorContracts.accessDenied()`로 바뀌었다. 값은 동일하며 응답 계약은 변경 전후 jar diff로 불변을 확인했다.
+
+**(번복됨 — 에러코드 모듈 분할)** `ErrorContracts`는 삭제됐다. 지금 출처는 `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ApiErrorCode.java`의 `AUTH_REQUIRED`(401)·`ACCESS_DENIED`(403)이고, advice 단계(`apicommon`·web-api의 `GlobalExceptionHandler`)도 같은 enum을 쓰므로 두 단계의 값이 한 곳에서 나온다. wire 값(status·errorCode·message)은 불변이며 `application`의 `ErrorCatalogSnapshotTest`가 보증한다.
+
+| 항목 | before | after |
+|---|---|---|
+| 401 출처 | `ErrorContracts.authRequired()` | `ApiErrorCode.AUTH_REQUIRED` |
+| 403 출처 | `ErrorContracts.accessDenied()` | `ApiErrorCode.ACCESS_DENIED` |
+| 이 모듈의 의존 | `application` | `application` + `api-common-module` |
+
+**`AUTH_REQUIRED`는 `WebErrorCode.AUTH_REQUIRED`(web-application)의 미러**다. 둘의 일치는 `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`#`mirroredCodesStayIdentical`이 보증하므로 한쪽만 고치지 않는다. `ApiErrorCode`가 `api-common-module`에 있는 이유(HTTP 필터·핸들러 계약은 표현 계층 소유)와 그 대가인 `security-module → api-common-module` 간선은 `backend/api-common-module/AGENTS.md`의 `ApiErrorCode` 항목에 있다. 이 모듈의 `LayerRulesTest#shouldNotDependOnDomain`의 `.because`도 "401/403 계약은 api-common-module의 `ApiErrorCode`로 읽는다"로 갱신됐다.

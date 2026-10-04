@@ -5,11 +5,11 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shop.model.HygieneBadgeType;
 import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.AdminErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeDeleteCommand;
@@ -47,7 +47,7 @@ class ShopHygieneBadgeCommandService implements ShopHygieneBadgeCommandUseCase {
     public void deleteHygieneBadge(ShopHygieneBadgeDeleteCommand command) {
         Long hygieneBadgeId = command.hygieneBadgeId();
         shopHygieneBadgePersistencePort.findById(hygieneBadgeId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_HYGIENE_BADGE_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_HYGIENE_BADGE_NOT_FOUND));
         shopHygieneBadgePersistencePort.deleteById(hygieneBadgeId);
     }
 }

@@ -1,0 +1,133 @@
+package com.tastyhouse.application.shared.exception;
+
+public enum WebErrorCode implements ApplicationErrorCodeSpec {
+
+    AUTH_REQUIRED(401, "AUTH_REQUIRED", "인증이 필요합니다."),
+    AUTH_TOKEN_INVALID(401, "AUTH_TOKEN_INVALID", "유효하지 않은 토큰입니다."),
+    AUTH_REFRESH_TOKEN_INVALID(401, "AUTH_REFRESH_TOKEN_INVALID", "유효하지 않은 Refresh Token입니다."),
+    AUTH_REFRESH_TOKEN_EXPIRED(401, "AUTH_REFRESH_TOKEN_EXPIRED", "만료되었거나 이미 로그아웃된 Refresh Token입니다."),
+    AUTH_VERIFICATION_MISMATCH(401, "AUTH_VERIFICATION_MISMATCH", "인증 정보가 일치하지 않습니다."),
+    AUTH_PHONE_VERIFICATION_MISMATCH(401, "AUTH_PHONE_VERIFICATION_MISMATCH", "휴대폰 인증 정보가 일치하지 않습니다."),
+
+    ORDER_PRODUCT_NOT_FOUND(404, "ORDER_PRODUCT_NOT_FOUND", "상품을 찾을 수 없습니다."),
+    ORDER_OPTION_GROUP_NOT_FOUND(404, "ORDER_OPTION_GROUP_NOT_FOUND", "옵션 그룹을 찾을 수 없습니다."),
+    ORDER_OPTION_NOT_FOUND(404, "ORDER_OPTION_NOT_FOUND", "옵션을 찾을 수 없습니다."),
+    ORDER_PRODUCT_NOT_AVAILABLE(400, "ORDER_PRODUCT_NOT_AVAILABLE", "현재 판매하지 않는 메뉴입니다."),
+    ORDER_PRODUCT_SOLD_OUT(400, "ORDER_PRODUCT_SOLD_OUT", "품절된 상품입니다."),
+    ORDER_PRODUCT_AMOUNT_MISMATCH(400, "ORDER_PRODUCT_AMOUNT_MISMATCH", "상품 금액이 일치하지 않습니다."),
+    ORDER_PRODUCT_DISCOUNT_AMOUNT_MISMATCH(400, "ORDER_PRODUCT_DISCOUNT_AMOUNT_MISMATCH", "상품 할인 금액이 일치하지 않습니다."),
+    ORDER_COUPON_DISCOUNT_AMOUNT_MISMATCH(400, "ORDER_COUPON_DISCOUNT_AMOUNT_MISMATCH", "쿠폰 사용 금액이 일치하지 않습니다."),
+    ORDER_POINT_DISCOUNT_AMOUNT_MISMATCH(400, "ORDER_POINT_DISCOUNT_AMOUNT_MISMATCH", "포인트 사용 금액이 일치하지 않습니다."),
+    ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH(400, "ORDER_TOTAL_DISCOUNT_AMOUNT_MISMATCH", "할인 금액이 일치하지 않습니다."),
+    ORDER_FINAL_AMOUNT_MISMATCH(400, "ORDER_FINAL_AMOUNT_MISMATCH", "결제 금액이 일치하지 않습니다."),
+    ORDER_OPTION_SELECT_COUNT_INVALID(400, "ORDER_OPTION_SELECT_COUNT_INVALID", "옵션 선택 개수가 올바르지 않습니다."),
+    ORDER_CUP_DEPOSIT_AMOUNT_MISMATCH(400, "ORDER_CUP_DEPOSIT_AMOUNT_MISMATCH", "일회용컵 보증금 금액이 일치하지 않습니다."),
+
+    PAYMENT_REFUND_NOT_FOUND(404, "PAYMENT_REFUND_NOT_FOUND", "환불 정보를 찾을 수 없습니다."),
+    PAYMENT_APPROVAL_FAILED(400, "PAYMENT_APPROVAL_FAILED", "결제 승인에 실패했습니다."),
+    PAYMENT_REFUND_AMOUNT_EXCEEDED(400, "PAYMENT_REFUND_AMOUNT_EXCEEDED", "환불 금액이 결제 금액을 초과할 수 없습니다."),
+    PAYMENT_NOT_COMPLETED(400, "PAYMENT_NOT_COMPLETED", "완료된 결제만 환불할 수 있습니다."),
+    PG_PROVIDER_UNSUPPORTED(400, "PG_PROVIDER_UNSUPPORTED", "지원하지 않는 PG사입니다."),
+
+    MEMBER_USERNAME_DUPLICATED(409, "MEMBER_USERNAME_DUPLICATED", "이미 사용 중인 아이디입니다."),
+    MEMBER_EMAIL_ALREADY_REGISTERED(409, "MEMBER_EMAIL_ALREADY_REGISTERED", "이미 가입된 이메일입니다."),
+    MEMBER_NICKNAME_DUPLICATED(409, "MEMBER_NICKNAME_DUPLICATED", "이미 사용 중인 닉네임입니다."),
+    MEMBER_PHONE_ALREADY_REGISTERED(409, "MEMBER_PHONE_ALREADY_REGISTERED", "이미 가입된 휴대폰번호입니다."),
+    MEMBER_SIGNUP_PHONE_REQUIRED(400, "MEMBER_SIGNUP_PHONE_REQUIRED", "회원가입 시 휴대폰 인증이 필요합니다."),
+    MEMBER_SIGNUP_EMAIL_REQUIRED(400, "MEMBER_SIGNUP_EMAIL_REQUIRED", "회원가입 시 이메일 인증이 필요합니다."),
+    MEMBER_INFO_AUTH_EXPIRED(400, "MEMBER_INFO_AUTH_EXPIRED", "개인정보 수정 인증이 만료되었습니다. 비밀번호를 다시 인증해주세요."),
+    MEMBER_PHONE_SMS_REQUIRED(400, "MEMBER_PHONE_SMS_REQUIRED", "휴대폰번호 변경 시 SMS 인증이 필요합니다."),
+    MEMBER_PHONE_AUTH_EXPIRED(400, "MEMBER_PHONE_AUTH_EXPIRED", "휴대폰 인증이 만료되었습니다. SMS 인증을 다시 진행해주세요."),
+    MEMBER_PHONE_MISMATCH(400, "MEMBER_PHONE_MISMATCH", "인증된 휴대폰번호와 입력한 휴대폰번호가 일치하지 않습니다."),
+    MEMBER_EMAIL_AUTH_EXPIRED(400, "MEMBER_EMAIL_AUTH_EXPIRED", "이메일 인증이 만료되었습니다. 이메일 인증을 다시 진행해주세요."),
+    MEMBER_EMAIL_MISMATCH(400, "MEMBER_EMAIL_MISMATCH", "인증된 이메일과 입력한 아이디(이메일)가 일치하지 않습니다."),
+    MEMBER_PASSWORD_MISMATCH(400, "MEMBER_PASSWORD_MISMATCH", "비밀번호가 일치하지 않습니다."),
+    MEMBER_PASSWORD_CONFIRM_MISMATCH(400, "MEMBER_PASSWORD_CONFIRM_MISMATCH", "새 비밀번호와 비밀번호 확인이 일치하지 않습니다."),
+    MEMBER_PASSWORD_SAME_AS_OLD(400, "MEMBER_PASSWORD_SAME_AS_OLD", "현재 비밀번호와 동일한 비밀번호로 변경할 수 없습니다."),
+    MEMBER_PASSWORD_RESET_TOKEN_INVALID(400, "MEMBER_PASSWORD_RESET_TOKEN_INVALID", "비밀번호 재설정 토큰이 유효하지 않거나 만료되었습니다."),
+
+    SMS_VERIFICATION_CODE_NOT_FOUND(400, "VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
+    SMS_SEND_NO_RESPONSE(502, "SMS_SEND_NO_RESPONSE", "SMS 발송 응답이 없습니다."),
+    SMS_SEND_FAILED(502, "SMS_SEND_FAILED", "SMS 발송에 실패했습니다."),
+    SMS_SEND_API_ERROR(502, "SMS_SEND_API_ERROR", "SMS 발송 중 API 오류가 발생했습니다."),
+
+    MAIL_VERIFICATION_CODE_NOT_FOUND(400, "EMAIL_VERIFICATION_CODE_NOT_FOUND", "발송된 인증번호가 없습니다. 인증번호를 다시 요청해주세요."),
+    MAIL_SEND_FAILED(502, "MAIL_SEND_FAILED", "이메일 발송에 실패했습니다."),
+
+    REVIEW_ORDER_PRODUCT_NOT_FOUND(404, "REVIEW_ORDER_PRODUCT_NOT_FOUND", "주문 상품을 찾을 수 없습니다."),
+    REVIEW_ORDER_ACCESS_DENIED(403, "REVIEW_ORDER_ACCESS_DENIED", "본인의 주문에 대해서만 리뷰를 작성할 수 있습니다."),
+    REVIEW_LIST_TYPE_UNKNOWN(400, "REVIEW_LIST_TYPE_UNKNOWN", "알 수 없는 리뷰 목록 조회 타입입니다."),
+    REVIEW_DELIVERY_RATING_NOT_ALLOWED(400, "REVIEW_DELIVERY_RATING_NOT_ALLOWED", "배달 주문에만 배달 평가를 남길 수 있습니다."),
+
+    MENU_REVIEW_ALREADY_EXISTS(409, "MENU_REVIEW_ALREADY_EXISTS", "이미 평가한 메뉴입니다."),
+    MENU_REVIEW_ACCESS_DENIED(403, "MENU_REVIEW_ACCESS_DENIED", "본인이 주문한 메뉴만 평가할 수 있습니다."),
+
+    SHOP_NOT_ORDERABLE(400, "SHOP_NOT_ORDERABLE", "현재 주문할 수 없는 가게입니다."),
+    SHOP_ORDER_METHOD_NOT_SUPPORTED(400, "SHOP_ORDER_METHOD_NOT_SUPPORTED", "이 가게가 지원하지 않는 주문유형입니다."),
+    SHOP_ORDER_METHOD_SUSPENDED(400, "SHOP_ORDER_METHOD_SUSPENDED", "해당 주문유형은 현재 임시중지 중입니다."),
+
+    MEMBER_DELIVERY_ADDRESS_NOT_FOUND(404, "MEMBER_DELIVERY_ADDRESS_NOT_FOUND", "배달 주소를 찾을 수 없습니다."),
+    MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED(400, "MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED", "배달 주소는 최대 10개까지 등록할 수 있습니다."),
+    MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED(403, "MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED", "본인의 배달 주소만 사용할 수 있습니다."),
+
+    ORDER_DELIVERY_ADDRESS_REQUIRED(400, "ORDER_DELIVERY_ADDRESS_REQUIRED", "배달 주문은 배달 주소가 필요합니다."),
+    ORDER_DELIVERY_AREA_NOT_COVERED(400, "ORDER_DELIVERY_AREA_NOT_COVERED", "배달 가능 지역이 아닙니다."),
+    ORDER_DELIVERY_TIP_AMOUNT_MISMATCH(400, "ORDER_DELIVERY_TIP_AMOUNT_MISMATCH", "배달팁이 일치하지 않습니다."),
+
+    SHOP_SCHEDULED_ORDER_DISABLED(400, "SHOP_SCHEDULED_ORDER_DISABLED", "이 가게는 예약주문을 운영하지 않습니다."),
+    ORDER_SCHEDULE_METHOD_NOT_SUPPORTED(400, "ORDER_SCHEDULE_METHOD_NOT_SUPPORTED", "이 주문 방법은 예약주문을 지원하지 않습니다."),
+    ORDER_SCHEDULED_AT_UNAVAILABLE(400, "ORDER_SCHEDULED_AT_UNAVAILABLE", "예약할 수 없는 수령 시간입니다."),
+
+    POLICY_CURRENT_NOT_FOUND(404, "POLICY_CURRENT_NOT_FOUND", "현재 유효한 정책을 찾을 수 없습니다."),
+    POLICY_VERSION_NOT_FOUND(404, "POLICY_VERSION_NOT_FOUND", "해당 버전의 정책을 찾을 수 없습니다."),
+
+    REFERRAL_REFERRER_NOT_FOUND(400, "REFERRAL_REFERRER_NOT_FOUND", "존재하지 않는 추천인 닉네임입니다."),
+    REFERRAL_SELF_NOT_ALLOWED(400, "REFERRAL_SELF_NOT_ALLOWED", "자기 자신을 추천인으로 설정할 수 없습니다."),
+    REFERRAL_ALREADY_EXISTS(400, "REFERRAL_ALREADY_EXISTS", "이미 추천인이 등록되어 있습니다."),
+
+    FOLLOW_SELF_NOT_ALLOWED(400, "FOLLOW_SELF_NOT_ALLOWED", "자기 자신을 팔로우할 수 없습니다."),
+    FOLLOW_ALREADY_EXISTS(400, "FOLLOW_ALREADY_EXISTS", "이미 팔로우한 사용자입니다."),
+    FOLLOW_NOT_FOUND(400, "FOLLOW_NOT_FOUND", "팔로우 관계가 존재하지 않습니다."),
+    FOLLOW_TARGET_NOT_FOUND(404, "FOLLOW_TARGET_NOT_FOUND", "팔로우 대상 회원을 찾을 수 없습니다."),
+
+    SOCIAL_ACCOUNT_ALREADY_REGISTERED(409, "SOCIAL_ACCOUNT_ALREADY_REGISTERED", "이미 가입된 소셜 계정입니다."),
+    SOCIAL_OAUTH_FAILED(502, "SOCIAL_OAUTH_FAILED", "소셜 로그인 처리 중 오류가 발생했습니다."),
+    KAKAO_TEMP_TOKEN_EXPIRED(400, "KAKAO_TEMP_TOKEN_EXPIRED", "카카오 인증이 만료되었습니다. 다시 시도해주세요."),
+    NAVER_TEMP_TOKEN_EXPIRED(400, "NAVER_TEMP_TOKEN_EXPIRED", "네이버 인증이 만료되었습니다. 다시 시도해주세요."),
+    FACEBOOK_TEMP_TOKEN_EXPIRED(400, "FACEBOOK_TEMP_TOKEN_EXPIRED", "페이스북 인증이 만료되었습니다. 다시 시도해주세요."),
+    APPLE_TEMP_TOKEN_EXPIRED(400, "APPLE_TEMP_TOKEN_EXPIRED", "애플 인증이 만료되었습니다. 다시 시도해주세요."),
+    APPLE_ID_TOKEN_INVALID(400, "APPLE_ID_TOKEN_INVALID", "애플 인증 토큰이 유효하지 않습니다."),
+
+    SEARCH_KEYWORD_BLANK(400, "SEARCH_KEYWORD_BLANK", "검색어를 입력해주세요."),
+
+    RESERVATION_NOT_FOUND(404, "RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다."),
+    RESERVATION_INVALID_TIME(400, "RESERVATION_INVALID_TIME", "예약할 수 없는 시간입니다."),
+    RESERVATION_PAST_NOT_ALLOWED(400, "RESERVATION_PAST_NOT_ALLOWED", "지난 일시는 예약할 수 없습니다."),
+    RESERVATION_TERMS_NOT_AGREED(400, "RESERVATION_TERMS_NOT_AGREED", "필수 약관에 동의해야 예약할 수 있습니다."),
+    DUPLICATE_RESERVATION(409, "DUPLICATE_RESERVATION", "이미 해당 날짜에 예약이 존재합니다. 예약을 변경하려면 기존 예약을 취소해주세요.");
+
+    private final int httpStatusCode;
+    private final String code;
+    private final String defaultMessage;
+
+    WebErrorCode(int httpStatusCode, String code, String defaultMessage) {
+        this.httpStatusCode = httpStatusCode;
+        this.code = code;
+        this.defaultMessage = defaultMessage;
+    }
+
+    @Override
+    public int getHttpStatusCode() {
+        return this.httpStatusCode;
+    }
+
+    @Override
+    public String getCode() {
+        return this.code;
+    }
+
+    @Override
+    public String getDefaultMessage() {
+        return this.defaultMessage;
+    }
+}

@@ -8,8 +8,6 @@ import java.util.stream.IntStream;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductExposureHour;
 import com.tastyhouse.domain.product.vo.ProductId;
@@ -20,6 +18,8 @@ import com.tastyhouse.application.product.port.in.ProductExposureCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductExposureHourCommand;
 import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -89,7 +89,7 @@ class ProductExposureCommandService implements ProductExposureCommandUseCase {
         List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(
             ShopId.of(shopId), List.of(ProductId.of(productId)));
         if (found.isEmpty()) {
-            throw new ResourceNotFoundException(ErrorCode.PRODUCT_NOT_FOUND);
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
     }
 }

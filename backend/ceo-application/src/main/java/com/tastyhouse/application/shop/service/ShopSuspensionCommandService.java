@@ -7,8 +7,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
@@ -17,6 +15,8 @@ import com.tastyhouse.domain.shop.model.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.model.ShopSuspension;
 import com.tastyhouse.domain.shop.model.SuspensionReason;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionBulkCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionCreateCommand;
@@ -64,9 +64,9 @@ class ShopSuspensionCommandService implements ShopSuspensionCommandUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ShopSuspension shopSuspension = shopSuspensionPersistencePort.findById(suspensionId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.SHOP_SUSPENSION_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_SUSPENSION_NOT_FOUND));
         if (!shopSuspension.getShopId().equals(ShopId.of(shopId))) {
-            throw new ResourceNotFoundException(ErrorCode.SHOP_SUSPENSION_NOT_FOUND);
+            throw new ResourceNotFoundException(CeoErrorCode.SHOP_SUSPENSION_NOT_FOUND);
         }
 
         String previousValue = describeSuspension(shopSuspension);

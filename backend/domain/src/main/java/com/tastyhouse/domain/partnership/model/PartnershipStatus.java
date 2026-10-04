@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.partnership.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum PartnershipStatus {
 
@@ -13,8 +13,8 @@ public enum PartnershipStatus {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.PARTNERSHIP_STATUS_UNKNOWN,
-                ErrorCode.PARTNERSHIP_STATUS_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.PARTNERSHIP_STATUS_UNKNOWN,
+                DomainErrorCode.PARTNERSHIP_STATUS_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

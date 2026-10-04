@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
@@ -58,7 +58,7 @@ class ReservationTest {
         assertThatThrownBy(reservation::confirm)
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.RESERVATION_INVALID_STATUS);
+            .isEqualTo(DomainErrorCode.RESERVATION_INVALID_STATUS);
     }
 
     @Test
@@ -80,7 +80,7 @@ class ReservationTest {
         assertThatThrownBy(reservation::reject)
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.RESERVATION_INVALID_STATUS);
+            .isEqualTo(DomainErrorCode.RESERVATION_INVALID_STATUS);
     }
 
     @Test
@@ -102,7 +102,7 @@ class ReservationTest {
         assertThatThrownBy(reservation::complete)
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.RESERVATION_INVALID_STATUS);
+            .isEqualTo(DomainErrorCode.RESERVATION_INVALID_STATUS);
     }
 
     @Test
@@ -127,7 +127,7 @@ class ReservationTest {
         assertThatThrownBy(reservation::cancel)
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.RESERVATION_ALREADY_CANCELED);
+            .isEqualTo(DomainErrorCode.RESERVATION_ALREADY_CANCELED);
     }
 
     @Test
@@ -139,7 +139,7 @@ class ReservationTest {
         assertThatThrownBy(reservation::cancel)
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.RESERVATION_ALREADY_REJECTED);
+            .isEqualTo(DomainErrorCode.RESERVATION_ALREADY_REJECTED);
     }
 
     @Test
@@ -152,7 +152,7 @@ class ReservationTest {
         assertThatThrownBy(reservation::cancel)
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
-            .isEqualTo(ErrorCode.RESERVATION_ALREADY_COMPLETED);
+            .isEqualTo(DomainErrorCode.RESERVATION_ALREADY_COMPLETED);
     }
 
     @Test
@@ -202,17 +202,17 @@ class ReservationTest {
         assertThatThrownBy(() -> Reservation.of(MEMBER_ID, SHOP_ID, DATE, TIME, 0, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.RESERVATION_PARTY_SIZE_INVALID);
+            .isEqualTo(DomainErrorCode.RESERVATION_PARTY_SIZE_INVALID);
 
         assertThatThrownBy(() -> Reservation.of(MEMBER_ID, SHOP_ID, DATE, TIME, -1, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.RESERVATION_PARTY_SIZE_INVALID);
+            .isEqualTo(DomainErrorCode.RESERVATION_PARTY_SIZE_INVALID);
 
         assertThatThrownBy(() -> Reservation.of(MEMBER_ID, SHOP_ID, DATE, TIME, null, null))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
-            .isEqualTo(ErrorCode.RESERVATION_PARTY_SIZE_INVALID);
+            .isEqualTo(DomainErrorCode.RESERVATION_PARTY_SIZE_INVALID);
     }
 
     @Test

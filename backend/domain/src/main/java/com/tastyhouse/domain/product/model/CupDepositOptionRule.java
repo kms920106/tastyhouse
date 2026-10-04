@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.product.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public final class CupDepositOptionRule {
 
@@ -23,13 +23,13 @@ public final class CupDepositOptionRule {
         }
 
         if (required) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_DEPOSIT_CANNOT_BE_REQUIRED);
+            throw new DomainException(DomainErrorCode.PRODUCT_OPTION_GROUP_DEPOSIT_CANNOT_BE_REQUIRED);
         }
         boolean fixedRange = !multipleSelect
             && minSelect != null && minSelect == DEPOSIT_MIN_SELECT
             && maxSelect != null && maxSelect == DEPOSIT_MAX_SELECT;
         if (!fixedRange) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_GROUP_DEPOSIT_SELECT_FIXED);
+            throw new DomainException(DomainErrorCode.PRODUCT_OPTION_GROUP_DEPOSIT_SELECT_FIXED);
         }
     }
 
@@ -44,27 +44,27 @@ public final class CupDepositOptionRule {
 
         if (!group.isCupDeposit()) {
             if (cupCount != null) {
-                throw new BusinessException(ErrorCode.PRODUCT_OPTION_CUP_COUNT_NOT_ALLOWED);
+                throw new DomainException(DomainErrorCode.PRODUCT_OPTION_CUP_COUNT_NOT_ALLOWED);
             }
             if (personalCup) {
-                throw new BusinessException(ErrorCode.PRODUCT_OPTION_PERSONAL_CUP_NOT_IN_DEPOSIT_GROUP);
+                throw new DomainException(DomainErrorCode.PRODUCT_OPTION_PERSONAL_CUP_NOT_IN_DEPOSIT_GROUP);
             }
             return;
         }
 
         if (additionalPrice != null && additionalPrice != 0) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_DEPOSIT_ADDITIONAL_PRICE_NOT_ALLOWED);
+            throw new DomainException(DomainErrorCode.PRODUCT_OPTION_DEPOSIT_ADDITIONAL_PRICE_NOT_ALLOWED);
         }
 
         if (personalCup) {
             if (cupCount != null) {
-                throw new BusinessException(ErrorCode.PRODUCT_OPTION_CUP_COUNT_NOT_ALLOWED);
+                throw new DomainException(DomainErrorCode.PRODUCT_OPTION_CUP_COUNT_NOT_ALLOWED);
             }
             return;
         }
 
         if (cupCount == null) {
-            throw new BusinessException(ErrorCode.PRODUCT_OPTION_CUP_COUNT_REQUIRED);
+            throw new DomainException(DomainErrorCode.PRODUCT_OPTION_CUP_COUNT_REQUIRED);
         }
         cupDepositPolicy.validateCupCount(cupCount);
     }

@@ -1,7 +1,7 @@
 package com.tastyhouse.application.product.port.in;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record ProductOptionUpdateCommand(
     Long ceoId,
@@ -18,7 +18,7 @@ public record ProductOptionUpdateCommand(
             || optionId == null
             || shopId == null
             || name == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

@@ -26,7 +26,7 @@ com.tastyhouse.infrastructure.solapi/
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. Solapi HTTP 호출은 **동기 `RestClient`**다.
-- `web-application` (implementation) — `SmsSender`·`SmsSendResult`·`SmsSendFailure` 포트의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`** (SMS 발송 포트가 web 전용이라 web 앱 모듈로 옮겨갔다). ~~`domain` (implementation) — `SmsSender` 포트 + `BusinessException`·`ErrorCode`(`SMS_SEND_FAILED`·`SMS_SEND_NO_RESPONSE`·`SMS_SEND_API_ERROR`)~~ (02-vendor-ports 이전 기록 — 지금 `build.gradle`의 프로젝트 의존은 `:infrastructure:restclient`·`:web-application`이다)
+- `web-application` (implementation) — `SmsSender`·`SmsSendResult`·`SmsSendFailure` 포트의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`** (SMS 발송 포트가 web 전용이라 web 앱 모듈로 옮겨갔다). ~~`domain` (implementation) — `SmsSender` 포트 + `BusinessException`·`ErrorCode`(`SMS_SEND_FAILED`·`SMS_SEND_NO_RESPONSE`·`SMS_SEND_API_ERROR`)~~ (02-vendor-ports 이전 기록. 지금 이 세 상수는 `WebErrorCode`이고 `SmsVerificationService`가 `SmsSendFailure`를 번역한다 — 지금 `build.gradle`의 프로젝트 의존은 `:infrastructure:restclient`·`:web-application`이다)
 - `infrastructure:sms`를 의존하지 않는다(순환 방지)
 - 테스트: `SolapiSmsClientTest`(4건) — `MockRestServiceServer.bindTo(RestClient.builder())` 기반
 

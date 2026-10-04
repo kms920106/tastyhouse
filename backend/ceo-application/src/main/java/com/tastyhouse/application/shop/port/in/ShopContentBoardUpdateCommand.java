@@ -1,7 +1,7 @@
 package com.tastyhouse.application.shop.port.in;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
 
 public record ShopContentBoardUpdateCommand(
     Long ceoId,
@@ -14,7 +14,7 @@ public record ShopContentBoardUpdateCommand(
 
     public ShopContentBoardUpdateCommand {
         if (ceoId == null || shopId == null || contentBoardId == null || topic == null) {
-            throw new BusinessException(ErrorCode.INVALID_INPUT);
+            throw new ApplicationException(ApplicationErrorCode.INVALID_INPUT);
         }
     }
 }

@@ -9,8 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
+import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
@@ -22,6 +21,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
 import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
 import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistencePort;
@@ -205,7 +205,7 @@ class ShopDeliveryAreaAdjustmentServiceTest {
         assertThatThrownBy(() -> service.reject(requestId, "형식 미비"))
             .isInstanceOf(BusinessException.class)
             .satisfies(thrown -> assertThat(((BusinessException) thrown).getErrorCode())
-                .isEqualTo(ErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED));
+                .isEqualTo(DomainErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_CLOSED));
     }
 
     private Long request() {

@@ -10,11 +10,9 @@ import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.ErrorCodeSpec;
 import com.tastyhouse.domain.product.model.Product;
-import com.tastyhouse.domain.product.model.ProductAvailabilityChangeResult;
-import com.tastyhouse.domain.product.model.ProductAvailabilityFailure;
 import com.tastyhouse.domain.product.model.ProductCommonOption;
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroup;
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroupLink;
@@ -35,6 +33,9 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkP
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Service
 public class ProductAvailabilityService {
@@ -74,10 +75,10 @@ public class ProductAvailabilityService {
             return;
         }
         if (soldOutUntil.isBefore(now.plusMinutes(MIN_SOLD_OUT_MINUTES))) {
-            throw new BusinessException(ErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_SOON);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_SOON);
         }
         if (soldOutUntil.isAfter(now.plusDays(MAX_SOLD_OUT_DAYS))) {
-            throw new BusinessException(ErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_FAR);
+            throw new ApplicationException(CeoErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_FAR);
         }
     }
 
@@ -102,9 +103,9 @@ public class ProductAvailabilityService {
 
         Map<Long, ProductAvailabilityFailure> rejected = new LinkedHashMap<>();
         rejectFromTail(candidates, rejected, representativeShortfall,
-            ErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE, Product::isRepresentative);
+            ApplicationErrorCode.PRODUCT_LAST_REPRESENTATIVE_CANNOT_HIDE, Product::isRepresentative);
         rejectFromTail(candidates, rejected, visibleShortfall - rejected.size(),
-            ErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE, product -> true);
+            CeoErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE, product -> true);
 
         failed.addAll(rejected.values());
 
@@ -192,7 +193,7 @@ public class ProductAvailabilityService {
         for (Product product : loaded.found()) {
             if (!product.isSoldOut()) {
                 failed.add(ProductAvailabilityFailure.of(
-                    product.getId(), product.getName(), ErrorCode.PRODUCT_NOT_SOLD_OUT));
+                    product.getId(), product.getName(), DomainErrorCode.PRODUCT_NOT_SOLD_OUT));
                 continue;
             }
             product.changeSoldOutUntil(soldOutUntil);
@@ -314,7 +315,7 @@ public class ProductAvailabilityService {
         for (ProductOption option : loaded.options()) {
             if (!option.isSoldOut()) {
                 failed.add(ProductAvailabilityFailure.of(
-                    option.getId(), option.getName(), ErrorCode.PRODUCT_NOT_SOLD_OUT));
+                    option.getId(), option.getName(), DomainErrorCode.PRODUCT_NOT_SOLD_OUT));
                 continue;
             }
             option.changeSoldOutUntil(soldOutUntil);
@@ -324,7 +325,7 @@ public class ProductAvailabilityService {
         for (ProductCommonOption option : loaded.commonOptions()) {
             if (!option.isSoldOut()) {
                 failed.add(ProductAvailabilityFailure.of(
-                    option.getId(), option.getName(), ErrorCode.PRODUCT_NOT_SOLD_OUT));
+                    option.getId(), option.getName(), DomainErrorCode.PRODUCT_NOT_SOLD_OUT));
                 continue;
             }
             option.changeSoldOutUntil(soldOutUntil);
@@ -344,7 +345,7 @@ public class ProductAvailabilityService {
         List<ProductAvailabilityFailure> failed = new ArrayList<>();
         for (ProductId productId : distinctIds) {
             if (!byId.containsKey(productId.value())) {
-                failed.add(ProductAvailabilityFailure.of(productId.value(), null, ErrorCode.PRODUCT_NOT_FOUND));
+                failed.add(ProductAvailabilityFailure.of(productId.value(), null, ApplicationErrorCode.PRODUCT_NOT_FOUND));
             }
         }
         return new LoadedProducts(List.copyOf(byId.values()), failed);
@@ -379,13 +380,13 @@ public class ProductAvailabilityService {
         for (ProductOptionId optionId : distinctOptionIds) {
             ProductOption option = optionById.get(optionId.value());
             if (option == null) {
-                failed.add(ProductAvailabilityFailure.of(optionId.value(), null, ErrorCode.PRODUCT_NOT_FOUND));
+                failed.add(ProductAvailabilityFailure.of(optionId.value(), null, ApplicationErrorCode.PRODUCT_NOT_FOUND));
                 continue;
             }
             ProductOptionGroup group = optionGroups.get(option.getOptionGroupId().value());
             if (group == null || notOwnedBy(shopId, optionGroupShopIds, option.getOptionGroupId().value())) {
                 failed.add(ProductAvailabilityFailure.of(
-                    option.getId(), option.getName(), ErrorCode.PRODUCT_NOT_FOUND));
+                    option.getId(), option.getName(), ApplicationErrorCode.PRODUCT_NOT_FOUND));
                 continue;
             }
             ownedOptions.add(option);
@@ -398,14 +399,14 @@ public class ProductAvailabilityService {
             ProductCommonOption option = commonById.get(commonOptionId.value());
             if (option == null) {
                 failed.add(ProductAvailabilityFailure.of(
-                    commonOptionId.value(), null, ErrorCode.PRODUCT_NOT_FOUND));
+                    commonOptionId.value(), null, ApplicationErrorCode.PRODUCT_NOT_FOUND));
                 continue;
             }
             ProductCommonOptionGroup group = commonGroups.get(option.getOptionGroupId().value());
             if (group == null
                 || notOwnedBy(shopId, commonOptionGroupShopIds, option.getOptionGroupId().value())) {
                 failed.add(ProductAvailabilityFailure.of(
-                    option.getId(), option.getName(), ErrorCode.PRODUCT_NOT_FOUND));
+                    option.getId(), option.getName(), ApplicationErrorCode.PRODUCT_NOT_FOUND));
                 continue;
             }
             ownedCommonOptions.add(option);
@@ -503,7 +504,7 @@ public class ProductAvailabilityService {
         List<Product> candidates,
         Map<Long, ProductAvailabilityFailure> rejected,
         long shortfall,
-        ErrorCode errorCode,
+        ErrorCodeSpec errorCode,
         java.util.function.Predicate<Product> predicate
     ) {
         long remaining = shortfall;
@@ -610,11 +611,11 @@ public class ProductAvailabilityService {
         return ProductOptionSelectionRule.minRemaining(minSelect, maxSelect);
     }
 
-    private ErrorCode blockViolationCode(Integer minSelect, int minRemaining) {
+    private DomainErrorCode blockViolationCode(Integer minSelect, int minRemaining) {
         int minBound = Math.max(minSelect != null ? minSelect : 0, 1);
         return minRemaining > minBound
-            ? ErrorCode.PRODUCT_OPTION_MAX_SELECT_VIOLATION
-            : ErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION;
+            ? DomainErrorCode.PRODUCT_OPTION_MAX_SELECT_VIOLATION
+            : DomainErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION;
     }
 
     private <T> List<T> distinct(List<T> values) {

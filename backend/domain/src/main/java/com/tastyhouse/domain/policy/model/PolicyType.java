@@ -1,7 +1,7 @@
 package com.tastyhouse.domain.policy.model;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
+import com.tastyhouse.domain.exception.DomainErrorCode;
+import com.tastyhouse.domain.exception.DomainException;
 
 public enum PolicyType {
 
@@ -24,8 +24,8 @@ public enum PolicyType {
         try {
             return valueOf(code);
         } catch (IllegalArgumentException e) {
-            throw new BusinessException(ErrorCode.POLICY_TYPE_UNKNOWN,
-                ErrorCode.POLICY_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
+            throw new DomainException(DomainErrorCode.POLICY_TYPE_UNKNOWN,
+                DomainErrorCode.POLICY_TYPE_UNKNOWN.getDefaultMessage() + ": " + code);
         }
     }
 }

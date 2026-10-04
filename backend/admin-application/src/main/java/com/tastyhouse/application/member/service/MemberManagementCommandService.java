@@ -3,8 +3,6 @@ package com.tastyhouse.application.member.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.vo.MemberId;
@@ -13,6 +11,8 @@ import com.tastyhouse.application.member.port.in.MemberManagementCommandUseCase;
 import com.tastyhouse.application.member.port.in.MemberManagementWithdrawCommand;
 import com.tastyhouse.application.member.port.in.MemberSuspendCommand;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 @Transactional
@@ -50,6 +50,6 @@ class MemberManagementCommandService implements MemberManagementCommandUseCase {
 
     private Member loadMember(MemberId memberId) {
         return memberPersistencePort.findById(memberId)
-            .orElseThrow(() -> new ResourceNotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
     }
 }

@@ -100,11 +100,11 @@
 - `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/request/ShopChangeHistorySearchRequest.java` → record 컴포넌트 `changedDate`
 - `backend/ceo-api/src/main/java/com/tastyhouse/ceoapi/shop/adapter/in/web/request/ShopRequestSearchRequest.java` → record 컴포넌트 `startDate`/`endDate`
 
-| 이력 | 조회 가능 기간 | 위반 시 `ErrorCode` |
+| 이력 | 조회 가능 기간 | 위반 시 에러코드(`CeoErrorCode`) |
 |---|---|---|
 | 내 로그인 이력 | **최근 90일** (미래 금지 + 90일 초과 금지) | `CEO_LOGIN_HISTORY_DATE_OUT_OF_RANGE` |
 | 내 시스템 접근권한 이력 | 보관 기간 내 (미래 금지) | `CEO_SHOP_ACCESS_HISTORY_DATE_OUT_OF_RANGE` |
 | 가게 변경이력 | **최근 6개월** (과거~오늘) | `SHOP_CHANGE_HISTORY_DATE_OUT_OF_RANGE` |
 | 요청처리 현황 | **상한 없음**, `startDate <= endDate`만 | `SHOP_REQUEST_DATE_RANGE_INVALID` |
 
-각 경우 상한과 하한은 **하나의 규칙**이며 서비스가 통째로 판정해 하나의 `ErrorCode`로 응답한다. 로그인은 성공·실패 모두 **개인정보처리시스템 접속기록**으로 남는다.
+각 경우 상한과 하한은 **하나의 규칙**이며 서비스가 통째로 판정해 하나의 에러코드로 응답한다. 위 코드 4개는 모두 ceo 전용이라 `backend/ceo-application/src/main/java/com/tastyhouse/application/shared/exception/CeoErrorCode.java`가 소유한다(~~단일 `ErrorCode`~~ **번복됨 — 에러코드 모듈 분할**: 코드는 던지는 가장 안쪽 모듈에 둔다. 응답 status·code 문자열·메시지는 불변). 로그인은 성공·실패 모두 **개인정보처리시스템 접속기록**으로 남는다.

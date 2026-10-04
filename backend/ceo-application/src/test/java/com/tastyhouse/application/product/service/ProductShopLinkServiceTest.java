@@ -9,14 +9,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductShopLink;
 import com.tastyhouse.domain.product.model.ProductShopLinkSpec;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.shared.exception.CeoErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.testsupport.product.service.FakeProductShopLinkPersistencePort;
 import com.tastyhouse.testsupport.product.service.FakeShopLinkProductCategoryPersistencePort;
 import com.tastyhouse.testsupport.product.service.FakeShopLinkProductPersistencePort;
@@ -78,7 +78,7 @@ class ProductShopLinkServiceTest {
         void emptyLinks_rejected() {
             assertThatThrownBy(() -> service.replaceLinks(PRODUCT_ID, List.of(), OWNED))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK);
+                .hasFieldOrPropertyWithValue("errorCode", CeoErrorCode.PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK);
         }
 
         @Test
@@ -88,7 +88,7 @@ class ProductShopLinkServiceTest {
                 PRODUCT_ID, List.of(spec(FOREIGN_SHOP, FOREIGN_CATEGORY)), OWNED
             ))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_SHOP_LINK_NOT_OWNED);
+                .hasFieldOrPropertyWithValue("errorCode", CeoErrorCode.PRODUCT_SHOP_LINK_NOT_OWNED);
         }
 
         @Test
@@ -98,7 +98,7 @@ class ProductShopLinkServiceTest {
                 PRODUCT_ID, List.of(spec(OWNER_SHOP, null)), OWNED
             ))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_SHOP_LINK_CATEGORY_REQUIRED);
+                .hasFieldOrPropertyWithValue("errorCode", CeoErrorCode.PRODUCT_SHOP_LINK_CATEGORY_REQUIRED);
         }
 
         @Test
@@ -108,7 +108,7 @@ class ProductShopLinkServiceTest {
                 PRODUCT_ID, List.of(spec(OWNER_SHOP, OTHER_CATEGORY)), OWNED
             ))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_SHOP_LINK_CATEGORY_MISMATCH);
+                .hasFieldOrPropertyWithValue("errorCode", CeoErrorCode.PRODUCT_SHOP_LINK_CATEGORY_MISMATCH);
         }
 
         @Test
@@ -164,7 +164,7 @@ class ProductShopLinkServiceTest {
                 PRODUCT_ID, List.of(spec(OWNER_SHOP, OWNER_CATEGORY)), OWNED
             ))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE);
+                .hasFieldOrPropertyWithValue("errorCode", CeoErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE);
         }
     }
 
@@ -179,7 +179,7 @@ class ProductShopLinkServiceTest {
 
             assertThatThrownBy(() -> service.linkToShop(PRODUCT_ID, OTHER_OWNED_SHOP, OTHER_CATEGORY))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_SHOP_LINK_ALREADY_LINKED);
+                .hasFieldOrPropertyWithValue("errorCode", CeoErrorCode.PRODUCT_SHOP_LINK_ALREADY_LINKED);
         }
 
         @Test
@@ -201,7 +201,7 @@ class ProductShopLinkServiceTest {
 
             assertThatThrownBy(() -> service.unlinkFromShop(PRODUCT_ID, OWNER_SHOP))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK);
+                .hasFieldOrPropertyWithValue("errorCode", CeoErrorCode.PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK);
         }
 
         @Test
@@ -224,7 +224,7 @@ class ProductShopLinkServiceTest {
 
             assertThatThrownBy(() -> service.unlinkFromShop(PRODUCT_ID, OTHER_OWNED_SHOP))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_SHOP_LINK_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("errorCode", CeoErrorCode.PRODUCT_SHOP_LINK_NOT_FOUND);
         }
     }
 
@@ -277,7 +277,7 @@ class ProductShopLinkServiceTest {
                 PRODUCT_ID, List.of(spec(FOREIGN_SHOP, FOREIGN_CATEGORY)), OWNED
             ))
                 .isInstanceOf(BusinessException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PRODUCT_SHOP_LINK_NOT_OWNED);
+                .hasFieldOrPropertyWithValue("errorCode", CeoErrorCode.PRODUCT_SHOP_LINK_NOT_OWNED);
         }
     }
 }

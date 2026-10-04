@@ -2,13 +2,13 @@ package com.tastyhouse.application.member.follow.service;
 
 import org.springframework.stereotype.Service;
 
-import com.tastyhouse.domain.exception.BusinessException;
-import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.follow.port.out.write.MemberFollowPersistencePort;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 public class MemberFollowService {
@@ -26,15 +26,15 @@ public class MemberFollowService {
 
     public Long follow(MemberId followerId, MemberId followingId) {
         if (followerId.equals(followingId)) {
-            throw new BusinessException(ErrorCode.FOLLOW_SELF_NOT_ALLOWED);
+            throw new ApplicationException(WebErrorCode.FOLLOW_SELF_NOT_ALLOWED);
         }
 
         if (memberPersistencePort.findById(followingId).isEmpty()) {
-            throw new ResourceNotFoundException(ErrorCode.FOLLOW_TARGET_NOT_FOUND);
+            throw new ResourceNotFoundException(WebErrorCode.FOLLOW_TARGET_NOT_FOUND);
         }
 
         if (memberFollowPersistencePort.existsByFollowerIdAndFollowingId(followerId, followingId)) {
-            throw new BusinessException(ErrorCode.FOLLOW_ALREADY_EXISTS);
+            throw new ApplicationException(WebErrorCode.FOLLOW_ALREADY_EXISTS);
         }
 
         MemberFollow saved = memberFollowPersistencePort.save(MemberFollow.of(followerId, followingId));
@@ -43,14 +43,14 @@ public class MemberFollowService {
 
     public void unfollow(MemberId followerId, MemberId followingId) {
         MemberFollow memberFollow = memberFollowPersistencePort.findByFollowerIdAndFollowingId(followerId, followingId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.FOLLOW_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.FOLLOW_NOT_FOUND));
 
         memberFollowPersistencePort.delete(memberFollow);
     }
 
     public void removeFollower(MemberId memberId, MemberId followerId) {
         MemberFollow memberFollow = memberFollowPersistencePort.findByFollowerIdAndFollowingId(followerId, memberId)
-            .orElseThrow(() -> new BusinessException(ErrorCode.FOLLOW_NOT_FOUND));
+            .orElseThrow(() -> new ApplicationException(WebErrorCode.FOLLOW_NOT_FOUND));
 
         memberFollowPersistencePort.delete(memberFollow);
     }
