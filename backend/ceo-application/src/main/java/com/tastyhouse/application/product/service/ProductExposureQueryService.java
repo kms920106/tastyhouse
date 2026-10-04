@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.product.model.ProductExposureHour;
-import com.tastyhouse.domain.product.service.ProductExposureResult;
+import com.tastyhouse.domain.product.model.ProductExposureResult;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.application.product.port.in.ProductExposureQueryUseCase;

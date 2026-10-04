@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.payment.model.PaymentCancelCode;
+import com.tastyhouse.domain.payment.model.PaymentCancellationTarget;
 import com.tastyhouse.domain.payment.model.PgProvider;
-import com.tastyhouse.domain.payment.service.PaymentCancellationTarget;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.application.payment.port.in.PaymentCancelCommand;
 import com.tastyhouse.application.payment.port.out.PaymentCancelResult;

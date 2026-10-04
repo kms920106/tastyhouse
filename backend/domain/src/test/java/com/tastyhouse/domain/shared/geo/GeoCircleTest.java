@@ -3,7 +3,7 @@ package com.tastyhouse.domain.shared.geo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.shop.service.ShopDeliveryAreaPolicy;
+import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolicy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

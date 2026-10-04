@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.product.service.CupDepositPolicy;
+import com.tastyhouse.domain.product.model.CupDepositPolicy;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductsResult;

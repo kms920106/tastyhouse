@@ -13,7 +13,7 @@ import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.reservation.model.Reservation;
 import com.tastyhouse.domain.reservation.model.ReservationSlot;
-import com.tastyhouse.domain.reservation.service.SlotPolicy;
+import com.tastyhouse.domain.reservation.model.SlotPolicy;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;

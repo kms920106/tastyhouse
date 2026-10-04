@@ -5,7 +5,7 @@
 
 ## Purpose
 
-DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거주하는 핵심 계층입니다. **프레임워크 의존이 전혀 없습니다** — Spring(Web/tx/orm)·JPA(`jakarta.persistence`)·QueryDSL(`com.querydsl`)을 import하지 않으며, 이 모듈의 production 의존은 **하나도 없습니다**(Lombok까지 제거되어 접근자·생성자를 수기로 작성합니다). 각 Bounded Context는 `<ctx>/{model,vo,event,repository,service,port}` 구조를 가지며, 여기에 공유 커널(`shared/`)과 공통 예외(`exception/`)가 더해집니다.
+DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거주하는 핵심 계층입니다. **프레임워크 의존이 전혀 없습니다** — Spring(Web/tx/orm)·JPA(`jakarta.persistence`)·QueryDSL(`com.querydsl`)을 import하지 않으며, 이 모듈의 production 의존은 **하나도 없습니다**(Lombok까지 제거되어 접근자·생성자를 수기로 작성합니다). 각 Bounded Context는 `<ctx>/{model,vo,event}` 구조를 가지며(~~`<ctx>/{model,vo,event,repository,service,port}`~~ — `repository`·`port`는 03a로 `application`에 갔고, `service`는 domain service→model 흡수로 `model`에 합쳐졌다), 여기에 공유 커널(`shared/`)과 공통 예외(`exception/`)가 더해집니다.
 
 > 과거 이 패키지는 `com.tastyhouse.core`였고 도메인마다 `application/`(서비스·DTO)과 `infrastructure/`(JPA 구현)를 함께 갖고 있었습니다. `core-module` → `domain` 전환으로 **`application/`은 해체**(조회는 infrastructure-module `<ctx>/query/`, 액터 특화 command는 각 소비 모듈의 CQRS 서비스, 불변식 오케스트레이션은 `domain/service/`로 하강)되고 **`infrastructure/`는 `infrastructure-module`로 이동**했습니다. 이 패키지에는 이제 domain·shared·exception만 남습니다.
 
@@ -76,7 +76,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
         ↓                                              ↑ 구현
    domain (이 패키지)                       infrastructure-module
    · model/vo/event                            · <ctx>/persistence (write 어댑터)
-   · <ctx>/service (포트 없는 순수 계산기·정책)   · <ctx>/query (read: QueryAdapter + Result)
+   · (순수 계산기·정책도 <ctx>/model)           · <ctx>/query (read: QueryAdapter + Result)
         ↑                                     ↑
    shared (kernel), exception            infrastructure:{firebase,aws-s3,aws-ses,aws-sns,
                                           kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,
@@ -94,6 +94,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 - `XxxId`는 `record XxxId(Long value)` + compact constructor 검증 + 정적 팩토리 `of(Long)`. `new`는 `of()` 내부에만 남긴다. JPA 매핑용 `AttributeConverter`는 infrastructure-module(`<ctx>/persistence/XxxIdConverter`)에 있다.
 
 **도메인 서비스 규칙 (`<ctx>/service/`)**:
+- **(번복됨 — domain service→model 흡수) 이 패키지에는 `<ctx>/service/`가 없다.** 아래 03a 항목이 "이 패키지의 `<ctx>/service/`에 남는다"고 한 순수 계산기·정책·검증기와 그 입출력 record 47개는 각 컨텍스트의 `<ctx>/model/`로 옮겨졌다(예: `product/model/CupDepositPolicy`, `shop/model/ShopDeliveryTipCalculator`). 판정은 그대로다 — 포트를 주입받으면 `application/<ctx>/service/`, 아니면 domain `<ctx>/model/`. `DomainPurityTest#domainShouldNotHaveServicePackage`가 domain에 `service` 패키지가 다시 생기는 것을 막는다. 근거는 `backend/domain/AGENTS.md`의 "컨텍스트 하위 패키지는 `model`·`vo`·`event` 셋이다" 절.
 - **(번복됨 — 03a) 이 패키지의 `<ctx>/service/`에는 포트를 주입받지 않는 순수 계산기·정책·검증기와 그 입출력 record만 남는다.** 포트(write 포트·출력 포트·`DomainEventPublisher`)를 주입받는 오케스트레이션 서비스는 `application/<ctx>/service/`로 옮겨졌다(domain은 `application`의 포트를 볼 수 없다). 아래 두 항목은 과거 서술이며, 거기 나오는 reference 서비스는 지금 전부 `application`에 있다.
 - `@Service`/`@Component`/`@Transactional`을 붙이지 않는 **순수 POJO**다. 빈 등록은 ~~infrastructure-module의 해당 컨텍스트 `<ctx>/config/<Ctx>DomainConfig`~~ ~~`application`의 `<ctx>/config/<Ctx>ServiceConfig`~~ **(번복됨 — application `*ServiceConfig` 삭제)** `application`의 `shared/config/SharedBeanConfig`가 `@Bean` 팩토리로 수행하고, 트랜잭션 경계는 이를 호출하는 `{도메인}CommandService`가 소유한다.
 - 여기 두는 것: (C) 한 트랜잭션에서 2개 이상 애그리거트 타입을 load & save하는 **불변식 오케스트레이션**(reference: `order/service/OrderPlacementService`, `payment/service/PaymentConfirmationService`·`PaymentCancellationService`, `point/service/PointLedgerService`, `reservation/service/ReservationBookingService`), (D) **무상태 정책·검증기**(reference: `faq/service/FaqCategoryDeletionPolicy`, `shop/service/ProhibitedWordValidator`).

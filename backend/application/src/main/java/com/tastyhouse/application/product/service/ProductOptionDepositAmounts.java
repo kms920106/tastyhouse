@@ -2,7 +2,7 @@ package com.tastyhouse.application.product.service;
 
 import java.util.List;
 
-import com.tastyhouse.domain.product.service.CupDepositPolicy;
+import com.tastyhouse.domain.product.model.CupDepositPolicy;
 import com.tastyhouse.application.product.port.out.BatchOptionResult;
 import com.tastyhouse.application.product.port.out.OptionGroupResult;
 import com.tastyhouse.application.product.port.out.OptionResult;

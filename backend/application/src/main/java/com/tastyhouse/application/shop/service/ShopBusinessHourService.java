@@ -14,8 +14,8 @@ import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
+import com.tastyhouse.domain.shop.model.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.model.ShopClosedDay;
-import com.tastyhouse.domain.shop.service.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 

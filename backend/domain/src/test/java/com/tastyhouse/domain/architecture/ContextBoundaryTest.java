@@ -26,10 +26,10 @@ class ContextBoundaryTest {
 
     private static final Set<String> ALLOWED_CROSS_CONTEXT_SUBPACKAGES = Set.of("vo", "event");
 
-    private static final Set<String> FORBIDDEN_CROSS_CONTEXT_SUBPACKAGES = Set.of("model", "repository", "service");
+    private static final Set<String> FORBIDDEN_CROSS_CONTEXT_SUBPACKAGES = Set.of("model", "repository");
 
     private static final Set<String> SEALED_VIOLATIONS = Set.of(
-        "com.tastyhouse.domain.shop.service.DeliveryAreaProjection"
+        "com.tastyhouse.domain.shop.model.DeliveryAreaProjection"
     );
 
     private final JavaClasses classes = new ClassFileImporter()
@@ -46,7 +46,7 @@ class ContextBoundaryTest {
                 }
             })
             .should(new com.tngtech.archunit.lang.ArchCondition<>(
-                "타 컨텍스트의 model/repository/service를 import하지 않아야 한다(봉인 목록 제외)") {
+                "타 컨텍스트의 model/repository를 import하지 않아야 한다(봉인 목록 제외)") {
                 @Override
                 public void check(JavaClass javaClass, ConditionEvents events) {
                     if (SEALED_VIOLATIONS.contains(topLevelNameOf(javaClass))) {

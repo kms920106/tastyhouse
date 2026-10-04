@@ -55,4 +55,13 @@ class DomainPurityTest {
 
         rule.check(classes);
     }
+
+    @Test
+    void domainShouldNotHaveServicePackage() {
+        ArchRule rule = noClasses()
+            .should().resideInAPackage("com.tastyhouse.domain..service..")
+            .because("포트 없는 순수 계산·정책은 <ctx>/model에 두고, 포트를 주입받는 서비스는 application에 둔다");
+
+        rule.check(classes);
+    }
 }

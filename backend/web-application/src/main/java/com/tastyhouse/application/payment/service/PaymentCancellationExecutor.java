@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.payment.model.PaymentCancelCode;
-import com.tastyhouse.domain.payment.service.PaymentCancellationTarget;
+import com.tastyhouse.domain.payment.model.PaymentCancellationTarget;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 
 @Component

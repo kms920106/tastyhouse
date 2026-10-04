@@ -13,7 +13,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.StorePriceVerification;
-import com.tastyhouse.domain.product.service.StorePriceVerificationItemSpec;
+import com.tastyhouse.domain.product.model.StorePriceVerificationItemSpec;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.file.port.in.FileUploadOwnerCommandUseCase;

@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
-import com.tastyhouse.domain.product.service.ProductOptionGroupSignature;
+import com.tastyhouse.domain.product.model.ProductOptionGroupSignature;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;

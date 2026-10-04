@@ -15,7 +15,7 @@ import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeEntryType;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeExclusion;
-import com.tastyhouse.domain.product.service.ProductOptionGroupSignature;
+import com.tastyhouse.domain.product.model.ProductOptionGroupSignature;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommand;

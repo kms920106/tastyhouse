@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.OrderUnavailableReason;
-import com.tastyhouse.domain.shop.service.ShopOperatingStatusResult;
+import com.tastyhouse.domain.shop.model.ShopOperatingStatusResult;
 import com.tastyhouse.application.shop.port.in.ShopOrderAvailabilityQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopOrderAvailabilityViewResult;

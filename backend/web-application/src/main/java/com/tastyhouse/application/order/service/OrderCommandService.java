@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.domain.order.service.OrderPlacement;
-import com.tastyhouse.domain.order.service.OrderPlacementItem;
-import com.tastyhouse.domain.order.service.OrderPlacementItemOption;
+import com.tastyhouse.domain.order.model.OrderPlacement;
+import com.tastyhouse.domain.order.model.OrderPlacementItem;
+import com.tastyhouse.domain.order.model.OrderPlacementItemOption;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.application.order.port.in.OrderCommandUseCase;

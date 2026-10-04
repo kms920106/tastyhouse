@@ -5,7 +5,6 @@ import java.time.LocalTime;
 
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
-import com.tastyhouse.domain.reservation.service.SlotPolicy;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 public class ReservationSlot {

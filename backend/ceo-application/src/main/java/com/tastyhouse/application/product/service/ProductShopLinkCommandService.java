@@ -6,7 +6,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.product.service.ProductShopLinkSpec;
+import com.tastyhouse.domain.product.model.ProductShopLinkSpec;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductShopLinkCommandUseCase;

@@ -19,7 +19,7 @@ import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeEntryType;
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeHistory;
-import com.tastyhouse.domain.product.service.ProductOptionSelectionRule;
+import com.tastyhouse.domain.product.model.ProductOptionSelectionRule;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.exception.ResourceNotFoundException;
 import com.tastyhouse.domain.member.model.Member;
-import com.tastyhouse.domain.member.service.OrdererSnapshot;
+import com.tastyhouse.domain.member.model.OrdererSnapshot;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 

@@ -9,12 +9,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.product.model.ProductPrice;
-import com.tastyhouse.domain.product.service.StorePriceBadgePolicy;
+import com.tastyhouse.domain.product.model.StorePriceBadgePolicy;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.model.ClosedDayType;
 import com.tastyhouse.domain.shop.model.ShopBusinessHour;
-import com.tastyhouse.domain.shop.service.ShopOperatingStatusCalculator;
+import com.tastyhouse.domain.shop.model.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.ProductPriceResult;
 import com.tastyhouse.application.product.port.out.ProductQueryPort;

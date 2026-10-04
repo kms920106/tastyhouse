@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.exception.ErrorCode;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
-import com.tastyhouse.domain.reservation.service.SlotPolicy;
+import com.tastyhouse.domain.reservation.model.SlotPolicy;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.application.reservation.port.in.ReservationQueryUseCase;
 import com.tastyhouse.application.reservation.port.out.ReservationCompleteDetailResult;

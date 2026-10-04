@@ -270,7 +270,7 @@ class ServiceContextBoundaryTest {
             return outboundPort ? null : String.join(".", segments);
         }
         for (String segment : segments) {
-            if (segment.equals("model") || segment.equals("service")) {
+            if (segment.equals("model")) {
                 return segment;
             }
             if (segment.equals("vo") || segment.equals("event")) {
