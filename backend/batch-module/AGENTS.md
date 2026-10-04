@@ -149,12 +149,12 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 ### `ApplicationModuleClasspathTest` — 다른 앱의 application 모듈이 클래스패스에 섞이지 않게 막는다 (앱 마커 제거)
 
 **대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/ApplicationModuleClasspathTest.java` → `loadsOnlyOwnApplicationModule`
-· 단정 본문 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java` → `assertLoadsOnlyOwnApplicationModule("batch")`
-· 표식 리소스 `backend/batch-application/src/main/resources/META-INF/tastyhouse/application-module.properties`(`app=batch`)
+· 단정 본문 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java` → `assertLoadsOnlyOwnApplicationModule(ModuleOrigin.BATCH)`
+· 출처 판정 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ModuleOrigin.java` → `of(JavaClass)`
 
-**무엇을 확인하나**: 이 앱의 테스트 클래스패스에 `META-INF/tastyhouse/application-module.properties`가 **정확히 1개** 있고 그 `app` 값이 `batch`인지 본다. 각 `{앱}-application` 모듈이 자기 이름이 적힌 이 파일을 하나씩 싣는다.
+**무엇을 확인하나**: 이 앱의 테스트 클래스패스에서 `com.tastyhouse.application` 패키지 클래스(main 출력만)를 ArchUnit으로 읽고, 각 클래스의 출처 모듈(`ModuleOrigin.of`)을 모은 집합이 **정확히 `{application, batch-application}`**인지 본다. 클래스가 어느 모듈의 jar·클래스 디렉터리에서 왔는지로 판정하므로 모듈에 별도 표식 파일을 두지 않는다. `ModuleOrigin`은 Gradle 출력만 인정하므로 이 테스트는 Gradle로 실행한다(IntelliJ 자체 빌드 출력 `out/production`이면 예외로 실패).
 
-**왜 막는가**: 앱 마커 제거 후 `ApplicationLayerScanConfig`는 **필터 없이** `com.tastyhouse.application`을 스캔한다. 무엇이 뜰지는 클래스패스가 정한다("클래스패스 존재 = 활성화"). 그래서 누가 이 모듈 `build.gradle`에 다른 앱의 application 모듈(예: `:web-application`)을 실수로 추가하면, 컴파일도 기동도 성공한 채 **그 앱의 빈·권한 경계가 이 앱에 통째로 실린다.** 과거에는 마커 include 필터가 이것을 막았다. 이 테스트가 그 자리를 대신한다. 리소스 개수가 0이면 자기 앱 모듈이 빠진 것이고, 2 이상이면 다른 앱 모듈이 섞인 것이다.
+**왜 막는가**: 앱 마커 제거 후 `ApplicationLayerScanConfig`는 **필터 없이** `com.tastyhouse.application`을 스캔한다. 무엇이 뜰지는 클래스패스가 정한다("클래스패스 존재 = 활성화"). 그래서 누가 이 모듈 `build.gradle`에 다른 앱의 application 모듈(예: `:web-application`)을 실수로 추가하면, 컴파일도 기동도 성공한 채 **그 앱의 빈·권한 경계가 이 앱에 통째로 실린다.** 과거에는 마커 include 필터가 이것을 막았다. 이 테스트가 그 자리를 대신한다. 집합에 `batch-application`이 없으면 자기 앱 모듈이 빠진 것이고, 다른 `*-application`이 있으면 다른 앱 모듈이 섞인 것이다.
 
 | 항목 | before (앱 마커) | after (모듈 경계) |
 |---|---|---|

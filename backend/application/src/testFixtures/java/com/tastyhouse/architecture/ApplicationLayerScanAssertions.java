@@ -1,15 +1,13 @@
 package com.tastyhouse.architecture;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScans;
@@ -23,8 +21,6 @@ public final class ApplicationLayerScanAssertions {
     public static final String SCAN_CONFIG_SIMPLE_NAME = "ApplicationLayerScanConfig";
 
     private static final String APPLICATION_BASE_PACKAGE = "com.tastyhouse.application";
-
-    public static final String APPLICATION_MODULE_RESOURCE = "META-INF/tastyhouse/application-module.properties";
 
     private ApplicationLayerScanAssertions() {
     }
@@ -45,22 +41,16 @@ public final class ApplicationLayerScanAssertions {
         assertThat(scan.excludeFilters()).isEmpty();
     }
 
-    public static void assertLoadsOnlyOwnApplicationModule(String expectedApp) throws IOException {
-        List<URL> resources = Collections.list(
-            ApplicationLayerScanAssertions.class.getClassLoader().getResources(APPLICATION_MODULE_RESOURCE));
-        assertThat(resources)
-            .as("클래스패스의 {app}-application 모듈은 정확히 1개여야 한다 — 다른 앱 모듈이 섞이면 그 앱 빈이 통째로 뜬다")
-            .hasSize(1);
-
-        List<String> apps = new ArrayList<>();
-        for (URL resource : resources) {
-            Properties properties = new Properties();
-            try (InputStream input = resource.openStream()) {
-                properties.load(input);
-            }
-            apps.add(properties.getProperty("app"));
-        }
-        assertThat(apps).containsExactly(expectedApp);
+    public static void assertLoadsOnlyOwnApplicationModule(String expectedAppModule) {
+        Set<String> modules = new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages(APPLICATION_BASE_PACKAGE)
+            .stream()
+            .map(ModuleOrigin::of)
+            .collect(Collectors.toSet());
+        assertThat(modules)
+            .as("클래스패스의 application 계층은 코어와 자기 {app}-application 모듈뿐이어야 한다 — 다른 앱 모듈이 섞이면 그 앱 빈이 통째로 뜬다")
+            .containsExactlyInAnyOrder(ModuleOrigin.CORE, expectedAppModule);
     }
 
     public static void assertBootstrapDoesNotDeclareScanOrImport(Class<?> bootstrap) {

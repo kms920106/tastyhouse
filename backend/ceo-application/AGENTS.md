@@ -22,6 +22,6 @@
 - **빈이면 `@Service`/`@Component`를 단다.** 앱 마커는 없다.
 - **두 번째 앱이 쓰게 되면 코어로 옮긴다.** 이 모듈에는 ceo 하나만 쓰는 것만 둔다.
 - **앱 전용 SPI 포트가 생기면 이 모듈이 소유한다** — 그 포트의 구현(벤더)이 ceo에만 조립될 때다. 코어에 두면 다른 앱의 코어 빈이 주입해도 컴파일이 통과해 기동 시점에야 실패한다.
-- **`src/main/resources/META-INF/tastyhouse/application-module.properties`(`app=ceo`)를 지우거나 값을 바꾸지 않는다.** `ceo-api`의 스캔(`ApplicationLayerScanConfig`)은 필터 없이 `com.tastyhouse.application`을 훑으므로, 클래스패스에 다른 앱 모듈이 섞이면 그 앱의 빈이 전부 뜬다("클래스패스 존재 = 활성화"). `ceo-api`의 `ApplicationModuleClasspathTest`가 이 리소스가 테스트 클래스패스에 **정확히 1개, `app=ceo`로** 있는지 확인해 그 사고를 막는다.
+- **이 모듈에는 앱 소속 표식 리소스가 없다.** `ceo-api`의 스캔(`ApplicationLayerScanConfig`)은 필터 없이 `com.tastyhouse.application`을 훑으므로, 클래스패스에 다른 앱 모듈이 섞이면 그 앱의 빈이 전부 뜬다("클래스패스 존재 = 활성화"). `ceo-api`의 `ApplicationModuleClasspathTest`가 `com.tastyhouse.application` 클래스의 출처 모듈 집합이 `{application, ceo-application}`인지를 `ModuleOrigin`으로 판정해 그 사고를 막는다. 과거에는 `src/main/resources/META-INF/tastyhouse/application-module.properties`(`app=ceo`) 표식으로 판정했으나 삭제했다.
 - 아키텍처 테스트(ArchUnit)는 이 모듈이 아니라 코어 `application`의 테스트에 있다. 코어가 `testImplementation project(':ceo-application')`로 이 모듈을 본다.
 - 공유 테스트 더블은 코어 testFixtures의 `com.tastyhouse.testsupport.<ctx>..`에 있다(`testImplementation(testFixtures(project(':application')))`).

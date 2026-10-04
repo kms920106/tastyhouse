@@ -1,15 +1,14 @@
 package com.tastyhouse.webapi;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.architecture.ApplicationLayerScanAssertions;
+import com.tastyhouse.architecture.ModuleOrigin;
 
 class ApplicationModuleClasspathTest {
 
     @Test
-    void loadsOnlyOwnApplicationModule() throws IOException {
-        ApplicationLayerScanAssertions.assertLoadsOnlyOwnApplicationModule("web");
+    void loadsOnlyOwnApplicationModule() {
+        ApplicationLayerScanAssertions.assertLoadsOnlyOwnApplicationModule(ModuleOrigin.WEB);
     }
 }
