@@ -24,9 +24,6 @@ class FaqPersistenceAdapter implements FaqPersistencePort {
 
     @Override
     public Optional<Faq> findById(FaqId faqId) {
-        if (faqId == null) {
-            return Optional.empty();
-        }
         FaqJpaEntity entity = queryFactory
             .selectFrom(faqJpaEntity)
             .where(faqJpaEntity.id.eq(faqId.value()), faqJpaEntity.deleted.isFalse())

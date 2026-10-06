@@ -67,10 +67,6 @@ class NoticeQueryAdapter implements NoticeQueryPort, NoticeManagementQueryPort {
 
     @Override
     public Optional<NoticeDetailResult> findDetailById(Long id) {
-        if (id == null) {
-            return Optional.empty();
-        }
-
         NoticeDetailResult detail = queryFactory
             .select(Projections.constructor(NoticeDetailResult.class,
                 noticeJpaEntity.id,

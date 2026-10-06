@@ -25,9 +25,6 @@ class FaqCategoryPersistenceAdapter implements FaqCategoryPersistencePort {
 
     @Override
     public Optional<FaqCategory> findById(FaqCategoryId faqCategoryId) {
-        if (faqCategoryId == null) {
-            return Optional.empty();
-        }
         FaqCategoryJpaEntity entity = queryFactory
             .selectFrom(faqCategoryJpaEntity)
             .where(faqCategoryJpaEntity.id.eq(faqCategoryId.value()), faqCategoryJpaEntity.deleted.isFalse())

@@ -19,9 +19,6 @@ class BugReportPersistenceAdapter implements BugReportPersistencePort {
 
     @Override
     public Optional<BugReport> findById(BugReportId bugReportId) {
-        if (bugReportId == null) {
-            return Optional.empty();
-        }
         return bugReportJpaRepository.findById(bugReportId.value())
             .map(BugReportMapper::toDomain);
     }

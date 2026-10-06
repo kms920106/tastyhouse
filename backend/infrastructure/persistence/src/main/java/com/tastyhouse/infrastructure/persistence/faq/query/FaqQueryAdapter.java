@@ -64,10 +64,6 @@ class FaqQueryAdapter implements FaqQueryPort, FaqManagementQueryPort {
 
     @Override
     public Optional<FaqCategoryManagementResult> findCategoryDetailById(Long categoryId) {
-        if (categoryId == null) {
-            return Optional.empty();
-        }
-
         FaqCategoryManagementResult detail = queryFactory
             .select(Projections.constructor(FaqCategoryManagementResult.class,
                 faqCategoryJpaEntity.id,
@@ -142,10 +138,6 @@ class FaqQueryAdapter implements FaqQueryPort, FaqManagementQueryPort {
 
     @Override
     public Optional<FaqDetailResult> findFaqDetailById(Long id) {
-        if (id == null) {
-            return Optional.empty();
-        }
-
         FaqDetailResult detail = queryFactory
             .select(Projections.constructor(FaqDetailResult.class,
                 faqJpaEntity.id,

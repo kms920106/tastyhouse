@@ -74,10 +74,6 @@ class PartnershipQueryAdapter implements PartnershipQueryPort {
 
     @Override
     public Optional<PartnershipRequestDetailResult> findDetailById(Long id) {
-        if (id == null) {
-            return Optional.empty();
-        }
-
         PartnershipRequestDetailResult detail = queryFactory
             .select(Projections.constructor(PartnershipRequestDetailResult.class,
                 partnershipRequestJpaEntity.id,

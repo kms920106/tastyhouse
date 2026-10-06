@@ -83,10 +83,6 @@ class BugReportQueryAdapter implements BugReportQueryPort {
 
     @Override
     public Optional<BugReportDetailResult> findDetailById(Long id) {
-        if (id == null) {
-            return Optional.empty();
-        }
-
         BugReportDetailProjection projection = queryFactory
             .select(Projections.constructor(BugReportDetailProjection.class,
                 bugReportJpaEntity.id,

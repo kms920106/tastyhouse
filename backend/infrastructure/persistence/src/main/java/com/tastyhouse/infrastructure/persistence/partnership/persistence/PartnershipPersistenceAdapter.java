@@ -24,9 +24,6 @@ class PartnershipPersistenceAdapter implements PartnershipPersistencePort {
 
     @Override
     public Optional<PartnershipRequest> findById(PartnershipRequestId partnershipRequestId) {
-        if (partnershipRequestId == null) {
-            return Optional.empty();
-        }
         PartnershipRequestJpaEntity entity = queryFactory
             .selectFrom(partnershipRequestJpaEntity)
             .where(partnershipRequestJpaEntity.id.eq(partnershipRequestId.value()), partnershipRequestJpaEntity.deleted.isFalse())

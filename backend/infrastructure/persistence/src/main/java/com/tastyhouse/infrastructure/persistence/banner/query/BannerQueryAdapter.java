@@ -119,10 +119,6 @@ class BannerQueryAdapter implements BannerQueryPort, BannerManagementQueryPort {
 
     @Override
     public Optional<BannerDetailResult> findDetailById(Long id) {
-        if (id == null) {
-            return Optional.empty();
-        }
-
         BannerDetailResult detail = queryFactory
             .select(Projections.constructor(BannerDetailResult.class,
                 bannerJpaEntity.id,

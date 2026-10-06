@@ -19,9 +19,6 @@ class BannerPersistenceAdapter implements BannerPersistencePort {
 
     @Override
     public Optional<Banner> findById(BannerId id) {
-        if (id == null) {
-            return Optional.empty();
-        }
         return bannerJpaRepository.findByIdAndDeletedFalse(id.value())
             .map(BannerMapper::toDomain);
     }
