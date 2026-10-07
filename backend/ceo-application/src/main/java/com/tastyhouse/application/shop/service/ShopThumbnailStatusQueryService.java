@@ -33,16 +33,8 @@ class ShopThumbnailStatusQueryService implements ShopThumbnailStatusQueryUseCase
         String thumbnailImageUrl = shopBasicInfoQueryPort.findShopImageUrls(shopId)
             .map(ShopImageUrlsResult::thumbnailImageUrl)
             .orElse(null);
-        return toShopImageStatusResult(thumbnailImageUrl, shopId, ShopImageType.THUMBNAIL);
-    }
-
-    private ShopImageStatusResult toShopImageStatusResult(
-        String currentImageUrl,
-        Long shopId,
-        ShopImageType imageType
-    ) {
         List<ShopImageChangeRequestResult> requests =
-            shopOwnerQueryPort.findImageChangeRequests(shopId, imageType.name());
-        return new ShopImageStatusResult(currentImageUrl, requests);
+            shopOwnerQueryPort.findImageChangeRequests(shopId, ShopImageType.THUMBNAIL.name());
+        return new ShopImageStatusResult(thumbnailImageUrl, requests);
     }
 }

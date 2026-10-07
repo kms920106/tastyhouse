@@ -22,10 +22,6 @@ class SidebarBannerListQueryService implements SidebarBannerListQueryUseCase {
 
     @Override
     public PageResult<BannerListItemResult> getSidebarBanners(int page, int size) {
-        return getBannersByType(BannerType.SIDEBAR, page, size);
-    }
-
-    private PageResult<BannerListItemResult> getBannersByType(BannerType type, int page, int size) {
-        return bannerQueryPort.findVisibleBannersByType(type.name(), PageQuery.of(page, size));
+        return bannerQueryPort.findVisibleBannersByType(BannerType.SIDEBAR.name(), PageQuery.of(page, size));
     }
 }

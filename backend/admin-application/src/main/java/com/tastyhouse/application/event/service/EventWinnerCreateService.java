@@ -3,7 +3,6 @@ package com.tastyhouse.application.event.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.event.model.Event;
 import com.tastyhouse.domain.event.model.EventWinner;
 import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.application.event.port.in.EventWinnerCreateCommand;
@@ -28,15 +27,15 @@ class EventWinnerCreateService implements EventWinnerCreateUseCase {
     @Override
     public Long createWinner(EventWinnerCreateCommand command) {
         EventId eventId = EventId.of(command.eventId());
-        findEventOrThrow(eventId);
+        verifyEventExists(eventId);
 
         EventWinner winner = EventWinner.of(eventId, command.rankNo(), command.winnerName(), command.phoneNumber(), command.announcedAt());
         EventWinner saved = eventWinnerPersistencePort.save(winner);
         return saved.getId();
     }
 
-    private Event findEventOrThrow(EventId eventId) {
-        return eventPersistencePort.findById(eventId)
+    private void verifyEventExists(EventId eventId) {
+        eventPersistencePort.findById(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
     }
 }

@@ -33,16 +33,8 @@ class ShopTrademarkStatusQueryService implements ShopTrademarkStatusQueryUseCase
         String trademarkImageUrl = shopBasicInfoQueryPort.findShopImageUrls(shopId)
             .map(ShopImageUrlsResult::trademarkImageUrl)
             .orElse(null);
-        return toShopImageStatusResult(trademarkImageUrl, shopId, ShopImageType.TRADEMARK);
-    }
-
-    private ShopImageStatusResult toShopImageStatusResult(
-        String currentImageUrl,
-        Long shopId,
-        ShopImageType imageType
-    ) {
         List<ShopImageChangeRequestResult> requests =
-            shopOwnerQueryPort.findImageChangeRequests(shopId, imageType.name());
-        return new ShopImageStatusResult(currentImageUrl, requests);
+            shopOwnerQueryPort.findImageChangeRequests(shopId, ShopImageType.TRADEMARK.name());
+        return new ShopImageStatusResult(trademarkImageUrl, requests);
     }
 }

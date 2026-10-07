@@ -3,7 +3,6 @@ package com.tastyhouse.application.event.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.event.model.Event;
 import com.tastyhouse.domain.event.model.EventAnnouncement;
 import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.application.event.port.in.EventAnnouncementCreateCommand;
@@ -33,7 +32,7 @@ class EventAnnouncementCreateService implements EventAnnouncementCreateUseCase {
     @Override
     public Long createAnnouncement(EventAnnouncementCreateCommand command) {
         EventId eventId = EventId.of(command.eventId());
-        findEventOrThrow(eventId);
+        verifyEventExists(eventId);
 
         if (eventAnnouncementPersistencePort.existsByEventId(eventId)) {
             throw new ApplicationException(AdminErrorCode.EVENT_ANNOUNCEMENT_ALREADY_EXISTS);
@@ -44,8 +43,8 @@ class EventAnnouncementCreateService implements EventAnnouncementCreateUseCase {
         return saved.getId();
     }
 
-    private Event findEventOrThrow(EventId eventId) {
-        return eventPersistencePort.findById(eventId)
+    private void verifyEventExists(EventId eventId) {
+        eventPersistencePort.findById(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
     }
 }
