@@ -137,11 +137,11 @@ class LayerRulesTest {
         List<String> violations = useCaseServices().stream()
             .filter(service -> portInInterfacesOf(service).size() == 1)
             .filter(service -> {
-                String portName = portInInterfacesOf(service).get(0).getSimpleName();
+                String portName = portInInterfacesOf(service).getFirst().getSimpleName();
                 String expected = portName.substring(0, portName.length() - "UseCase".length()) + "Service";
                 return !service.getSimpleName().equals(expected);
             })
-            .map(service -> service.getSimpleName() + " ↔ " + portInInterfacesOf(service).get(0).getSimpleName())
+            .map(service -> service.getSimpleName() + " ↔ " + portInInterfacesOf(service).getFirst().getSimpleName())
             .toList();
 
         assertThat(violations)
