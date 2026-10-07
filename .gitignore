@@ -25,3 +25,6 @@ Thumbs.db
 
 # docs/tasks 폴더의 파일들은 커밋하지 않음
 docs/tasks/*
+
+# 개별 TODO 파일은 커밋하지 않음
+TODO.md
