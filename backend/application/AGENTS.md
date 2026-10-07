@@ -1,6 +1,6 @@
 # application
 
-**application 계층의 코어 모듈.** application 계층은 앱 마커 제거 이후 **5개 Gradle 모듈**로 나뉜다 — 이 코어 `application`과 앱 모듈 `web-application`·`admin-application`·`ceo-application`·`batch-application`(각 모듈의 `AGENTS.md` 참고). 자바 패키지는 5모듈 모두 `com.tastyhouse.application.<도메인>.{port.in, port.out, service, listener}` 하나를 나눠 쓴다(split package). **이 코어에는 "2개 앱 이상이 쓰는 것"만 산다** — 공유 도메인 서비스(과거 `@SharedApp` 35개), 도메인 이벤트 리스너 12종(`<ctx>/listener/`), `shared/**`(`SharedBeanConfig` 포함), **모든 `port.out` 계약**(읽기 계약·write 포트·Command 반환 Result), `PgConfirmResult`·`TossPaymentDetail`. UseCase 인터페이스·Command record·`*CommandService`/`*QueryService`·앱 전용 도메인 서비스·앱 전용 SPI 포트는 앱 모듈에 있다. **앱 소속은 마커 애노테이션이 아니라 Gradle 모듈이 표현한다** — 상세는 아래 [앱 마커 제거 — 앱 모듈 재분리](#앱-마커-제거--앱-모듈-재분리-챕터-01-통합챕터-03-마커-번복). 이 문서는 5모듈 공통 규칙의 정본이기도 하다(앱 모듈 `AGENTS.md`는 요약만 둔다).
+**application 계층의 코어 모듈.** application 계층은 앱 마커 제거 이후 **5개 Gradle 모듈**로 나뉜다 — 이 코어 `application`과 앱 모듈 `web-application`·`admin-application`·`ceo-application`·`batch-application`(각 모듈의 `AGENTS.md` 참고). 자바 패키지는 5모듈 모두 `com.tastyhouse.application.<도메인>.{port.in, port.out, service, listener}` 하나를 나눠 쓴다(split package). **이 코어에는 "2개 앱 이상이 쓰는 것"만 산다** — 공유 도메인 서비스(과거 `@SharedApp` 35개), 도메인 이벤트 리스너 12종(`<ctx>/listener/`), `shared/**`(`SharedBeanConfig` 포함), **모든 `port.out` 계약**(읽기 계약·write 포트·Command 반환 Result), `PgConfirmResult`·`TossPaymentDetail`. UseCase 인터페이스·Command record·유스케이스 서비스(유스케이스당 서비스 1개 — 분리 전에는 `*CommandService`/`*QueryService` 쌍)·앱 전용 도메인 서비스·앱 전용 SPI 포트는 앱 모듈에 있다. **앱 소속은 마커 애노테이션이 아니라 Gradle 모듈이 표현한다** — 상세는 아래 [앱 마커 제거 — 앱 모듈 재분리](#앱-마커-제거--앱-모듈-재분리-챕터-01-통합챕터-03-마커-번복). 이 문서는 5모듈 공통 규칙의 정본이기도 하다(앱 모듈 `AGENTS.md`는 요약만 둔다).
 
 > **(번복됨 — 앱 마커 제거)** 과거 소개: "4개 앱(web · admin · ceo · batch)의 application 계층을 담는 단일 모듈. … 컨텍스트별 인바운드 포트(`<ctx>/port/in/`)와 그 구현인 `*CommandService`/`*QueryService`(batch는 `*SchedulerService`), 읽기 계약 326개, 그리고 도메인 이벤트 리스너 12종(`<ctx>/listener/`)이 이 한 패키지 트리 안에 함께 있다. **앱 소속은 패키지가 아니라 마커 애노테이션**(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 그리고 리스너 전용 "앱 소속 없음 = 4앱 전부" 마커 `@SharedApp`)이 표현한다 — 상세는 아래 [챕터 03 — 패키지 평탄화 + 앱 마커](#챕터-03--패키지-평탄화--앱-마커-애노테이션-과거-판단의-번복)."
 
@@ -44,7 +44,7 @@
 
 **새 클래스를 어디에 두나**
 
-1. 쓰는 앱이 하나 → 그 `{앱}-application`. UseCase·Command·`*CommandService`/`*QueryService`/`*SchedulerService`는 언제나 앱 모듈이다(코어의 UseCase는 0개).
+1. 쓰는 앱이 하나 → 그 `{앱}-application`. UseCase·Command·유스케이스 서비스(`{도메인}{동작}Service`/`{도메인}{관점}QueryService`, batch는 `*SchedulerService`)는 언제나 앱 모듈이다(코어의 UseCase는 0개). 새 연산은 포트 1개(추상 메서드 1개) + 서비스 1개(포트명의 `UseCase`→`Service`)로 만든다 — 아래 "봉인·가드 목록"의 "유스케이스 서비스 1:1 규칙 4종".
 2. 2개 앱 이상이 쓰는 도메인 서비스 → 코어. 두 번째 앱이 생기는 시점에 코어로 옮긴다(패키지가 같아 import 불변).
 3. 빈이면 언제나 `@Service`/`@Component`를 단다.
 4. 리스너(`@TransactionalEventListener`)와 `@Configuration`은 **코어에만**. `@Configuration`이 스테레오타입 클래스를 `@Bean`으로 다시 등록하지 않는다(스캔과 이중 등록).
@@ -59,7 +59,7 @@
 | 코어 `LayerRulesTest` 마커 규칙 | `#listenersShouldBeShared`·`#sharedAppOnlyOnListeners`·`#markerOnlyClassesShouldBeDomainServices`·`#sharedConfigsShouldOnlyDeclareUnmarkedBeans` | 삭제. 신설 `#listenersAndConfigsShouldResideInCore`·`#coreShouldNotContainUseCasesOrOrchestrators`·`#coreBeansShouldOnlyDependOnCoreVisibleTypes`·`#configurationsShouldNotRegisterStereotypedClasses` |
 | `commandRecordsShouldBeBoundaryTyped` batch 예외 | `.areNotAnnotatedWith(BatchApp.class)` | 출처 모듈(`batch-application`)로 판정 |
 | `BatchSchedulerRulesTest` 대상 | `@BatchApp` 클래스 | `batch-application` 출처 클래스 |
-| `RuleAnchorTest` 개수 anchor | `markerBeanCounts`·`markerUseCaseCounts` | `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥50 · admin ≥100 · ceo ≥95 · batch =7 · core =0) |
+| `RuleAnchorTest` 개수 anchor | `markerBeanCounts`·`markerUseCaseCounts` | `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥50 · admin ≥100 · ceo ≥95 · batch =7 · core =0 — 앱 마커 제거 시점 값. 유스케이스 분리 후 web ≥187 · admin ≥207 · ceo ≥188) |
 | `ServiceContextBoundaryTest#domainServices()` | 스테레오타입 없는 `..service..` POJO | 구조 조건 − `EXCLUDED_COLLABORATORS` 29개(대상 94개 불변) + 짝 `excludedCollaboratorsShouldNotBeStale` |
 | testFixtures `ApplicationLayerScanAssertions` | `assertScansOnlyOwnAppAndSharedMarkers` | `assertScansApplicationLayerWithoutFilters` + 신설 `assertLoadsOnlyOwnApplicationModule(appModule)`(출처 모듈 집합 판정 — 처음엔 `application-module.properties` 표식으로 판정했으나 표식을 지우고 `ModuleOrigin`으로 교체) |
 | 출처 모듈 판정 | 없음 | 신설 testFixtures `com.tastyhouse.architecture.ModuleOrigin`(`ModuleOrigin.from(module)` 술어 — 규칙별 `FROM_BATCH_APPLICATION` 같은 지역 술어를 대체) + `ModuleOriginTest` |
@@ -87,12 +87,12 @@
 **챕터 01 직후에는 Gradle 모듈만 합쳐졌고 앱별 패키지(`com.tastyhouse.{web|admin|ceo|batch}application`)는 그대로 남아 있었다. 이 챕터가 그 4개 패키지를 `com.tastyhouse.application` 하나로 평탄화했다.**
 
 - **왜 평탄화했나**: 챕터 01의 판단 근거 중 하나였던 "중복이 컸고 이득이 없었다"가 패키지 수준에서도 반복되고 있었다 — 앱별 패키지가 남아 있는 한 `ArchUnit` 슬라이스 규칙·import 정렬 규칙 모두 "접두어가 겹치는 4개 패키지"를 특별 취급해야 했고, 그 특별 취급 자체가 문서·규칙의 복잡도였다. 패키지를 하나로 합치면 그 특별 취급이 사라진다.
-- **잃는 것**: 패키지 자체가 앱 소속을 말해주던 유일한 단서가 사라진다. `NoticeQueryService`가 `com.tastyhouse.adminapplication.notice.service`에 있다는 사실만으로 "이건 admin 것"임을 알 수 있었는데, 평탄화 후에는 `com.tastyhouse.application.notice.service`가 되어 그 정보가 없다.
+- **잃는 것**: 패키지 자체가 앱 소속을 말해주던 유일한 단서가 사라진다. `NoticeQueryService`(당시 이름)가 `com.tastyhouse.adminapplication.notice.service`에 있다는 사실만으로 "이건 admin 것"임을 알 수 있었는데, 평탄화 후에는 `com.tastyhouse.application.notice.service`가 되어 그 정보가 없다.
 - **대체 수단 — 마커 애노테이션 4종**: `com.tastyhouse.application.shared.marker.{WebApp,AdminApp,CeoApp,BatchApp}`. 순수 마커(`@Component` 메타 없음, `@Target(TYPE)` + `@Retention(RUNTIME)` + `@Documented`)이며, 빈 242개(`@Service` 220 + `@Component` 22)와 UseCase 인터페이스 257개에 정확히 하나씩 붙는다(ServiceConfig 삭제 후에는 `@Service` 없이 마커만 단 도메인 서비스 78개도 더해진다 — 아래 "application `*ServiceConfig` 전면 삭제" 절). **Command record에는 붙이지 않는다** — 소속은 유도한다(아래).
 - **스캔이 패키지에서 애노테이션으로 바뀌었다**: 마커 스캔이 `com.tastyhouse.application` 루트를 대상으로 하며 `@ComponentScan(basePackages = "com.tastyhouse.application", useDefaultFilters = false, includeFilters = @Filter(type = ANNOTATION, classes = XxxApp.class))` 형태다. **`useDefaultFilters = false`이므로 마커 없는 `@Service`는 컴파일은 통과하지만 어느 앱에도 뜨지 않는다** — 그 실패는 그 빈이 처음 필요해지는 기동 시점에야 `NoSuchBeanDefinitionException`으로 드러난다. jar 이름·경로는 불변이다. **(번복됨 — application `*ApplicationConfig` 삭제)** 이 `@ComponentScan`은 과거 이 모듈의 `{Web,Admin,Ceo,Batch}ApplicationConfig`에 있었고 api 4모듈이 `@Import`했으나, 지금은 이 모듈에 스캔 선언이 없고 각 앱 부트스트랩의 static 중첩 `ApplicationLayerScanConfig`가 소유한다(아래 [빈 배선](#빈-배선-챕터-03-개정--패키지-스캔에서-마커-스캔으로) 절 참고).
 - **(후속 추가) 5번째 마커 `@SharedApp` — 리스너 전용**: 도메인 이벤트 리스너 12종을 `infrastructure:persistence`에서 이 모듈의 `<ctx>/listener/`로 옮기면서 신설했다. 의미는 "앱 소속 없음 = 4앱 전부에 뜬다"이고, 4앱 부트스트랩 중첩 `ApplicationLayerScanConfig`의 필터가 `classes = {XxxApp.class, SharedApp.class}`로 넓어졌다(당시에는 4개 `*ApplicationConfig`의 필터였다). ~~**리스너 외에는 붙이지 않는다**~~ **(번복됨 — 덩어리 01: 리스너 + `..config..`의 `@Configuration`까지 허용, 아래 [ArchUnit](#archunit--4클래스-챕터-03으로-importer판별-기준이-패키지에서-마커로-전환) 절)** — 일반 `@Service`에 붙이면 앱 격리를 우회하므로 `LayerRulesTest#sharedAppOnlyOnListeners`가 막는다(이것은 여전히 금지). 상세는 아래 [`<ctx>/listener/` — 도메인 이벤트 리스너](#ctxlistener--도메인-이벤트-리스너).
 - **파일 이동 2건**: `batchapplication/exception/BatchJobException` → `application/shared/exception/`, `batchapplication/crawling/bbq/response/*.java` 4개(`BbqProductResponse`·`BbqProductCategoryResponse`·`BbqProductSubOptionResponse`·`SubOptionItemDetailResponse`) → `application/crawling/bbq/port/out/`.
-- **`<ctx>/port/out`의 의미가 넓어졌다** — 이제 "이 도메인의 **모든 아웃바운드 계약**"이다. 읽기 계약(`QueryPort`·`Result`·`SearchCondition`) + 아웃바운드 SPI(`SocialOAuthClient`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`) + **CommandService가 반환하는 Result/View record**가 함께 산다.
+- **`<ctx>/port/out`의 의미가 넓어졌다** — 이제 "이 도메인의 **모든 아웃바운드 계약**"이다. 읽기 계약(`QueryPort`·`Result`·`SearchCondition`) + 아웃바운드 SPI(`SocialOAuthClient`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`) + **명령 유스케이스 서비스(당시 CommandService)가 반환하는 Result/View record**가 함께 산다.
 - **Command record는 마커 없이 유도한다**: `AppOwnership`(`application/src/testFixtures/java/com/tastyhouse/architecture/AppOwnership.java`)이 `apps(R) = R을 시그니처에 쓰는 마커 UseCase의 마커 집합 ∪ R을 컴포넌트로 품는 record의 apps`(전이 폐쇄)로 소속을 계산한다. 0개=고아(죽은 코드), 2개 이상=앱 간 공유(경계 위반) 둘 다 위반. **carve-out 1건**: `ShopStorePriceVerificationItemCommand`는 multipart 문자열 파트를 서비스가 `ObjectMapper`로 역직렬화해 만들어 정적 참조가 없으므로 `AppOwnership.DESERIALIZED_COMMANDS`에 소속(`CeoApp`)을 명시했다 — 유도가 닿을 수 없는 정상 형태다.
 - **`AppOwnership`은 `testFixtures`에 있고 api 4모듈이 재사용한다**(`java-test-fixtures` 플러그인, `testImplementation(testFixtures(project(':application')))`) — api 모듈의 `adaptersShouldOnlyUseOwnAppUseCases`도 같은 유도가 필요하기 때문이다.
 - **ArchUnit 규칙 전환**: `commandServicesShouldNotDependOnQueryPorts`가 패키지 술어 → **이름 기준**(`haveSimpleNameEndingWith("QueryPort")` / `"QueryService"`)으로 바뀌었다 — `port.out`에 Command 반환 record가 함께 살게 되어, 패키지 술어를 두면 그 record를 import하는 CommandService 7개가 정당한 반환 타입인데도 위반으로 잡히기 때문이다. 같은 이유로 api 3모듈의 `controllersShouldNotDependOnQueryPorts`도 이름 기준이다. `AppIsolationTest`는 슬라이스/패키지 술어에서 **마커 술어**로 전면 재작성됐다(아래 [ArchUnit — 4클래스](#archunit--4클래스-챕터-03으로-importer판별-기준이-패키지에서-마커로-전환) 절 반영). 상세 규칙 목록·근거는 루트 `backend/CLAUDE.md`의 "앱 마커 규칙" 절 참고.
@@ -121,7 +121,7 @@
 
 **왜 서비스까지 옮겼나 — 포트만으로는 끝나지 않는다.** 이 네 서비스는 순수 POJO라는 점에서 기존 도메인 서비스와 다르지 않지만, 이관된 포트를 생성자로 주입받는다. 포트가 `application`으로 옮겨간 채 서비스만 `domain`에 남으면 `domain`이 `application`의 포트 인터페이스를 참조해야 해 **의존 방향이 뒤집힌다**(안쪽이 바깥쪽을 아는 상태). 그래서 포트를 쓰는 서비스 자체도 함께 옮겼다 — "이 서비스가 도메인 불변식을 오케스트레이션하는가"라는 기존 배치 기준(`domain/AGENTS.md`의 "도메인 서비스(`<ctx>/service/`)는 순수 POJO다" 절)은 여전히 참이지만, **아웃바운드 포트가 domain 밖에 있으면 그 포트를 쓰는 오케스트레이션도 domain 밖에 있어야 한다**는 조건이 우선한다.
 
-- **`file`·`payment`는 `@SharedApp`로, `mail`·`sms`는 `@WebApp`으로 등록한다** — 발송 포트 구현이 web에만 있는 기존 배치 기준(`persistence/AGENTS.md`의 "구현이 일부 앱에만 있는가" 판정)을 그대로 승계했다. `file`은 4앱 전부가 `FileStoragePort` 구현(firebase/aws-s3)을 가지므로 공유, `payment`(`PaymentConfirmationService`)는 PG 결제 승인이 web에서만 일어나지만 ~~**읽기 계약과 도메인 이벤트 리스너처럼 "언젠가 다른 앱이 같은 유스케이스를 트리거해도 안전해야 한다"는 4개 리스너 배치 원칙과 같은 이유로 `@SharedApp`을 유지한다** — `PgPaymentGatewayRouter`만 web 전용 채널(`infrastructure:pg`가 web-api에만 조립)이라 별도로 `@WebApp`인 `PgRouterConfig`가 등록한다.~~ **(번복됨 — application `*ServiceConfig` 삭제)** "다른 앱이 트리거해도 안전하도록 미리 `@SharedApp`"이라는 판단은 버렸다. 지금 마커는 **현재 소비 앱 집합**으로 정한다 — `PaymentConfirmationService`는 `@SharedApp` 리스너 `PaymentEventListener`가 쓰므로 `@SharedApp`으로 남았지만, `PaymentCancellationService`는 소비자가 web(`PaymentCommandService`·`PaymentCancellationExecutor`)뿐이라 `@WebApp`으로 좁혀졌다. 다른 앱이 필요해지면 그때 마커를 `@SharedApp`으로 올리면 되고, 올리지 않고 주입하면 `AppIsolationTest#constructorDependenciesShouldBeVisibleToApp`이 빌드에서 잡는다(미리 넓혀 두는 것은 쓰지 않는 앱에 빈을 띄우는 비용만 있다). `PgPaymentGatewayRouter`도 config 없이 클래스의 `@WebApp` 마커로 등록된다.
+- **`file`·`payment`는 `@SharedApp`로, `mail`·`sms`는 `@WebApp`으로 등록한다** — 발송 포트 구현이 web에만 있는 기존 배치 기준(`persistence/AGENTS.md`의 "구현이 일부 앱에만 있는가" 판정)을 그대로 승계했다. `file`은 4앱 전부가 `FileStoragePort` 구현(firebase/aws-s3)을 가지므로 공유, `payment`(`PaymentConfirmationService`)는 PG 결제 승인이 web에서만 일어나지만 ~~**읽기 계약과 도메인 이벤트 리스너처럼 "언젠가 다른 앱이 같은 유스케이스를 트리거해도 안전해야 한다"는 4개 리스너 배치 원칙과 같은 이유로 `@SharedApp`을 유지한다** — `PgPaymentGatewayRouter`만 web 전용 채널(`infrastructure:pg`가 web-api에만 조립)이라 별도로 `@WebApp`인 `PgRouterConfig`가 등록한다.~~ **(번복됨 — application `*ServiceConfig` 삭제)** "다른 앱이 트리거해도 안전하도록 미리 `@SharedApp`"이라는 판단은 버렸다. 지금 마커는 **현재 소비 앱 집합**으로 정한다 — `PaymentConfirmationService`는 `@SharedApp` 리스너 `PaymentEventListener`가 쓰므로 `@SharedApp`으로 남았지만, `PaymentCancellationService`는 소비자가 web(당시 `PaymentCommandService` — 지금은 `PaymentRefundRequestService` — ·`PaymentCancellationExecutor`)뿐이라 `@WebApp`으로 좁혀졌다. 다른 앱이 필요해지면 그때 마커를 `@SharedApp`으로 올리면 되고, 올리지 않고 주입하면 `AppIsolationTest#constructorDependenciesShouldBeVisibleToApp`이 빌드에서 잡는다(미리 넓혀 두는 것은 쓰지 않는 앱에 빈을 띄우는 비용만 있다). `PgPaymentGatewayRouter`도 config 없이 클래스의 `@WebApp` 마커로 등록된다.
 - **등록 클래스 5종은 모두 `@Configuration` + 마커, `@Bean` 팩토리 하나(또는 관련 빈 여러 개)**: `file/config/FileServiceConfig`(`@SharedApp`, `fileUploadService`) · `mail/config/MailServiceConfig`(`@WebApp`, `mailVerificationService`) · `sms/config/SmsServiceConfig`(`@WebApp`, `smsVerificationService`) · `payment/config/PaymentServiceConfig`(`@SharedApp`, `paymentConfirmationService`) · `payment/config/PgRouterConfig`(`@WebApp`, `pgPaymentGatewayRouter` — `List<PgProviderGateway>`를 주입받아 라우터를 조립). 이 다섯이 위 "(번복) `@SharedApp` 허용 대상 확대" 절이 예고한 **"리스너 외 첫 사용처"**다 — `LayerRulesTest#sharedConfigsShouldOnlyDeclareUnmarkedBeans`가 처음으로 실제 대상(`file/payment`의 두 `@SharedApp` 설정)을 갖게 됐다. **(번복됨 — application `*ServiceConfig` 삭제)** 이 다섯 설정은 전부 삭제됐고, 각 서비스 클래스에 마커만 붙는다(`FileUploadService`·`PaymentConfirmationService` `@SharedApp`, `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PaymentCancellationService` `@WebApp`).
 - **`FileDomainConfig`·`PaymentDomainConfig`의 관련 빈은 `infrastructure:persistence`에서 삭제됐다.** ~~`PaymentDomainConfig`는 `paymentCancellationService`(도메인에 남은 `PaymentCancellationService`용) 하나만 남았다.~~ **(03a로 소멸)** 남은 `paymentCancellationService`도 서비스와 함께 이 모듈로 와 `PaymentServiceConfig`에 합쳐졌고, persistence의 `*DomainConfig`는 0개가 됐다(아래 "덩어리 03a" 절). `MailDomainConfig`/`SmsDomainConfig`가 이미 채널 모듈(`infrastructure:mail`/`infrastructure:sms`)로 옮겨가 있던 선례와 마찬가지로, 판정 기준은 "외부 연동 포트인가"가 아니라 "이 서비스가 지금 어디 있는가"다.
 - **`PgProviderGateway.provider()`는 domain `PgProvider`가 아니라 이 모듈 신설 enum `PgProviderCode`를 반환한다.** `PgPaymentGateway`(라우터가 구현하는, 소비 측이 호출하는 계약)는 여전히 domain `PgProvider`를 쓴다 — 라우터(`PgPaymentGatewayRouter`)가 `PgProviderCode.name()` → `PgProvider.valueOf(...)`로 두 enum을 **상수명으로만** 연결한다. 벤더(`infrastructure:tosspayments`)가 `PgProviderGateway`를 구현하며 domain을 몰라도 되게 하려는 것이 이 우회의 목적이다 — `PgProviderCode`가 `domain`을 참조하지 않으므로 벤더 모듈도 `domain` 의존 없이 채널 어댑터를 만들 수 있다. **두 enum은 상수명·순서가 항상 같아야 하며**, `application/src/test/.../architecture/EnumCodeConstantsTest#pgProviderCodeMatchesPgProvider`가 `Enum::name` 배열을 대조해 어긋남을 잡는다. 한쪽에만 상수를 추가하면 이 테스트가 즉시 실패한다(라우터의 `PgProvider.valueOf(code.name())`이 매핑되지 않는 상수에서 `IllegalArgumentException`을 내는 런타임 위험의 컴파일 타임 방어선).
@@ -143,7 +143,7 @@
 | 빈 등록 18개 | `infrastructure:persistence`의 `<ctx>/config/<Ctx>DomainConfig`(마커 없음 — 4앱 전부 스캔) | **`<ctx>/config/<Ctx>ServiceConfig`** (`@Configuration(proxyBeanMethods = false) @SharedApp` — 등록 앱 불변). 17개는 `git mv` + 개명, `PaymentDomainConfig`의 `paymentCancellationService`는 이미 있던 `payment/config/PaymentServiceConfig`에 합쳤다. **`@Bean` 메서드 이름은 그대로**(빈 이름이 바뀌면 이름 기반 주입이 깨진다). 예외는 발행기 하나다 — `@Component` 기본 이름 `springDomainEventPublisher`가 `@Bean domainEventPublisher`로 바뀌었고, 그 이름을 `@Qualifier`로 참조하는 곳은 0건이다. domain에 남은 순수 서비스(`CupDepositPolicy`·`ProductExposureCalculator`·`ShopDeliveryTipCalculator` 등)의 `@Bean`도 이 설정들이 그대로 갖는다 — 클래스는 domain, 등록은 application |
 | 이벤트 발행 포트 `DomainEventPublisher` | `domain/shared/event/` | `shared/event/` |
 | 구현 `SpringDomainEventPublisher` | persistence `shared/event/`, 마커 없는 `@Component` | `shared/event/`, `@Component` 제거, **`shared/config/SharedEventConfig`(`@SharedApp`)의 `@Bean domainEventPublisher`**. persistence에 두면 persistence가 `port.out` 밖의 application 타입을 봐야 해 `shouldNotDependOnApiModules`에 걸리고, application 설정이 persistence 구현을 `new`할 수는 없다(모듈 의존 없음). 구현이 `ApplicationEventPublisher`에 위임하는 한 줄이라 이 모듈(이미 spring-context 보유)이 자연스럽다 |
-| `OptimisticLockConflictException` | `domain/shared/exception/` | **`shared/port/out/`** — persistence `ReservationSlotPersistenceAdapter`이 던지고 `ReservationCommandService`가 잡는다. `port/out` 아래여야 03b에서 persistence가 domain 없이 던질 수 있다. `BusinessException`이 아니므로 응답은 여전히 500이고, 재시도 소진 시 `RESERVATION_SLOT_FULL` 409로 번역되는 흐름도 그대로다 |
+| `OptimisticLockConflictException` | `domain/shared/exception/` | **`shared/port/out/`** — persistence `ReservationSlotPersistenceAdapter`이 던지고 web-application `ReservationCreateService`(당시 `ReservationCommandService`)가 잡는다. `port/out` 아래여야 03b에서 persistence가 domain 없이 던질 수 있다. `BusinessException`이 아니므로 응답은 여전히 500이고, 재시도 소진 시 `RESERVATION_SLOT_FULL` 409로 번역되는 흐름도 그대로다 |
 | 서비스 연결 어댑터 2개(`ShopRequestIndexSyncAdapter`·`ReplyPhraseProhibitedWordValidatorAdapter`) | persistence `product/persistence`·`ceo/persistence`, `@Component` | **`shop/service/`** POJO, `ShopServiceConfig`가 `@Bean`(같은 빈 이름) 등록. DB 기술이 아니라 서비스 연결부라 persistence에 두면 infra가 application 서비스를 부르게 된다. **포트를 소유한 쪽(product·ceo)이 아니라 구현 대상 서비스가 사는 `shop`에 둔 이유**: product·ceo 쪽에 두면 어댑터가 shop의 `service`를 직접 참조해 `ServiceContextBoundaryTest` 위반이 되고 봉인 목록은 늘릴 수 없다. shop에 두면 "shop이 product·ceo의 포트(`port.out`)를 구현"하는 허용된 방향만 남는다 |
 | 금칙어 캐시 데코레이터 `CachingProhibitedWordPersistencePort` | persistence `shop/persistence` | `shop/service/` (순수 자바 TTL 캐시, 빈 아님). `ShopServiceConfig#prohibitedWordValidator`가 `new`로 감싸는데 그 설정이 이 모듈로 왔으므로 함께 옮겼다 |
 
@@ -164,10 +164,10 @@
 
 domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경계를, 서비스가 옮겨온 이 모듈에서 **같은 구조(봉인 목록 + 짝 테스트)**로 이어서 강제한다. 옮기기만 하고 규칙을 따라 옮기지 않으면 경계가 조용히 사라진다.
 
-- **검사 대상**: `com.tastyhouse.application.<ctx>..service..`에 있는 최상위 클래스 중 **`@Service`/`@Component`/`@Configuration`이 없고 이름이 `*CommandService`/`*QueryService`로 끝나지 않는 것** — 즉 ~~마커 없는 POJO~~ 스테레오타입 없는 도메인 서비스(ServiceConfig 삭제 후에는 앱 마커만 단다 — 마커는 스테레오타입이 아니라 이 판정에 영향이 없다)와 그 협력 record·유틸. 유스케이스 서비스(`*CommandService`·`*QueryService`, 마커 부착)는 원래 컨텍스트를 가로질러 조립하는 계층이라 대상이 아니다. 하한 `domainServicesShouldExist` ≥ 71.
+- **검사 대상**: `com.tastyhouse.application.<ctx>..service..`에 있는 최상위 클래스 중 **`@Service`/`@Component`/`@Configuration`이 없고 이름이 `*CommandService`/`*QueryService`로 끝나지 않는 것**(03a 시점 판정 — 지금은 아래 "앱 모듈 경계 가드"의 `EXCLUDED_COLLABORATORS` 항목대로 "구조 조건(`port.in` 구현 아님 등) − 협력 빈 FQN 목록"이고, 이름 접미어 절은 유스케이스 분리로 삭제됐다) — 즉 ~~마커 없는 POJO~~ 스테레오타입 없는 도메인 서비스(ServiceConfig 삭제 후에는 앱 마커만 단다 — 마커는 스테레오타입이 아니라 이 판정에 영향이 없다)와 그 협력 record·유틸. 유스케이스 서비스(`*CommandService`·`*QueryService`, 마커 부착)는 원래 컨텍스트를 가로질러 조립하는 계층이라 대상이 아니다. 하한 `domainServicesShouldExist` ≥ 71.
 - **컨텍스트 판정**: 패키지 두 번째 세그먼트(`com.tastyhouse.{domain|application}.<ctx>.`). `shared`·`exception`·`architecture`는 컨텍스트가 아니다. `application.member.follow`처럼 03a가 domain 경로를 그대로 옮긴 곳은 `member` 컨텍스트이고, 원래부터 이 모듈에 있던 `application.follow`는 별개 컨텍스트다.
 - **금지**: 타 컨텍스트의 domain `model`·`service`, application의 `port.out` 밖 전부(`port.out.write`(구 `repository`)·`service`·`port.in`·`listener`·`config` 등). **허용**: domain `vo`·`event`, application `port.out`(write 제외). 대상 서비스의 **중첩 클래스도 검사**하며 위반은 최상위 클래스 이름으로 모아 봉인 목록과 대조한다(domain `ContextBoundaryTest`의 `topLevelNameOf` 선례). 의존 대상도 최상위 클래스로 접어서 센다. 한계: 컴파일 타임 상수(`static final` 원시값·문자열)는 javac가 인라인해 바이트코드 의존이 남지 않으므로 잡히지 않는다(`NotificationMessage` → `ReviewBlindRequest.BLIND_PERIOD_DAYS`) — domain 테스트와 같은 한계다.
-- **봉인 위반 15개** — domain에서 옮겨 온 위반만 담는다: 03a 직전 domain 봉인 14개에서 domain에 남은 `DeliveryAreaProjection`을 뺀 13개 + 덩어리 02가 옮기며 domain 봉인에서만 빠지고 새 규칙이 없던 `MailVerificationService`·`PaymentConfirmationService`. **목록은 줄어들기만 한다 — 항목을 추가하지 않는다.** 짝 테스트 `sealedViolationsShouldNotBeStale`(해소된 항목 검출)·`sealedViolationListShouldNotBeEmpty`(다 비면 봉인 장치 제거 지시).
+- **봉인 위반 15개** — domain에서 옮겨 온 위반만 담는다: 03a 직전 domain 봉인 14개에서 domain에 남은 `DeliveryAreaProjection`을 뺀 13개 + 덩어리 02가 옮기며 domain 봉인에서만 빠지고 새 규칙이 없던 `MailVerificationService`·`PaymentConfirmationService`. 그중 ceo `ShopRequestCancelService`는 유스케이스 분리로 `ShopRequestCancellationService`로 개명돼 FQN만 바뀌었다(항목 수 불변). **목록은 줄어들기만 한다 — 항목을 추가하지 않는다.** 짝 테스트 `sealedViolationsShouldNotBeStale`(해소된 항목 검출)·`sealedViolationListShouldNotBeEmpty`(다 비면 봉인 장치 제거 지시).
 - **봉인 순환 성분 1개** `"order,product,review,shop"` — domain에서 봉인되던 바로 그 성분이 서비스와 함께 옮겨왔다(순환을 만들던 간선이 전부 서비스에서 나왔다). 간선은 대상 서비스에서 나가는 의존만으로 계산하고, 비교 단위는 domain 선례대로 **SCC**다. 짝 테스트 `sealedCyclesShouldNotBeStale`.
 - `allowEmptyShould(true)`를 쓰지 않는다 — 위반을 손으로 모으는 테스트라 ArchUnit의 빈 `should()` 문제도 없다.
 - ~~**(03b)** 새로 생긴 `<ctx>/store/`도 `port.out` 밖이므로 이 규칙의 금지 대상에 자동으로 들어간다 — 타 컨텍스트의 `XxxPersistencePort`는 03a 이전과 마찬가지로 직접 주입할 수 없다(패키지가 `port.out.write` → `store`로 바뀌었을 뿐 판정은 같다).~~ **(번복됨 — persistence domain 재허용)** `store`는 없어지고 `XxxPersistencePort`가 `port.out.write`로 돌아왔다. 위 "금지"의 `port.out.write`가 그대로 적용되므로 판정은 03a와 같다.
@@ -232,7 +232,7 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 
 ## application `*ServiceConfig` 전면 삭제 — 도메인 서비스는 클래스에 앱 마커만 (02/03a 등록 방식 번복)
 
-> **(번복됨 — 앱 마커 제거)** "config 삭제"는 유지되지만 "클래스에 앱 마커만, `@Service` 없이"는 번복됐다. 도메인 서비스 78개는 지금 **`@Service`를 달고**, 마커 대신 **모듈 위치**로 소속을 표현한다(소비 앱이 하나면 그 `{앱}-application`, 둘 이상이면 코어 — 과거 `@SharedApp` 35개가 코어에 남았다). `@Service`를 달아도 `ServiceContextBoundaryTest`가 대상을 잃지 않도록 술어를 "구조 조건 − `EXCLUDED_COLLABORATORS`"로 바꿨다. 아래 ArchUnit 표의 `AppIsolationTest`·마커 규칙은 전부 삭제됐다. 현재 규칙은 [앱 마커 제거 — 앱 모듈 재분리](#앱-마커-제거--앱-모듈-재분리-챕터-01-통합챕터-03-마커-번복).
+> **(번복됨 — 앱 마커 제거)** "config 삭제"는 유지되지만 "클래스에 앱 마커만, `@Service` 없이"는 번복됐다. 도메인 서비스 78개는 지금 **`@Service`를 달고**, 마커 대신 **모듈 위치**로 소속을 표현한다(소비 앱이 하나면 그 `{앱}-application`, 둘 이상이면 코어 — 과거 `@SharedApp` 35개가 코어에 남았다). `@Service`를 달아도 `ServiceContextBoundaryTest`가 대상을 잃지 않도록 술어를 "구조 조건 − `EXCLUDED_COLLABORATORS`"로 바꿨다. 아래 ArchUnit 표의 `AppIsolationTest`·마커 규칙은 전부 삭제됐다. **(유스케이스 분리)** 아래 용어 풀이의 "도메인 서비스 = `*CommandService`/`*QueryService`가 아닌 서비스"·"앱 오케스트레이터 = `*CommandService`/`*QueryService`"는 당시 기준이다 — 지금은 `port.in`을 구현하면 유스케이스 서비스, 아니면 도메인 서비스다. 현재 규칙은 [앱 마커 제거 — 앱 모듈 재분리](#앱-마커-제거--앱-모듈-재분리-챕터-01-통합챕터-03-마커-번복).
 
 **02/03a가 확립한 "마커 없는 POJO + 마커 붙은 `@Configuration`의 `@Bean`" 등록 방식을 걷어냈다.** `<ctx>/config/*ServiceConfig` 22개와 `payment/config/PgRouterConfig`를 전부 삭제했고, 그 설정들이 `new`로 만들던 도메인 서비스 78개는 이제 **클래스에 앱 마커 하나만**(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`/`@SharedApp`, `@Service`는 달지 않는다) 달고 마커 기반 컴포넌트 스캔(아래 "빈 배선" 절)으로 등록된다. HTTP·DB 계약과 빈 이름은 바뀌지 않았다.
 
@@ -352,19 +352,19 @@ public class BugReportRegistrationService { ... }
 |---|---|---|
 | `readContractsShouldBeFrameworkFree` | `port.out`은 `java..`·`com.tastyhouse.domain..`·`port.out` 참조 허용 | **`java..`·`port.out`만**(domain 허용 제거) |
 | `*SearchCondition`·`{Ctx}QueryPort` 파라미터의 enum·ID | 도메인 enum·`XxxId` 허용 | `String`·`Long`. QueryService가 `OrderStatus.from(orderStatus).name()`·`OrderId.of(id).value()`로 **검증 후 강등**해 넘긴다(잘못된 입력의 400 응답 경로 불변) |
-| `*Result`의 enum 라벨(`{field}Description`/`{field}DisplayName`) | persistence DAO가 `EnumLabelProjection`으로 채움 | **QueryService가 채운다** — DAO는 `Expressions.nullExpression(String.class)`로 자리만 두고, QueryService가 `XxxEnum.valueOf(result.status()).getDescription()`을 Result wither(`withDescriptions(...)` 등)에 넘긴다. 참고: `shop/service/ShopChangeHistoryQueryService` → `shop/port/out/ShopChangeHistoryResult#withDescriptions`, `ceo/service/CeoLoginHistoryQueryService` → `ceo/port/out/CeoLoginHistoryResult` |
+| `*Result`의 enum 라벨(`{field}Description`/`{field}DisplayName`) | persistence DAO가 `EnumLabelProjection`으로 채움 | **QueryService가 채운다** — DAO는 `Expressions.nullExpression(String.class)`로 자리만 두고, QueryService가 `XxxEnum.valueOf(result.status()).getDescription()`을 Result wither(`withDescriptions(...)` 등)에 넘긴다. 참고: ceo-application `shop/service/ShopChangeHistoryListQueryService`(당시 `ShopChangeHistoryQueryService`) → `shop/port/out/ShopChangeHistoryResult#withDescriptions`, ceo-application `ceo/service/CeoLoginHistoryListQueryService`(당시 `CeoLoginHistoryQueryService`) → `ceo/port/out/CeoLoginHistoryResult` |
 | DAO가 enum 상수와 비교 | `.eq(OrderStatus.COMPLETED)` | `.eq(status)` — 비교값을 **포트 인자**로 받고, application(Store·QueryService)이 도메인 enum의 `name()`으로 넘긴다(아래 "enum 비교값 전달 규칙") |
 
 **enum 비교값 전달 규칙** — ~~persistence가 비교할 enum 상수는 `<ctx>/port/out/XxxCodes`(도메인 enum을 복제한 문자열 상수 클래스)에서 가져온다~~ **(번복됨 — `@SuppressWarnings` 지양 규칙)** 복제본은 도메인 enum과 두 벌이 돼 일치 검사가 따로 필요했고, DAO가 쓰지 않는 상수마다 IDE 미사용 경고가 나서 억제 어노테이션이 붙어야 했다. 게다가 "판매 완료 주문만 센다"·"탈퇴 회원 제외" 같은 **도메인 정책이 persistence에 박혀 있었다.** 그래서 복제본 13개를 전부 지우고, **persistence는 enum 어휘를 전혀 모르게** 했다.
 
 | 형태 | 언제 | 예 |
 |---|---|---|
-| `String`/`Collection<String>` 포트 인자 | 비교·필터 값 | `MemberQueryPort#existsByPhoneNumberAndStatusNot(phoneNumber, excludedStatus)` ← `MemberQueryService`가 `MemberStatus.DELETED.name()`. ~~`ReviewBlindRequestStatePort#existsByReviewIdAndStatusIn(reviewId, statuses)` ← `ReviewBlindRequestStore`의 종결 상태 상수~~ (번복됨 — 이 판단은 이제 persistence `ReviewBlindRequestPersistenceAdapter` 안에 있다) |
+| `String`/`Collection<String>` 포트 인자 | 비교·필터 값 | `MemberQueryPort#existsByPhoneNumberAndStatusNot(phoneNumber, excludedStatus)` ← `MemberPhoneAvailabilityQueryService`(당시 `MemberQueryService`)가 `MemberStatus.DELETED.name()`. ~~`ReviewBlindRequestStatePort#existsByReviewIdAndStatusIn(reviewId, statuses)` ← `ReviewBlindRequestStore`의 종결 상태 상수~~ (번복됨 — 이 판단은 이제 persistence `ReviewBlindRequestPersistenceAdapter` 안에 있다) |
 | 스펙 record 포트 인자 | DAO가 값에 따라 **쿼리 모양을 바꾸는** 곳 | `review/port/out/ReviewSortSpec(byLikeCount, createdAtAscending)` ← `review/service/ReviewSortSpecs.of(ReviewSortType)`, `review/port/out/ShopReviewTabFilter` ← `ShopReviewTabFilters.of(ReviewListTab)`, `product/port/out/ProductExposureWindow(now, todayDayTypes, previousDayDayTypes)` ← `product/service/ProductExposureWindows.now()`/`at(LocalDateTime)`(`DayType#appliesTo(dow, false)` — 공휴일 미판정은 과거 DAO 동작 그대로) |
 | 기존 정책 record 컴포넌트 | 요청마다 달라지지 않는 고정값 | `shop/port/out/ShopDeliveryTipRangePolicy`의 `distanceExtraTipType`·`regionExtraTipType` ← `shared/config/SharedBeanConfig#shopDeliveryTipRangePolicy`(구 `ShopServiceConfig`, `DeliveryTipExtraType.DISTANCE/REGION.name()`) |
 
 - **스펙 record를 만드는 유틸은 `<ctx>/service/`의 final class이며, 도메인 enum → 스펙 매핑은 exhaustive switch로 쓴다.** 도메인 상수가 추가되면 컴파일 에러로 드러난다.
-- **그 유틸은 자기 컨텍스트(또는 `domain.shared`) 타입만 import한다.** `ServiceContextBoundaryTest`는 `..service..`의 비-`*QueryService`/`*CommandService` 클래스를 도메인 서비스로 보고 타 컨텍스트 `model` 참조를 막는다. 그래서 인기상품 판매 집계의 `OrderStatus.COMPLETED.name()`은 `ProductExposureWindows`가 아니라 `ProductQueryService#findPopularProducts`에서 만든다.
+- **그 유틸은 자기 컨텍스트(또는 `domain.shared`) 타입만 import한다.** `ServiceContextBoundaryTest`는 `..service..`의 `port.in`을 구현하지 않는 클래스(당시 판정은 비-`*QueryService`/`*CommandService`)를 도메인 서비스로 보고 타 컨텍스트 `model` 참조를 막는다. 그래서 인기상품 판매 집계의 `OrderStatus.COMPLETED.name()`은 `ProductExposureWindows`가 아니라 `ProductPopularQueryService#findPopularProducts`(당시 `ProductQueryService`)에서 만든다.
 - **도메인 타입 `XxxPersistencePort` 시그니처는 그대로 둔다.** ~~바뀌는 것은 `XxxStatePort`와 Store 본문뿐이다(예: `MailVerificationStore#expireAllPendingByEmail` → `MailVerificationStatePort#changeStatusByEmail(email, PENDING, EXPIRED)`).~~ **(번복됨 — persistence domain 재허용)** 지금은 그 변환이 persistence `MailVerificationPersistenceAdapter` 안에 있다. 그래서 도메인 타입 fake(`FakeMailVerificationPersistencePort` 등)가 영향을 받지 않는다.
 - **`port.out`에 도메인 enum의 복제본을 두지 않는다.** `EnumCodeConstantsTest#portOutShouldNotMirrorDomainEnums`가 `port.out`의 모든 enum을 도메인 enum과 **상수 집합**으로 대조해 막는다. 이름과 무관하게 잡는다. 허용 목록은 값 자체가 벤더 계약인 `PgProviderCode` 하나다. 과거 형태(`public static final String X = "X"` 상수 클래스)의 재발은 `#portOutShouldNotDeclareDomainEnumConstantStrings`가 막는다(도메인 enum 상수명과 같은 이름의 `static final String` 필드 금지).
 - **`ShopReviewTabFilter`는 조건을 하나만 켤 수 있다.** compact constructor가 둘 이상이면 `IllegalArgumentException`으로 거부한다. DAO가 앞선 조건만 조용히 적용하는 것을 막는다.
@@ -378,12 +378,12 @@ persistence가 domain을 볼 수 없게 되면서, DAO·어댑터 안에 있던 
 
 | 판단 | before (persistence) | after (이 모듈) |
 |---|---|---|
-| 컵 보증금 금액 `CupDepositPolicy#depositAmountOf(cupCount)` | `product/query/ProductQueryAdapter`가 주입받아 투영 중 계산 | DAO는 `cupCount`만 싣고, `product/service/ProductOptionDepositAmounts`(package-private 유틸)가 `ProductQueryService`·`ProductManagementQueryService`에서 채운다 |
-| 에디터 추천 가게당 상품 수 `EditorChoicePolicy.PRODUCT_LIMIT` | `shop/query/ShopChoiceQueryAdapter`가 상수 직접 참조 | `ShopChoiceQueryPort#findEditorChoices(PageQuery, int productLimit)` 파라미터 — `ShopQueryService`·`ShopManagementQueryService`가 상수를 넘긴다 |
+| 컵 보증금 금액 `CupDepositPolicy#depositAmountOf(cupCount)` | `product/query/ProductQueryAdapter`가 주입받아 투영 중 계산 | DAO는 `cupCount`만 싣고, `product/service/ProductOptionDepositAmounts`(package-private 유틸)가 web `ProductOptionsQueryService`·`ProductBatchQueryService`(당시 `ProductQueryService`)·admin `ProductOptionManagementListQueryService`(당시 `ProductManagementQueryService`)에서 채운다 |
+| 에디터 추천 가게당 상품 수 `EditorChoicePolicy.PRODUCT_LIMIT` | `shop/query/ShopChoiceQueryAdapter`가 상수 직접 참조 | `ShopChoiceQueryPort#findEditorChoices(PageQuery, int productLimit)` 파라미터 — web `ShopEditorChoiceQueryService`(당시 `ShopQueryService`)·admin `ShopChoiceListManagementQueryService`(당시 `ShopManagementQueryService`)가 상수를 넘긴다 |
 | 배달팁 표기 상한·거리 단위 `DeliveryTipPolicy.EXTRA_TIP_UPPER_BOUND`·`DeliveryTipDistanceUnit#getUnitMeters` | `shop/query/ShopDeliveryTipQueryAdapter`가 domain 상수·enum 직접 참조 | **값 record `shop/port/out/ShopDeliveryTipRangePolicy`**(상한 + 단위명→미터 맵)를 `SharedBeanConfig#shopDeliveryTipRangePolicy`(구 `ShopServiceConfig`)가 domain 값으로 만들어 `@Bean` 등록하고, DAO가 그 빈을 주입받는다 — DAO가 domain 없이 같은 값을 쓰는 형태 |
-| 예약 차단 상태 `ReservationStatus.blockingStatuses()` | `reservation/query/ReservationQueryAdapter`가 직접 참조 | `ReservationQueryService`·~~`ReservationStore`~~가 `name()` 목록으로 만들어 파라미터로 넘긴다(write 쪽은 지금 persistence `ReservationPersistenceAdapter`이 직접 만든다) |
-| 가게 위치 조회 실패 `SHOP_ACCESS_DENIED`·좌표 미등록 `SHOP_DELIVERY_AREA_RADIUS_EXCEEDED` | `shop/query/ShopDeliveryAreaQueryAdapter#findShopLocation`이 `BusinessException` | DAO는 `Optional<ShopLocationResult>`를 돌려주고, 위치 없음(`SHOP_ACCESS_DENIED`)은 호출하는 `ShopDeliveryAreaPolygonQueryService`·`ShopDeliveryAreaRadiusQueryService`가 `orElseThrow`로, 좌표 미등록은 `shop/service/ShopDeliveryAreaGeoMapper#requireCoordinates`가 같은 코드·문구로 던진다(응답 불변) |
-| 폴리곤·행정동 경계 디코딩 | persistence `shared/query/GeoRingsResolver`(`GeoRingsQueryPort` 구현) | QueryService가 `domain/shared/geo/GeoPolygonTextCodec.decodeRings`를 직접 호출(`region/service/AdminDongQueryService`·`shop/service/ShopDeliveryAreaPolygonQueryService`). `GeoRingsQueryPort`·`GeoRingsResolver`는 삭제 |
+| 예약 차단 상태 `ReservationStatus.blockingStatuses()` | `reservation/query/ReservationQueryAdapter`가 직접 참조 | `ReservationAvailabilityQueryService`(당시 `ReservationQueryService`)·~~`ReservationStore`~~가 `name()` 목록으로 만들어 파라미터로 넘긴다(write 쪽은 지금 persistence `ReservationPersistenceAdapter`이 직접 만든다) |
+| 가게 위치 조회 실패 `SHOP_ACCESS_DENIED`·좌표 미등록 `SHOP_DELIVERY_AREA_RADIUS_EXCEEDED` | `shop/query/ShopDeliveryAreaQueryAdapter#findShopLocation`이 `BusinessException` | DAO는 `Optional<ShopLocationResult>`를 돌려주고, 위치 없음(`SHOP_ACCESS_DENIED`)은 호출하는 `ShopDeliveryAreaPolygonDetailQueryService`·`ShopDeliveryAreaPolygonPreviewQueryService`(당시 `ShopDeliveryAreaPolygonQueryService`)·`ShopDeliveryAreaRadiusQueryService`가 `orElseThrow`로, 좌표 미등록은 `shop/service/ShopDeliveryAreaGeoMapper#requireCoordinates`가 같은 코드·문구로 던진다(응답 불변) |
+| 폴리곤·행정동 경계 디코딩 | persistence `shared/query/GeoRingsResolver`(`GeoRingsQueryPort` 구현) | QueryService가 `domain/shared/geo/GeoPolygonTextCodec.decodeRings`를 직접 호출(ceo-application `region/service/AdminDongBoundaryQueryService`(당시 `AdminDongQueryService`)·`shop/service/ShopDeliveryAreaPolygonDetailQueryService`·`ShopDeliveryAreaPolygonPreviewQueryService`(당시 `ShopDeliveryAreaPolygonQueryService`)). `GeoRingsQueryPort`·`GeoRingsResolver`는 삭제 |
 | 가게 매장가 인증 플래그 어댑터 `StorePriceVerificationAdapter` | persistence `@Component` | **`shop/service/StorePriceVerificationAdapter`**(POJO, ~~`ShopServiceConfig`가 `@Bean`~~ 지금은 클래스에 `@SharedApp` 마커만) — `ShopPersistencePort`(도메인 `Shop`)와 `ResourceNotFoundException`을 쓰므로 |
 
 **DAO에 도메인 상수가 필요해 보이면** ① 호출부가 파라미터로 넘기거나(`productLimit`·`blockingStatuses`), ② 값 record를 `port/out`에 두고 `shared/config/SharedBeanConfig`(구 `<Ctx>ServiceConfig`)가 domain 값으로 `@Bean` 등록한다(`ShopDeliveryTipRangePolicy`). 조회 DAO에 domain을 들이지 않는다(persistence 모듈 자체는 domain을 다시 의존하지만 `..query..`는 `queryShouldNotDependOnDomain`이 막는다).
@@ -403,7 +403,7 @@ persistence가 domain을 볼 수 없게 되면서, DAO·어댑터 안에 있던 
 
 ## 패키지 구조 (챕터 03으로 평탄화 — 도메인 아래에 앱별 폴더가 없다)
 
-> **(앱 마커 제거 후 갱신)** 아래 트리는 **5모듈을 합친 패키지 모양**이다(패키지는 그대로). 달라진 점: `shared/marker/`는 **삭제**됐다. `port/in/`·`*CommandService`/`*QueryService`·앱 전용 도메인 서비스·앱 전용 SPI 포트(`SocialOAuthClient`·`MailSender`·`SmsSender`·`PgProviderGateway`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort` 등)는 각 `{앱}-application` 모듈에 있고, 나머지(`shared/**`·공유 도메인 서비스·`port/out` 계약·`listener/`)는 코어 `application`에 있다. 트리 안의 "마커 부착"·"@SharedApp"·"AppOwnership 유도" 표기는 과거 기록이다. 상세는 [앱 마커 제거 — 앱 모듈 재분리](#앱-마커-제거--앱-모듈-재분리-챕터-01-통합챕터-03-마커-번복).
+> **(앱 마커 제거 후 갱신)** 아래 트리는 **5모듈을 합친 패키지 모양**이다(패키지는 그대로). 달라진 점: `shared/marker/`는 **삭제**됐다. `port/in/`·유스케이스 서비스(유스케이스 분리 전 `*CommandService`/`*QueryService`)·앱 전용 도메인 서비스·앱 전용 SPI 포트(`SocialOAuthClient`·`MailSender`·`SmsSender`·`PgProviderGateway`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort` 등)는 각 `{앱}-application` 모듈에 있고, 나머지(`shared/**`·공유 도메인 서비스·`port/out` 계약·`listener/`)는 코어 `application`에 있다. 트리 안의 "마커 부착"·"@SharedApp"·"AppOwnership 유도" 표기는 과거 기록이다. 상세는 [앱 마커 제거 — 앱 모듈 재분리](#앱-마커-제거--앱-모듈-재분리-챕터-01-통합챕터-03-마커-번복).
 
 ```
 com.tastyhouse.application/
@@ -423,7 +423,8 @@ com.tastyhouse.application/
   ├── shared/config/SharedBeanConfig.java    (구 SharedEventConfig, @SharedApp) — domainEventPublisher + domain 계산기 7 + shopDeliveryTipRangePolicy + prohibitedWordValidator. 이 모듈의 유일한 @Bean 보유 클래스
   └── <ctx>/
       ├── port/in/                UseCase 인터페이스(마커 부착) + Command record(마커 없음 — AppOwnership 유도)
-      ├── service/                *CommandService/*QueryService(batch는 *SchedulerService), 마커 부착, implements {Ctx}UseCase
+      ├── service/                유스케이스 서비스 {도메인}{동작}Service / {도메인}{관점}QueryService(batch는 *SchedulerService),
+      │                           implements 포트 정확히 1개 (유스케이스 분리 — 과거 *CommandService/*QueryService 쌍, 마커 부착)
       │                           + 도메인 서비스(과거 domain의 포트 주입 서비스) — @Service 없이 앱 마커만 (ServiceConfig 삭제 후)
       ├── port/out/               이 도메인의 모든 아웃바운드 계약(챕터 03으로 의미 확장) —
       │                           읽기 계약({Ctx}QueryPort·*Result·*SearchCondition, 마커 없음) +
@@ -443,7 +444,7 @@ com.tastyhouse.application/
 
 - **web** 컨텍스트 27종: `auth` · `banner` · `bug` · `coupon` · `event` · `faq` · `follow` · `grade` · `mail` · `member` · `menureview` · `notice` · `notification` · `order` · `partnership` · `payment` · `point` · `policy` · `product` · `rank` · `referral` · `reservation` · `review` · `search` · `shop` · `sms`.
 - **admin** 컨텍스트 19종: `admin` · `auth` · `banner` · `bug` · `ceo` · `coupon` · `event` · `faq` · `file` · `member` · `notice` · `order` · `partnership` · `point` · `policy` · `product` · `rank` · `review` · `shop`.
-- **ceo** 컨텍스트 6종: `auth` · `ceo` · `product` · `region` · `review` · `shop`. **컨텍스트 수는 가장 적은데 서비스 수는 가장 많다**(`*CommandService` 44 · `*QueryService` 43) — 점주 셀프서비스가 `shop` 하나에 설정 관심사를 대량으로 갖기 때문이다(`ShopBusinessHour*`/`ShopClosedDay*`/`ShopStatus*`/`ShopDeliveryTip*` 등).
+- **ceo** 컨텍스트 6종: `auth` · `ceo` · `product` · `region` · `review` · `shop`. **컨텍스트 수는 가장 적은데 쌍 시절 서비스 수는 가장 많았다**(당시 `*CommandService` 44 · `*QueryService` 43 — 유스케이스 분리 후 명령 120 · 조회 68 = 188개) — 점주 셀프서비스가 `shop` 하나에 설정 관심사를 대량으로 갖기 때문이다(`ShopBusinessHour*`/`ShopClosedDay*`/`ShopStatus*`/`ShopDeliveryTip*` 등).
 - **batch** 잡 슬러그 7종: `grade` · `product` · `productsoldout` · `rank` · `region` · `reviewblind` · `search`. 추가로 `crawling/bbq/`(BBQ 크롤링 동기화 + `port/out`에 포트 2종 `BbqMenuPort`·`RemoteImagePort`, 응답 record 4종, 다운로드 결과 record `DownloadedImage`)와 `exception/BatchJobException`이 있다. 잡별 UseCase·트리거 대응표는 `batch-module/AGENTS.md`에 있다.
 
 대형 컨텍스트는 관심사 단위로 서비스를 더 쪼갠다 — 이 관례는 모듈 통합 전과 동일하다.
@@ -452,7 +453,7 @@ com.tastyhouse.application/
 
 **앱별로 같은 역할의 타입이 따로 존재하는 것은 의도된 중복이다** — 소비자가 다르면 조회 범위·응답 형태가 다르고, 인증은 주체(`Member`·`Admin`·`Ceo`)·ErrorCode·`JWT_SECRET_*`가 앱별로 분리돼 있다. 통합하지 않는다.
 
-**다만 이름까지 같게 두지는 않는다(챕터 02에서 개명 완료).** 챕터 03 평탄화로 세 앱의 타입이 같은 패키지에 공존하므로 simple name이 앱 간에도 유일해야 한다. `NoticeQueryService`(web) / `NoticeManagementQueryService`(admin), `ShopQueryService`(web) / `ShopManagementQueryService`(admin) / `ShopOwnerQueryService`(ceo), `MemberTokenService` / `AdminTokenService` / `CeoTokenService`처럼 **web은 순수명, admin은 `Management`, ceo는 `Owner`**(인증 타입은 주체명 접두)로 구별한다.
+**다만 이름까지 같게 두지는 않는다(챕터 02에서 개명 완료).** 챕터 03 평탄화로 세 앱의 타입이 같은 패키지에 공존하므로 simple name이 앱 간에도 유일해야 한다. `NoticeQueryService`(web) / `NoticeManagementQueryService`(admin), `ShopQueryService`(web) / `ShopManagementQueryService`(admin) / `ShopOwnerQueryService`(ceo, 당시 이름 — 지금은 `ShopOwnerListQueryService`·`ShopOwnerDetailQueryService`), `MemberTokenService` / `AdminTokenService` / `CeoTokenService`처럼 **web은 순수명, admin은 `Management`, ceo는 `Owner`**(인증 타입은 주체명 접두)로 구별한다. (web의 `NoticeQueryService`·`ShopQueryService`와 admin의 `NoticeManagementQueryService`·`ShopManagementQueryService`는 당시 이름이다 — 이후 유스케이스 분리로 `NoticeListQueryService`·`ShopDetailQueryService`·`NoticeManagementListQueryService`·`ShopListManagementQueryService` 같은 per-op 서비스로 나뉘었고, 순수명/`Management`/`Owner` 구별은 per-op 이름에도 그대로 적용한다.)
 
 공유되는 것은 `domain`의 도메인 모델·write 포트·도메인 서비스와, 이 모듈 안에서 여러 앱이 함께 쓰는 `{Ctx}QueryPort` 계약이다(03a 이후 write 포트는 이 모듈의 `port/out/write/XxxPersistencePort`, 도메인 서비스는 `<ctx>/service/`에 있다 — 03b 동안 `store/`에 있었던 것은 번복됐다). 그 시그니처를 바꿀 때는 소비 앱 전체를 함께 확인한다.
 
@@ -535,6 +536,8 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 > **(앱 마커 제거 후 갱신)** `AppIsolationTest`는 **파일째 삭제**됐다. `LayerRulesTest`에서 마커 규칙 4개(`listenersShouldBeShared`·`sharedAppOnlyOnListeners`·`markerOnlyClassesShouldBeDomainServices`·`sharedConfigsShouldOnlyDeclareUnmarkedBeans`)가 빠지고 모듈 경계 규칙 4개(`listenersAndConfigsShouldResideInCore`·`coreShouldNotContainUseCasesOrOrchestrators`·`coreBeansShouldOnlyDependOnCoreVisibleTypes`·`configurationsShouldNotRegisterStereotypedClasses`)가 생겼다. importer는 여전히 `com.tastyhouse.application`이지만, 이 모듈의 테스트 클래스패스에 앱 모듈 4개가 있어(`testImplementation project(':{앱}-application')`) **5모듈을 모두 본다.** batch 선별(`commandRecordsShouldBeBoundaryTyped`의 batch 제외, `BatchSchedulerRulesTest`)은 마커 대신 testFixtures `ModuleOrigin`으로 판정한 **출처 모듈**(`batch-application`)을 쓴다. 마커별 anchor는 `RuleAnchorTest#moduleBeanCounts`·`#moduleUseCaseCounts`가 승계했다. 아래 표와 문단의 마커 서술은 과거 기록이다.
 
+> **(유스케이스 분리 후 갱신)** `LayerRulesTest`는 지금 **28종**이다. 표의 "UseCase 구현 강제 2"(`commandServicesShouldImplementUseCase`·`queryServicesShouldImplementUseCase`)는 **삭제**됐고, 그 자리를 **1:1 규칙 4종** `useCaseServicesShouldImplementExactlyOneUseCase`·`useCasesShouldDeclareSingleOperation`·`useCaseServiceNameShouldMatchPort`·`useCaseServicesShouldHaveSinglePublicOperation`이 채웠다(근거는 아래 "봉인·가드 목록"의 "유스케이스 서비스 1:1 규칙 4종"). "CQRS 교차 주입 2(이름 기준)"와 `commandServicesShouldNotDependOnRequestRecords`는 대상을 서비스 이름 접미어가 아니라 testFixtures `com.tastyhouse.architecture.UseCaseServices#commands()`·`#queries()`로 고른다 — 금지 대상(`*QueryPort`·`*QueryService`·`*QueryUseCase`·`port.out.write`·`..request..`) 쪽 판정은 그대로다. `coreShouldNotContainUseCasesOrOrchestrators`의 접미어 절과 `ServiceContextBoundaryTest#isStructuralDomainService`의 접미어 절도 삭제돼 `port.in` 구현 여부로만 가른다.
+
 **챕터 01 직후에는 아래 4클래스의 importer가 "4개 앱 패키지"(`com.tastyhouse.{web|admin|ceo|batch}application`)였다.** 챕터 03의 패키지 평탄화로 그 패키지 접두어가 사라지자 이 표현 자체가 성립하지 않게 됐고, 특히 `AppIsolationTest`는 슬라이스/패키지 술어에서 **마커 애노테이션 술어**로 전면 재작성됐다(`application/src/test/.../architecture/AppIsolationTest.java`).
 
 | 클래스 | importer | 내용 |
@@ -549,7 +552,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 **챕터 01 시점에 통합으로 의미가 달라져 손본 곳 두 군데는(carve-out FQN화, `applicationMustNotDependOnAdapters` 4패키지 확대) 챕터 03 이후에도 그대로 유효하다** — carve-out 대상 클래스와 api 패키지 이름 자체는 이번 평탄화로 바뀌지 않았다.
 
-- `queryServicesShouldNotDependOnWritePorts`의 carve-out은 simple name이 아니라 **FQN**이다. `ShopQueryService`가 web·admin·ceo에 각각 있어 simple name으로 두면 의도한 1개가 아니라 3개 전부가 면제되기 때문이다. 확정 carve-out 3건(web `ShopQueryService` 도메인 계산 입력 / admin `AdminQueryService`·ceo `CeoQueryService` 인증 조회)은 이관 대상이 아니며, **이 목록에 새 항목을 추가하지 않는다.**
+- `queryServicesShouldNotDependOnWritePorts`의 carve-out은 simple name이 아니라 **FQN**이다. 당시 `ShopQueryService`가 web·admin·ceo에 각각 있어 simple name으로 두면 의도한 1개가 아니라 3개 전부가 면제됐기 때문이다. 확정 carve-out 3건(web `ShopDeliveryTipViewQueryService`(유스케이스 분리 전 `ShopQueryService`) 도메인 계산 입력 / admin `AdminUsernameExistsQueryService`(유스케이스 분리 전 `AdminQueryService`)·ceo `CeoOwnerUsernameExistsQueryService`(유스케이스 분리 전 `CeoOwnerQueryService`, 챕터 02 개명 전 `CeoQueryService`) 인증 조회)은 이관 대상이 아니며, **이 목록에 새 항목을 추가하지 않는다.**
 - `applicationMustNotDependOnAdapters`의 금지 대상은 **4개 api 패키지 전부**다. 어느 앱의 서비스든 어느 api 모듈도 역참조할 수 없다.
 
 **분리해 둔 이유가 있는 곳도 둘이다.**
@@ -561,7 +564,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 ### anchor 하한
 
-> **(번복됨 — 앱 마커 제거)** 빈·UseCase 하한은 지금 `RuleAnchorTest`가 **모듈별로** 갖는다 — `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47), `#moduleUseCaseCounts`(web ≥50 · admin ≥100 · ceo ≥95 · batch =7 · core =0). 모듈별로 두는 이유는 마커별로 두던 이유와 같다(합계 하나면 한 앱이 통째로 사라져도 통과한다). core UseCase =0은 "코어에 UseCase가 새지 않는다"의 anchor다.
+> **(번복됨 — 앱 마커 제거)** 빈·UseCase 하한은 지금 `RuleAnchorTest`가 **모듈별로** 갖는다 — `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47), `#moduleUseCaseCounts`(~~web ≥50 · admin ≥100 · ceo ≥95~~ **유스케이스 분리 후 web ≥187 · admin ≥207 · ceo ≥188** · batch =7 · core =0). 유스케이스 서비스 하한은 `#commandServicesExist` ≥314 · `#queryServicesExist` ≥268(`UseCaseServices` 술어로 센다 — 과거 `countSuffix("CommandService")` ≥91 · `countSuffix("QueryService")` ≥100은 삭제), `..port.in..` 하한은 `#inboundPortsExist` ≥891(과거 ≥556). 모듈별로 두는 이유는 마커별로 두던 이유와 같다(합계 하나면 한 앱이 통째로 사라져도 통과한다). core UseCase =0은 "코어에 UseCase가 새지 않는다"의 anchor다.
 
 **마커별 하한(빈·UseCase)은 `AppIsolationTest`가 갖는다** — `markerBeanCounts`(~~실측 web 66·admin 62·ceo 101·batch 13보다 낮은 하한: `@WebApp` ≥60·`@AdminApp` ≥55·`@CeoApp` ≥95·`@BatchApp` ≥12, 그리고 리스너 12종인 `@SharedApp` ≥12 — 리스너 하나가 마커를 잃으면 어느 앱에도 뜨지 않으므로 하한이 곧 리스너 수다~~ **(번복됨 — application `*ServiceConfig` 삭제)** 마커-only 도메인 서비스 78개를 포함해 `@WebApp` ≥83·`@AdminApp` ≥65·`@CeoApp` ≥122·`@BatchApp` ≥15·`@SharedApp` ≥47 — 이관이 되돌려져 서비스가 다시 마커를 잃으면 하한이 깨진다. `@SharedApp`은 리스너 12종 + 공유 도메인 서비스 35개 기준이다)와 `markerUseCaseCounts`(`@WebApp` ≥50·`@AdminApp` ≥100·`@CeoApp` ≥95·`@BatchApp` = 7 정확히 일치 — batch는 잡 7개로 규모가 작아 늘거나 줄면 의식적으로 고치는 것이 의도).
 
@@ -587,7 +590,7 @@ write 포트는 **≥ 107**(`RuleAnchorTest#writePortsExist` — `port.out.write
 ### External
 - `spring-security-core` — admin·ceo `AuthenticationManager`·`SecurityContextHolder`·`PasswordEncoder`·`UserDetails`
 - `spring-web` — web·admin·ceo `MultipartFile`(업로드 경계 파라미터). 실사용이 1종뿐이라 starter-web 전체 대신 이 좌표만 선언한다
-- `jackson-databind` — ceo `ShopStorePriceVerificationCommandService`의 `ObjectMapper`
+- `jackson-databind` — ceo `ShopStorePriceVerificationRequestService`(당시 이름 `ShopStorePriceVerificationCommandService`)의 `ObjectMapper`
 - `spring-tx` — `@Transactional`만을 위한 최소 의존
 - `spring-boot-autoconfigure`는 **재선언하지 않는다** — batch `AdminDongSyncRunner`의 `@ConditionalOnProperty`가 쓰지만 루트 `build.gradle`의 `subprojects` 블록이 넣는 `spring-boot-starter`로 전이 충족된다
 
@@ -711,9 +714,9 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 - **리스너와 `@Configuration`은 코어에만 둔다**(`listenersAndConfigsShouldResideInCore`). 리스너가 앱 모듈에 있으면 다른 앱이 같은 이벤트를 발행할 때 후속 처리가 조용히 사라진다(AFTER_COMMIT 실패는 예외도 남지 않는다). `@Configuration`이 스테레오타입 클래스를 `@Bean`으로 다시 등록하면 스캔 빈과 이름이 겹쳐 기동이 실패한다(`configurationsShouldNotRegisterStereotypedClasses`).
 - **코어에 UseCase·오케스트레이터를 두지 않는다**(`coreShouldNotContainUseCasesOrOrchestrators`, `moduleUseCaseCounts`의 core =0). 코어는 4앱 전부에 뜨므로 거기 둔 UseCase는 쓰지 않는 앱에도 뜬다.
 - **빈은 자기가 뜨는 앱 컨텍스트에서 보이지 않는 구현에 의존하지 않는다**(`coreBeansShouldOnlyDependOnCoreVisibleTypes`). 컴파일은 통과해도(인터페이스가 코어에 있으면) 그 구현이 없는 앱에서 기동이 실패한다. 판정: 모든 `@Service`/`@Component` 빈(코어·앱 모듈 모두)의 생성자 파라미터 중 `com.tastyhouse.application.` 인터페이스마다 **후보** = 그 인터페이스의 추상이 아닌 스테레오타입 구현체(같은 인터페이스를 생성자로 받는 데코레이터는 제외) + 그 타입을 반환하는 `@Bean` 메서드. 후보가 1개 이상이면, 그 빈이 뜨는 **각 앱 컨텍스트**(코어 빈 → 4앱 전부, 앱 빈 → 자기 앱. 컨텍스트 = 코어 + 그 앱 모듈)에서 보이는 후보가 0개면 위반(구현이 다른 앱 모듈에만 있어 그 앱이 기동하지 못한다), 2개 이상이면 모호 위반이다. 위반은 Set으로 모아 한 번에 보고한다. anchor: 검사한 의존 ≥ 300, 후보가 1개 이상인 의존(`RESOLVED_FLOOR`) ≥ 43. **알려진 한계**: `@Primary`/`@Qualifier`는 모델링하지 않는다. infrastructure 구현체는 import 대상이 아니어서 후보 0인 의존(persistence·벤더가 구현하는 포트)은 건너뛴다. **anchor 하한(300 / `RESOLVED_FLOOR` 43)을 낮추지 않는다** — 후보 계산이 깨지면 모든 의존이 "후보 0, 건너뜀"이 되어 규칙이 공허 통과한다.
-- **`moduleBeanCounts`·`moduleUseCaseCounts` 하한을 낮추지 않는다**(빈: web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47 / UseCase: web ≥50 · admin ≥100 · ceo ≥95 · batch =7 · core =0). 한 모듈의 클래스가 통째로 사라지거나 엉뚱한 모듈로 옮겨지면 깨지는 것이 의도다.
+- **`moduleBeanCounts`·`moduleUseCaseCounts` 하한을 낮추지 않는다**(빈: web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47 / UseCase: web ≥187 · admin ≥207 · ceo ≥188 · batch =7 · core =0 — 유스케이스 분리 전에는 web ≥50 · admin ≥100 · ceo ≥95). 한 모듈의 클래스가 통째로 사라지거나 엉뚱한 모듈로 옮겨지면 깨지는 것이 의도다.
 - **`ModuleOrigin`은 main 출력만 인정하고, 나머지는 예외를 던져야 한다.** 규칙은 `ModuleOrigin.from(module)`(`DescribedPredicate`)로 대상을 고른다. 인정하는 것은 클래스 디렉터리 `.../{module}/build/classes/java/main/...`와 main jar `{module}-<버전>.jar`뿐이다. testFixtures 출력(`build/classes/java/testFixtures`, `*-test-fixtures.jar`), IntelliJ 자체 빌드 출력(`out/production/...`), opaque·형식이 깨진 URI는 전부 `IllegalStateException`이다. 모르는 형태에서 빈 값이나 기본값을 돌려주면, 출처로 고르는 규칙(batch 선별 등)이 대상을 잃고 공허하게 통과한다. **그래서 아키텍처 테스트는 Gradle로 실행한다** — IntelliJ 자체 빌드로 돌리면 `out/production/...` 출력 때문에 예외로 실패한다. IntelliJ에서는 Settings → Build Tools → Gradle → "Build and run using: Gradle"(테스트 실행도 Gradle)로 둔다. 이 예외를 피하려고 `out/production`을 인정하도록 넓히지 않는다.
-- **`EXCLUDED_COLLABORATORS` 29개의 근거** — 모든 서비스가 `@Service`를 달게 되어 "스테레오타입이 없으면 도메인 서비스"라는 과거 술어를 쓸 수 없다. 그래서 구조 조건(`..service..`, 인터페이스 아님, `*CommandService`/`*QueryService` 아님, `@Configuration` 아님, `port.in` 구현 아님)으로 고르고, **원래부터 스테레오타입이 있어 검사 대상이 아니던 협력 빈 29개**(Executor 6 · `*SocialLoginService` 4 · Validator 7 · Reader 3 · `OwnedShopIdProvider` · `Member{Auth,Grade,Review,Shop}Service` · `CredentialLoginService` · `PhoneLoginService` · `AuthPasswordResetService` · `AdminDongSyncRunner`)를 FQN으로 뺐다. 결과 대상 집합은 이전과 같은 94개이고 `SEALED_VIOLATIONS`는 불변이다. 이 목록에서 항목을 빼면 그 협력 빈이 처음으로 경계 검사를 받아 봉인 밖 위반이 드러날 수 있다 — 빼려면 위반부터 확인한다. 새 협력 빈을 만들 때는 도메인 서비스인지 협력 빈인지 판단해 넣을지 정한다. 낡은 항목은 `excludedCollaboratorsShouldNotBeStale`이 잡는다 — **알려진 한계**: 이 짝 테스트는 더 이상 존재하지 않거나 구조 조건에 맞지 않게 된 항목만 잡고, "목록에서 빼도 경계 규칙을 통과할 항목"은 잡지 못한다. Reader 3개는 `ShopFoodTypeCategoryReader`·`StorePriceVerificationReader`·`StorePriceVerificationOwnerReader`, Validator는 7개다(합계 29). **이 술어는 사실상 "구조 + 이름 목록"이다.**
+- **`EXCLUDED_COLLABORATORS` 29개의 근거** — 모든 서비스가 `@Service`를 달게 되어 "스테레오타입이 없으면 도메인 서비스"라는 과거 술어를 쓸 수 없다. 그래서 구조 조건(`..service..`, 인터페이스 아님, `@Configuration` 아님, `port.in` 구현 아님 — ~~`*CommandService`/`*QueryService` 아님~~ 접미어 절은 유스케이스 분리로 삭제됐다. 유스케이스 서비스는 전부 `port.in`을 구현하므로 그 절이 하던 일은 마지막 조건이 한다)으로 고르고, **원래부터 스테레오타입이 있어 검사 대상이 아니던 협력 빈 29개**(Executor 6 · `*SocialLoginService` 4 · Validator 7 · Reader 3 · `OwnedShopIdProvider` · `Member{Auth,Grade,Review,Shop}Service` · `CredentialLoginService` · `PhoneLoginService` · `AuthPasswordResetService` · `AdminDongSyncRunner`)를 FQN으로 뺐다. 결과 대상 집합은 (앱 마커 제거 시점에) 이전과 같은 94개였고 `SEALED_VIOLATIONS`는 불변이다. 유스케이스 분리로 새로 생긴 `{도메인}{명사}Reader`·`Validator`(예: ceo `ShopNoticeOwnerReader`·`ShopContentBoardOwnerReader`·`ShopBusinessHourOwnerValidator`)는 이 목록에 넣지 않았다 — 그래서 구조적 도메인 서비스로서 경계 검사를 받는다. `SEALED_VIOLATIONS`의 항목 수는 그대로이고, ceo 도메인 서비스 `ShopRequestCancelService`가 `ShopRequestCancellationService`로 개명되며 FQN만 바뀌었다(아래 "유스케이스 서비스 1:1 규칙 4종"). 이 목록에서 항목을 빼면 그 협력 빈이 처음으로 경계 검사를 받아 봉인 밖 위반이 드러날 수 있다 — 빼려면 위반부터 확인한다. 새 협력 빈을 만들 때는 도메인 서비스인지 협력 빈인지 판단해 넣을지 정한다. 낡은 항목은 `excludedCollaboratorsShouldNotBeStale`이 잡는다 — **알려진 한계**: 이 짝 테스트는 더 이상 존재하지 않거나 구조 조건에 맞지 않게 된 항목만 잡고, "목록에서 빼도 경계 규칙을 통과할 항목"은 잡지 못한다. Reader 3개는 `ShopFoodTypeCategoryReader`·`StorePriceVerificationReader`·`StorePriceVerificationOwnerReader`, Validator는 7개다(합계 29). **이 술어는 사실상 "구조 + 이름 목록"이다.**
 - **앱 테스트 클래스패스의 `com.tastyhouse.application` 클래스는 코어와 자기 앱 모듈에서만 와야 한다**(각 앱 `ApplicationModuleClasspathTest` → `assertLoadsOnlyOwnApplicationModule(ModuleOrigin.{WEB,ADMIN,CEO,BATCH})`, 출처 모듈 집합 == `{application, 자기 앱 모듈}`). 스캔에 필터가 없으므로 다른 앱 모듈이 의존에 섞이면 그 앱의 빈이 전부 뜬다("클래스패스 존재 = 활성화"). 판정은 클래스 출처(`ModuleOrigin`)로 하며, 앱 모듈에 표식 리소스(과거 `META-INF/tastyhouse/application-module.properties`)를 되살리지 않는다. 판정 대상에서 자기 앱 모듈이 빠져도 실패하므로 공허 통과가 없다.
 - **같은 FQCN이 application 계층 5모듈 중 두 곳 이상에 있으면 안 된다**(`SplitPackageUniquenessTest`). 패키지를 유지한 split package라서 같은 FQCN이 core와 앱 모듈에 함께 생겨도 컴파일은 통과하고, 실행 시 클래스패스 순서로 한쪽이 조용히 가려진다. ArchUnit은 같은 이름의 클래스를 하나로 합쳐 보므로 잡지 못한다. 그래서 이 검사는 5모듈의 소스 경로로 한다(스캔 소스 ≥1400 anchor).
 - 각 규칙은 위반 probe로 실패를 확인했다. 코어가 `MailSender`를 import하면 컴파일 에러인 것도 확인했다.
@@ -764,7 +767,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
   - 봉인 목록은 두지 않는다. 기대 위반은 0건이다.
 - **공허 통과 방지**: `I.size() >= 200`을 함께 단정한다(도입 시점 실측 202). 패키지 필터가 틀려 `I`가 비면 이 규칙은 아무것도 검사하지 않고 통과하기 때문이다.
 - **위반이 나면**: `@SuppressWarnings`나 예외 목록을 두지 않는다. 호출부가 UseCase 인터페이스를 주입하게 바꾼다. 필요한 메서드가 도메인 타입을 쓴다면 write 포트나 도메인 서비스를 직접 주입한다(아래 "QueryUseCase에는 컨트롤러 표면만 올린다" 절의 번복 표기).
-- **반증**: 구체 `MemberCommandService`를 주입하는 probe 클래스를 넣었을 때 실패하는 것을 확인했다.
+- **반증**: 구체 `MemberCommandService`(당시 이름)를 주입하는 probe 클래스를 넣었을 때 실패하는 것을 확인했다.
 
 ### UseCase 필드명 — `useCaseFieldsShouldBeNamedUseCase`
 
@@ -785,22 +788,48 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 - **변경 내용**: 금지 대상에 이름 접미어 `QueryUseCase`를 추가했다. 기존 금지 대상은 `QueryPort`·`QueryService`였다.
 - **변경 이유**: 조회 협력 메서드가 `*QueryUseCase`에 올라가자, CommandService가 구체 `*QueryService` 대신 `*QueryUseCase`를 주입하면 이름 기준 규칙을 우회할 수 있게 됐다.
+- **(유스케이스 분리) 대상 쪽 판정이 바뀌었다**: 규칙의 대상은 이름 접미어 `*CommandService`가 아니라 `UseCaseServices.commands()`(구현 포트가 `…QueryUseCase`가 아닌 유스케이스 서비스)다. 명령 서비스 이름에서 `Command`가 사라져(`PaymentConfirmService` 등) 접미어로는 대상을 고를 수 없기 때문이다. 금지 대상 쪽(`QueryPort`·`QueryService`·`QueryUseCase` 접미어)은 그대로다.
 - **위반 현황**: 도입 시점 위반은 0건이고, probe로 규칙이 실패하는 것을 확인했다. 이 확장을 되돌리지 않는다.
+
+### 유스케이스 서비스 1:1 규칙 4종 — 포트 하나 = 연산 하나 = 서비스 하나 (유스케이스 분리)
+
+**대상**:
+- `backend/application/src/testFixtures/java/com/tastyhouse/architecture/UseCaseServices.java` → `isUseCaseService` · `isQueryService` · `isCommandService` · `commands()` · `queries()`
+- `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `useCaseServicesShouldImplementExactlyOneUseCase` · `useCasesShouldDeclareSingleOperation` · `useCaseServiceNameShouldMatchPort` · `useCaseServicesShouldHaveSinglePublicOperation` · `useCaseServices()`(하한 582)
+- `backend/application/src/test/java/com/tastyhouse/application/architecture/RuleAnchorTest.java` → `commandServicesExist` · `queryServicesExist` · `moduleUseCaseCounts` · `inboundPortsExist`
+
+| 항목 | before | after |
+|---|---|---|
+| 명령/조회 서비스 판별 | 클래스명 접미어 `*CommandService`/`*QueryService` | `UseCaseServices` 술어 — 유스케이스 서비스 = `..service..`의 비인터페이스 + `port.in` 인터페이스 구현 + batch 출처 아님. 그중 구현 포트명이 `QueryUseCase`로 끝나면 조회, 나머지는 명령 |
+| 포트 구현 개수 | "최소 1개"(`commandServicesShouldImplementUseCase`·`queryServicesShouldImplementUseCase`) | **정확히 1개**(`useCaseServicesShouldImplementExactlyOneUseCase`) — 두 옛 규칙은 삭제 |
+| 포트의 연산 수 | 제한 없음(`PaymentCommandUseCase` 메서드 6개 등) | web·admin·ceo 출처 `port.in` `*UseCase`는 추상 메서드 1개(`useCasesShouldDeclareSingleOperation`) — 의미가 다른 오버로드도 이름을 나눈 별도 포트로 둔다 |
+| 서비스 이름 | 도메인당 `{도메인}CommandService`/`{도메인}QueryService` | 포트명의 `UseCase`를 `Service`로 바꾼 이름(`useCaseServiceNameShouldMatchPort`) — `PaymentConfirmUseCase` → `PaymentConfirmService` |
+| 서비스의 public 메서드 | 제한 없음 | 생성자를 뺀 public 메서드 1개(`useCaseServicesShouldHaveSinglePublicOperation`, static·synthetic·bridge 제외) |
+| anchor | `countSuffix` 기반 `commandServicesExist` ≥91 · `queryServicesExist` ≥100 | `countSuffix` 삭제. 술어 기반 ≥314 · ≥268, `moduleUseCaseCounts` web ≥187 · admin ≥207 · ceo ≥188 · batch =7 · core =0, `inboundPortsExist` ≥891 |
+
+원문 취지:
+- **왜 1:1인가**: 도메인당 한 쌍이던 시절 서비스 하나가 연산 수십 개를 떠안았다(web `ShopQueryService` 714줄·public 메서드 20개, admin `ShopManagementCommandService`는 UseCase 37개 구현 — 둘 다 당시 이름). 그러면 트랜잭션 속성·주입 의존이 그 클래스의 모든 연산에 묶이고, 한 연산을 고칠 때 무관한 연산이 같은 diff에 섞인다. 『만들면서 배우는 클린 아키텍처』의 `SendMoneyService implements SendMoneyUseCase` 형태로 바꿔, 주입 목록이 곧 그 연산 하나의 의존을 증명하게 했다. 네 규칙 중 하나만 빠져도 1:1이 무너진다 — 포트 2개를 구현하는 서비스, 연산 2개짜리 포트, 포트와 이름이 어긋난 서비스, public 헬퍼를 노출한 서비스가 각각 다른 규칙에서 잡힌다.
+- **왜 판별을 서비스 이름이 아니라 구현 포트 이름으로 하나**: 명령 서비스 이름에서 `Command`가 빠졌다(`PaymentConfirmService`). 접미어로 고르던 CQRS 교차 주입 규칙(`commandServicesShouldNotDependOnQueryPorts`·`queryServicesShouldNotDependOnWritePorts`·`commandServicesShouldNotDependOnRequestRecords`)이 대상을 통째로 잃고 공허 통과하므로, 판별자를 포트 이름 끝의 `QueryUseCase` 하나로 옮겼다.
+- **왜 batch는 제외하나**: `*SchedulerService` 7개는 이미 UseCase 1개 = 서비스 1개다. 이름은 `BatchSchedulerRulesTest`가 `*SchedulerService`로 지키므로 `useCaseServiceNameShouldMatchPort`(포트명 기반)와 충돌한다. `SearchKeywordSchedulerService`는 UseCase 하나에 메서드 2개라 `useCaseServicesShouldHaveSinglePublicOperation`·`useCasesShouldDeclareSingleOperation`에 걸리는데, 이번 분할의 범위 밖이라 손대지 않았다. 그래서 `isUseCaseService`와 `useCasesShouldDeclareSingleOperation`이 `ModuleOrigin.BATCH` 출처를 뺀다.
+- **하한 582를 낮추지 않는다**: 출처 판정이나 `port.in` 판정이 깨지면 대상이 줄어 네 규칙이 공허 통과한다. 하한은 분할 직후 실측(web 187 · admin 207 · ceo 188)이다.
+- **`allowEmptyShould`를 쓰지 않고, 위반은 손으로 모아 한 번에 보고한다**(`assertThat(violations).isEmpty()`).
+- **반증**: 네 규칙 모두 위반 probe(포트 2개를 구현하는 임시 클래스, 추상 메서드 2개짜리 포트, 포트와 이름이 다른 서비스, public 메서드 2개짜리 서비스)로 실패를 확인하고 probe를 지웠다.
+- **이 규칙이 생긴 김에 함께 바뀐 이름**: ceo 도메인 서비스 `ShopRequestCancelService`(요청 유형별 취소 분기)를 `ShopRequestCancellationService`로 개명했다(`backend/ceo-application/src/main/java/com/tastyhouse/application/shop/service/ShopRequestCancellationService.java`, 테스트 `ShopRequestCancellationServiceTest`). 유스케이스 `cancelRequest`의 서비스 이름이 `ShopRequestCancelService`가 되어 완전히 같은 이름이 생기기 때문이다 — **도메인 서비스는 명사형, 유스케이스 서비스는 동사형**으로 구분한다. `ServiceContextBoundaryTest.SEALED_VIOLATIONS`의 해당 FQN도 함께 바뀌었고 항목 수는 그대로다.
 
 ### `queryServicesShouldNotDependOnWritePorts` carve-out 3건 — 목록에 새 항목을 추가하지 않는다
 
 **대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`
 → `queryServicesShouldNotDependOnWritePorts()`
 
-`*QueryService`는 write 포트(03a 이후 `..port.out.write..`, 과거 domain `..repository..`)를 주입하지 않는다 — 조회 트랜잭션(`readOnly = true`)에서 쓰기 경로가 열리는 것을 구조적으로 막는다.
+조회 유스케이스 서비스(`UseCaseServices.queries()` — 구현 포트명이 `QueryUseCase`로 끝나는 서비스. 유스케이스 분리 전에는 이름 접미어 `*QueryService`로 골랐다)는 write 포트(03a 이후 `..port.out.write..`, 과거 domain `..repository..`)를 주입하지 않는다 — 조회 트랜잭션(`readOnly = true`)에서 쓰기 경로가 열리는 것을 구조적으로 막는다.
 
 **carve-out 3건은 각 앱에서 그대로 승계한 확정 판정이며, 이관 대상이 아니다.**
 
 | FQN | 근거 |
 |---|---|
-| `com.tastyhouse.application.shop.service.ShopQueryService` (web) | write 포트를 배달팁 계산 경로가 도메인 서비스에 넘길 애그리거트 로드에 쓴다. 표현용 투영이 아니라 **도메인 계산 입력**이다 |
-| `com.tastyhouse.application.admin.service.AdminQueryService` | 인증(UserDetails 로드)·시드 멱등성 확인에 쓰이며 표현 목적 read model이 없다. 엔티티/원시값 반환 + 불변식 검증 경로다 |
-| `com.tastyhouse.application.ceo.service.CeoOwnerQueryService` | 위 admin과 같은 인증 조회 경로다 |
+| `com.tastyhouse.application.shop.service.ShopDeliveryTipViewQueryService` (web) | 유스케이스 분리로 carve-out이 `ShopQueryService`에서 write 포트를 실제로 쓰는 이 연산의 서비스로 1:1 이전됐다. write 포트를 배달팁 계산 경로가 도메인 서비스에 넘길 애그리거트 로드에 쓴다. 표현용 투영이 아니라 **도메인 계산 입력**이다 |
+| `com.tastyhouse.application.admin.service.AdminUsernameExistsQueryService` | 유스케이스 분리로 carve-out이 `AdminQueryService`에서 write 포트 `AdminPersistencePort`를 실제로 쓰는 이 연산의 서비스로 1:1 이전됐다. 인증 계정의 존재 확인(`existsByUsername`, 시드 멱등성 확인)에 쓰이며 표현 목적 read model이 없다. 원시값 반환 경로다 |
+| `com.tastyhouse.application.ceo.service.CeoOwnerUsernameExistsQueryService` | 유스케이스 분리로 carve-out이 `CeoOwnerQueryService`(당시 이름)에서 `existsByUsername`을 구현한 이 서비스로 1:1 이전됐다. 위 admin과 같은 인증 조회 경로다 |
 
 **판정 기준은 simple name이 아니라 FQN이다.** 4개 모듈이 하나로 합쳐지면서 동명 클래스가 한 importer에 들어왔기 때문이다 — 예컨대 `ShopQueryService`는 web·admin·ceo에 각각 존재했으므로 `haveSimpleNameNotEndingWith("ShopQueryService")`를 그대로 두면 **의도한 web 1개가 아니라 3개 전부가 면제**되어 admin·ceo의 위반이 조용히 통과했다. 이후 개명·평탄화로 simple name이 다시 유일해졌지만 **FQN을 유지한다** — 나중에 같은 접미어의 형제가 생겨도 면제 범위가 넓어지지 않기 때문이다.
 
@@ -851,24 +880,28 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
 
 봉인 구성원 1개 — `com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationItemCommand` (`CeoApp`).
 
-`ShopStorePriceVerificationItemCommand`는 multipart의 **문자열 파트**로 들어온다. 컨트롤러도 Request record도 domain-free여야 해 파싱을 할 수 없으므로, Command가 원문을 `String items`로 담아 넘기고 `ShopStorePriceVerificationCommandService`가 `ObjectMapper`로 이 record 목록으로 역직렬화한다. 그래서 이 record는 어느 UseCase 시그니처에도, 어느 부모 Command의 컴포넌트로도 등장하지 않는다 — **유도가 닿을 수 없는 정상 형태이지 죽은 코드가 아니다.**
+`ShopStorePriceVerificationItemCommand`는 multipart의 **문자열 파트**로 들어온다. 컨트롤러도 Request record도 domain-free여야 해 파싱을 할 수 없으므로, Command가 원문을 `String items`로 담아 넘기고 `ShopStorePriceVerificationRequestService`(당시 이름 `ShopStorePriceVerificationCommandService`)가 `ObjectMapper`로 이 record 목록으로 역직렬화한다. 그래서 이 record는 어느 UseCase 시그니처에도, 어느 부모 Command의 컴포넌트로도 등장하지 않는다 — **유도가 닿을 수 없는 정상 형태이지 죽은 코드가 아니다.**
 
 **이 목록에 새 항목을 추가하지 않는다.** 고아로 잡히는 record는 대개 진짜 죽은 코드이므로, 추가하기 전에 그 record를 **어디서 만드는지**를 먼저 찾는다. 여기 담을 수 있는 것은 "런타임 역직렬화로만 생성되어 정적 참조가 존재할 수 없는" 경우뿐이다.
 
 ### `CeoAuthCommandService` — 기록 실패 정책의 의도적 비대칭 (인증 조회 carve-out)
 
-**대상**: `backend/application/src/main/java/com/tastyhouse/application/auth/service/CeoAuthCommandService.java`
+**대상**: `backend/ceo-application/src/main/java/com/tastyhouse/application/auth/service/CeoLoginService.java` → `login` · `recordFailureQuietly`
+
+> **현재 이름(유스케이스 분리)**: 제목의 `CeoAuthCommandService`는 당시 이름이다(당시 위치 `backend/application/.../auth/service/CeoAuthCommandService.java`). login·refresh·logout 세 연산이 `CeoLoginService`·`CeoTokenRefreshService`·`CeoLogoutService`로 나뉘었고, 아래 정책은 로그인 연산을 맡은 `CeoLoginService`에 그대로 있다. 세 서비스 모두 트랜잭션을 열지 않는다(원본에 클래스 레벨 `@Transactional`이 없었다). 기록 호출도 `CeoLoginHistoryCommandUseCase`(당시 이름) 하나에서 `CeoLoginSuccessRecordUseCase#recordSuccess`·`CeoLoginFailureRecordUseCase#recordFailure` 두 포트로 나뉘었다.
 
 **기록 실패 시 정책은 성공·실패 경로가 의도적으로 비대칭이다.**
 
 - **성공 경로**: 기록 실패를 그대로 전파한다. 접속기록 없이 토큰이 발급되는 상태를 만들지 않는다 — 개인정보처리시스템 접속기록은 법적 요구사항이므로, 남기지 못했다면 접속도 허용하지 않는 편이 옳다.
 - **실패 경로**: 기록 실패를 catch·로깅하고 원래 인증 예외를 rethrow한다. **감사 쓰기 실패가 인증 실패 응답 계약(401 `CEO_AUTHENTICATION_FAILED` 등)을 500으로 바꾸면 안 된다.**
 
-이 비대칭은 `AuthCommandServiceTest`가 봉인한다.
+이 비대칭은 `CeoLoginServiceTest`(당시 이름 `AuthCommandServiceTest`)가 봉인한다.
 
 ### `AuthCommandServiceTest` — 점주 로그인 접속기록 배선 봉인 (소셜 4종 분기 carve-out)
 
-**대상**: `backend/application/src/test/java/com/tastyhouse/application/auth/service/AuthCommandServiceTest.java`
+**대상**: `backend/ceo-application/src/test/java/com/tastyhouse/application/auth/service/CeoLoginServiceTest.java`
+
+> **현재 이름(유스케이스 분리)**: 제목의 `AuthCommandServiceTest`(`new CeoAuthCommandService(`로 대상을 만들던 테스트)는 당시 이름이다. 로그인 연산의 새 서비스 `CeoLoginService`를 대상으로 바꾸며 클래스명도 `CeoLoginServiceTest`로 바꿨다. 기록 포트는 `CeoLoginSuccessRecordUseCase`·`CeoLoginFailureRecordUseCase` mock이다. 봉인 내용은 아래 그대로다.
 
 이 테스트가 지키는 것은 네 가지다.
 
@@ -884,14 +917,16 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
 | 대상 (`backend/application/src/main/java/com/tastyhouse/application/...`) | 봉인 취지 |
 |---|---|
 | `product/port/out/ProductAvailabilityChangeView.java` | **거처는 앱 네임스페이스이고 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 아니다.** 판매상태 변경은 **Command 경로**의 반환값이라 조회 계약이 아니며, 읽기 계약 패키지에 두면 `commandServicesShouldNotDependOnQueryPorts`(CQRS 교차 주입 금지)가 CommandService의 반환 타입을 위반으로 잡는다. ~~`ErrorCode`는 그대로 담는다 — 에러 계약은 **횡단 관심사**라 api 모듈에서도 참조가 허용된 carve-out(`domain.exception..`)이다~~ **번복됨(덩어리 01)**: `Failure`는 `ErrorCode errorCode` 대신 `String code, String message`를 싣는다 — api 모듈의 `domain.exception..` carve-out이 사라졌기 때문이다. **(번복됨 — 에러코드 모듈 분할)** 이 타입은 `ProductAvailabilityChangeResult`(domain `product/model`에서 이동)와 함께 `backend/ceo-application/src/main/java/com/tastyhouse/application/product/service/`로 옮겨져 `ProductAvailabilityFailure`가 됐다 — ceo-application만 만들고 쓰기 때문이다. 상세는 `backend/ceo-application/AGENTS.md` |
-| `region/port/out/AdminDongBoundaryViewResult.java` | `AdminDongBoundaryResult`는 DAO가 읽어 온 **인코딩된** `boundary` 문자열을 그대로 들고 있어 그 자체로는 응답을 만들 수 없다. 디코딩은 ~~`GeoRingsPort`가~~ **(03b 번복 — `GeoRingsQueryPort`·persistence `GeoRingsResolver`는 삭제됐고, `region/service/AdminDongQueryService`가 `domain/shared/geo/GeoPolygonTextCodec.decodeRings`를 직접 호출해)** 수행하므로 **application에 남아야 하고**, 표현 계약이 `from(Result)` 한 번으로 끝낼 수 있도록 디코딩을 마친 이 타입을 따로 둔다. 좌표를 `GeoRing`·`GeoPoint`가 아니라 낱개 `BigDecimal` 쌍(`Point`)으로 내리는 이유는 **`controllersShouldBeDomainFree`의 carve-out이 `domain.shared.page..`와 도메인 enum뿐이고 `domain.shared.geo..`는 포함되지 않기** 때문이다(덩어리 01 이후로는 carve-out 자체가 없어 더 분명하다). 리포 전체에서 api 모듈이 geo 타입을 참조하는 곳은 한 곳도 없으며, **그 경계를 깨지 않는다** |
+| `region/port/out/AdminDongBoundaryViewResult.java` | `AdminDongBoundaryResult`는 DAO가 읽어 온 **인코딩된** `boundary` 문자열을 그대로 들고 있어 그 자체로는 응답을 만들 수 없다. 디코딩은 ~~`GeoRingsPort`가~~ **(03b 번복 — `GeoRingsQueryPort`·persistence `GeoRingsResolver`는 삭제됐고, ceo-application `region/service/AdminDongBoundaryQueryService`(당시 이름 `AdminDongQueryService`)가 `domain/shared/geo/GeoPolygonTextCodec.decodeRings`를 직접 호출해)** 수행하므로 **application에 남아야 하고**, 표현 계약이 `from(Result)` 한 번으로 끝낼 수 있도록 디코딩을 마친 이 타입을 따로 둔다. 좌표를 `GeoRing`·`GeoPoint`가 아니라 낱개 `BigDecimal` 쌍(`Point`)으로 내리는 이유는 **`controllersShouldBeDomainFree`의 carve-out이 `domain.shared.page..`와 도메인 enum뿐이고 `domain.shared.geo..`는 포함되지 않기** 때문이다(덩어리 01 이후로는 carve-out 자체가 없어 더 분명하다). 리포 전체에서 api 모듈이 geo 타입을 참조하는 곳은 한 곳도 없으며, **그 경계를 깨지 않는다** |
 | `review/port/out/ReviewBlindReasonView.java` | 카탈로그는 도메인 enum의 `values()`를 훑어 만드는데 그 메서드는 api 모듈에 허용된 accessor가 아니므로(`apiModuleShouldOnlyReadDomainEnums` — 덩어리 01로 삭제됐고, 지금은 api 모듈이 domain을 아예 못 봐서 같은 결론) 목록 구성이 application에 남는다. **도메인 enum을 그대로 담지 않고 문자열로 강등해 나른다** — 인바운드 포트의 반환 타입에 `com.tastyhouse.domain..`이 실리면 `commandRecordsShouldBeBoundaryTyped`(carve-out은 예외·페이징 계약뿐)에 걸린다. **목록 요소는 제네릭 타입 인자로도 잡힌다** |
 | `shop/port/out/GeoPointView.java` | 도형 계산은 도메인 기하 타입으로 수행하는데 api 모듈은 그 타입을 알 수 없다 — `apiModuleShouldBeDomainModelFree`의 carve-out은 `domain.exception..`·`domain.shared.page..`·도메인 enum뿐이고 **`domain.shared.geo..`는 포함되지 않는다**(덩어리 01로 carve-out이 전부 사라졌다). 추가로 **컴포넌트 선언 순서는 알파벳순(`latitude` → `longitude`)이다** — 둘 다 `BigDecimal`이라 순서가 어긋나면 컴파일은 통과하고 **값만 조용히 뒤바뀐다** |
 | `shop/port/out/ShopStorePriceVerificationViewResult.java` | 세 출처를 합친다 — 최신 인증 요청(애그리거트), 인증 여부 플래그, 미충족 메뉴 목록(도메인 서비스). 앞의 둘은 애그리거트에서, 마지막은 도메인 서비스에서 나오므로 표현 계약이 직접 받을 수 없다(`apiModuleShouldBeDomainModelFree`). 미충족 사유는 `domain.product.model`의 `StorePriceUnverifiedItem`을 그대로 넘기지 않고 `UnverifiedItem`으로 옮겨 담는다 — 그 타입은 domain 타입이고 api 모듈은 `com.tastyhouse.domain..`을 carve-out 없이 전면 금지하기 때문이다(~~`domain.product.service`에 있어 api 모듈의 carve-out 어디에도 들어가지 않는다~~ **번복됨 — domain service→model 흡수**로 패키지가 `model`로 바뀌었다). ~~사유 enum 자체는 carve-out 대상이라 그대로 나르고, 문자열 강등은 표현 계약이 수행한다~~ **번복됨(덩어리 01)**: `status`·`UnverifiedItem.reason`도 `String`으로 강등해 나르고, 강등은 이 View를 만드는 서비스가 한다 |
 
 ### `ShopStorePriceVerificationCommandService` — 인덱스 기록이 도메인이 아니라 이 서비스에 있는 이유
 
-**대상**: `backend/application/src/main/java/com/tastyhouse/application/shop/service/ShopStorePriceVerificationCommandService.java`
+**대상**: `backend/ceo-application/src/main/java/com/tastyhouse/application/shop/service/ShopStorePriceVerificationRequestService.java` → `requestVerification` · `toItemSpecs`
+
+> **현재 이름(유스케이스 분리)**: 제목의 `ShopStorePriceVerificationCommandService`는 당시 이름이다(당시 위치 `backend/application/.../shop/service/`). 이 서비스의 유일한 연산 `requestVerification`이 `ShopStorePriceVerificationRequestUseCase`를 구현하는 `ShopStorePriceVerificationRequestService`가 됐고, 아래 판단은 그대로 이 서비스에 있다.
 
 - **`items`가 JSON 문자열인 것은 요청 형식이 multipart이기 때문이다.** 가격표 이미지와 대상 목록은 한 트랜잭션에 함께 들어와야 한다 — 2단 요청으로 쪼개면 중간에서 끊긴 요청이 첨부만 있고 대상이 없는 고아 상태로 남고, 관리자 검수 큐에 검수할 수 없는 건이 쌓인다. multipart는 JSON 바디를 함께 실을 수 없으므로 목록만 문자열 파트로 받아 여기서 파싱한다.
 - **인덱스 기록이 도메인이 아니라 이 서비스에 있는 것은 컨텍스트 경계 때문이다.** 다른 요청 유형(`ShopImageApprovalService`·`ShopDeliveryAreaAdjustmentService`)은 shop 컨텍스트 소유라 도메인 서비스가 직접 `ShopRequestIndexRecorder`를 호출한다. 그러나 인증 요청 애그리거트는 **product** 컨텍스트 소유여서, 그 도메인 서비스가 `shop.service`를 호출하면 `ContextBoundaryTest` 위반이 되고 **봉인 목록은 늘릴 수 없다.** 두 컨텍스트를 한 트랜잭션에서 잇는 일은 표현 계층의 몫이다.
@@ -1075,7 +1110,7 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 
 ### enum → `String` 강등 후 Object 타입 API는 컴파일러가 잡지 못한다 — 먼저 `valueOf`로 승격한다
 
-**대상**: `backend/application/src/main/java/com/tastyhouse/application/**/service/*.java` 중 `*Result`의 강등된 문자열 필드를 도메인 enum과 비교·조회하는 곳 (발견 사례: `shop/service/ShopQueryService.java`의 주문 방식(order-methods) 조회 — `OrderMethod`)
+**대상**: `backend/application/src/main/java/com/tastyhouse/application/**/service/*.java` 중 `*Result`의 강등된 문자열 필드를 도메인 enum과 비교·조회하는 곳 (발견 사례: `backend/web-application/src/main/java/com/tastyhouse/application/shop/service/ShopOrderMethodQueryService.java`(당시 `ShopQueryService`)의 주문 방식(order-methods) 조회 — `OrderMethod`)
 
 덩어리 01로 `*Result`의 도메인 enum 필드가 `String`이 됐다. 필드 타입을 바꾸면 대부분의 사용처는 컴파일 에러로 드러나지만, **`Object`를 받는 API는 문자열을 그대로 받아들여 컴파일이 통과한다.** 검증 중 실제 사례: `Map<OrderMethod, ...>.get(dto.orderMethod())`가 `Map.get(Object)`라 컴파일은 됐지만 키 타입이 달라 **항상 `null`**을 돌려줬다.
 
@@ -1142,7 +1177,7 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 | `shop/service/ShopCeoAssignmentServiceTest.java` | `ShopCeoAssignmentService`의 상태 규칙 표 전체. 특히 **재배정이 `REVOKE`+`GRANT` 2행**인 것을 봉인한다 — 한 행에 before/after를 담는 형태로 되돌아가면 "언제부터 언제까지 권한이 있었는가"를 읽을 수 없게 된다 |
 | `shop/service/ShopLifecycleServiceTest.java` | 가게 등록 시 접근권한 이력 기록. 등록에서 점주를 함께 배정하는 것도 접근권한 부여이므로 나중에 배정한 경우와 **구별 없이 `GRANT` 이력이 남아야** 하고, 반대로 점주 없이 등록하면 아무 행도 남지 않아야 한다 |
 | `shop/service/ShopMenuCollectionImageServiceTest.java` | 규칙이 전부 **행 하나만 보고는 판정할 수 없는 집합 차원**이라 애그리거트 단위 테스트로는 한 줄도 검증되지 않는다. **정원(최대 6개)은 상태를 가리지 않는다**(대기·반려 건도 슬롯을 차지한다), **순서 변경은 replace-all**(부분·초과·미지의 id 목록은 전부 거절 — 부분 목록을 받아주면 낡은 화면의 요청이 빠진 이미지를 목록 끝으로 밀어낸다). 가게 소유가 아닌 id는 존재를 알리지 않고 `SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND`로 합쳐 **IDOR을 막는 경로도 함께 봉인**한다 |
-| `shop/service/ShopRequestCancelServiceTest.java` | 세 규칙 — (1) `PENDING`만 취소된다, (2) `IN_PROGRESS`는 409로 거부된다(가맹본부에 자료가 전달된 뒤라 플랫폼이 일방 취소할 수 없다), (3) **취소는 원본 애그리거트의 상태를 바꾼다**. (3)이 핵심으로, 인덱스에만 `CANCELED`를 두면 원본이 `PENDING`으로 남아 중복 차단이 재요청을 계속 막고 관리자가 취소된 요청을 승인·반려할 수 있다 |
+| `shop/service/ShopRequestCancellationServiceTest.java`(지금 위치는 `backend/ceo-application/src/test/java/com/tastyhouse/application/shop/service/` — 대상 도메인 서비스 `ShopRequestCancellationService`가 ceo-application에 있다. 유스케이스 분리 전 이름은 `ShopRequestCancelServiceTest`·`ShopRequestCancelService`) | 세 규칙 — (1) `PENDING`만 취소된다, (2) `IN_PROGRESS`는 409로 거부된다(가맹본부에 자료가 전달된 뒤라 플랫폼이 일방 취소할 수 없다), (3) **취소는 원본 애그리거트의 상태를 바꾼다**. (3)이 핵심으로, 인덱스에만 `CANCELED`를 두면 원본이 `PENDING`으로 남아 중복 차단이 재요청을 계속 막고 관리자가 취소된 요청을 승인·반려할 수 있다 |
 | `shop/service/ShopRequestIndexRecorderTest.java` | 원본 → 통합 상태 **매핑 표를 전수** 봉인한다. 특히 조정 신청의 `COMPLETED → APPROVED`는 유일하게 값 이름이 어긋나는 매핑이라, 고정하지 않으면 목록에 "완료"라는 없는 상태가 새어 나가거나 매핑이 조용히 뒤집힌다. 게시중단만은 **통합 상태를 그대로 받는다** — 컨텍스트 경계 때문에 recorder가 `review.model.ReviewBlindStatus`를 import할 수 없어 매핑을 `ReviewBlindRequestService`가 소유하기 때문이다 |
 
 #### 리뷰 부가 리포지토리 Fake 2종 — 보관하지 않는 것이 의도다
@@ -1238,19 +1273,26 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 원문 취지(ServiceConfig 삭제 때 정한 근거):
 
 - **왜 4앱 공통 등록을 버렸나.** `*ServiceConfig`는 03a에서 persistence `*DomainConfig`의 등록 범위(4앱 전부)를 지키려고 만든 것이었다. 범위를 지킨 대가로 한 앱 전용 빈 44개가 쓰지 않는 앱에도 떴고, 서비스 추가마다 config를 함께 고쳐야 했다. 앱 마커는 이미 "어느 앱에 뜨는가"를 표현하는 이 모듈의 유일한 수단이므로, 서비스 자신이 마커를 갖는 것이 정보가 한 곳에 사는 형태다.
-- **왜 "현재 소비자" 기준인가 (번복 — 과거 "언젠가 다른 앱이 트리거해도 안전하도록 `@SharedApp`").** 과거 `PaymentServiceConfig`는 결제 승인·취소가 web에서만 일어나도 리스너 배치 원칙을 빌려 `@SharedApp`으로 두었다. 지금은 그 판단을 버렸다 — 미리 넓혀 두면 쓰지 않는 앱에 빈을 띄우는 비용만 있고, 좁혀 둔 마커가 틀리면 `constructorDependenciesShouldBeVisibleToApp`이 **빌드에서** 잡으므로 "나중에 필요할 때 `@SharedApp`으로 올린다"가 안전하다. 그래서 `PaymentCancellationService`(소비자 `PaymentCommandService`·`PaymentCancellationExecutor`, 모두 web)는 `@WebApp`, `PaymentConfirmationService`(`@SharedApp` 리스너 `PaymentEventListener`가 소비)는 `@SharedApp`이다. 리스너 자체가 4앱 공통인 이유(이벤트는 어느 앱이 발행하든 처리돼야 한다)는 리스너에만 적용된다.
+- **왜 "현재 소비자" 기준인가 (번복 — 과거 "언젠가 다른 앱이 트리거해도 안전하도록 `@SharedApp`").** 과거 `PaymentServiceConfig`는 결제 승인·취소가 web에서만 일어나도 리스너 배치 원칙을 빌려 `@SharedApp`으로 두었다. 지금은 그 판단을 버렸다 — 미리 넓혀 두면 쓰지 않는 앱에 빈을 띄우는 비용만 있고, 좁혀 둔 마커가 틀리면 `constructorDependenciesShouldBeVisibleToApp`이 **빌드에서** 잡으므로 "나중에 필요할 때 `@SharedApp`으로 올린다"가 안전하다. 그래서 `PaymentCancellationService`(소비자 `PaymentRefundRequestService`(당시 `PaymentCommandService`)·`PaymentCancellationExecutor`, 모두 web)는 `@WebApp`, `PaymentConfirmationService`(`@SharedApp` 리스너 `PaymentEventListener`가 소비)는 `@SharedApp`이다. 리스너 자체가 4앱 공통인 이유(이벤트는 어느 앱이 발행하든 처리돼야 한다)는 리스너에만 적용된다.
 - **왜 앱 → 공유만 허용하고 공유 → 앱은 막나.** `@SharedApp` 빈은 4앱 전부에 뜨는데, 그것이 앱 전용 빈을 주입하면 나머지 세 앱에서 그 빈을 찾지 못해 기동이 실패한다. 반대 방향(앱 → 공유)은 공유 빈이 어느 앱에나 있으므로 항상 안전하다 — 이것이 "공유 커널" 단방향이다. 허용 대상은 `..service..`의 공유 도메인 서비스로 한정한다. 앱 → `@SharedApp` 리스너·설정 클래스 직접 의존은 여전히 금지다(허용 범위를 공유 도메인 서비스로만 열었다).
 - **고정점 계산이 필요한 이유.** 공유 빈이 의존하는 빈도 공유여야 하므로, 한 서비스를 `@SharedApp`으로 올리면 그 의존 서비스도 따라 올라간다(`ReviewBlindRequestService` → `ReviewLifecycleService`, `ShopLifecycleService` → `ShopImageApprovalService`·`ShopCeoAssignmentRecorder`). 새 서비스를 추가하거나 소비자가 바뀌면 이 전파를 다시 따라간다 — 누락하면 `constructorDependenciesShouldBeVisibleToApp`이 위반 경로를 이름으로 보여준다.
 - **왜 domain 계산기 7개는 마커를 못 다나.** domain 모듈은 production 의존이 0개(spring-free)이고 마커 애노테이션은 application 소유라 domain이 볼 수 없다. 그래서 `SharedBeanConfig`의 `@Bean`이 남는다. `cupDepositPolicy`가 단일 빈이어야 하는 근거(점주 설정·손님 메뉴판·주문 금액 확정이 같은 인스턴스를 주입)는 등록 위치가 `SharedBeanConfig`로 바뀌어도 그대로다.
 
 ### 트랜잭션 경계를 파사드가 아니라 하위 서비스가 갖는 이유 — read-then-write 판정
 
-**대상**: `application/src/main/java/com/tastyhouse/application/member/service/MemberService.java`,
-`auth/service/AuthPasswordResetService.java`, `auth/service/MemberAuthCommandService.java`
+**대상**: 조립 서비스(트랜잭션 없음) `backend/web-application/src/main/java/com/tastyhouse/application/member/service/MemberVerifiedPasswordUpdateService.java` ·
+`.../member/service/MemberVerifiedPersonalInfoUpdateService.java` · `.../member/service/MemberWithdrawWithLogoutService.java` ·
+`.../member/service/MemberPasswordVerifyService.java`, 내부 per-op 서비스(클래스 `@Transactional`)
+`.../member/service/MemberPasswordUpdateService.java` · `.../member/service/MemberPersonalInfoUpdateService.java` ·
+`.../member/service/MemberWithdrawService.java`, 그리고 `backend/web-application/src/main/java/com/tastyhouse/application/auth/service/AuthPasswordResetService.java`
 
-화면 단위 흐름을 엮는 **파사드는 `@Transactional`을 갖지 않는다.** 파사드가 트랜잭션을 열면
+화면 단위 흐름을 엮는 **조립 서비스는 `@Transactional`을 갖지 않는다.** 조립 서비스가 트랜잭션을 열면
 DB 원자성이 필요 없는 단계(JWT 서명 검증·Redis 접근)까지 DB 커넥션을 네트워크 지연만큼
-점유하게 되므로, 원자성이 실제로 필요한 구간만 하위 CommandService가 단일 트랜잭션으로 갖는다.
+점유하게 되므로, 원자성이 실제로 필요한 구간만 하위 per-op 서비스가 단일 트랜잭션으로 갖는다.
+(유스케이스 분리 전에는 이 조립을 파사드 `MemberService`(당시 `MemberScreenUseCase` 구현) 한 클래스가,
+하위 쓰기를 `MemberCommandService`가 맡았다. 파사드는 해체됐고 판정 기준은 그대로다.)
+**바깥 단계를 내부 서비스로 합치지 않는다** — 합치면 토큰 무효화가 DB 트랜잭션 안으로 들어가고,
+토큰 없이 내부 `MemberPasswordUpdateUseCase`를 부르는 `AuthPasswordResetService` 경로가 깨진다.
 
 판정 기준은 하나다 — **"이 단계가 DB에서 읽은 값에 근거해 DB를 쓰는가(read-then-write)?"**
 그렇다면 검증과 쓰기가 같은 트랜잭션·같은 로드 안에 있어야 하고(그렇지 않으면 검증 후 쓰기
@@ -1258,9 +1300,9 @@ DB 원자성이 필요 없는 단계(JWT 서명 검증·Redis 접근)까지 DB �
 
 | 유스케이스 | 판정 | 근거 |
 |---|---|---|
-| 개인정보 변경 | 묶지 않는다 | 두 토큰 검증이 **JWT 서명·클레임 검증만** 수행하고 DB를 읽지 않는다(토큰이 발급 시점의 인증 사실을 서명으로 담고 있다). read-then-write 경합이 성립하지 않으며, 실제 DB write는 `MemberCommandService#updatePersonalInfo` 한 번뿐이라 이미 단일 트랜잭션이다 |
-| 비밀번호 변경 | 묶었다(하강) | "새 비밀번호가 기존과 같은지" 검사가 **DB에서 읽은 현재 비밀번호**에 근거해 DB를 쓰는 read-then-write다. 과거에는 이 검사가 별도 readOnly 트랜잭션에 있어 검사와 변경이 두 트랜잭션·두 번의 회원 로드로 쪼개져 **검사 후 변경 사이에 비밀번호가 바뀌면 우회 가능**했다. `MemberCommandService#updatePassword` 안으로 내려 단일 트랜잭션·단일 로드로 원자화했다 |
-| 회원 탈퇴 | 묶지 않는다(묶으면 틀린다) | 탈퇴는 DB 변경이지만 토큰 무효화는 **Redis 블랙리스트 등록**이라 DB 트랜잭션과 무관하다. 오히려 **순서가 중요**하다 — 탈퇴가 커밋된 뒤 무효화해야 하며, 한 트랜잭션에 넣으면 Redis 등록이 커밋 전에 일어나 **탈퇴가 롤백돼도 토큰만 죽는** 불일치가 남는다 |
+| 개인정보 변경 | 묶지 않는다 | 두 토큰 검증이 **JWT 서명·클레임 검증만** 수행하고 DB를 읽지 않는다(토큰이 발급 시점의 인증 사실을 서명으로 담고 있다). read-then-write 경합이 성립하지 않으며, 실제 DB write는 `MemberPersonalInfoUpdateService#updatePersonalInfo` 한 번뿐이라 이미 단일 트랜잭션이다 |
+| 비밀번호 변경 | 묶었다(하강) | "새 비밀번호가 기존과 같은지" 검사가 **DB에서 읽은 현재 비밀번호**에 근거해 DB를 쓰는 read-then-write다. 과거에는 이 검사가 별도 readOnly 트랜잭션에 있어 검사와 변경이 두 트랜잭션·두 번의 회원 로드로 쪼개져 **검사 후 변경 사이에 비밀번호가 바뀌면 우회 가능**했다. `MemberPasswordUpdateService#updatePassword`(당시 `MemberCommandService#updatePassword`) 안으로 내려 단일 트랜잭션·단일 로드로 원자화했다 |
+| 회원 탈퇴 | 묶지 않는다(묶으면 틀린다) | 탈퇴는 DB 변경이지만 토큰 무효화는 **Redis 블랙리스트 등록**이라 DB 트랜잭션과 무관하다. 오히려 **순서가 중요**하다 — 탈퇴(`MemberWithdrawService`)가 커밋된 뒤 무효화해야 하며(`MemberWithdrawWithLogoutService`가 이 순서를 지킨다), 한 트랜잭션에 넣으면 Redis 등록이 커밋 전에 일어나 **탈퇴가 롤백돼도 토큰만 죽는** 불일치가 남는다 |
 | 인증코드 발송 | 묶었다 | "기존 미완료 인증 만료 + 새 인증 저장 + 발송"이 함께 성립해야 한다 |
 
 **비밀번호 변경의 검사 순서를 뒤집지 않는다** — 동일 여부(`MEMBER_PASSWORD_SAME_AS_OLD`) →
@@ -1269,13 +1311,13 @@ DB 원자성이 필요 없는 단계(JWT 서명 검증·Redis 접근)까지 DB �
 
 ### PG·외부 왕복은 트랜잭션 밖에 둔다 — 3단 구조와 보상 불가 지점
 
-**대상**: `payment/service/PaymentCommandService.java` · `payment/service/PaymentConfirmationExecutor.java`
+**대상**: `backend/web-application/src/main/java/com/tastyhouse/application/payment/service/PgPaymentConfirmService.java` · `.../payment/service/PaymentCancelService.java` · `.../payment/service/PaymentConfirmationExecutor.java` · `.../payment/service/PaymentCancellationExecutor.java`
 
-**클래스 레벨 `@Transactional`이 없는 것은 의도다.** PG 승인·결제 취소는 PG사와의 HTTP 왕복을
+**PG 왕복이 있는 두 유스케이스 서비스(`PgPaymentConfirmService`·`PaymentCancelService`)에 `@Transactional`이 없는 것은 의도다.** 같은 결제 컨텍스트의 나머지 네 서비스(`PaymentCreateService`·`PaymentConfirmService`·`PaymentOnSiteCompleteService`·`PaymentRefundRequestService`)는 PG 왕복이 없어 클래스 레벨 `@Transactional`을 단다. (유스케이스 분리 전에는 이 여섯 연산이 `PaymentCommandService` 한 클래스에 있었고, 그래서 클래스 레벨 대신 메서드 레벨로 트랜잭션을 나눠 달았다.) PG 승인·결제 취소는 PG사와의 HTTP 왕복을
 포함하는데, 그 왕복이 DB 트랜잭션 안에 있으면 (1) 커넥션과 결제·주문 행 락을 네트워크 지연만큼
 점유하고, (2) PG 처리가 성공한 뒤 커밋이 실패하면 **"PG는 승인/취소, DB는 미반영"이라는 보상 불가
 불일치**가 남는다. **취소는 `pgCancelRequired && pgPaymentGateway.supports(pgProvider)`일 때만 PG를 호출한다** —
-`PaymentCommandService#cancelPayment`가 판정하는 `pgCancelAttempted`이며, 라우터가 해당 벤더를
+`PaymentCancelService#cancelPayment`가 판정하는 `pgCancelAttempted`이며, 라우터가 해당 벤더를
 지원하지 않으면(`PgPaymentGatewayRouter#supports`) PG 왕복 없이 DB 취소만 반영한다.
 
 ```
@@ -1319,9 +1361,10 @@ DB 원자성이 필요 없는 단계(JWT 서명 검증·Redis 접근)까지 DB �
 
 ### CQRS 교차 주입 금지가 실제로 강제하는 것
 
-**대상**: `**/service/*CommandService.java` · `**/service/*QueryService.java`
+**대상**: `{web,admin,ceo}-application`의 `**/service/` 유스케이스 서비스 — `backend/application/src/testFixtures/java/com/tastyhouse/architecture/UseCaseServices.java` → `commands()` · `queries()`, 강제 규칙 `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `commandServicesShouldNotDependOnQueryPorts` · `queryServicesShouldNotDependOnWritePorts`
+(유스케이스 분리 전 대상 표기는 `**/service/*CommandService.java` · `**/service/*QueryService.java` — 지금은 이름이 아니라 구현 포트로 명령/조회를 가른다)
 
-`*CommandService`는 infra query DAO도 같은 모듈의 `*QueryService`도 주입하지 않고, `*QueryService`는
+명령 유스케이스 서비스(당시 `*CommandService`)는 infra query DAO도 `*QueryService`·`*QueryUseCase`도 주입하지 않고, 조회 유스케이스 서비스(당시 `*QueryService`)는
 domain의 write 포트를 주입하지 않는다. 그 결과 아래가 **구조로 강제**된다.
 
 - **모든 명령은 식별자만 반환하고, 응답 조립은 커밋 이후 컨트롤러가 QueryService로 재조회해 담당한다.**
@@ -1336,12 +1379,12 @@ domain의 write 포트를 주입하지 않는다. 그 결과 아래가 **구조�
 
 **빈 순환 참조 회피**: 한 화면이 다른 컨텍스트의 데이터를 곁들여 보여줄 때 그쪽 QueryService를
 경유하지 않고 **QueryPort를 직접 주입**한다 — 서비스를 경유하면 상대 쪽이 이 서비스를 다시 주입해야
-해 순환이 생긴다. 표현 목적 조회는 DAO 계층에서 교차하는 것이 옳다(`ProductQueryService` ↔
-`ReviewQueryService`가 실제 사례).
+해 순환이 생긴다. 표현 목적 조회는 DAO 계층에서 교차하는 것이 옳다(`ProductReviewsByRatingQueryService`가 `ReviewQueryPort`를,
+`ReviewProductQueryService`가 `ProductQueryPort`를 직접 주입하는 것이 실제 사례 — 유스케이스 분리 전에는 `ProductQueryService` ↔ `ReviewQueryService`).
 
 ### 도메인 계산 입력은 표현용 투영으로 대체하지 않는다
 
-**대상**: `shop/service/ShopQueryService.java` → `findVisibleShopAggregate`
+**대상**: `backend/web-application/src/main/java/com/tastyhouse/application/shop/service/ShopDeliveryTipViewQueryService.java` → `findVisibleShopAggregate`
 
 표현용 단건 조회와 달리 **도메인 서비스에 넘길 도메인 모델이 필요한 조회는 write 포트를 쓴다.**
 계산기가 도메인 모델을 받으므로 표현용 Result를 도메인으로 되돌리는 역변환을 두지 않기 위함이며,
@@ -1349,14 +1392,15 @@ domain의 write 포트를 주입하지 않는다. 그 결과 아래가 **구조�
 화면 표기용 목록(지역 이름 조립 등)만 infra query DAO에서 받는다.
 
 같은 이유로 **read model을 `reconstitute`로 도메인 모델까지 되짚어 올려** 도메인 정책의 술어를
-재사용하는 경로가 있다(`ShopPriceBadgeQueryService`·`ProductQueryService`). 규칙을 복제하면 표시
+재사용하는 경로가 있다(`ShopPriceBadgeQueryService`·`ProductDetailQueryService`·`ProductBatchQueryService`). 규칙을 복제하면 표시
 가격과 결제 금액이 갈리거나, 요일 구분을 추가할 때 한쪽만 고쳐진다. `reconstitute`(검증 미수행)를
 쓰는 것은 **기존 데이터가 현행 규격을 위반해도 조회는 되어야 하기 때문**이다.
 
 ### 시각·시계에 의존하는 계산은 application에 남는다
 
-**대상**: `coupon/port/out/MyCouponListItemResult.java` · `review/service/ShopReviewQueryService.java`
-→ `toReplyWindow` · `review/service/ReviewOwnerReplyCommandService.java` → `register`
+**대상**: `coupon/port/out/MyCouponListItemResult.java` · ceo-application `review/service/ShopReviewListQueryService.java`·`review/service/ShopReviewDetailQueryService.java`
+→ `toReplyWindow` · `review/service/ReviewOwnerReplyCreateService.java` → `register`
+(유스케이스 분리 전 이름은 `ShopReviewQueryService`·`ReviewOwnerReplyCommandService`. `toReplyWindow`는 목록·상세 두 서비스에 각각 복제됐다)
 
 "오늘"을 읽어야 하는 판정은 표현 계약이 대신할 수 없다 — 표현 계약이 시계를 읽으면 **응답 조립이
 시점에 따라 값이 달라지는 순수하지 않은 함수**가 된다. 마감일 상수는 도메인 모델이 소유하므로
@@ -1368,8 +1412,9 @@ api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도
 
 ### 도메인 enum에 대한 `switch`를 api 모듈로 내리지 않는다
 
-**대상**: `review/service/ShopReviewQueryService.java` → `describeSortType` ·
-`shop/service/ShopRequestQueryService.java` → `toRequestStatus`
+**대상**: ceo-application `review/service/ShopReviewSortTypeQueryService.java` → `describeSortType` ·
+`shop/service/ShopRequestDetailQueryService.java` → `toRequestStatus`
+(유스케이스 분리 전 이름은 `ShopReviewQueryService`·`ShopRequestQueryService`)
 
 도메인 enum에 대한 `switch`는 바이트코드에서 `ordinal()`·`values()` 호출이 되어 api 모듈에서는
 `apiModuleShouldOnlyReadDomainEnums`(읽기 accessor 3종만 허용)에 걸린다. 그래서 분기·표시 문구
@@ -1383,7 +1428,8 @@ api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도
 
 ### 표시 문구를 서버가 완성하는 기준
 
-**대상**: `shop/service/ShopQueryService.java` → `toShopDeliveryTipBreakdownItems`·`toTimeSlotLabel`
+**대상**: `backend/web-application/src/main/java/com/tastyhouse/application/shop/service/ShopDeliveryTipViewQueryService.java` → `toShopDeliveryTipBreakdownItems` ·
+`.../shop/service/ShopScheduledOrderSlotQueryService.java` → `toScheduledOrderSlotItemResult`·`toDayLabel`
 
 프론트가 분기·상수를 복제하지 않도록 서버가 문구를 완성한다. **문구 안의 숫자는 천 단위 콤마까지
 서버가 넣는다** — 그 값은 응답의 금액 필드가 아니라 **이미 완성된 문장의 일부**라 프론트가 문자열을
@@ -1394,10 +1440,11 @@ api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도
 
 ### 컨텍스트 경계를 잇는 조립은 이 계층의 몫이다
 
-**대상**: `product/service/ProductAvailabilityCommandService.java` ·
-`product/service/ProductVegetarianCommandService.java` ·
-`menureview/service/MenuReviewCommandService.java` ·
-`shop/service/ShopStorePriceVerificationCommandService.java`
+**대상**: ceo-application `product/service/ProductSoldOutOwnerService.java`·`ProductOptionSoldOutService.java`(그 밖의 판매상태 변경 서비스 6개 포함) ·
+`product/service/ProductVegetarianRequestService.java`·`ProductVegetarianClearService.java` ·
+`menureview/service/MenuReviewCreateService.java` ·
+`shop/service/ShopStorePriceVerificationRequestService.java`
+(유스케이스 분리 전 이름은 `ProductAvailabilityCommandService`(연산 8개)·`ProductVegetarianCommandService`·`ShopStorePriceVerificationCommandService`)
 
 한 유스케이스가 두 컨텍스트의 값을 함께 필요로 하면, 도메인 서비스가 상대 컨텍스트를 직접 참조하는
 대신 **이 계층이 각각 주입해 연결한다** — 도메인에서 참조하면 `ContextBoundaryTest` 위반이 되고
@@ -1408,9 +1455,10 @@ api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도
 
 ### 소유권 역조회를 생략하지 않는다 — 실제 IDOR 사고의 근거
 
-**대상**: `product/service/ProductImageCommandService.java` → `deleteImage` ·
+**대상**: ceo-application `product/service/ProductImageDeleteService.java` → `deleteImage` ·
 `product/service/ProductOptionGroupOwnershipValidator.java` ·
-`shop/service/ShopDeliveryAreaCommandService.java` → `removeDeliveryArea`
+`shop/service/ShopDeliveryAreaDeleteService.java` → `removeDeliveryArea`
+(유스케이스 분리 전 이름은 `ProductImageCommandService`·`ShopDeliveryAreaCommandService`)
 
 경로에 소유자 식별자가 없더라도 **대상 행에서 소유자를 역조회할 수 있으면 반드시 검증한다.**
 이 저장소는 배달가능지역 삭제에서 정확히 이 역조회를 빠뜨려 **아무 점주나 순번을 훑어 남의 가게
@@ -1426,7 +1474,8 @@ api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도
 
 ### 집합 규칙이 있는 교체는 전량 검증 후 업로드한다
 
-**대상**: `shop/service/ShopNoticeOwnerCommandService.java` → `saveImages`
+**대상**: ceo-application `shop/service/ShopNoticeOwnerCreateService.java`·`ShopNoticeOwnerUpdateService.java` → `saveImages`
+(유스케이스 분리 전에는 `ShopNoticeOwnerCommandService` 한 클래스의 private 헬퍼였다. 지금은 두 서비스가 각자 갖는다)
 
 파일 단위로 검증·업로드를 교차하면 뒤쪽 파일이 규격 위반일 때 앞쪽은 **이미 외부 스토리지에 올라간**
 상태가 된다. 트랜잭션 롤백은 `UPLOADED_FILE` 행만 되돌릴 뿐 **스토리지 바이트는 되돌리지 못해**
@@ -1437,7 +1486,7 @@ api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도
 
 ### multipart 문자열 파트의 파싱 위치
 
-**대상**: `shop/service/ShopStorePriceVerificationCommandService.java` → `toItemSpecs`
+**대상**: ceo-application `shop/service/ShopStorePriceVerificationRequestService.java` → `toItemSpecs`(유스케이스 분리 전 이름은 `ShopStorePriceVerificationCommandService`)
 
 컨트롤러·Request record는 domain-free라 `BusinessException`을 던질 수 없고, 서비스는 `..request..`를
 알 수 없다(`commandServicesShouldNotDependOnRequestRecords`). 세 규칙을 모두 만족하는 유일한 형태는
@@ -1449,9 +1498,10 @@ api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도
 
 ### 조회 기간 상한을 이 계층에서 강제하는 이유
 
-**대상**: `ceo/service/CeoLoginHistoryQueryService.java`(90일) ·
-`ceo/service/CeoShopAccessHistoryQueryService.java`(5년) ·
-`shop/service/ShopChangeHistoryQueryService.java`(6개월)
+**대상**: ceo-application `ceo/service/CeoLoginHistoryListQueryService.java`(90일) ·
+`ceo/service/CeoShopAccessHistoryListQueryService.java`(5년) ·
+`shop/service/ShopChangeHistoryListQueryService.java`(6개월)
+(유스케이스 분리 전 이름은 `CeoLoginHistoryQueryService`·`CeoShopAccessHistoryQueryService`·`ShopChangeHistoryQueryService`)
 
 - **domain이 아닌 이유**: 기간 제한은 도메인 불변식이 아니라 **조회 화면 정책**이다. 기간이 지난
   행도 삭제하지 않고 계속 보관하며(고객센터 요청 시 장기 조회가 원 요구사항), 기록·저장은 제한하지
@@ -1467,11 +1517,12 @@ api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도
 
 ### 접속기록은 인증 실패 경로에서도 남아야 한다
 
-**대상**: `auth/service/CeoAuthCommandService.java` · `ceo/service/CeoLoginHistoryCommandService.java`
+**대상**: ceo-application `auth/service/CeoLoginService.java` · `ceo/service/CeoLoginSuccessRecordService.java` · `ceo/service/CeoLoginFailureRecordService.java`
+(유스케이스 분리 전 이름은 `CeoAuthCommandService`·`CeoLoginHistoryCommandService`. 기록 서비스가 성공·실패 두 개로 나뉘었고, 둘 다 같은 패키지의 `CeoLoginHistoryRecorder`로 저장한다)
 
-**이 클래스들에 `@Transactional`을 붙이지 않는다.** 로그인 실패는 Spring Security 예외로 전파되는데,
+**호출부 `CeoLoginService`(당시 `CeoAuthCommandService`)에 `@Transactional`을 붙이지 않는다.** 로그인 실패는 Spring Security 예외로 전파되는데,
 트랜잭션이 걸려 있으면 **실패 이력이 예외와 함께 롤백되어 영구히 남지 않는다.** 호출부가 비트랜잭션이므로
-기록 서비스의 매 호출이 프록시를 거쳐 **독립 트랜잭션으로 즉시 커밋**되고, 따라서 `REQUIRES_NEW`가
+기록 서비스(`CeoLoginSuccessRecordService`·`CeoLoginFailureRecordService` — 클래스 레벨 `@Transactional`)의 매 호출이 프록시를 거쳐 **독립 트랜잭션으로 즉시 커밋**되고, 따라서 `REQUIRES_NEW`가
 필요 없다.
 
 **기록 실패 시 정책은 성공·실패 경로가 의도적으로 비대칭이다**(봉인 목록의 carve-out과 짝).
@@ -1481,12 +1532,13 @@ api 모듈이 참조할 수 없다는 것(`apiModuleShouldBeDomainModelFree`)도
 - 실패 경로는 기록 실패를 catch·로깅하고 **원래 인증 예외를 rethrow한다** — 감사 쓰기 실패가 인증
   실패 응답 계약(401)을 500으로 바꾸면 안 된다.
 
-`refresh`는 접속기록을 남기지 않는다 — 토큰 갱신은 새로운 개인정보 접속이 아니라 기존 세션의 연장이다.
+`refresh`(`CeoTokenRefreshService`)는 접속기록을 남기지 않는다 — 토큰 갱신은 새로운 개인정보 접속이 아니라 기존 세션의 연장이다.
 존재하지 않는 아이디도 기록하지 않는다 — 임의 username을 쌓으면 **계정 존재 여부를 탐색하는 표면**이 된다.
 
 ### 인증 타입의 앱별 중복은 의도된 것이다
 
-**대상**: `auth/service/{Member,Admin,Ceo}AuthCommandService.java` · `auth/token/*TokenService.java`
+**대상**: `auth/service/{Member,Admin,Ceo}LoginService.java`(와 같은 앱의 로그아웃·토큰 갱신 서비스) · `auth/token/*TokenService.java`
+(유스케이스 분리 전 이름은 `{Member,Admin,Ceo}AuthCommandService`)
 
 인증 주체(`Member`·`Admin`·`Ceo`), 앱별 `ErrorCode`, `JWT_SECRET_*` 분리 때문에 **통합하면 앱별 인증
 경계가 무너진다**(동일 시크릿이면 회원 토큰이 admin 인증을 통과하는 권한 상승). backend/CLAUDE.md의
@@ -1557,7 +1609,7 @@ ceo 전용 Result에만 있는 것이 그 사례).
 
 ### 인덱스는 파생 읽기모델이고 진실원은 원본이다
 
-**대상**: `shop/service/ShopRequestQueryService.java` → `toStorePriceVerificationDetailResult`
+**대상**: ceo-application `shop/service/ShopRequestDetailQueryService.java` → `toStorePriceVerificationDetailResult`(유스케이스 분리 전 이름은 `ShopRequestQueryService`)
 
 상세는 원칙적으로 원본 애그리거트를 다시 읽는다. 다만 인증 요청 유형은 원본이 **product 컨텍스트
 소유**(승인의 본체가 `PRODUCT_PRICE` 갱신)여서 상세를 투영하는 shop 조회 DAO가 없다. 인덱스 상태는
@@ -1567,9 +1619,9 @@ ceo 전용 Result에만 있는 것이 그 사례).
 ### 빈 상태·판정 불가를 예외로 만들지 않는다
 
 **대상**: `shop/service/ShopPriceBadgeQueryService.java` → `getPriceBadges` ·
-`shop/service/ShopQueryService.java` → `getShopNotice` ·
-`product/service/ProductQueryService.java` → `findProductById` ·
-`region/service/AdminDongQueryService.java` → `getAdminDongBoundaries`
+`shop/service/ShopNoticeQueryService.java` → `getShopNotice` ·
+`product/service/ProductDetailQueryService.java` → `findProductById` ·
+ceo-application `region/service/AdminDongBoundaryQueryService.java` → `getAdminDongBoundaries`(유스케이스 분리 전 이름은 `AdminDongQueryService`)
 
 부가 표시(뱃지)는 판정 불가가 **가게 화면 전체를 깨서는 안 되므로** 예외 대신 `false`를 준다.
 공지가 없는 것은 에러가 아니라 `null`이다 — 대부분의 가게에 공지가 없으므로 404를 쓰면 프론트가
@@ -1579,15 +1631,15 @@ ceo 전용 Result에만 있는 것이 그 사례).
 
 ### N+1을 부르는 반복 조회는 호출부가 한 번에 읽는다
 
-**대상**: `review/service/ReviewQueryService.java` → `findReviewedProductIds` ·
-`product/service/ProductQueryService.java` → `findProductsBatch`
+**대상**: `review/service/ReviewWrittenProductIdsQueryService.java` → `findReviewedProductIds` ·
+`product/service/ProductBatchQueryService.java` → `findProductsBatch`
 
 주문 상세처럼 항목이 여러 건인 화면이 항목마다 단건 조회를 부르면 항목 수만큼 쿼리가 나간다.
 호출부가 **루프 전에 1회 조회**한 뒤 메모리에서 판정하거나, 가격 행을 한 번에 읽어 그룹핑한다.
 
 ### 서버가 판정해 가리는 필드는 표현 계층에 맡길 수 없다
 
-**대상**: `review/port/out/ReviewDetailView.java` · `review/service/ReviewQueryService.java`
+**대상**: `review/port/out/ReviewDetailView.java` · `review/service/ReviewDetailQueryService.java`
 → `toReviewDetailView`
 
 배달 평가 3필드는 **뷰어가 작성자 본인일 때만** 채워진다(규격상 다른 고객에게 노출 금지, 본인은
@@ -1600,15 +1652,17 @@ ceo 전용 Result에만 있는 것이 그 사례).
 
 ### 가시성 가드의 위치가 조회와 등록에서 다른 것은 의도다
 
-**대상**: `review/service/ReviewQueryService.java` → `requireVisibleReview`
+**대상**: `review/service/ReviewDetailReader.java` → `requireVisibleReview` ·
+`review/service/ReviewVisibilityQueryService.java` → `requireVisibleReview`
 
-조회(GET)는 이 서비스 안에서 직접 가드를 걸지만, 등록(POST)은 컨트롤러가 가드를 호출한 뒤 command
+조회(GET)는 조회 서비스가 `ReviewDetailReader`로 직접 가드를 걸지만(예: `ReviewCommentListQueryService`), 등록(POST)은 컨트롤러가 가드를 호출한 뒤 command
 서비스를 부른다 — command 서비스가 query 서비스를 주입받는 것이 **CQRS 교차 주입 금지 위반**이기
 때문이다. **한쪽으로 통일하려다 중복 쿼리를 만들지 않는다.**
 
 ### 하위 호환을 위한 정규화
 
-**대상**: `review/service/ReviewCommandService.java` → `createReview`·`validateDeliveryRating`
+**대상**: `review/service/ReviewCreateService.java` → `createReview`·`validateDeliveryRating` ·
+`review/service/ReviewUpdateService.java` → `validateDeliveryRating`
 
 기존 클라이언트가 보내지 않는 필드는 `null`로 오므로 박싱 타입으로 받아 정규화한다(미전송 시 공개).
 배달 평가도 **둘 다 null이면 검증 자체를 건너뛴다**. 새 필드를 추가할 때 이 형태를 따른다.
@@ -1641,7 +1695,8 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 
 ### 앱마다 얇은 래퍼를 두는 이유 — 트랜잭션 경계는 앱의 관심사다
 
-**대상**: `file/service/FileUpload*CommandService.java`
+**대상**: web-application `file/service/MemberFileUploadService.java` · admin-application `file/service/FileManagementUploadService.java` · ceo-application `file/service/FileOwnerUploadService.java`
+(유스케이스 분리 전 이름은 `FileUpload*CommandService` — 예: ceo `FileUploadOwnerCommandService`·포트 `FileUploadOwnerCommandUseCase` → 지금 `FileOwnerUploadService`·`FileOwnerUploadUseCase`)
 
 업로드 규칙 본체(허용 확장자·용량 한도·저장 경로·이벤트 발행)는 도메인 서비스가 단독으로 갖고,
 이 클래스들은 `MultipartFile` 어댑팅과 `@Transactional` 경계 선언 둘만 한다. **세 벌은 로직 중복이
@@ -1651,19 +1706,19 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 
 ### 조회 전용 컨텍스트에는 CommandService를 두지 않는다
 
-**대상**: `region/service/AdminDongQueryService.java` · `ceo/service/CeoManagementQueryService.java`
+**대상**: ceo-application `region/service/AdminDongListQueryService.java`·`AdminDongTreeQueryService.java`·`AdminDongBoundaryQueryService.java`(유스케이스 분리 전 `AdminDongQueryService` 한 클래스) · admin-application `ceo/service/CeoManagementQueryService.java`
 
 `ADMIN_DONG`은 시드 SQL로만 관리하는 read-only 마스터다. 점주 계정의 생성·수정은 ceo-api가 담당하므로
-관리 조회 쪽에는 CommandService를 두지 않는다. **빈 CommandService를 형식으로 만들지 않는다.**
+관리 조회 쪽에는 명령 유스케이스 서비스(쌍 시절의 CommandService)를 두지 않는다. **빈 명령 서비스·포트를 형식으로 만들지 않는다** — 유스케이스 분리 후에는 연산이 없으면 포트도 서비스도 없다.
 
 ### `QueryUseCase`에는 컨트롤러 표면만 올린다 — 협력용 public 메서드를 전사하지 않는다
 
-> **(번복됨 — 서비스 간 구체 주입 제거)** 이 절의 결론 "협력 서비스는 인터페이스가 아니라 구체 클래스를 주입해 쓴다"는 **폐기됐다.** 지금은 UseCase를 구현한 클래스를 누구도 구체 타입으로 주입하지 않는다. 아래 본문은 번복 전의 기록이다(제목은 앵커 보존을 위해 유지).
+> **(번복됨 — 서비스 간 구체 주입 제거)** 이 절의 결론 "협력 서비스는 인터페이스가 아니라 구체 클래스를 주입해 쓴다"는 **폐기됐다.** 지금은 UseCase를 구현한 클래스를 누구도 구체 타입으로 주입하지 않는다. 아래 본문은 번복 전의 기록이다(제목은 앵커 보존을 위해 유지). 본문의 `ReviewQueryService`·`ProductQueryService`·`ShopQueryService`·`SearchQueryService`·`MemberQueryService`·`AdminQueryService`·`CeoOwnerQueryService`·`MemberCommandService`는 당시 이름이다 — 이후 유스케이스 분리로 per-op 서비스로 나뉘었다.
 >
 > | 항목 | before | after |
 > |---|---|---|
 > | 서비스 간 협력 주입 | 구체 `XxxService`를 주입한다(28건, 24개 파일) | `port.in` UseCase 인터페이스를 주입한다(0건) |
-> | 반환 타입이 domain-free인 협력 메서드(`ReviewQueryService`의 `findShopReviewsByRating`·`findShopReviewStatistics`·`countVisibleReviewsByMemberId`·`findReviewedProductIds`·`findMyReviews`, `ProductQueryService`의 `searchByKeyword`·`findShopProducts`·`findPopularProducts`·`findShopProductCategories`) | 구체 클래스에만 있다 | `ReviewQueryUseCase`·`ProductQueryUseCase`에 선언한다. 반환 타입이 전부 `port.out` `*Result`라 `commandRecordsShouldBeBoundaryTyped`를 통과한다 |
+> | 반환 타입이 domain-free인 협력 메서드(`ReviewQueryService`의 `findShopReviewsByRating`·`findShopReviewStatistics`·`countVisibleReviewsByMemberId`·`findReviewedProductIds`·`findMyReviews`, `ProductQueryService`의 `searchByKeyword`·`findShopProducts`·`findPopularProducts`·`findShopProductCategories`) | 구체 클래스에만 있다 | 연산마다 per-op 포트에 하나씩 선언한다 — `ReviewShopByRatingQueryUseCase`·`ReviewShopStatisticsQueryUseCase`·`ReviewMemberCountQueryUseCase`·`ReviewWrittenProductIdsQueryUseCase`·`ReviewMyListQueryUseCase`, `ProductKeywordSearchQueryUseCase`·`ProductByShopQueryUseCase`·`ProductPopularQueryUseCase`·`ProductCategoryByShopQueryUseCase`(유스케이스 분리 전에는 `ReviewQueryUseCase`·`ProductQueryUseCase` 두 포트에 모아 선언했다). 반환 타입이 전부 `port.out` `*Result`라 `commandRecordsShouldBeBoundaryTyped`를 통과한다 |
 > | 도메인 타입을 주고받는 단순 위임(`AdminQueryService`/`CeoOwnerQueryService#findByUsername`, `MemberCommandService#signUp`·`signUpSocial`·`saveSocialAccount`) | 구체 클래스에 두고 협력 서비스가 호출한다 | **삭제**했다. 호출부가 실제 협력자를 직접 주입한다 — `AdminPersistencePort`/`CeoPersistencePort`, 마커 없는 도메인 서비스 `MemberRegistrationService`, `PasswordEncoder`, `MemberSocialAccountPersistencePort`. UseCase에 올리지 않는 이유는 둘이다. 도메인 타입이라 `port.in` 규칙에 걸리고, 비밀번호 해시를 담은 `Admin`/`Ceo`를 컨트롤러가 닿는 인터페이스로 노출하게 되기 때문이다 |
 > | 트랜잭션 경계 | 위임 대상 서비스의 클래스 `@Transactional`이 제공했다 | 위임을 걷어낸 호출부에 **같은 속성을 옮겨 붙였다**. `CredentialLoginService#signUp`은 `@Transactional`(회원 저장과 추천 등록의 원자성), `AdminTokenService#refresh`·`CeoTokenService#refresh`는 `@Transactional(readOnly = true)`다. refresh의 범위가 조회 한 번에서 메서드 전체로 넓어지지만, 나머지 작업이 Redis 호출이라 동작은 같다 |
 >
@@ -1671,8 +1726,8 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 >
 > - UseCase를 구현한 클래스는 구체 타입으로 주입하지 않는다.
 > - 협력에 필요한 것이 domain-free 타입이면 UseCase에 선언한다. 도메인 타입이면 그 타입을 소유한 write 포트나 마커 없는 도메인 서비스를 직접 주입한다.
-> - UseCase에 올린 협력 메서드는 컨트롤러 표면이 아니다. 예를 들어 `ReviewQueryUseCase#findMyReviews`는 `MemberReviewService`가 쓰는 협력 메서드다. 컨트롤러가 이런 메서드를 새로 호출하려면 그 화면 계약이 맞는지 먼저 확인한다.
-> - **같은 시그니처 주의**: `ReviewQueryUseCase#findMemberReviews`와 `#findMyReviews`는 둘 다 `(Long, int, int) → PageResult<MyReviewListItemResult>`다. 차이는 다음과 같다.
+> - UseCase에 올린 협력 메서드는 컨트롤러 표면이 아니다. 예를 들어 `ReviewMyListQueryUseCase#findMyReviews`는 `MemberReviewService`가 쓰는 협력 메서드다. 컨트롤러가 이런 메서드를 새로 호출하려면 그 화면 계약이 맞는지 먼저 확인한다.
+> - **같은 시그니처 주의**: `ReviewMemberListQueryUseCase#findMemberReviews`와 `ReviewMyListQueryUseCase#findMyReviews`는 둘 다 `(Long, int, int) → PageResult<MyReviewListItemResult>`다. 유스케이스 분리로 별도 포트가 됐으므로 타입으로는 구별되지만, 주입할 포트를 고를 때 아래 차이를 확인한다(분리 전에는 `ReviewQueryUseCase` 한 포트의 두 메서드였다).
 >   - `findMemberReviews`: `visibleToCustomer()` 조건이라 고객에게 보이는 리뷰만 나온다. `ownerOnly`는 항상 `false`다.
 >   - `findMyReviews`: `hidden = false` 조건만 걸려 점주에게만 공개한 리뷰도 포함한다. `ownerOnly`에 실제 값이 들어간다.
 >   - 둘 다 구현은 `infrastructure/persistence/.../review/query/ReviewQueryAdapter`에 있고, 각각 `findReviewsByMemberId`·`findMyReviews`다.
@@ -1757,7 +1812,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 - **최상위 예외만 본다 — `getCause()`를 따라가지 않는다.** `resolve`는 넘겨받은 예외 자체가 `BusinessException`(하위 타입 `ResourceNotFoundException` 등 포함)일 때만 `ErrorDescriptor(status, code, message)`를 돌려주고, 그 밖은 `Optional.empty()`다(`message`는 `getMessage()`). 삭제된 전용 `@ExceptionHandler(BusinessException.class)`도 최상위 타입으로만 매칭했으므로 이것이 기존 동작과 같은 의미다. cause를 따라가면 **오늘 500으로 응답되는, 다른 예외에 감싸인 `BusinessException`이 조용히 4xx로 바뀐다** — wire 계약 변경이다. "더 친절하게" 만들려고 cause 탐색을 넣지 않는다.
 - **빈이 아니라 정적 유틸이다.** 빈으로 만들면 이 모듈 규칙상 앱 마커가 필요하고(`beansShouldHaveExactlyOneAppMarker`), 마커 스캔은 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 하므로 api-common의 `ApiCommonAutoConfigurationTest`(imports 제거 후 `ratelimit/ApiCommonRateLimitConfigTest`)처럼 앱 부트스트랩 없이 뜨는 컨텍스트에서는 빈을 찾지 못해 실패한다. 상태 없는 순수 번역이라 빈일 이유도 없다(`ProblemDetails`가 static인 것과 같은 판단).
-- **AOP로 예외를 번역하지 않는다.** 서비스 경계에서 `BusinessException`을 다른 타입으로 감싸는 aspect를 두면, 예약 경로(`reservation/service/ReservationCommandService` → `ReservationBookingExecutor`)가 **`OptimisticLockConflictException`을 잡아 재시도**하는 루프가 감싼 예외를 못 알아봐 재시도가 깨진다. 게다가 이 모듈에는 aspectjweaver가 없다. 번역은 응답 직전(핸들러)에서 한 번만 한다.
+- **AOP로 예외를 번역하지 않는다.** 서비스 경계에서 `BusinessException`을 다른 타입으로 감싸는 aspect를 두면, 예약 경로(web-application `reservation/service/ReservationCreateService` → `ReservationBookingExecutor`)가 **`OptimisticLockConflictException`을 잡아 재시도**하는 루프가 감싼 예외를 못 알아봐 재시도가 깨진다. 게다가 이 모듈에는 aspectjweaver가 없다. 번역은 응답 직전(핸들러)에서 한 번만 한다.
 - ~~**`ErrorContracts`는 `ErrorCode` 3종의 미러다.**~~ **(번복됨 — 에러코드 모듈 분할)** `ErrorContracts`와 `ErrorContractsConsistencyTest`는 삭제됐다. 표현 계층이 직접 내는 코드(rate limit 429·권한 403·인증 401)는 `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ApiErrorCode.java`의 `RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`가 갖는다(`security-module`이 `api-common-module`을 `implementation`으로 의존한다). `AUTH_REQUIRED`는 `WebErrorCode.AUTH_REQUIRED`의 미러라 같은 값이어야 하며, 전역 유일성 검사의 **봉인 예외 1건**이다(아래 "에러 카탈로그 가드").
 
 ### 에러 카탈로그 가드 — 코드는 던지는 가장 안쪽 모듈에 두고, 봉인 집합을 늘리지 않는다 (에러코드 모듈 분할)
@@ -1870,7 +1925,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 **저장 횟수**: 더티 체킹이 없으므로 헤더는 신규 저장 후 금액 갱신으로 **2회**, 상품 라인은 신규 저장 후 가격 갱신으로 **2회** 저장한다.
 
-**반환은 생성된 주문의 식별자(`OrderId`)만이다** — 응답 조립(가게명·상품 라인·결제 요약)은 커밋 이후 소비 모듈의 `OrderQueryService`가 재조회해 담당한다(CQRS 분리).
+**반환은 생성된 주문의 식별자(`OrderId`)만이다** — 응답 조립(가게명·상품 라인·결제 요약)은 커밋 이후 소비 모듈의 조회 서비스(web `OrderDetailQueryService`)가 재조회해 담당한다(CQRS 분리).
 
 #### 리뷰 게시중단 — 상태 전이와 반영은 한 트랜잭션
 
@@ -1938,7 +1993,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 |---|---|---|
 | **집합 차원 불변식** | 행 하나만 보고는 판정할 수 없다 | `ShopNoticeExposureService`(가게당 노출 공지 1건) · `ShopMenuCollectionImageService`(최대 6·최소 1) · `ShopDeliveryAreaAdjustmentService`(진행 중 신청 중복 차단) |
 | **크로스 애그리거트 원자성** | 여러 애그리거트가 한 트랜잭션에서 함께 바뀌어야 한다 | `ShopImageApprovalService`(요청 승인 + 이미지 반영) · `ShopPhoneNumberRegistryService`(대표번호 + 가게 애그리거트) · `ProductReviewStatsService` |
-| **액터 무관 규칙** | 요청자(ceo)와 검수자(admin), 또는 admin CRUD와 batch 크롤링이 **같은 규칙**을 써야 한다 | `ProductRegistrationService` · `ShopOrderNoticeService` · `ShopRequestCancelService` |
+| **액터 무관 규칙** | 요청자(ceo)와 검수자(admin), 또는 admin CRUD와 batch 크롤링이 **같은 규칙**을 써야 한다 | `ProductRegistrationService` · `ShopOrderNoticeService` · `ShopRequestCancellationService`(당시 이름 `ShopRequestCancelService` — 지금 그 이름은 이 도메인 서비스를 호출하는 유스케이스 서비스가 쓴다) |
 | **컨텍스트 경계 파사드** | 소비 컨텍스트가 남의 모델·리포지토리를 직접 쓰지 않게 한다 | `ShopOrderContextService` · `OrderProductValidationService` |
 
 복제하면 한쪽만 고쳐진다는 것이 공통 위험이다 — `ShopNextOpenTimeCalculator`가 요일별 영업시간 선택 규칙을 새로 짜지 않고 `ShopOperatingStatusCalculator`를 주입해 재사용하는 것도 같은 이유다(복제하면 요일 구분 추가 시 한쪽만 고쳐진다).

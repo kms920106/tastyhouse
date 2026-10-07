@@ -15,9 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationRequestCommand;
+import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationRequestUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerificationResponse;
 
@@ -27,14 +27,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStorePriceVerifica
 class ShopStorePriceVerificationApiController {
 
     private final ShopStorePriceVerificationQueryUseCase shopStorePriceVerificationQueryUseCase;
-    private final ShopStorePriceVerificationCommandUseCase shopStorePriceVerificationCommandUseCase;
+    private final ShopStorePriceVerificationRequestUseCase shopStorePriceVerificationRequestUseCase;
 
     public ShopStorePriceVerificationApiController(
         ShopStorePriceVerificationQueryUseCase shopStorePriceVerificationQueryUseCase,
-        ShopStorePriceVerificationCommandUseCase shopStorePriceVerificationCommandUseCase
+        ShopStorePriceVerificationRequestUseCase shopStorePriceVerificationRequestUseCase
     ) {
         this.shopStorePriceVerificationQueryUseCase = shopStorePriceVerificationQueryUseCase;
-        this.shopStorePriceVerificationCommandUseCase = shopStorePriceVerificationCommandUseCase;
+        this.shopStorePriceVerificationRequestUseCase = shopStorePriceVerificationRequestUseCase;
     }
 
     @Operation(summary = "매장 가격 인증 요청",
@@ -58,7 +58,7 @@ class ShopStorePriceVerificationApiController {
             id,
             items
         );
-        Long verificationId = shopStorePriceVerificationCommandUseCase.requestVerification(command, file);
+        Long verificationId = shopStorePriceVerificationRequestUseCase.requestVerification(command, file);
         return ResponseEntity.ok(ApiResponse.success(verificationId));
     }
 

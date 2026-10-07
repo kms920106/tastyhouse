@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.grade.port.in.GradeQueryUseCase;
+import com.tastyhouse.application.grade.port.in.GradeInfoListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.grade.adapter.in.web.response.GradeInfoListItemResponse;
 
@@ -18,16 +18,16 @@ import com.tastyhouse.webapi.grade.adapter.in.web.response.GradeInfoListItemResp
 @RequestMapping("/api/grades")
 class GradeApiController {
 
-    private final GradeQueryUseCase gradeQueryUseCase;
+    private final GradeInfoListQueryUseCase gradeInfoListQueryUseCase;
 
-    public GradeApiController(GradeQueryUseCase gradeQueryUseCase) {
-        this.gradeQueryUseCase = gradeQueryUseCase;
+    public GradeApiController(GradeInfoListQueryUseCase gradeInfoListQueryUseCase) {
+        this.gradeInfoListQueryUseCase = gradeInfoListQueryUseCase;
     }
 
     @Operation(summary = "등급 세부 조건 목록 조회", description = "전체 등급의 이름과 달성 조건(최소/최대 리뷰 개수)을 조회합니다. 인증 불필요.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<GradeInfoListItemResponse>>> getGradeInfoList() {
-        List<GradeInfoListItemResponse> gradeInfoList = gradeQueryUseCase.getGradeInfoList().stream()
+        List<GradeInfoListItemResponse> gradeInfoList = gradeInfoListQueryUseCase.getGradeInfoList().stream()
             .map(GradeInfoListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(gradeInfoList));

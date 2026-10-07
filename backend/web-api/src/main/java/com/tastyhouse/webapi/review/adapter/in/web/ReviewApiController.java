@@ -18,11 +18,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.review.port.in.ReviewCommandUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBestListQueryUseCase;
 import com.tastyhouse.application.review.port.in.ReviewCreateCommand;
+import com.tastyhouse.application.review.port.in.ReviewCreateUseCase;
 import com.tastyhouse.application.review.port.in.ReviewDeleteCommand;
-import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewDeleteUseCase;
+import com.tastyhouse.application.review.port.in.ReviewDetailQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewLatestListQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewMemberListQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewProductQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewSubmitResultQueryUseCase;
 import com.tastyhouse.application.review.port.in.ReviewUpdateCommand;
+import com.tastyhouse.application.review.port.in.ReviewUpdateUseCase;
+import com.tastyhouse.application.review.port.in.ReviewWriteInfoQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -43,15 +51,39 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewWriteInfoRespo
 @Tag(name = "Review", description = "리뷰 관리 API")
 class ReviewApiController {
 
-    private final ReviewCommandUseCase reviewCommandUseCase;
-    private final ReviewQueryUseCase reviewQueryUseCase;
+    private final ReviewCreateUseCase reviewCreateUseCase;
+    private final ReviewUpdateUseCase reviewUpdateUseCase;
+    private final ReviewDeleteUseCase reviewDeleteUseCase;
+    private final ReviewWriteInfoQueryUseCase reviewWriteInfoQueryUseCase;
+    private final ReviewSubmitResultQueryUseCase reviewSubmitResultQueryUseCase;
+    private final ReviewBestListQueryUseCase reviewBestListQueryUseCase;
+    private final ReviewLatestListQueryUseCase reviewLatestListQueryUseCase;
+    private final ReviewDetailQueryUseCase reviewDetailQueryUseCase;
+    private final ReviewProductQueryUseCase reviewProductQueryUseCase;
+    private final ReviewMemberListQueryUseCase reviewMemberListQueryUseCase;
 
     public ReviewApiController(
-        ReviewCommandUseCase reviewCommandUseCase,
-        ReviewQueryUseCase reviewQueryUseCase
+        ReviewCreateUseCase reviewCreateUseCase,
+        ReviewUpdateUseCase reviewUpdateUseCase,
+        ReviewDeleteUseCase reviewDeleteUseCase,
+        ReviewWriteInfoQueryUseCase reviewWriteInfoQueryUseCase,
+        ReviewSubmitResultQueryUseCase reviewSubmitResultQueryUseCase,
+        ReviewBestListQueryUseCase reviewBestListQueryUseCase,
+        ReviewLatestListQueryUseCase reviewLatestListQueryUseCase,
+        ReviewDetailQueryUseCase reviewDetailQueryUseCase,
+        ReviewProductQueryUseCase reviewProductQueryUseCase,
+        ReviewMemberListQueryUseCase reviewMemberListQueryUseCase
     ) {
-        this.reviewCommandUseCase = reviewCommandUseCase;
-        this.reviewQueryUseCase = reviewQueryUseCase;
+        this.reviewCreateUseCase = reviewCreateUseCase;
+        this.reviewUpdateUseCase = reviewUpdateUseCase;
+        this.reviewDeleteUseCase = reviewDeleteUseCase;
+        this.reviewWriteInfoQueryUseCase = reviewWriteInfoQueryUseCase;
+        this.reviewSubmitResultQueryUseCase = reviewSubmitResultQueryUseCase;
+        this.reviewBestListQueryUseCase = reviewBestListQueryUseCase;
+        this.reviewLatestListQueryUseCase = reviewLatestListQueryUseCase;
+        this.reviewDetailQueryUseCase = reviewDetailQueryUseCase;
+        this.reviewProductQueryUseCase = reviewProductQueryUseCase;
+        this.reviewMemberListQueryUseCase = reviewMemberListQueryUseCase;
     }
 
     @Operation(summary = "리뷰 작성 정보 조회", description = "주문 상품 ID로 리뷰 작성 페이지에 필요한 상품 정보를 조회합니다.")
@@ -61,7 +93,7 @@ class ReviewApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewWriteInfoResponse response = ReviewWriteInfoResponse.from(
-            reviewQueryUseCase.getReviewWriteInfo(orderProductId, memberIdOrNull(userDetails))
+            reviewWriteInfoQueryUseCase.getReviewWriteInfo(orderProductId, memberIdOrNull(userDetails))
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -73,7 +105,7 @@ class ReviewApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewCreateCommand command = request.toCommand(userDetails.getMemberId());
-        Long reviewId = reviewCommandUseCase.createReview(command);
+        Long reviewId = reviewCreateUseCase.createReview(command);
         return ResponseEntity.ok(ApiResponse.success(reviewId));
     }
 
@@ -85,9 +117,9 @@ class ReviewApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewUpdateCommand command = request.toCommand(userDetails.getMemberId(), id);
-        Long updatedReviewId = reviewCommandUseCase.updateReview(command);
+        Long updatedReviewId = reviewUpdateUseCase.updateReview(command);
         ReviewResponse response = ReviewResponse.from(
-            reviewQueryUseCase.getReviewSubmitResult(updatedReviewId, userDetails.getMemberId())
+            reviewSubmitResultQueryUseCase.getReviewSubmitResult(updatedReviewId, userDetails.getMemberId())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -99,7 +131,7 @@ class ReviewApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewDeleteCommand command = ReviewDeleteCommand.of(userDetails.getMemberId(), id);
-        reviewCommandUseCase.deleteReview(command);
+        reviewDeleteUseCase.deleteReview(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -107,7 +139,7 @@ class ReviewApiController {
     @GetMapping("/v1/best")
     public ResponseEntity<ApiResponse<List<ReviewBestListItemResponse>>> getBestReviewList(@Valid @ModelAttribute PageRequest pageRequest) {
         PaginationResponse<ReviewBestListItemResponse> pageResponse = PaginationResponse.from(
-            reviewQueryUseCase.searchBestReviewList(pageRequest.page(), pageRequest.size())
+            reviewBestListQueryUseCase.searchBestReviewList(pageRequest.page(), pageRequest.size())
                 .map(ReviewBestListItemResponse::from)
         );
         ApiResponse<List<ReviewBestListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
@@ -123,7 +155,7 @@ class ReviewApiController {
     ) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         PaginationResponse<ReviewLatestListItemResponse> pageResponse = PaginationResponse.from(
-            reviewQueryUseCase.searchLatestReviewList(pageRequest.page(), pageRequest.size(), search.type(), memberId)
+            reviewLatestListQueryUseCase.searchLatestReviewList(pageRequest.page(), pageRequest.size(), search.type(), memberId)
                 .map(ReviewLatestListItemResponse::from)
         );
         ApiResponse<List<ReviewLatestListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
@@ -136,7 +168,7 @@ class ReviewApiController {
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long id,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return reviewQueryUseCase.findReviewDetail(id, memberIdOrNull(userDetails))
+        return reviewDetailQueryUseCase.findReviewDetail(id, memberIdOrNull(userDetails))
                 .map(detail -> ResponseEntity.ok(ApiResponse.success(ReviewDetailResponse.from(detail))))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -147,7 +179,7 @@ class ReviewApiController {
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long id,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return reviewQueryUseCase.findReviewProduct(id, memberIdOrNull(userDetails))
+        return reviewProductQueryUseCase.findReviewProduct(id, memberIdOrNull(userDetails))
                 .map(product -> ResponseEntity.ok(ApiResponse.success(ReviewProductResponse.from(product))))
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -159,7 +191,7 @@ class ReviewApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<ReviewMemberListItemResponse> pageResponse = PaginationResponse.from(
-            reviewQueryUseCase.findMemberReviews(memberId, pageRequest.page(), pageRequest.size())
+            reviewMemberListQueryUseCase.findMemberReviews(memberId, pageRequest.page(), pageRequest.size())
                 .map(ReviewMemberListItemResponse::from)
         );
         ApiResponse<List<ReviewMemberListItemResponse>> response = ApiResponse.success(

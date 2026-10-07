@@ -17,10 +17,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
 import com.tastyhouse.application.follow.port.in.FollowCancelCommand;
-import com.tastyhouse.application.follow.port.in.FollowCommandUseCase;
+import com.tastyhouse.application.follow.port.in.FollowCancelUseCase;
 import com.tastyhouse.application.follow.port.in.FollowCreateCommand;
-import com.tastyhouse.application.follow.port.in.FollowQueryUseCase;
+import com.tastyhouse.application.follow.port.in.FollowCreateUseCase;
+import com.tastyhouse.application.follow.port.in.FollowMemberSearchQueryUseCase;
+import com.tastyhouse.application.follow.port.in.FollowStatusQueryUseCase;
+import com.tastyhouse.application.follow.port.in.FollowerListQueryUseCase;
 import com.tastyhouse.application.follow.port.in.FollowerRemoveCommand;
+import com.tastyhouse.application.follow.port.in.FollowerRemoveUseCase;
+import com.tastyhouse.application.follow.port.in.FollowingListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -35,12 +40,30 @@ import com.tastyhouse.webapi.follow.adapter.in.web.response.FollowMemberSearchLi
 @Tag(name = "Follow", description = "팔로우 API")
 class FollowApiController {
 
-    private final FollowCommandUseCase followCommandUseCase;
-    private final FollowQueryUseCase followQueryUseCase;
+    private final FollowCreateUseCase followCreateUseCase;
+    private final FollowCancelUseCase followCancelUseCase;
+    private final FollowerRemoveUseCase followerRemoveUseCase;
+    private final FollowStatusQueryUseCase followStatusQueryUseCase;
+    private final FollowingListQueryUseCase followingListQueryUseCase;
+    private final FollowerListQueryUseCase followerListQueryUseCase;
+    private final FollowMemberSearchQueryUseCase followMemberSearchQueryUseCase;
 
-    public FollowApiController(FollowCommandUseCase followCommandUseCase, FollowQueryUseCase followQueryUseCase) {
-        this.followCommandUseCase = followCommandUseCase;
-        this.followQueryUseCase = followQueryUseCase;
+    public FollowApiController(
+        FollowCreateUseCase followCreateUseCase,
+        FollowCancelUseCase followCancelUseCase,
+        FollowerRemoveUseCase followerRemoveUseCase,
+        FollowStatusQueryUseCase followStatusQueryUseCase,
+        FollowingListQueryUseCase followingListQueryUseCase,
+        FollowerListQueryUseCase followerListQueryUseCase,
+        FollowMemberSearchQueryUseCase followMemberSearchQueryUseCase
+    ) {
+        this.followCreateUseCase = followCreateUseCase;
+        this.followCancelUseCase = followCancelUseCase;
+        this.followerRemoveUseCase = followerRemoveUseCase;
+        this.followStatusQueryUseCase = followStatusQueryUseCase;
+        this.followingListQueryUseCase = followingListQueryUseCase;
+        this.followerListQueryUseCase = followerListQueryUseCase;
+        this.followMemberSearchQueryUseCase = followMemberSearchQueryUseCase;
     }
 
     @Operation(summary = "팔로우", description = "특정 회원을 팔로우합니다. 생성된 팔로우 관계의 식별자(id)를 반환합니다.")
@@ -50,7 +73,7 @@ class FollowApiController {
         @Parameter(description = "팔로우할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
         FollowCreateCommand command = FollowCreateCommand.of(userDetails.getMemberId(), memberId);
-        Long followId = followCommandUseCase.follow(command);
+        Long followId = followCreateUseCase.follow(command);
         return ResponseEntity.ok(ApiResponse.success(followId));
     }
 
@@ -61,7 +84,7 @@ class FollowApiController {
         @Parameter(description = "언팔로우할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
         FollowCancelCommand command = FollowCancelCommand.of(userDetails.getMemberId(), memberId);
-        followCommandUseCase.unfollow(command);
+        followCancelUseCase.unfollow(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -72,7 +95,7 @@ class FollowApiController {
         @Parameter(description = "삭제할 팔로워 회원 ID", example = "2") @PathVariable Long followerId
     ) {
         FollowerRemoveCommand command = FollowerRemoveCommand.of(userDetails.getMemberId(), followerId);
-        followCommandUseCase.removeFollower(command);
+        followerRemoveUseCase.removeFollower(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -82,7 +105,7 @@ class FollowApiController {
         @CurrentUser MemberUserDetails userDetails,
         @Parameter(description = "팔로우 여부를 확인할 회원 ID", example = "2") @PathVariable Long memberId
     ) {
-        boolean isFollowing = followQueryUseCase.isFollowing(userDetails.getMemberId(), memberId);
+        boolean isFollowing = followStatusQueryUseCase.isFollowing(userDetails.getMemberId(), memberId);
         return ResponseEntity.ok(ApiResponse.success(FollowIsFollowingResponse.of(memberId, isFollowing)));
     }
 
@@ -94,7 +117,7 @@ class FollowApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<FollowMemberListItemResponse> pageResult = PaginationResponse.from(
-            followQueryUseCase.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+            followingListQueryUseCase.getFollowingList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
                 .map(FollowMemberListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -113,7 +136,7 @@ class FollowApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<FollowMemberListItemResponse> pageResult = PaginationResponse.from(
-            followQueryUseCase.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+            followerListQueryUseCase.getFollowerList(memberId, userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
                 .map(FollowMemberListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -131,7 +154,7 @@ class FollowApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<FollowMemberListItemResponse> pageResult = PaginationResponse.from(
-            followQueryUseCase.getFollowingList(memberId, null, pageRequest.page(), pageRequest.size())
+            followingListQueryUseCase.getFollowingList(memberId, null, pageRequest.page(), pageRequest.size())
                 .map(FollowMemberListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -149,7 +172,7 @@ class FollowApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<FollowMemberListItemResponse> pageResult = PaginationResponse.from(
-            followQueryUseCase.getFollowerList(memberId, null, pageRequest.page(), pageRequest.size())
+            followerListQueryUseCase.getFollowerList(memberId, null, pageRequest.page(), pageRequest.size())
                 .map(FollowMemberListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -168,7 +191,7 @@ class FollowApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<FollowMemberSearchListItemResponse> pageResult = PaginationResponse.from(
-            followQueryUseCase.searchMembersByNickname(search.nickname(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+            followMemberSearchQueryUseCase.searchMembersByNickname(search.nickname(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
                 .map(FollowMemberSearchListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(

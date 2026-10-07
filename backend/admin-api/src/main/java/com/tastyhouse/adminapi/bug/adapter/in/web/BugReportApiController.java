@@ -15,9 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.bug.port.in.BugReportAssignCommand;
+import com.tastyhouse.application.bug.port.in.BugReportAssignUseCase;
 import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
-import com.tastyhouse.application.bug.port.in.BugReportManagementCommandUseCase;
-import com.tastyhouse.application.bug.port.in.BugReportQueryUseCase;
+import com.tastyhouse.application.bug.port.in.BugReportClassifyUseCase;
+import com.tastyhouse.application.bug.port.in.BugReportManagementDetailQueryUseCase;
+import com.tastyhouse.application.bug.port.in.BugReportManagementListQueryUseCase;
+import com.tastyhouse.application.bug.port.in.BugReportManagementStatusChangeUseCase;
 import com.tastyhouse.application.bug.port.in.BugReportStatusChangeCommand;
 import com.tastyhouse.application.bug.port.out.BugReportListItemWithMemberResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -36,12 +39,24 @@ import com.tastyhouse.adminapi.bug.adapter.in.web.response.BugReportListItemResp
 @RequestMapping("/api/bug-reports")
 class BugReportApiController {
 
-    private final BugReportManagementCommandUseCase bugReportCommandUseCase;
-    private final BugReportQueryUseCase bugReportQueryUseCase;
+    private final BugReportManagementStatusChangeUseCase bugReportManagementStatusChangeUseCase;
+    private final BugReportClassifyUseCase bugReportClassifyUseCase;
+    private final BugReportAssignUseCase bugReportAssignUseCase;
+    private final BugReportManagementListQueryUseCase bugReportManagementListQueryUseCase;
+    private final BugReportManagementDetailQueryUseCase bugReportManagementDetailQueryUseCase;
 
-    public BugReportApiController(BugReportManagementCommandUseCase bugReportCommandUseCase, BugReportQueryUseCase bugReportQueryUseCase) {
-        this.bugReportCommandUseCase = bugReportCommandUseCase;
-        this.bugReportQueryUseCase = bugReportQueryUseCase;
+    public BugReportApiController(
+        BugReportManagementStatusChangeUseCase bugReportManagementStatusChangeUseCase,
+        BugReportClassifyUseCase bugReportClassifyUseCase,
+        BugReportAssignUseCase bugReportAssignUseCase,
+        BugReportManagementListQueryUseCase bugReportManagementListQueryUseCase,
+        BugReportManagementDetailQueryUseCase bugReportManagementDetailQueryUseCase
+    ) {
+        this.bugReportManagementStatusChangeUseCase = bugReportManagementStatusChangeUseCase;
+        this.bugReportClassifyUseCase = bugReportClassifyUseCase;
+        this.bugReportAssignUseCase = bugReportAssignUseCase;
+        this.bugReportManagementListQueryUseCase = bugReportManagementListQueryUseCase;
+        this.bugReportManagementDetailQueryUseCase = bugReportManagementDetailQueryUseCase;
     }
 
     @Operation(summary = "버그 제보 목록 조회", description = "버그 제보 목록을 페이징 조회합니다. title/content는 부분 일치 검색, memberId는 정확 일치합니다.")
@@ -50,7 +65,7 @@ class BugReportApiController {
         @Valid @ModelAttribute BugReportSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<BugReportListItemWithMemberResult> pageResult = bugReportQueryUseCase.getBugReports(
+        PageResult<BugReportListItemWithMemberResult> pageResult = bugReportManagementListQueryUseCase.getBugReports(
             search.title(), search.content(), search.memberId(),
             search.status(), search.category(), search.priority(),
             pageRequest.page(), pageRequest.size()
@@ -62,7 +77,7 @@ class BugReportApiController {
     @Operation(summary = "버그 제보 상세 조회", description = "버그 제보 상세를 조회합니다. 첨부 이미지 URL과 제보 회원 정보를 포함합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<BugReportDetailResponse>> getBugReport(@PathVariable Long id) {
-        BugReportDetailResponse response = BugReportDetailResponse.from(bugReportQueryUseCase.getBugReport(id));
+        BugReportDetailResponse response = BugReportDetailResponse.from(bugReportManagementDetailQueryUseCase.getBugReport(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -73,7 +88,7 @@ class BugReportApiController {
         @Valid @RequestBody BugReportStatusUpdateRequest request
     ) {
         BugReportStatusChangeCommand command = request.toCommand(id);
-        bugReportCommandUseCase.changeStatus(command);
+        bugReportManagementStatusChangeUseCase.changeStatus(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -84,7 +99,7 @@ class BugReportApiController {
         @Valid @RequestBody BugReportClassifyRequest request
     ) {
         BugReportClassifyCommand command = request.toCommand(id);
-        bugReportCommandUseCase.classify(command);
+        bugReportClassifyUseCase.classify(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -95,7 +110,7 @@ class BugReportApiController {
         @Valid @RequestBody BugReportAssignRequest request
     ) {
         BugReportAssignCommand command = request.toCommand(id);
-        bugReportCommandUseCase.assign(command);
+        bugReportAssignUseCase.assign(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

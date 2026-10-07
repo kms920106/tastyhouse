@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.product.port.in.ProductAvailabilityQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductAvailabilityListQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductHideCommand;
 import com.tastyhouse.application.product.port.in.ProductHideUseCase;
 import com.tastyhouse.application.product.port.in.ProductReleaseCommand;
@@ -38,21 +38,21 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductAvailability
 @RequestMapping("/api/products")
 class ProductAvailabilityApiController {
 
-    private final ProductAvailabilityQueryUseCase productAvailabilityQueryUseCase;
-    private final ProductSoldOutOwnerUseCase productSoldOutUseCase;
+    private final ProductAvailabilityListQueryUseCase productAvailabilityListQueryUseCase;
+    private final ProductSoldOutOwnerUseCase productSoldOutOwnerUseCase;
     private final ProductHideUseCase productHideUseCase;
     private final ProductReleaseUseCase productReleaseUseCase;
     private final ProductSoldOutUntilChangeUseCase productSoldOutUntilChangeUseCase;
 
     public ProductAvailabilityApiController(
-        ProductAvailabilityQueryUseCase productAvailabilityQueryUseCase,
-        ProductSoldOutOwnerUseCase productSoldOutUseCase,
+        ProductAvailabilityListQueryUseCase productAvailabilityListQueryUseCase,
+        ProductSoldOutOwnerUseCase productSoldOutOwnerUseCase,
         ProductHideUseCase productHideUseCase,
         ProductReleaseUseCase productReleaseUseCase,
         ProductSoldOutUntilChangeUseCase productSoldOutUntilChangeUseCase
     ) {
-        this.productAvailabilityQueryUseCase = productAvailabilityQueryUseCase;
-        this.productSoldOutUseCase = productSoldOutUseCase;
+        this.productAvailabilityListQueryUseCase = productAvailabilityListQueryUseCase;
+        this.productSoldOutOwnerUseCase = productSoldOutOwnerUseCase;
         this.productHideUseCase = productHideUseCase;
         this.productReleaseUseCase = productReleaseUseCase;
         this.productSoldOutUntilChangeUseCase = productSoldOutUntilChangeUseCase;
@@ -66,7 +66,7 @@ class ProductAvailabilityApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductAvailabilitySearchRequest request
     ) {
-        List<ProductAvailabilityGroupResponse> response = productAvailabilityQueryUseCase.getProductAvailability( userDetails.getCeoId(), request.shopId(), request.keyword(), request.soldOutOnly(), request.hiddenOnly() ).stream()
+        List<ProductAvailabilityGroupResponse> response = productAvailabilityListQueryUseCase.getProductAvailability( userDetails.getCeoId(), request.shopId(), request.keyword(), request.soldOutOnly(), request.hiddenOnly() ).stream()
             .map(ProductAvailabilityGroupResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -81,7 +81,7 @@ class ProductAvailabilityApiController {
         @Valid @RequestBody ProductSoldOutRequest request
     ) {
         ProductSoldOutOwnerCommand command = request.toCommand(userDetails.getCeoId());
-        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productSoldOutUseCase.markProductsSoldOut(command));
+        ProductAvailabilityChangeResponse response = ProductAvailabilityChangeResponse.from(productSoldOutOwnerUseCase.markProductsSoldOut(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

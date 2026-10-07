@@ -20,7 +20,8 @@ import com.tastyhouse.application.product.port.in.ProductDeactivateCommand;
 import com.tastyhouse.application.product.port.in.ProductDeactivateUseCase;
 import com.tastyhouse.application.product.port.in.ProductManagementCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductManagementCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductManagementQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductManagementDetailQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductManagementListQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductManagementUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductManagementUpdateUseCase;
 import com.tastyhouse.application.product.port.in.ProductSoldOutManagementCommand;
@@ -41,24 +42,27 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductListItemRe
 @RequestMapping("/api/products")
 class ProductApiController {
 
-    private final ProductManagementCreateUseCase productCreateUseCase;
-    private final ProductManagementUpdateUseCase productUpdateUseCase;
-    private final ProductSoldOutManagementUseCase productSoldOutUseCase;
+    private final ProductManagementListQueryUseCase productManagementListQueryUseCase;
+    private final ProductManagementCreateUseCase productManagementCreateUseCase;
+    private final ProductManagementDetailQueryUseCase productManagementDetailQueryUseCase;
+    private final ProductManagementUpdateUseCase productManagementUpdateUseCase;
+    private final ProductSoldOutManagementUseCase productSoldOutManagementUseCase;
     private final ProductDeactivateUseCase productDeactivateUseCase;
-    private final ProductManagementQueryUseCase productQueryUseCase;
 
     public ProductApiController(
-        ProductManagementCreateUseCase productCreateUseCase,
-        ProductManagementUpdateUseCase productUpdateUseCase,
-        ProductSoldOutManagementUseCase productSoldOutUseCase,
-        ProductDeactivateUseCase productDeactivateUseCase,
-        ProductManagementQueryUseCase productQueryUseCase
+        ProductManagementListQueryUseCase productManagementListQueryUseCase,
+        ProductManagementCreateUseCase productManagementCreateUseCase,
+        ProductManagementDetailQueryUseCase productManagementDetailQueryUseCase,
+        ProductManagementUpdateUseCase productManagementUpdateUseCase,
+        ProductSoldOutManagementUseCase productSoldOutManagementUseCase,
+        ProductDeactivateUseCase productDeactivateUseCase
     ) {
-        this.productCreateUseCase = productCreateUseCase;
-        this.productUpdateUseCase = productUpdateUseCase;
-        this.productSoldOutUseCase = productSoldOutUseCase;
+        this.productManagementListQueryUseCase = productManagementListQueryUseCase;
+        this.productManagementCreateUseCase = productManagementCreateUseCase;
+        this.productManagementDetailQueryUseCase = productManagementDetailQueryUseCase;
+        this.productManagementUpdateUseCase = productManagementUpdateUseCase;
+        this.productSoldOutManagementUseCase = productSoldOutManagementUseCase;
         this.productDeactivateUseCase = productDeactivateUseCase;
-        this.productQueryUseCase = productQueryUseCase;
     }
 
     @Operation(summary = "상품 목록 조회", description = "상품 목록을 조건 페이징 조회합니다.")
@@ -67,7 +71,7 @@ class ProductApiController {
         @Valid @ModelAttribute ProductSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ProductListItemResult> pageResult = productQueryUseCase.getProducts(
+        PageResult<ProductListItemResult> pageResult = productManagementListQueryUseCase.getProducts(
             search.shopId(), search.productCategoryId(), search.name(), search.visible(), search.soldOut(),
             pageRequest.page(), pageRequest.size()
         );
@@ -79,14 +83,14 @@ class ProductApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createProduct(@Valid @RequestBody ProductCreateRequest request) {
         ProductManagementCreateCommand command = request.toCommand();
-        Long id = productCreateUseCase.createProduct(command);
+        Long id = productManagementCreateUseCase.createProduct(command);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
     @Operation(summary = "상품 상세 조회", description = "상품 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ProductDetailResponse>> getProduct(@PathVariable Long id) {
-        ProductDetailResponse response = ProductDetailResponse.from(productQueryUseCase.getProduct(id));
+        ProductDetailResponse response = ProductDetailResponse.from(productManagementDetailQueryUseCase.getProduct(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -97,7 +101,7 @@ class ProductApiController {
         @Valid @RequestBody ProductUpdateRequest request
     ) {
         ProductManagementUpdateCommand command = request.toCommand(id);
-        productUpdateUseCase.updateProduct(command);
+        productManagementUpdateUseCase.updateProduct(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -105,7 +109,7 @@ class ProductApiController {
     @PatchMapping("/v1/{id}/sold-out")
     public ResponseEntity<ApiResponse<Void>> markSoldOut(@PathVariable Long id) {
         ProductSoldOutManagementCommand command = ProductSoldOutManagementCommand.of(id);
-        productSoldOutUseCase.markSoldOut(command);
+        productSoldOutManagementUseCase.markSoldOut(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

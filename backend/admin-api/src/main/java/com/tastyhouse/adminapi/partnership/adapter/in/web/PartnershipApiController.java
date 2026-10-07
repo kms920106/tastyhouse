@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.partnership.port.in.PartnershipDeleteCommand;
-import com.tastyhouse.application.partnership.port.in.PartnershipManagementCommandUseCase;
-import com.tastyhouse.application.partnership.port.in.PartnershipQueryUseCase;
+import com.tastyhouse.application.partnership.port.in.PartnershipDeleteUseCase;
+import com.tastyhouse.application.partnership.port.in.PartnershipManagementDetailQueryUseCase;
+import com.tastyhouse.application.partnership.port.in.PartnershipManagementListQueryUseCase;
+import com.tastyhouse.application.partnership.port.in.PartnershipManagementStatusChangeUseCase;
 import com.tastyhouse.application.partnership.port.in.PartnershipStatusChangeCommand;
 import com.tastyhouse.application.partnership.port.out.PartnershipRequestListItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -34,12 +36,21 @@ import com.tastyhouse.adminapi.partnership.adapter.in.web.response.PartnershipRe
 @RequestMapping("/api/partnership-requests")
 class PartnershipApiController {
 
-    private final PartnershipManagementCommandUseCase partnershipCommandUseCase;
-    private final PartnershipQueryUseCase partnershipQueryUseCase;
+    private final PartnershipManagementStatusChangeUseCase partnershipManagementStatusChangeUseCase;
+    private final PartnershipDeleteUseCase partnershipDeleteUseCase;
+    private final PartnershipManagementListQueryUseCase partnershipManagementListQueryUseCase;
+    private final PartnershipManagementDetailQueryUseCase partnershipManagementDetailQueryUseCase;
 
-    public PartnershipApiController(PartnershipManagementCommandUseCase partnershipCommandUseCase, PartnershipQueryUseCase partnershipQueryUseCase) {
-        this.partnershipCommandUseCase = partnershipCommandUseCase;
-        this.partnershipQueryUseCase = partnershipQueryUseCase;
+    public PartnershipApiController(
+        PartnershipManagementStatusChangeUseCase partnershipManagementStatusChangeUseCase,
+        PartnershipDeleteUseCase partnershipDeleteUseCase,
+        PartnershipManagementListQueryUseCase partnershipManagementListQueryUseCase,
+        PartnershipManagementDetailQueryUseCase partnershipManagementDetailQueryUseCase
+    ) {
+        this.partnershipManagementStatusChangeUseCase = partnershipManagementStatusChangeUseCase;
+        this.partnershipDeleteUseCase = partnershipDeleteUseCase;
+        this.partnershipManagementListQueryUseCase = partnershipManagementListQueryUseCase;
+        this.partnershipManagementDetailQueryUseCase = partnershipManagementDetailQueryUseCase;
     }
 
     @Operation(summary = "제휴 신청 목록 조회", description = "제휴 신청 목록을 페이징 조회합니다. 상호명/담당자명/연락처/처리상태/접수기간 필터를 지원합니다.")
@@ -48,7 +59,7 @@ class PartnershipApiController {
         @Valid @ModelAttribute PartnershipSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<PartnershipRequestListItemResult> pageResult = partnershipQueryUseCase.getPartnershipRequests(
+        PageResult<PartnershipRequestListItemResult> pageResult = partnershipManagementListQueryUseCase.getPartnershipRequests(
             search.businessName(), search.contactName(), search.contactPhone(), search.status(),
             search.startDate(), search.endDate(), pageRequest.page(), pageRequest.size());
         PaginationResponse<PartnershipRequestListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(PartnershipRequestListItemResponse::from));
@@ -58,7 +69,7 @@ class PartnershipApiController {
     @Operation(summary = "제휴 신청 상세 조회", description = "제휴 신청 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<PartnershipRequestDetailResponse>> getPartnershipRequest(@PathVariable Long id) {
-        PartnershipRequestDetailResponse response = PartnershipRequestDetailResponse.from(partnershipQueryUseCase.getPartnershipRequest(id));
+        PartnershipRequestDetailResponse response = PartnershipRequestDetailResponse.from(partnershipManagementDetailQueryUseCase.getPartnershipRequest(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -69,7 +80,7 @@ class PartnershipApiController {
         @Valid @RequestBody PartnershipStatusUpdateRequest request
     ) {
         PartnershipStatusChangeCommand command = request.toCommand(id);
-        partnershipCommandUseCase.changeStatus(command);
+        partnershipManagementStatusChangeUseCase.changeStatus(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -77,7 +88,7 @@ class PartnershipApiController {
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deletePartnershipRequest(@PathVariable Long id) {
         PartnershipDeleteCommand command = PartnershipDeleteCommand.of(id);
-        partnershipCommandUseCase.deletePartnershipRequest(command);
+        partnershipDeleteUseCase.deletePartnershipRequest(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

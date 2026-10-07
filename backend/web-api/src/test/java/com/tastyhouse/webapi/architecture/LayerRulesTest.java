@@ -97,17 +97,6 @@ class LayerRulesTest {
     }
 
     @Test
-    void controllersShouldDependOnUseCasesOnly() {
-        ArchRule rule = noClasses()
-            .that().haveSimpleNameEndingWith("ApiController")
-            .should().dependOnClassesThat().haveSimpleNameEndingWith("CommandService")
-            .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
-            .because("컨트롤러는 UseCase 인터페이스만 주입한다(구체 서비스 금지)");
-
-        rule.check(classes);
-    }
-
-    @Test
     void webAdaptersShouldNotDependOnApplicationServices() {
         ArchRule rule = noClasses()
             .that().resideInAPackage("..adapter.in.web..")

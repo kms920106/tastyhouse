@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
+import com.tastyhouse.application.shop.port.in.ShopBookmarkStatusQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBookmarkToggleCommand;
-import com.tastyhouse.application.shop.port.in.ShopCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopDetailQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopBookmarkToggleUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopBookmarkResponse;
@@ -22,15 +22,15 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopBookmarkResponse;
 @Tag(name = "Shop Bookmark", description = "가게 북마크 API")
 class ShopBookmarkApiController {
 
-    private final ShopCommandUseCase shopCommandUseCase;
-    private final ShopDetailQueryUseCase shopDetailQueryUseCase;
+    private final ShopBookmarkToggleUseCase shopBookmarkToggleUseCase;
+    private final ShopBookmarkStatusQueryUseCase shopBookmarkStatusQueryUseCase;
 
     public ShopBookmarkApiController(
-        ShopCommandUseCase shopCommandUseCase,
-        ShopDetailQueryUseCase shopDetailQueryUseCase
+        ShopBookmarkToggleUseCase shopBookmarkToggleUseCase,
+        ShopBookmarkStatusQueryUseCase shopBookmarkStatusQueryUseCase
     ) {
-        this.shopCommandUseCase = shopCommandUseCase;
-        this.shopDetailQueryUseCase = shopDetailQueryUseCase;
+        this.shopBookmarkToggleUseCase = shopBookmarkToggleUseCase;
+        this.shopBookmarkStatusQueryUseCase = shopBookmarkStatusQueryUseCase;
     }
 
     @Operation(summary = "북마크 여부 조회", description = "가게가 현재 사용자에 의해 북마크되었는지 여부를 조회합니다.")
@@ -44,7 +44,7 @@ class ShopBookmarkApiController {
             bookmarked = ShopBookmarkResponse.from(false);
         } else {
             Long memberId = userDetails.getMemberId();
-            bookmarked = ShopBookmarkResponse.from(shopDetailQueryUseCase.isBookmarked(id, memberId));
+            bookmarked = ShopBookmarkResponse.from(shopBookmarkStatusQueryUseCase.isBookmarked(id, memberId));
         }
         return ResponseEntity.ok(ApiResponse.success(bookmarked));
     }
@@ -59,7 +59,7 @@ class ShopBookmarkApiController {
             return ResponseEntity.status(401).build();
         }
         ShopBookmarkToggleCommand command = ShopBookmarkToggleCommand.of(userDetails.getMemberId(), id);
-        boolean bookmarked = shopCommandUseCase.toggleBookmark(command);
+        boolean bookmarked = shopBookmarkToggleUseCase.toggleBookmark(command);
         return ResponseEntity.ok(ApiResponse.success(ShopBookmarkResponse.from(bookmarked)));
     }
 }

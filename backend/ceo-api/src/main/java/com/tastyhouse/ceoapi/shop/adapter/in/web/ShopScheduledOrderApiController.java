@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopScheduledOrderCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopScheduledOrderUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopScheduledOrderUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopScheduledOrderUpdateRequest;
 
@@ -22,10 +22,10 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopScheduledOrderUpdat
 @RequestMapping("/api/shops")
 class ShopScheduledOrderApiController {
 
-    private final ShopScheduledOrderCommandUseCase shopScheduledOrderCommandUseCase;
+    private final ShopScheduledOrderUpdateUseCase shopScheduledOrderUpdateUseCase;
 
-    public ShopScheduledOrderApiController(ShopScheduledOrderCommandUseCase shopScheduledOrderCommandUseCase) {
-        this.shopScheduledOrderCommandUseCase = shopScheduledOrderCommandUseCase;
+    public ShopScheduledOrderApiController(ShopScheduledOrderUpdateUseCase shopScheduledOrderUpdateUseCase) {
+        this.shopScheduledOrderUpdateUseCase = shopScheduledOrderUpdateUseCase;
     }
 
     @Operation(
@@ -41,7 +41,7 @@ class ShopScheduledOrderApiController {
         @Valid @RequestBody ShopScheduledOrderUpdateRequest request
     ) {
         ShopScheduledOrderUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopScheduledOrderCommandUseCase.updateScheduledOrder(command);
+        shopScheduledOrderUpdateUseCase.updateScheduledOrder(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

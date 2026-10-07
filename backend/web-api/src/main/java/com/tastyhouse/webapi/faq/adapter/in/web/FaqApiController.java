@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.faq.port.in.FaqQueryUseCase;
+import com.tastyhouse.application.faq.port.in.FaqCategoryListQueryUseCase;
+import com.tastyhouse.application.faq.port.in.FaqListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.faq.adapter.in.web.request.FaqSearchRequest;
 import com.tastyhouse.webapi.faq.adapter.in.web.response.FaqCategoryListItemResponse;
@@ -22,16 +23,21 @@ import com.tastyhouse.webapi.faq.adapter.in.web.response.FaqListItemResponse;
 @Tag(name = "FAQ", description = "자주하는 질문 API")
 class FaqApiController {
 
-    private final FaqQueryUseCase faqQueryUseCase;
+    private final FaqCategoryListQueryUseCase faqCategoryListQueryUseCase;
+    private final FaqListQueryUseCase faqListQueryUseCase;
 
-    public FaqApiController(FaqQueryUseCase faqQueryUseCase) {
-        this.faqQueryUseCase = faqQueryUseCase;
+    public FaqApiController(
+        FaqCategoryListQueryUseCase faqCategoryListQueryUseCase,
+        FaqListQueryUseCase faqListQueryUseCase
+    ) {
+        this.faqCategoryListQueryUseCase = faqCategoryListQueryUseCase;
+        this.faqListQueryUseCase = faqListQueryUseCase;
     }
 
     @Operation(summary = "FAQ 카테고리 목록 조회", description = "활성화된 FAQ 카테고리 목록을 정렬 순서대로 조회합니다.")
     @GetMapping("/v1/categories")
     public ResponseEntity<ApiResponse<List<FaqCategoryListItemResponse>>> getFaqCategories() {
-        List<FaqCategoryListItemResponse> categories = faqQueryUseCase.getFaqCategories().stream()
+        List<FaqCategoryListItemResponse> categories = faqCategoryListQueryUseCase.getFaqCategories().stream()
             .map(FaqCategoryListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(categories));
@@ -40,7 +46,7 @@ class FaqApiController {
     @Operation(summary = "FAQ 목록 조회", description = "카테고리 ID로 필터링하거나 전체 FAQ 목록을 조회합니다. categoryId 미입력 시 전체 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<FaqListItemResponse>>> getFaqList(@Valid @ModelAttribute FaqSearchRequest search) {
-        List<FaqListItemResponse> faqs = faqQueryUseCase.getFaqList(search.categoryId()).stream()
+        List<FaqListItemResponse> faqs = faqListQueryUseCase.getFaqList(search.categoryId()).stream()
             .map(FaqListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(faqs));

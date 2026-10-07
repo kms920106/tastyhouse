@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodAssignCommand;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodAssignUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOrderMethodManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodUnassignCommand;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodUnassignUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -30,22 +30,22 @@ class ShopOrderMethodAdminApiController {
 
     private final ShopOrderMethodAssignUseCase shopOrderMethodAssignUseCase;
     private final ShopOrderMethodUnassignUseCase shopOrderMethodUnassignUseCase;
-    private final ShopManagementQueryUseCase shopQueryUseCase;
+    private final ShopOrderMethodManagementQueryUseCase shopOrderMethodManagementQueryUseCase;
 
     public ShopOrderMethodAdminApiController(
         ShopOrderMethodAssignUseCase shopOrderMethodAssignUseCase,
         ShopOrderMethodUnassignUseCase shopOrderMethodUnassignUseCase,
-        ShopManagementQueryUseCase shopQueryUseCase
+        ShopOrderMethodManagementQueryUseCase shopOrderMethodManagementQueryUseCase
     ) {
         this.shopOrderMethodAssignUseCase = shopOrderMethodAssignUseCase;
         this.shopOrderMethodUnassignUseCase = shopOrderMethodUnassignUseCase;
-        this.shopQueryUseCase = shopQueryUseCase;
+        this.shopOrderMethodManagementQueryUseCase = shopOrderMethodManagementQueryUseCase;
     }
 
     @Operation(summary = "가게 주문수단 목록 조회", description = "가게에 지정된 주문수단 목록을 조회합니다.")
     @GetMapping("/v1/{id}/order-methods")
     public ResponseEntity<ApiResponse<List<ShopOrderMethodItemResponse>>> getOrderMethods(@PathVariable Long id) {
-        List<ShopOrderMethodItemResponse> response = shopQueryUseCase.getOrderMethods(id).stream()
+        List<ShopOrderMethodItemResponse> response = shopOrderMethodManagementQueryUseCase.getOrderMethods(id).stream()
             .map(ShopOrderMethodItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

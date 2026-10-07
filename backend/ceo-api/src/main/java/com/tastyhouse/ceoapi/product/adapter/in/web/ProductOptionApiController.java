@@ -14,11 +14,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.product.port.in.ProductOptionCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionDeleteUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionOrderChangeCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionOrderChangeUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionOwnerCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionOwnerCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionUpdateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionDeleteRequest;
@@ -30,10 +33,21 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionUpdateR
 @RequestMapping("/api/products")
 class ProductOptionApiController {
 
-    private final ProductOptionCommandUseCase productOptionCommandUseCase;
+    private final ProductOptionOwnerCreateUseCase productOptionOwnerCreateUseCase;
+    private final ProductOptionUpdateUseCase productOptionUpdateUseCase;
+    private final ProductOptionDeleteUseCase productOptionDeleteUseCase;
+    private final ProductOptionOrderChangeUseCase productOptionOrderChangeUseCase;
 
-    public ProductOptionApiController(ProductOptionCommandUseCase productOptionCommandUseCase) {
-        this.productOptionCommandUseCase = productOptionCommandUseCase;
+    public ProductOptionApiController(
+        ProductOptionOwnerCreateUseCase productOptionOwnerCreateUseCase,
+        ProductOptionUpdateUseCase productOptionUpdateUseCase,
+        ProductOptionDeleteUseCase productOptionDeleteUseCase,
+        ProductOptionOrderChangeUseCase productOptionOrderChangeUseCase
+    ) {
+        this.productOptionOwnerCreateUseCase = productOptionOwnerCreateUseCase;
+        this.productOptionUpdateUseCase = productOptionUpdateUseCase;
+        this.productOptionDeleteUseCase = productOptionDeleteUseCase;
+        this.productOptionOrderChangeUseCase = productOptionOrderChangeUseCase;
     }
 
     @Operation(summary = "옵션 추가",
@@ -45,7 +59,7 @@ class ProductOptionApiController {
         @Valid @RequestBody ProductOptionCreateRequest request
     ) {
         ProductOptionOwnerCreateCommand command = request.toCommand(userDetails.getCeoId(), optionGroupId);
-        Long optionId = productOptionCommandUseCase.createProductOption(command);
+        Long optionId = productOptionOwnerCreateUseCase.createProductOption(command);
         return ResponseEntity.ok(ApiResponse.success(optionId));
     }
 
@@ -58,7 +72,7 @@ class ProductOptionApiController {
         @Valid @RequestBody ProductOptionUpdateRequest request
     ) {
         ProductOptionUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productOptionCommandUseCase.updateProductOption(command);
+        productOptionUpdateUseCase.updateProductOption(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -73,7 +87,7 @@ class ProductOptionApiController {
         @Valid @RequestBody ProductOptionDeleteRequest request
     ) {
         ProductOptionDeleteCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productOptionCommandUseCase.deleteProductOption(command);
+        productOptionDeleteUseCase.deleteProductOption(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -87,7 +101,7 @@ class ProductOptionApiController {
         @Valid @RequestBody ProductOptionSortRequest request
     ) {
         ProductOptionOrderChangeCommand command = request.toCommand(userDetails.getCeoId(), optionGroupId);
-        productOptionCommandUseCase.changeProductOptionOrder(command);
+        productOptionOrderChangeUseCase.changeProductOptionOrder(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

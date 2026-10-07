@@ -19,11 +19,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.product.port.in.ProductShopLinkCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductShopLinkCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductShopLinkCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductShopLinkDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductShopLinkDeleteUseCase;
 import com.tastyhouse.application.product.port.in.ProductShopLinkQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductShopLinkReplaceCommand;
+import com.tastyhouse.application.product.port.in.ProductShopLinkReplaceUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopLinkCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopLinkReplaceRequest;
@@ -36,14 +38,20 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductShopLinkResp
 class ProductShopLinkApiController {
 
     private final ProductShopLinkQueryUseCase productShopLinkQueryUseCase;
-    private final ProductShopLinkCommandUseCase productShopLinkCommandUseCase;
+    private final ProductShopLinkReplaceUseCase productShopLinkReplaceUseCase;
+    private final ProductShopLinkCreateUseCase productShopLinkCreateUseCase;
+    private final ProductShopLinkDeleteUseCase productShopLinkDeleteUseCase;
 
     public ProductShopLinkApiController(
         ProductShopLinkQueryUseCase productShopLinkQueryUseCase,
-        ProductShopLinkCommandUseCase productShopLinkCommandUseCase
+        ProductShopLinkReplaceUseCase productShopLinkReplaceUseCase,
+        ProductShopLinkCreateUseCase productShopLinkCreateUseCase,
+        ProductShopLinkDeleteUseCase productShopLinkDeleteUseCase
     ) {
         this.productShopLinkQueryUseCase = productShopLinkQueryUseCase;
-        this.productShopLinkCommandUseCase = productShopLinkCommandUseCase;
+        this.productShopLinkReplaceUseCase = productShopLinkReplaceUseCase;
+        this.productShopLinkCreateUseCase = productShopLinkCreateUseCase;
+        this.productShopLinkDeleteUseCase = productShopLinkDeleteUseCase;
     }
 
     @Operation(summary = "연결된 가게 목록 조회",
@@ -74,7 +82,7 @@ class ProductShopLinkApiController {
         @Valid @RequestBody ProductShopLinkReplaceRequest request
     ) {
         ProductShopLinkReplaceCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productShopLinkCommandUseCase.replaceLinks(command);
+        productShopLinkReplaceUseCase.replaceLinks(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -90,7 +98,7 @@ class ProductShopLinkApiController {
         @Valid @RequestBody ProductShopLinkCreateRequest request
     ) {
         ProductShopLinkCreateCommand command = request.toCommand(userDetails.getCeoId(), id, targetShopId);
-        productShopLinkCommandUseCase.linkToShop(command);
+        productShopLinkCreateUseCase.linkToShop(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -106,7 +114,7 @@ class ProductShopLinkApiController {
     ) {
         ProductShopLinkDeleteCommand command =
             ProductShopLinkDeleteCommand.of(userDetails.getCeoId(), id, targetShopId);
-        productShopLinkCommandUseCase.unlinkFromShop(command);
+        productShopLinkDeleteUseCase.unlinkFromShop(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

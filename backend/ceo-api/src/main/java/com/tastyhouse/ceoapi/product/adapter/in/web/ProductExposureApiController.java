@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.product.port.in.ProductExposureClearCommand;
-import com.tastyhouse.application.product.port.in.ProductExposureCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductExposureClearUseCase;
 import com.tastyhouse.application.product.port.in.ProductExposureQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
+import com.tastyhouse.application.product.port.in.ProductExposureReplaceUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductExposureRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
@@ -30,14 +31,17 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductExposureResp
 class ProductExposureApiController {
 
     private final ProductExposureQueryUseCase productExposureQueryUseCase;
-    private final ProductExposureCommandUseCase productExposureCommandUseCase;
+    private final ProductExposureReplaceUseCase productExposureReplaceUseCase;
+    private final ProductExposureClearUseCase productExposureClearUseCase;
 
     public ProductExposureApiController(
         ProductExposureQueryUseCase productExposureQueryUseCase,
-        ProductExposureCommandUseCase productExposureCommandUseCase
+        ProductExposureReplaceUseCase productExposureReplaceUseCase,
+        ProductExposureClearUseCase productExposureClearUseCase
     ) {
         this.productExposureQueryUseCase = productExposureQueryUseCase;
-        this.productExposureCommandUseCase = productExposureCommandUseCase;
+        this.productExposureReplaceUseCase = productExposureReplaceUseCase;
+        this.productExposureClearUseCase = productExposureClearUseCase;
     }
 
     @Operation(summary = "메뉴 노출기간 조회",
@@ -61,7 +65,7 @@ class ProductExposureApiController {
         @Valid @RequestBody ProductExposureRequest request
     ) {
         ProductExposureReplaceCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productExposureCommandUseCase.replaceExposure(command);
+        productExposureReplaceUseCase.replaceExposure(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -74,7 +78,7 @@ class ProductExposureApiController {
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
         ProductExposureClearCommand command = request.toExposureClearCommand(userDetails.getCeoId(), id);
-        productExposureCommandUseCase.clearExposure(command);
+        productExposureClearUseCase.clearExposure(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.product.port.in.ProductCategoryCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductCategoryManagementCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductManagementQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductCategoryManagementListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductCategoryCreateRequest;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductCategorySearchRequest;
@@ -26,12 +26,15 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductCategoryRe
 @RequestMapping("/api/products")
 class ProductCategoryAdminApiController {
 
+    private final ProductCategoryManagementListQueryUseCase productCategoryManagementListQueryUseCase;
     private final ProductCategoryCreateUseCase productCategoryCreateUseCase;
-    private final ProductManagementQueryUseCase productQueryUseCase;
 
-    public ProductCategoryAdminApiController(ProductCategoryCreateUseCase productCategoryCreateUseCase, ProductManagementQueryUseCase productQueryUseCase) {
+    public ProductCategoryAdminApiController(
+        ProductCategoryManagementListQueryUseCase productCategoryManagementListQueryUseCase,
+        ProductCategoryCreateUseCase productCategoryCreateUseCase
+    ) {
+        this.productCategoryManagementListQueryUseCase = productCategoryManagementListQueryUseCase;
         this.productCategoryCreateUseCase = productCategoryCreateUseCase;
-        this.productQueryUseCase = productQueryUseCase;
     }
 
     @Operation(summary = "상품 카테고리 목록 조회", description = "매장의 상품 카테고리 목록을 조회합니다.")
@@ -39,7 +42,7 @@ class ProductCategoryAdminApiController {
     public ResponseEntity<ApiResponse<List<ProductCategoryResponse>>> getProductCategories(
         @Valid @ModelAttribute ProductCategorySearchRequest search
     ) {
-        List<ProductCategoryResponse> response = productQueryUseCase.getProductCategories(search.shopId()).stream()
+        List<ProductCategoryResponse> response = productCategoryManagementListQueryUseCase.getProductCategories(search.shopId()).stream()
             .map(ProductCategoryResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

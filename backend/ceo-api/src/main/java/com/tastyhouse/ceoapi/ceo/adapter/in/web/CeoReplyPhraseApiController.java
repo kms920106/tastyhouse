@@ -17,11 +17,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseCommandUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseCreateCommand;
+import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseCreateUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseDeleteCommand;
-import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseQueryUseCase;
+import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseDeleteUseCase;
+import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseListQueryUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseUpdateCommand;
+import com.tastyhouse.application.ceo.port.in.CeoReplyPhraseUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.request.CeoReplyPhraseCreateRequest;
 import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
@@ -31,15 +33,21 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoReplyPhraseResponse;
 @RequestMapping("/api/ceos")
 class CeoReplyPhraseApiController {
 
-    private final CeoReplyPhraseCommandUseCase ceoReplyPhraseCommandUseCase;
-    private final CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryUseCase;
+    private final CeoReplyPhraseCreateUseCase ceoReplyPhraseCreateUseCase;
+    private final CeoReplyPhraseUpdateUseCase ceoReplyPhraseUpdateUseCase;
+    private final CeoReplyPhraseDeleteUseCase ceoReplyPhraseDeleteUseCase;
+    private final CeoReplyPhraseListQueryUseCase ceoReplyPhraseListQueryUseCase;
 
     public CeoReplyPhraseApiController(
-        CeoReplyPhraseCommandUseCase ceoReplyPhraseCommandUseCase,
-        CeoReplyPhraseQueryUseCase ceoReplyPhraseQueryUseCase
+        CeoReplyPhraseCreateUseCase ceoReplyPhraseCreateUseCase,
+        CeoReplyPhraseUpdateUseCase ceoReplyPhraseUpdateUseCase,
+        CeoReplyPhraseDeleteUseCase ceoReplyPhraseDeleteUseCase,
+        CeoReplyPhraseListQueryUseCase ceoReplyPhraseListQueryUseCase
     ) {
-        this.ceoReplyPhraseCommandUseCase = ceoReplyPhraseCommandUseCase;
-        this.ceoReplyPhraseQueryUseCase = ceoReplyPhraseQueryUseCase;
+        this.ceoReplyPhraseCreateUseCase = ceoReplyPhraseCreateUseCase;
+        this.ceoReplyPhraseUpdateUseCase = ceoReplyPhraseUpdateUseCase;
+        this.ceoReplyPhraseDeleteUseCase = ceoReplyPhraseDeleteUseCase;
+        this.ceoReplyPhraseListQueryUseCase = ceoReplyPhraseListQueryUseCase;
     }
 
     @Operation(
@@ -52,7 +60,7 @@ class CeoReplyPhraseApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails
     ) {
         List<CeoReplyPhraseResponse> response =
-            ceoReplyPhraseQueryUseCase.getReplyPhrases(userDetails.getCeoId()).stream()
+            ceoReplyPhraseListQueryUseCase.getReplyPhrases(userDetails.getCeoId()).stream()
                 .map(CeoReplyPhraseResponse::from)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -69,7 +77,7 @@ class CeoReplyPhraseApiController {
         @Valid @RequestBody CeoReplyPhraseCreateRequest request
     ) {
         CeoReplyPhraseCreateCommand command = request.toCommand(userDetails.getCeoId());
-        Long replyPhraseId = ceoReplyPhraseCommandUseCase.register(command);
+        Long replyPhraseId = ceoReplyPhraseCreateUseCase.register(command);
         return ResponseEntity.ok(ApiResponse.success(replyPhraseId));
     }
 
@@ -84,7 +92,7 @@ class CeoReplyPhraseApiController {
         @Valid @RequestBody CeoReplyPhraseCreateRequest request
     ) {
         CeoReplyPhraseUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        ceoReplyPhraseCommandUseCase.modify(command);
+        ceoReplyPhraseUpdateUseCase.modify(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -98,7 +106,7 @@ class CeoReplyPhraseApiController {
         @PathVariable Long id
     ) {
         CeoReplyPhraseDeleteCommand command = CeoReplyPhraseDeleteCommand.of(userDetails.getCeoId(), id);
-        ceoReplyPhraseCommandUseCase.remove(command);
+        ceoReplyPhraseDeleteUseCase.remove(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

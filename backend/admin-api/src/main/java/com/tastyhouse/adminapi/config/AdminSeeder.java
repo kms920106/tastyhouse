@@ -7,9 +7,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.tastyhouse.application.admin.port.in.AdminCommandUseCase;
 import com.tastyhouse.application.admin.port.in.AdminCreateCommand;
-import com.tastyhouse.application.admin.port.in.AdminQueryUseCase;
+import com.tastyhouse.application.admin.port.in.AdminCreateUseCase;
+import com.tastyhouse.application.admin.port.in.AdminUsernameExistsQueryUseCase;
 
 @Configuration
 class AdminSeeder {
@@ -18,13 +18,13 @@ class AdminSeeder {
 
     @Bean
     public ApplicationRunner seedSuperAdmin(
-        AdminQueryUseCase adminQueryUseCase,
-        AdminCommandUseCase adminCommandUseCase,
+        AdminUsernameExistsQueryUseCase adminUsernameExistsQueryUseCase,
+        AdminCreateUseCase adminCreateUseCase,
         AdminSeedProperties seedProperties
     ) {
         return (ApplicationArguments args) -> {
             String username = seedProperties.username();
-            if (adminQueryUseCase.existsByUsername(username)) {
+            if (adminUsernameExistsQueryUseCase.existsByUsername(username)) {
                 log.info("[AdminSeeder] SUPER_ADMIN '{}' 이미 존재 - 시드 생략", username);
                 return;
             }
@@ -39,7 +39,7 @@ class AdminSeeder {
                 seedProperties.name(),
                 "SUPER_ADMIN"
             );
-            adminCommandUseCase.createAdmin(command);
+            adminCreateUseCase.createAdmin(command);
             log.info("[AdminSeeder] 최초 SUPER_ADMIN '{}' 생성 완료", username);
         };
     }

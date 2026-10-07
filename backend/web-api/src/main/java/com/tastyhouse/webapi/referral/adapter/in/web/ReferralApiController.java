@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.referral.port.in.ReferralQueryUseCase;
+import com.tastyhouse.application.referral.port.in.ReferralMyListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.referral.adapter.in.web.response.ReferralMemberListItemResponse;
@@ -20,10 +20,10 @@ import com.tastyhouse.webapi.referral.adapter.in.web.response.ReferralMemberList
 @Tag(name = "Referral", description = "추천인 API")
 class ReferralApiController {
 
-    private final ReferralQueryUseCase referralQueryUseCase;
+    private final ReferralMyListQueryUseCase referralMyListQueryUseCase;
 
-    public ReferralApiController(ReferralQueryUseCase referralQueryUseCase) {
-        this.referralQueryUseCase = referralQueryUseCase;
+    public ReferralApiController(ReferralMyListQueryUseCase referralMyListQueryUseCase) {
+        this.referralMyListQueryUseCase = referralMyListQueryUseCase;
     }
 
     @Operation(summary = "내 추천 이력 조회", description = "내가 추천한 회원 목록과 보상 상태를 조회합니다.")
@@ -31,7 +31,7 @@ class ReferralApiController {
     public ResponseEntity<ApiResponse<List<ReferralMemberListItemResponse>>> getMyReferrals(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        List<ReferralMemberListItemResponse> referrals = referralQueryUseCase.getMyReferrals(userDetails.getMemberId()).stream()
+        List<ReferralMemberListItemResponse> referrals = referralMyListQueryUseCase.getMyReferrals(userDetails.getMemberId()).stream()
             .map(ReferralMemberListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(referrals));

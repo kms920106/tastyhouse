@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.policy.port.in.PolicyActivateCommand;
-import com.tastyhouse.application.policy.port.in.PolicyCommandUseCase;
+import com.tastyhouse.application.policy.port.in.PolicyActivateUseCase;
 import com.tastyhouse.application.policy.port.in.PolicyCreateCommand;
+import com.tastyhouse.application.policy.port.in.PolicyCreateUseCase;
 import com.tastyhouse.application.policy.port.in.PolicyUpdateCommand;
+import com.tastyhouse.application.policy.port.in.PolicyUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.policy.adapter.in.web.request.PolicyCreateRequest;
 import com.tastyhouse.adminapi.policy.adapter.in.web.request.PolicyUpdateRequest;
@@ -25,17 +27,25 @@ import com.tastyhouse.adminapi.policy.adapter.in.web.request.PolicyUpdateRequest
 @RequestMapping("/api/policies")
 class PolicyAdminApiController {
 
-    private final PolicyCommandUseCase policyCommandUseCase;
+    private final PolicyCreateUseCase policyCreateUseCase;
+    private final PolicyUpdateUseCase policyUpdateUseCase;
+    private final PolicyActivateUseCase policyActivateUseCase;
 
-    public PolicyAdminApiController(PolicyCommandUseCase policyCommandUseCase) {
-        this.policyCommandUseCase = policyCommandUseCase;
+    public PolicyAdminApiController(
+        PolicyCreateUseCase policyCreateUseCase,
+        PolicyUpdateUseCase policyUpdateUseCase,
+        PolicyActivateUseCase policyActivateUseCase
+    ) {
+        this.policyCreateUseCase = policyCreateUseCase;
+        this.policyUpdateUseCase = policyUpdateUseCase;
+        this.policyActivateUseCase = policyActivateUseCase;
     }
 
     @Operation(summary = "약관 생성", description = "새로운 약관을 생성합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createPolicy(@Valid @RequestBody PolicyCreateRequest request) {
         PolicyCreateCommand command = request.toCommand();
-        Long id = policyCommandUseCase.createPolicy(command);
+        Long id = policyCreateUseCase.createPolicy(command);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
@@ -46,7 +56,7 @@ class PolicyAdminApiController {
         @Valid @RequestBody PolicyUpdateRequest request
     ) {
         PolicyUpdateCommand command = request.toCommand(id);
-        policyCommandUseCase.updatePolicy(command);
+        policyUpdateUseCase.updatePolicy(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -54,7 +64,7 @@ class PolicyAdminApiController {
     @PatchMapping("/v1/{id}/current")
     public ResponseEntity<ApiResponse<Void>> updateCurrentPolicy(@PathVariable Long id) {
         PolicyActivateCommand command = PolicyActivateCommand.of(id);
-        policyCommandUseCase.activateCurrentPolicy(command);
+        policyActivateUseCase.activateCurrentPolicy(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

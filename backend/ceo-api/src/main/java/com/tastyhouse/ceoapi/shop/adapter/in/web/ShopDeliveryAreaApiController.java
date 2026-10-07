@@ -17,10 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
-import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaBulkRequest;
@@ -35,14 +38,23 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaItemRe
 class ShopDeliveryAreaApiController {
 
     private final ShopDeliveryAreaQueryUseCase shopDeliveryAreaQueryUseCase;
-    private final ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase;
+    private final ShopDeliveryAreaCreateUseCase shopDeliveryAreaCreateUseCase;
+    private final ShopDeliveryAreaDeleteUseCase shopDeliveryAreaDeleteUseCase;
+    private final ShopDeliveryAreaBulkCreateUseCase shopDeliveryAreaBulkCreateUseCase;
+    private final ShopDeliveryAreaBulkDeleteUseCase shopDeliveryAreaBulkDeleteUseCase;
 
     public ShopDeliveryAreaApiController(
         ShopDeliveryAreaQueryUseCase shopDeliveryAreaQueryUseCase,
-        ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase
+        ShopDeliveryAreaCreateUseCase shopDeliveryAreaCreateUseCase,
+        ShopDeliveryAreaDeleteUseCase shopDeliveryAreaDeleteUseCase,
+        ShopDeliveryAreaBulkCreateUseCase shopDeliveryAreaBulkCreateUseCase,
+        ShopDeliveryAreaBulkDeleteUseCase shopDeliveryAreaBulkDeleteUseCase
     ) {
         this.shopDeliveryAreaQueryUseCase = shopDeliveryAreaQueryUseCase;
-        this.shopDeliveryAreaCommandUseCase = shopDeliveryAreaCommandUseCase;
+        this.shopDeliveryAreaCreateUseCase = shopDeliveryAreaCreateUseCase;
+        this.shopDeliveryAreaDeleteUseCase = shopDeliveryAreaDeleteUseCase;
+        this.shopDeliveryAreaBulkCreateUseCase = shopDeliveryAreaBulkCreateUseCase;
+        this.shopDeliveryAreaBulkDeleteUseCase = shopDeliveryAreaBulkDeleteUseCase;
     }
 
     @Operation(summary = "내 가게 배달가능지역 조회", description = "로그인한 점주가 소유한 가게의 배달가능지역(행정동) 목록을 조회합니다.")
@@ -65,7 +77,7 @@ class ShopDeliveryAreaApiController {
         @Valid @RequestBody ShopDeliveryAreaCreateRequest request
     ) {
         ShopDeliveryAreaCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long deliveryAreaId = shopDeliveryAreaCommandUseCase.addDeliveryArea(command);
+        Long deliveryAreaId = shopDeliveryAreaCreateUseCase.addDeliveryArea(command);
         return ResponseEntity.ok(ApiResponse.success(deliveryAreaId));
     }
 
@@ -76,7 +88,7 @@ class ShopDeliveryAreaApiController {
         @PathVariable Long deliveryAreaId
     ) {
         ShopDeliveryAreaDeleteCommand command = ShopDeliveryAreaDeleteCommand.of(userDetails.getCeoId(), deliveryAreaId);
-        shopDeliveryAreaCommandUseCase.removeDeliveryArea(command);
+        shopDeliveryAreaDeleteUseCase.removeDeliveryArea(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -92,7 +104,7 @@ class ShopDeliveryAreaApiController {
     ) {
         ShopDeliveryAreaBulkCreateCommand command = request.toCreateCommand(userDetails.getCeoId(), id);
         ShopDeliveryAreaBulkResponse response =
-            ShopDeliveryAreaBulkResponse.from(shopDeliveryAreaCommandUseCase.addDeliveryAreas(command));
+            ShopDeliveryAreaBulkResponse.from(shopDeliveryAreaBulkCreateUseCase.addDeliveryAreas(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -108,7 +120,7 @@ class ShopDeliveryAreaApiController {
     ) {
         ShopDeliveryAreaBulkDeleteCommand command = request.toDeleteCommand(userDetails.getCeoId(), id);
         ShopDeliveryAreaBulkDeleteResponse response =
-            ShopDeliveryAreaBulkDeleteResponse.from(shopDeliveryAreaCommandUseCase.removeDeliveryAreas(command));
+            ShopDeliveryAreaBulkDeleteResponse.from(shopDeliveryAreaBulkDeleteUseCase.removeDeliveryAreas(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

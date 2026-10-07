@@ -12,4 +12,17 @@ public record PaymentRefundViewResult(
     LocalDateTime refundedAt,
     LocalDateTime createdAt
 ) {
+
+    public static PaymentRefundViewResult from(PaymentRefundResult result) {
+        return new PaymentRefundViewResult(
+            result.id(),
+            result.paymentId(),
+            result.refundAmount(),
+            result.refundReason(),
+            result.refundStatus(),
+            result.pgRefundId(),
+            result.refundedAt(),
+            result.createdAt()
+        );
+    }
 }

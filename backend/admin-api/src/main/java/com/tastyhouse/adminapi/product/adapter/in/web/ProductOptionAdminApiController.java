@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.product.port.in.ProductManagementQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupManagementCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionManagementCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionManagementListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductOptionCreateRequest;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductOptionGroupCreateRequest;
@@ -26,24 +26,24 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductOptionGrou
 @RequestMapping("/api/products")
 class ProductOptionAdminApiController {
 
+    private final ProductOptionManagementListQueryUseCase productOptionManagementListQueryUseCase;
     private final ProductOptionGroupCreateUseCase productOptionGroupCreateUseCase;
     private final ProductOptionCreateUseCase productOptionCreateUseCase;
-    private final ProductManagementQueryUseCase productQueryUseCase;
 
     public ProductOptionAdminApiController(
+        ProductOptionManagementListQueryUseCase productOptionManagementListQueryUseCase,
         ProductOptionGroupCreateUseCase productOptionGroupCreateUseCase,
-        ProductOptionCreateUseCase productOptionCreateUseCase,
-        ProductManagementQueryUseCase productQueryUseCase
+        ProductOptionCreateUseCase productOptionCreateUseCase
     ) {
+        this.productOptionManagementListQueryUseCase = productOptionManagementListQueryUseCase;
         this.productOptionGroupCreateUseCase = productOptionGroupCreateUseCase;
         this.productOptionCreateUseCase = productOptionCreateUseCase;
-        this.productQueryUseCase = productQueryUseCase;
     }
 
     @Operation(summary = "상품 옵션 조회", description = "상품의 옵션그룹과 옵션 목록을 조회합니다. (공통 옵션그룹 병합 포함)")
     @GetMapping("/v1/{id}/options")
     public ResponseEntity<ApiResponse<ProductOptionGroupsResponse>> getProductOptions(@PathVariable Long id) {
-        ProductOptionGroupsResponse response = ProductOptionGroupsResponse.from(productQueryUseCase.getProductOptions(id));
+        ProductOptionGroupsResponse response = ProductOptionGroupsResponse.from(productOptionManagementListQueryUseCase.getProductOptions(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

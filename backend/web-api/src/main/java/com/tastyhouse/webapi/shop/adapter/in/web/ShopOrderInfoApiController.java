@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopOrderInfoQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipViewQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOrderMethodQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopScheduledOrderSlotQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.shop.adapter.in.web.request.ScheduledOrderSlotSearchRequest;
@@ -25,10 +27,18 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopOrderMethodRespons
 @Tag(name = "Shop Order Info", description = "가게 주문 정보 API")
 class ShopOrderInfoApiController {
 
-    private final ShopOrderInfoQueryUseCase shopOrderInfoQueryUseCase;
+    private final ShopDeliveryTipViewQueryUseCase shopDeliveryTipViewQueryUseCase;
+    private final ShopScheduledOrderSlotQueryUseCase shopScheduledOrderSlotQueryUseCase;
+    private final ShopOrderMethodQueryUseCase shopOrderMethodQueryUseCase;
 
-    public ShopOrderInfoApiController(ShopOrderInfoQueryUseCase shopOrderInfoQueryUseCase) {
-        this.shopOrderInfoQueryUseCase = shopOrderInfoQueryUseCase;
+    public ShopOrderInfoApiController(
+        ShopDeliveryTipViewQueryUseCase shopDeliveryTipViewQueryUseCase,
+        ShopScheduledOrderSlotQueryUseCase shopScheduledOrderSlotQueryUseCase,
+        ShopOrderMethodQueryUseCase shopOrderMethodQueryUseCase
+    ) {
+        this.shopDeliveryTipViewQueryUseCase = shopDeliveryTipViewQueryUseCase;
+        this.shopScheduledOrderSlotQueryUseCase = shopScheduledOrderSlotQueryUseCase;
+        this.shopOrderMethodQueryUseCase = shopOrderMethodQueryUseCase;
     }
 
     @Operation(summary = "배달팁 조회", description = "가게의 배달팁 설정과 하한/상한을 조회합니다. 로그인 회원이 배달 주소 ID와 주문금액을 함께 주면 확정 배달팁과 산출 근거를 반환합니다.")
@@ -39,7 +49,7 @@ class ShopOrderInfoApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ShopDeliveryTipResponse deliveryTip = ShopDeliveryTipResponse.from(
-            shopOrderInfoQueryUseCase.getShopDeliveryTip(
+            shopDeliveryTipViewQueryUseCase.getShopDeliveryTip(
                 id,
                 userDetails == null ? null : userDetails.getMemberId(),
                 search.deliveryAddressId(),
@@ -61,7 +71,7 @@ class ShopOrderInfoApiController {
         @Valid @ModelAttribute ScheduledOrderSlotSearchRequest search
     ) {
         ScheduledOrderSlotsResponse slots = ScheduledOrderSlotsResponse.from(
-            shopOrderInfoQueryUseCase.getScheduledOrderSlots(id, search.orderMethod())
+            shopScheduledOrderSlotQueryUseCase.getScheduledOrderSlots(id, search.orderMethod())
         );
         return ResponseEntity.ok(ApiResponse.success(slots));
     }
@@ -70,7 +80,7 @@ class ShopOrderInfoApiController {
     @GetMapping("/v1/{id}/order-methods")
     public ResponseEntity<ApiResponse<ShopOrderMethodResponse>> getShopOrderMethods(@PathVariable Long id) {
         ShopOrderMethodResponse orderMethods =
-            ShopOrderMethodResponse.from(shopOrderInfoQueryUseCase.getShopOrderMethods(id));
+            ShopOrderMethodResponse.from(shopOrderMethodQueryUseCase.getShopOrderMethods(id));
         ApiResponse<ShopOrderMethodResponse> response = ApiResponse.success(orderMethods);
         return ResponseEntity.ok(response);
     }

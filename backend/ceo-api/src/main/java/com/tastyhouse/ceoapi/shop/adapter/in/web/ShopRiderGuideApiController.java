@@ -15,11 +15,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopRiderGuideOwnerCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopRiderGuideOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRiderGuideOwnerDetailQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationClearCommand;
+import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationClearUseCase;
 import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationOwnerUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationOwnerUpdateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideOwnerValidationQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRiderPickupLocationUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopRiderVisitGuideUpdateRequest;
@@ -32,12 +35,24 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRiderVisitGuideVal
 @RequestMapping("/api/shops")
 class ShopRiderGuideApiController {
 
-    private final ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryUseCase;
-    private final ShopRiderGuideOwnerCommandUseCase shopRiderGuideCommandUseCase;
+    private final ShopRiderGuideOwnerDetailQueryUseCase shopRiderGuideOwnerDetailQueryUseCase;
+    private final ShopRiderVisitGuideOwnerValidationQueryUseCase shopRiderVisitGuideOwnerValidationQueryUseCase;
+    private final ShopRiderVisitGuideUpdateUseCase shopRiderVisitGuideUpdateUseCase;
+    private final ShopRiderPickupLocationOwnerUpdateUseCase shopRiderPickupLocationOwnerUpdateUseCase;
+    private final ShopRiderPickupLocationClearUseCase shopRiderPickupLocationClearUseCase;
 
-    public ShopRiderGuideApiController(ShopRiderGuideOwnerQueryUseCase shopRiderGuideQueryUseCase, ShopRiderGuideOwnerCommandUseCase shopRiderGuideCommandUseCase) {
-        this.shopRiderGuideQueryUseCase = shopRiderGuideQueryUseCase;
-        this.shopRiderGuideCommandUseCase = shopRiderGuideCommandUseCase;
+    public ShopRiderGuideApiController(
+        ShopRiderGuideOwnerDetailQueryUseCase shopRiderGuideOwnerDetailQueryUseCase,
+        ShopRiderVisitGuideOwnerValidationQueryUseCase shopRiderVisitGuideOwnerValidationQueryUseCase,
+        ShopRiderVisitGuideUpdateUseCase shopRiderVisitGuideUpdateUseCase,
+        ShopRiderPickupLocationOwnerUpdateUseCase shopRiderPickupLocationOwnerUpdateUseCase,
+        ShopRiderPickupLocationClearUseCase shopRiderPickupLocationClearUseCase
+    ) {
+        this.shopRiderGuideOwnerDetailQueryUseCase = shopRiderGuideOwnerDetailQueryUseCase;
+        this.shopRiderVisitGuideOwnerValidationQueryUseCase = shopRiderVisitGuideOwnerValidationQueryUseCase;
+        this.shopRiderVisitGuideUpdateUseCase = shopRiderVisitGuideUpdateUseCase;
+        this.shopRiderPickupLocationOwnerUpdateUseCase = shopRiderPickupLocationOwnerUpdateUseCase;
+        this.shopRiderPickupLocationClearUseCase = shopRiderPickupLocationClearUseCase;
     }
 
     @Operation(summary = "내 가게 라이더 안내 조회",
@@ -48,7 +63,7 @@ class ShopRiderGuideApiController {
         @PathVariable Long id
     ) {
         ShopRiderGuideResponse response =
-            ShopRiderGuideResponse.from(shopRiderGuideQueryUseCase.getRiderGuide(userDetails.getCeoId(), id));
+            ShopRiderGuideResponse.from(shopRiderGuideOwnerDetailQueryUseCase.getRiderGuide(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -61,7 +76,7 @@ class ShopRiderGuideApiController {
         @Valid @RequestBody ShopRiderVisitGuideUpdateRequest request
     ) {
         ShopRiderVisitGuideUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopRiderGuideCommandUseCase.updateVisitGuide(command);
+        shopRiderVisitGuideUpdateUseCase.updateVisitGuide(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -74,7 +89,7 @@ class ShopRiderGuideApiController {
         @Valid @RequestBody ShopRiderVisitGuideValidateRequest request
     ) {
         ShopRiderVisitGuideValidationResponse response =
-            ShopRiderVisitGuideValidationResponse.from(shopRiderGuideQueryUseCase.validateVisitGuide(userDetails.getCeoId(), id, request.visitGuide()));
+            ShopRiderVisitGuideValidationResponse.from(shopRiderVisitGuideOwnerValidationQueryUseCase.validateVisitGuide(userDetails.getCeoId(), id, request.visitGuide()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -87,7 +102,7 @@ class ShopRiderGuideApiController {
         @Valid @RequestBody ShopRiderPickupLocationUpdateRequest request
     ) {
         ShopRiderPickupLocationOwnerUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopRiderGuideCommandUseCase.updatePickupLocation(command);
+        shopRiderPickupLocationOwnerUpdateUseCase.updatePickupLocation(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -99,7 +114,7 @@ class ShopRiderGuideApiController {
         @PathVariable Long id
     ) {
         ShopRiderPickupLocationClearCommand command = ShopRiderPickupLocationClearCommand.of(userDetails.getCeoId(), id);
-        shopRiderGuideCommandUseCase.clearPickupLocation(command);
+        shopRiderPickupLocationClearUseCase.clearPickupLocation(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

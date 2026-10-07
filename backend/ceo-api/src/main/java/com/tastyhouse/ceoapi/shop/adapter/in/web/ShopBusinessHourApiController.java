@@ -17,14 +17,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
+import com.tastyhouse.application.shop.port.in.ShopBreakTimeListQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerUpdateCommand;
-import com.tastyhouse.application.shop.port.in.ShopBusinessHourCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopBreakTimeOwnerUpdateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourListQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerUpdateCommand;
-import com.tastyhouse.application.shop.port.in.ShopBusinessHourQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourOwnerUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBreakTimeSaveRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopBusinessHourSaveRequest;
@@ -36,12 +42,33 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopBusinessHourRespon
 @RequestMapping("/api/shops")
 class ShopBusinessHourApiController {
 
-    private final ShopBusinessHourQueryUseCase shopBusinessHourQueryUseCase;
-    private final ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase;
+    private final ShopBusinessHourListQueryUseCase shopBusinessHourListQueryUseCase;
+    private final ShopBusinessHourOwnerCreateUseCase shopBusinessHourOwnerCreateUseCase;
+    private final ShopBusinessHourOwnerUpdateUseCase shopBusinessHourOwnerUpdateUseCase;
+    private final ShopBusinessHourOwnerDeleteUseCase shopBusinessHourOwnerDeleteUseCase;
+    private final ShopBreakTimeListQueryUseCase shopBreakTimeListQueryUseCase;
+    private final ShopBreakTimeOwnerCreateUseCase shopBreakTimeOwnerCreateUseCase;
+    private final ShopBreakTimeOwnerUpdateUseCase shopBreakTimeOwnerUpdateUseCase;
+    private final ShopBreakTimeOwnerDeleteUseCase shopBreakTimeOwnerDeleteUseCase;
 
-    public ShopBusinessHourApiController(ShopBusinessHourQueryUseCase shopBusinessHourQueryUseCase, ShopBusinessHourCommandUseCase shopBusinessHourCommandUseCase) {
-        this.shopBusinessHourQueryUseCase = shopBusinessHourQueryUseCase;
-        this.shopBusinessHourCommandUseCase = shopBusinessHourCommandUseCase;
+    public ShopBusinessHourApiController(
+        ShopBusinessHourListQueryUseCase shopBusinessHourListQueryUseCase,
+        ShopBusinessHourOwnerCreateUseCase shopBusinessHourOwnerCreateUseCase,
+        ShopBusinessHourOwnerUpdateUseCase shopBusinessHourOwnerUpdateUseCase,
+        ShopBusinessHourOwnerDeleteUseCase shopBusinessHourOwnerDeleteUseCase,
+        ShopBreakTimeListQueryUseCase shopBreakTimeListQueryUseCase,
+        ShopBreakTimeOwnerCreateUseCase shopBreakTimeOwnerCreateUseCase,
+        ShopBreakTimeOwnerUpdateUseCase shopBreakTimeOwnerUpdateUseCase,
+        ShopBreakTimeOwnerDeleteUseCase shopBreakTimeOwnerDeleteUseCase
+    ) {
+        this.shopBusinessHourListQueryUseCase = shopBusinessHourListQueryUseCase;
+        this.shopBusinessHourOwnerCreateUseCase = shopBusinessHourOwnerCreateUseCase;
+        this.shopBusinessHourOwnerUpdateUseCase = shopBusinessHourOwnerUpdateUseCase;
+        this.shopBusinessHourOwnerDeleteUseCase = shopBusinessHourOwnerDeleteUseCase;
+        this.shopBreakTimeListQueryUseCase = shopBreakTimeListQueryUseCase;
+        this.shopBreakTimeOwnerCreateUseCase = shopBreakTimeOwnerCreateUseCase;
+        this.shopBreakTimeOwnerUpdateUseCase = shopBreakTimeOwnerUpdateUseCase;
+        this.shopBreakTimeOwnerDeleteUseCase = shopBreakTimeOwnerDeleteUseCase;
     }
 
     @Operation(summary = "내 가게 운영시간 목록 조회", description = "로그인한 점주가 소유한 가게의 운영시간 목록을 조회합니다.")
@@ -50,7 +77,7 @@ class ShopBusinessHourApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopBusinessHourResponse> response = shopBusinessHourQueryUseCase.getBusinessHours(userDetails.getCeoId(), id).stream()
+        List<ShopBusinessHourResponse> response = shopBusinessHourListQueryUseCase.getBusinessHours(userDetails.getCeoId(), id).stream()
             .map(ShopBusinessHourResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -64,7 +91,7 @@ class ShopBusinessHourApiController {
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
         ShopBusinessHourOwnerCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long businessHourId = shopBusinessHourCommandUseCase.createBusinessHour(command);
+        Long businessHourId = shopBusinessHourOwnerCreateUseCase.createBusinessHour(command);
         return ResponseEntity.ok(ApiResponse.success(businessHourId));
     }
 
@@ -76,7 +103,7 @@ class ShopBusinessHourApiController {
         @Valid @RequestBody ShopBusinessHourSaveRequest request
     ) {
         ShopBusinessHourOwnerUpdateCommand command = request.toUpdateCommand(userDetails.getCeoId(), businessHourId);
-        shopBusinessHourCommandUseCase.updateBusinessHour(command);
+        shopBusinessHourOwnerUpdateUseCase.updateBusinessHour(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -87,7 +114,7 @@ class ShopBusinessHourApiController {
         @PathVariable Long businessHourId
     ) {
         ShopBusinessHourOwnerDeleteCommand command = ShopBusinessHourOwnerDeleteCommand.of(userDetails.getCeoId(), businessHourId);
-        shopBusinessHourCommandUseCase.deleteBusinessHour(command);
+        shopBusinessHourOwnerDeleteUseCase.deleteBusinessHour(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -97,7 +124,7 @@ class ShopBusinessHourApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopBreakTimeResponse> response = shopBusinessHourQueryUseCase.getBreakTimes(userDetails.getCeoId(), id).stream()
+        List<ShopBreakTimeResponse> response = shopBreakTimeListQueryUseCase.getBreakTimes(userDetails.getCeoId(), id).stream()
             .map(ShopBreakTimeResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -111,7 +138,7 @@ class ShopBusinessHourApiController {
         @Valid @RequestBody ShopBreakTimeSaveRequest request
     ) {
         ShopBreakTimeOwnerCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long breakTimeId = shopBusinessHourCommandUseCase.createBreakTime(command);
+        Long breakTimeId = shopBreakTimeOwnerCreateUseCase.createBreakTime(command);
         return ResponseEntity.ok(ApiResponse.success(breakTimeId));
     }
 
@@ -123,7 +150,7 @@ class ShopBusinessHourApiController {
         @Valid @RequestBody ShopBreakTimeSaveRequest request
     ) {
         ShopBreakTimeOwnerUpdateCommand command = request.toUpdateCommand(userDetails.getCeoId(), breakTimeId);
-        shopBusinessHourCommandUseCase.updateBreakTime(command);
+        shopBreakTimeOwnerUpdateUseCase.updateBreakTime(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -134,7 +161,7 @@ class ShopBusinessHourApiController {
         @PathVariable Long breakTimeId
     ) {
         ShopBreakTimeOwnerDeleteCommand command = ShopBreakTimeOwnerDeleteCommand.of(userDetails.getCeoId(), breakTimeId);
-        shopBusinessHourCommandUseCase.deleteBreakTime(command);
+        shopBreakTimeOwnerDeleteUseCase.deleteBreakTime(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

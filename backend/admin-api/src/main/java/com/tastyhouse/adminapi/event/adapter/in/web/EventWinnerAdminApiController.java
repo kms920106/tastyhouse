@@ -14,10 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.event.port.in.EventCommandUseCase;
-import com.tastyhouse.application.event.port.in.EventManagementQueryUseCase;
+import com.tastyhouse.application.event.port.in.EventManagementWinnerListQueryUseCase;
 import com.tastyhouse.application.event.port.in.EventWinnerCreateCommand;
+import com.tastyhouse.application.event.port.in.EventWinnerCreateUseCase;
 import com.tastyhouse.application.event.port.in.EventWinnerDeleteCommand;
+import com.tastyhouse.application.event.port.in.EventWinnerDeleteUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.event.adapter.in.web.request.EventWinnerCreateRequest;
 import com.tastyhouse.adminapi.event.adapter.in.web.response.EventWinnerResponse;
@@ -27,12 +28,18 @@ import com.tastyhouse.adminapi.event.adapter.in.web.response.EventWinnerResponse
 @RequestMapping("/api/events")
 class EventWinnerAdminApiController {
 
-    private final EventCommandUseCase eventCommandUseCase;
-    private final EventManagementQueryUseCase eventQueryUseCase;
+    private final EventWinnerCreateUseCase eventWinnerCreateUseCase;
+    private final EventWinnerDeleteUseCase eventWinnerDeleteUseCase;
+    private final EventManagementWinnerListQueryUseCase eventManagementWinnerListQueryUseCase;
 
-    public EventWinnerAdminApiController(EventCommandUseCase eventCommandUseCase, EventManagementQueryUseCase eventQueryUseCase) {
-        this.eventCommandUseCase = eventCommandUseCase;
-        this.eventQueryUseCase = eventQueryUseCase;
+    public EventWinnerAdminApiController(
+        EventWinnerCreateUseCase eventWinnerCreateUseCase,
+        EventWinnerDeleteUseCase eventWinnerDeleteUseCase,
+        EventManagementWinnerListQueryUseCase eventManagementWinnerListQueryUseCase
+    ) {
+        this.eventWinnerCreateUseCase = eventWinnerCreateUseCase;
+        this.eventWinnerDeleteUseCase = eventWinnerDeleteUseCase;
+        this.eventManagementWinnerListQueryUseCase = eventManagementWinnerListQueryUseCase;
     }
 
     @Operation(summary = "당첨자 등록", description = "이벤트에 당첨자를 등록합니다.")
@@ -42,14 +49,14 @@ class EventWinnerAdminApiController {
         @Valid @RequestBody EventWinnerCreateRequest request
     ) {
         EventWinnerCreateCommand command = request.toCommand(id);
-        Long winnerId = eventCommandUseCase.createWinner(command);
+        Long winnerId = eventWinnerCreateUseCase.createWinner(command);
         return ResponseEntity.ok(ApiResponse.success(winnerId));
     }
 
     @Operation(summary = "당첨자 목록 조회", description = "이벤트의 당첨자 목록을 순위순으로 조회합니다.")
     @GetMapping("/v1/{id}/winners")
     public ResponseEntity<ApiResponse<List<EventWinnerResponse>>> getWinners(@PathVariable Long id) {
-        List<EventWinnerResponse> winners = eventQueryUseCase.getWinners(id).stream()
+        List<EventWinnerResponse> winners = eventManagementWinnerListQueryUseCase.getWinners(id).stream()
             .map(EventWinnerResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(winners));
@@ -59,7 +66,7 @@ class EventWinnerAdminApiController {
     @DeleteMapping("/v1/winners/{winnerId}")
     public ResponseEntity<ApiResponse<Void>> deleteWinner(@PathVariable Long winnerId) {
         EventWinnerDeleteCommand command = EventWinnerDeleteCommand.of(winnerId);
-        eventCommandUseCase.deleteWinner(command);
+        eventWinnerDeleteUseCase.deleteWinner(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

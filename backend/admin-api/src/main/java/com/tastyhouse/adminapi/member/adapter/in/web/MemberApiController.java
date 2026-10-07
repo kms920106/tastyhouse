@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.member.port.in.MemberActivateCommand;
-import com.tastyhouse.application.member.port.in.MemberManagementCommandUseCase;
-import com.tastyhouse.application.member.port.in.MemberManagementQueryUseCase;
+import com.tastyhouse.application.member.port.in.MemberActivateUseCase;
+import com.tastyhouse.application.member.port.in.MemberManagementDetailQueryUseCase;
+import com.tastyhouse.application.member.port.in.MemberManagementListQueryUseCase;
+import com.tastyhouse.application.member.port.in.MemberManagementSuspendUseCase;
 import com.tastyhouse.application.member.port.in.MemberManagementWithdrawCommand;
+import com.tastyhouse.application.member.port.in.MemberManagementWithdrawUseCase;
 import com.tastyhouse.application.member.port.in.MemberSuspendCommand;
 import com.tastyhouse.application.member.port.out.MemberListItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -35,12 +38,24 @@ import com.tastyhouse.adminapi.member.adapter.in.web.response.MemberListItemResp
 @RequestMapping("/api/members")
 class MemberApiController {
 
-    private final MemberManagementQueryUseCase memberQueryUseCase;
-    private final MemberManagementCommandUseCase memberCommandUseCase;
+    private final MemberManagementListQueryUseCase memberManagementListQueryUseCase;
+    private final MemberManagementDetailQueryUseCase memberManagementDetailQueryUseCase;
+    private final MemberManagementSuspendUseCase memberManagementSuspendUseCase;
+    private final MemberActivateUseCase memberActivateUseCase;
+    private final MemberManagementWithdrawUseCase memberManagementWithdrawUseCase;
 
-    public MemberApiController(MemberManagementQueryUseCase memberQueryUseCase, MemberManagementCommandUseCase memberCommandUseCase) {
-        this.memberQueryUseCase = memberQueryUseCase;
-        this.memberCommandUseCase = memberCommandUseCase;
+    public MemberApiController(
+        MemberManagementListQueryUseCase memberManagementListQueryUseCase,
+        MemberManagementDetailQueryUseCase memberManagementDetailQueryUseCase,
+        MemberManagementSuspendUseCase memberManagementSuspendUseCase,
+        MemberActivateUseCase memberActivateUseCase,
+        MemberManagementWithdrawUseCase memberManagementWithdrawUseCase
+    ) {
+        this.memberManagementListQueryUseCase = memberManagementListQueryUseCase;
+        this.memberManagementDetailQueryUseCase = memberManagementDetailQueryUseCase;
+        this.memberManagementSuspendUseCase = memberManagementSuspendUseCase;
+        this.memberActivateUseCase = memberActivateUseCase;
+        this.memberManagementWithdrawUseCase = memberManagementWithdrawUseCase;
     }
 
     @Operation(summary = "회원 목록 조회", description = "회원 목록을 페이징 조회합니다. nickname/username/phone은 부분 일치 검색, status/grade는 필터(미지정 시 전체)입니다.")
@@ -49,7 +64,7 @@ class MemberApiController {
         @Valid @ModelAttribute MemberSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<MemberListItemResult> pageResult = memberQueryUseCase.getMembers(
+        PageResult<MemberListItemResult> pageResult = memberManagementListQueryUseCase.getMembers(
             search.nickname(), search.username(), search.phone(), search.status(), search.grade(),
             pageRequest.page(), pageRequest.size()
         );
@@ -60,7 +75,7 @@ class MemberApiController {
     @Operation(summary = "회원 상세 조회", description = "회원 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<MemberDetailResponse>> getMember(@PathVariable Long id) {
-        MemberDetailResponse response = MemberDetailResponse.from(memberQueryUseCase.getMember(id));
+        MemberDetailResponse response = MemberDetailResponse.from(memberManagementDetailQueryUseCase.getMember(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -68,7 +83,7 @@ class MemberApiController {
     @PatchMapping("/v1/{id}/suspend")
     public ResponseEntity<ApiResponse<Void>> suspend(@PathVariable Long id) {
         MemberSuspendCommand command = MemberSuspendCommand.of(id);
-        memberCommandUseCase.suspend(command);
+        memberManagementSuspendUseCase.suspend(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -76,7 +91,7 @@ class MemberApiController {
     @PatchMapping("/v1/{id}/activate")
     public ResponseEntity<ApiResponse<Void>> activate(@PathVariable Long id) {
         MemberActivateCommand command = MemberActivateCommand.of(id);
-        memberCommandUseCase.activate(command);
+        memberActivateUseCase.activate(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -87,7 +102,7 @@ class MemberApiController {
         @Valid @RequestBody MemberWithdrawRequest request
     ) {
         MemberManagementWithdrawCommand command = request.toCommand(id);
-        memberCommandUseCase.withdraw(command);
+        memberManagementWithdrawUseCase.withdraw(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

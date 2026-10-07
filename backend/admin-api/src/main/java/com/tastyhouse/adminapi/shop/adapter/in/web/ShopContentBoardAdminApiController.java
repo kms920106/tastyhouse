@@ -17,8 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -33,12 +34,18 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopContentBoardList
 @RequestMapping("/api/shops")
 class ShopContentBoardAdminApiController {
 
-    private final ShopContentBoardManagementQueryUseCase shopContentBoardQueryUseCase;
-    private final ShopContentBoardManagementCommandUseCase shopContentBoardCommandUseCase;
+    private final ShopContentBoardManagementQueryUseCase shopContentBoardManagementQueryUseCase;
+    private final ShopContentBoardHiddenChangeUseCase shopContentBoardHiddenChangeUseCase;
+    private final ShopContentBoardManagementDeleteUseCase shopContentBoardManagementDeleteUseCase;
 
-    public ShopContentBoardAdminApiController(ShopContentBoardManagementQueryUseCase shopContentBoardQueryUseCase, ShopContentBoardManagementCommandUseCase shopContentBoardCommandUseCase) {
-        this.shopContentBoardQueryUseCase = shopContentBoardQueryUseCase;
-        this.shopContentBoardCommandUseCase = shopContentBoardCommandUseCase;
+    public ShopContentBoardAdminApiController(
+        ShopContentBoardManagementQueryUseCase shopContentBoardManagementQueryUseCase,
+        ShopContentBoardHiddenChangeUseCase shopContentBoardHiddenChangeUseCase,
+        ShopContentBoardManagementDeleteUseCase shopContentBoardManagementDeleteUseCase
+    ) {
+        this.shopContentBoardManagementQueryUseCase = shopContentBoardManagementQueryUseCase;
+        this.shopContentBoardHiddenChangeUseCase = shopContentBoardHiddenChangeUseCase;
+        this.shopContentBoardManagementDeleteUseCase = shopContentBoardManagementDeleteUseCase;
     }
 
     @Operation(summary = "콘텐츠보드 목록 조회", description = "전체 가게 콘텐츠보드를 조건 페이징 조회합니다. shopId/hidden/contentType은 필터(미지정 시 전체)입니다.")
@@ -47,7 +54,7 @@ class ShopContentBoardAdminApiController {
         @Valid @ModelAttribute ShopContentBoardSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopContentBoardResult> pageResult = shopContentBoardQueryUseCase.getContentBoards(
+        PageResult<ShopContentBoardResult> pageResult = shopContentBoardManagementQueryUseCase.getContentBoards(
             search.shopId(), search.hidden(), search.contentType(), pageRequest.page(), pageRequest.size()
         );
         PaginationResponse<ShopContentBoardListItemResponse> pageResponse =
@@ -64,7 +71,7 @@ class ShopContentBoardAdminApiController {
         @Valid @RequestBody ShopContentBoardHideRequest request
     ) {
         ShopContentBoardHiddenChangeCommand command = request.toCommand(contentBoardId);
-        shopContentBoardCommandUseCase.changeHidden(command);
+        shopContentBoardHiddenChangeUseCase.changeHidden(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -72,7 +79,7 @@ class ShopContentBoardAdminApiController {
     @DeleteMapping("/v1/content-boards/{contentBoardId}")
     public ResponseEntity<ApiResponse<Void>> deleteContentBoard(@PathVariable Long contentBoardId) {
         ShopContentBoardManagementDeleteCommand command = ShopContentBoardManagementDeleteCommand.of(contentBoardId);
-        shopContentBoardCommandUseCase.deleteContentBoard(command);
+        shopContentBoardManagementDeleteUseCase.deleteContentBoard(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

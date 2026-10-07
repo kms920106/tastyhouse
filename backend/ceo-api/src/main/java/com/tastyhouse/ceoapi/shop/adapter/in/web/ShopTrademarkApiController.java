@@ -16,9 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shop.port.in.ShopThumbnailChangeRequestCommand;
+import com.tastyhouse.application.shop.port.in.ShopThumbnailChangeRequestUseCase;
+import com.tastyhouse.application.shop.port.in.ShopThumbnailStatusQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopTrademarkChangeRequestCommand;
-import com.tastyhouse.application.shop.port.in.ShopTrademarkCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopTrademarkQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopTrademarkChangeRequestUseCase;
+import com.tastyhouse.application.shop.port.in.ShopTrademarkStatusQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopImageStatusResponse;
 
@@ -27,12 +29,21 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopImageStatusRespons
 @RequestMapping("/api/shops")
 class ShopTrademarkApiController {
 
-    private final ShopTrademarkQueryUseCase shopTrademarkQueryUseCase;
-    private final ShopTrademarkCommandUseCase shopTrademarkCommandUseCase;
+    private final ShopTrademarkStatusQueryUseCase shopTrademarkStatusQueryUseCase;
+    private final ShopThumbnailStatusQueryUseCase shopThumbnailStatusQueryUseCase;
+    private final ShopTrademarkChangeRequestUseCase shopTrademarkChangeRequestUseCase;
+    private final ShopThumbnailChangeRequestUseCase shopThumbnailChangeRequestUseCase;
 
-    public ShopTrademarkApiController(ShopTrademarkQueryUseCase shopTrademarkQueryUseCase, ShopTrademarkCommandUseCase shopTrademarkCommandUseCase) {
-        this.shopTrademarkQueryUseCase = shopTrademarkQueryUseCase;
-        this.shopTrademarkCommandUseCase = shopTrademarkCommandUseCase;
+    public ShopTrademarkApiController(
+        ShopTrademarkStatusQueryUseCase shopTrademarkStatusQueryUseCase,
+        ShopThumbnailStatusQueryUseCase shopThumbnailStatusQueryUseCase,
+        ShopTrademarkChangeRequestUseCase shopTrademarkChangeRequestUseCase,
+        ShopThumbnailChangeRequestUseCase shopThumbnailChangeRequestUseCase
+    ) {
+        this.shopTrademarkStatusQueryUseCase = shopTrademarkStatusQueryUseCase;
+        this.shopThumbnailStatusQueryUseCase = shopThumbnailStatusQueryUseCase;
+        this.shopTrademarkChangeRequestUseCase = shopTrademarkChangeRequestUseCase;
+        this.shopThumbnailChangeRequestUseCase = shopThumbnailChangeRequestUseCase;
     }
 
     @Operation(summary = "상표 이미지 현황 조회", description = "가게의 현재 상표 이미지와 변경 요청 상태 목록을 조회합니다.")
@@ -42,7 +53,7 @@ class ShopTrademarkApiController {
         @PathVariable Long id
     ) {
         ShopImageStatusResponse response =
-            ShopImageStatusResponse.from(shopTrademarkQueryUseCase.getTrademarkStatus(userDetails.getCeoId(), id));
+            ShopImageStatusResponse.from(shopTrademarkStatusQueryUseCase.getTrademarkStatus(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -55,7 +66,7 @@ class ShopTrademarkApiController {
         @RequestParam("file") MultipartFile file
     ) {
         ShopTrademarkChangeRequestCommand command = ShopTrademarkChangeRequestCommand.of(userDetails.getCeoId(), id);
-        Long requestId = shopTrademarkCommandUseCase.requestTrademarkChange(command, file);
+        Long requestId = shopTrademarkChangeRequestUseCase.requestTrademarkChange(command, file);
         return ResponseEntity.ok(ApiResponse.success(requestId));
     }
 
@@ -66,7 +77,7 @@ class ShopTrademarkApiController {
         @PathVariable Long id
     ) {
         ShopImageStatusResponse response =
-            ShopImageStatusResponse.from(shopTrademarkQueryUseCase.getThumbnailStatus(userDetails.getCeoId(), id));
+            ShopImageStatusResponse.from(shopThumbnailStatusQueryUseCase.getThumbnailStatus(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -79,7 +90,7 @@ class ShopTrademarkApiController {
         @RequestParam("file") MultipartFile file
     ) {
         ShopThumbnailChangeRequestCommand command = ShopThumbnailChangeRequestCommand.of(userDetails.getCeoId(), id);
-        Long requestId = shopTrademarkCommandUseCase.requestThumbnailChange(command, file);
+        Long requestId = shopThumbnailChangeRequestUseCase.requestThumbnailChange(command, file);
         return ResponseEntity.ok(ApiResponse.success(requestId));
     }
 }

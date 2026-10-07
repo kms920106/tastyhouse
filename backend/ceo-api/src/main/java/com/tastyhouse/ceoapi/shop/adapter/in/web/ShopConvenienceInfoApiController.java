@@ -18,10 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shop.port.in.ShopAmenityOwnerAssignCommand;
+import com.tastyhouse.application.shop.port.in.ShopAmenityOwnerAssignUseCase;
+import com.tastyhouse.application.shop.port.in.ShopAmenityOwnerListQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopAmenityOwnerUnassignCommand;
-import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopAmenityOwnerUnassignUseCase;
+import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoDetailQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopConvenienceInfoUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopAmenityAssignRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopConvenienceInfoUpdateRequest;
@@ -33,12 +36,24 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopConvenienceInfoRes
 @RequestMapping("/api/shops")
 class ShopConvenienceInfoApiController {
 
-    private final ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryUseCase;
-    private final ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase;
+    private final ShopConvenienceInfoDetailQueryUseCase shopConvenienceInfoDetailQueryUseCase;
+    private final ShopConvenienceInfoUpdateUseCase shopConvenienceInfoUpdateUseCase;
+    private final ShopAmenityOwnerListQueryUseCase shopAmenityOwnerListQueryUseCase;
+    private final ShopAmenityOwnerAssignUseCase shopAmenityOwnerAssignUseCase;
+    private final ShopAmenityOwnerUnassignUseCase shopAmenityOwnerUnassignUseCase;
 
-    public ShopConvenienceInfoApiController(ShopConvenienceInfoQueryUseCase shopConvenienceInfoQueryUseCase, ShopConvenienceInfoCommandUseCase shopConvenienceInfoCommandUseCase) {
-        this.shopConvenienceInfoQueryUseCase = shopConvenienceInfoQueryUseCase;
-        this.shopConvenienceInfoCommandUseCase = shopConvenienceInfoCommandUseCase;
+    public ShopConvenienceInfoApiController(
+        ShopConvenienceInfoDetailQueryUseCase shopConvenienceInfoDetailQueryUseCase,
+        ShopConvenienceInfoUpdateUseCase shopConvenienceInfoUpdateUseCase,
+        ShopAmenityOwnerListQueryUseCase shopAmenityOwnerListQueryUseCase,
+        ShopAmenityOwnerAssignUseCase shopAmenityOwnerAssignUseCase,
+        ShopAmenityOwnerUnassignUseCase shopAmenityOwnerUnassignUseCase
+    ) {
+        this.shopConvenienceInfoDetailQueryUseCase = shopConvenienceInfoDetailQueryUseCase;
+        this.shopConvenienceInfoUpdateUseCase = shopConvenienceInfoUpdateUseCase;
+        this.shopAmenityOwnerListQueryUseCase = shopAmenityOwnerListQueryUseCase;
+        this.shopAmenityOwnerAssignUseCase = shopAmenityOwnerAssignUseCase;
+        this.shopAmenityOwnerUnassignUseCase = shopAmenityOwnerUnassignUseCase;
     }
 
     @Operation(summary = "내 가게 편의정보 조회", description = "로그인한 점주가 소유한 가게의 편의정보(주차·발렛·찾아오는길·노출위치)를 조회합니다.")
@@ -48,7 +63,7 @@ class ShopConvenienceInfoApiController {
         @PathVariable Long id
     ) {
         ShopConvenienceInfoResponse response =
-            shopConvenienceInfoQueryUseCase.getConvenienceInfo(userDetails.getCeoId(), id)
+            shopConvenienceInfoDetailQueryUseCase.getConvenienceInfo(userDetails.getCeoId(), id)
                 .map(ShopConvenienceInfoResponse::from)
                 .orElseGet(() -> ShopConvenienceInfoResponse.empty(id));
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -62,7 +77,7 @@ class ShopConvenienceInfoApiController {
         @Valid @RequestBody ShopConvenienceInfoUpdateRequest request
     ) {
         ShopConvenienceInfoUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopConvenienceInfoCommandUseCase.updateConvenienceInfo(command);
+        shopConvenienceInfoUpdateUseCase.updateConvenienceInfo(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -72,7 +87,7 @@ class ShopConvenienceInfoApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopAmenityResponse> response = shopConvenienceInfoQueryUseCase.getAmenities(userDetails.getCeoId(), id).stream()
+        List<ShopAmenityResponse> response = shopAmenityOwnerListQueryUseCase.getAmenities(userDetails.getCeoId(), id).stream()
             .map(ShopAmenityResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -86,7 +101,7 @@ class ShopConvenienceInfoApiController {
         @Valid @RequestBody ShopAmenityAssignRequest request
     ) {
         ShopAmenityOwnerAssignCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long amenityId = shopConvenienceInfoCommandUseCase.assignAmenity(command);
+        Long amenityId = shopAmenityOwnerAssignUseCase.assignAmenity(command);
         return ResponseEntity.ok(ApiResponse.success(amenityId));
     }
 
@@ -98,7 +113,7 @@ class ShopConvenienceInfoApiController {
         @PathVariable Long amenityCategoryId
     ) {
         ShopAmenityOwnerUnassignCommand command = ShopAmenityOwnerUnassignCommand.of(userDetails.getCeoId(), id, amenityCategoryId);
-        shopConvenienceInfoCommandUseCase.unassignAmenity(command);
+        shopAmenityOwnerUnassignUseCase.unassignAmenity(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -9,8 +9,8 @@ import com.tastyhouse.domain.mail.model.MailVerificationPurpose;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.mail.service.MailVerificationService;
-import com.tastyhouse.application.member.port.in.MemberCommandUseCase;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
+import com.tastyhouse.application.member.port.in.MemberPasswordUpdateUseCase;
 import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -24,18 +24,18 @@ public class AuthPasswordResetService {
     private final MemberPersistencePort memberPersistencePort;
     private final MailVerificationService mailVerificationService;
     private final MemberJwtTokenProvider jwtTokenProvider;
-    private final MemberCommandUseCase memberCommandUseCase;
+    private final MemberPasswordUpdateUseCase memberPasswordUpdateUseCase;
 
     public AuthPasswordResetService(
         MemberPersistencePort memberPersistencePort,
         MailVerificationService mailVerificationService,
         MemberJwtTokenProvider jwtTokenProvider,
-        MemberCommandUseCase memberCommandUseCase
+        MemberPasswordUpdateUseCase memberPasswordUpdateUseCase
     ) {
         this.memberPersistencePort = memberPersistencePort;
         this.mailVerificationService = mailVerificationService;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.memberCommandUseCase = memberCommandUseCase;
+        this.memberPasswordUpdateUseCase = memberPasswordUpdateUseCase;
     }
 
     @Transactional
@@ -67,6 +67,6 @@ public class AuthPasswordResetService {
 
         MemberPasswordUpdateCommand command =
             new MemberPasswordUpdateCommand(member.getId(), newPassword, newPasswordConfirm);
-        memberCommandUseCase.updatePassword(command);
+        memberPasswordUpdateUseCase.updatePassword(command);
     }
 }

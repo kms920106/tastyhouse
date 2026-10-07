@@ -4,8 +4,8 @@
 
 ## 무엇이 여기 사는가
 
-- ceo 전용 `@Service`/`@Component` 빈 — `*CommandService`/`*QueryService`(오케스트레이터)와 ceo만 쓰는 도메인 서비스·검증기(예: 가게 소유권 검증기 `shop/service/ShopOwnershipValidator`)
-- UseCase 인터페이스와 Command record(`<ctx>/port/in/`). multipart 문자열 파트에서 역직렬화되는 `shop/port/in/ShopStorePriceVerificationItemCommand`도 여기 있다 — 정적 참조가 없어도 죽은 코드가 아니다(`ShopStorePriceVerificationCommandService`가 `ObjectMapper`로 만든다).
+- ceo 전용 `@Service`/`@Component` 빈 — 유스케이스당 서비스 1개(`{도메인}{동작}Service`/`{도메인}{관점}QueryService` 188개 — 명령 120 · 조회 68. 예: `auth/service/CeoLoginService`·`shop/service/ShopRequestListQueryService`. 유스케이스 분리 전의 `{도메인}CommandService`/`{도메인}QueryService` 88개는 하나도 남지 않았다)와 ceo만 쓰는 도메인 서비스·검증기(예: 가게 소유권 검증기 `shop/service/ShopOwnershipValidator`, 요청 취소 도메인 서비스 `shop/service/ShopRequestCancellationService` — 유스케이스 분리 전 이름 `ShopRequestCancelService`)
+- UseCase 인터페이스와 Command record(`<ctx>/port/in/`). multipart 문자열 파트에서 역직렬화되는 `shop/port/in/ShopStorePriceVerificationItemCommand`도 여기 있다 — 정적 참조가 없어도 죽은 코드가 아니다(`shop/service/ShopStorePriceVerificationRequestService`가 `ObjectMapper`로 만든다 — 유스케이스 분리 전 이름 `ShopStorePriceVerificationCommandService`).
 - **ceo 전용 SPI 포트**: `ceo.port.out.ReplyPhraseTextValidator` — 자주 쓰는 답글 문구의 금칙어 검수 포트. 구현 `shop/service/ReplyPhraseProhibitedWordValidatorAdapter`(이 모듈)와 유일한 소비자가 모두 ceo라 코어에서 옮겨왔다. 이 포트를 쓰는 이유(컨텍스트 경계 때문에 `ProhibitedWordValidator`를 직접 부르지 않음)는 `backend/application/AGENTS.md`의 봉인 항목에 있다. 그 밖의 `port.out` 계약(읽기 계약 포함)은 전부 코어에 있다.
 - 자바 패키지는 코어와 같은 `com.tastyhouse.application.<ctx>..`다(split package). 클래스를 코어와 이 모듈 사이로 옮겨도 import는 바뀌지 않는다.
 
@@ -20,6 +20,7 @@
 
 - **`@Configuration`과 도메인 이벤트 리스너(`@TransactionalEventListener`)를 여기 두지 않는다** — 코어에만 둔다(`backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `listenersAndConfigsShouldResideInCore`). 리스너가 앱 모듈에 있으면 다른 앱이 같은 이벤트를 발행할 때 후속 처리가 조용히 사라진다.
 - **빈이면 `@Service`/`@Component`를 단다.** 앱 마커는 없다.
+- **유스케이스 하나 = 포트 하나 = 서비스 하나다.** 포트(`<ctx>/port/in/*UseCase`)는 추상 메서드 1개, 서비스는 그 포트 1개만 구현하고 이름은 포트명의 `UseCase`→`Service`, 생성자를 뺀 public 메서드는 1개다. 가드는 코어 `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`의 `useCaseServicesShouldImplementExactlyOneUseCase`·`useCasesShouldDeclareSingleOperation`·`useCaseServiceNameShouldMatchPort`·`useCaseServicesShouldHaveSinglePublicOperation`이고, 명령/조회 판별은 testFixtures `UseCaseServices`(구현 포트명이 `QueryUseCase`로 끝나면 조회)다. 근거는 `backend/application/AGENTS.md`의 봉인·가드 목록 "유스케이스 서비스 1:1 규칙 4종" 항목이다. 여러 연산이 함께 쓰는 로딩·검증은 같은 패키지의 `{도메인}Owner{명사}Reader`/`Validator`(`@Component`)로 뺀다 — 이 협력 빈은 `ServiceContextBoundaryTest`의 검사 대상이 된다.
 - **이 모듈 전용 에러코드는 `CeoErrorCode`(`backend/ceo-application/src/main/java/com/tastyhouse/application/shared/exception/CeoErrorCode.java`)에 둔다; 두 번째 앱이 쓰면 코어 `ApplicationErrorCode`로 올린다.** 예외는 `ApplicationException(CeoErrorCode.X)`로 던진다. 규칙 정본은 `backend/application/AGENTS.md`의 봉인·가드 목록 "에러 카탈로그 가드" 항목이다.
 - **`ProductAvailabilityFailure`는 `ErrorCodeSpec`을 필드로 싣는 유일한 예외다 (봉인)** — `backend/ceo-application/src/main/java/com/tastyhouse/application/product/service/ProductAvailabilityFailure.java`. 코드를 던지지 않고 싣기만 하는 값 record라 가장 좁은 enum 규칙의 예외이며, 함께 domain `product/model`에서 옮겨 온 `ProductAvailabilityChangeResult`를 ceo-application만 만들고 쓰기 때문에 이 모듈에 둔다. 이 예외를 다른 타입으로 넓히지 않는다.
 - **두 번째 앱이 쓰게 되면 코어로 옮긴다.** 이 모듈에는 ceo 하나만 쓰는 것만 둔다.

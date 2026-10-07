@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.banner.port.in.BannerQueryUseCase;
+import com.tastyhouse.application.banner.port.in.HomeBannerListQueryUseCase;
+import com.tastyhouse.application.banner.port.in.SidebarBannerListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -22,17 +23,22 @@ import com.tastyhouse.webapi.banner.adapter.in.web.response.BannerListItemRespon
 @Tag(name = "Banner", description = "배너 관리 API")
 class BannerApiController {
 
-    private final BannerQueryUseCase bannerQueryUseCase;
+    private final HomeBannerListQueryUseCase homeBannerListQueryUseCase;
+    private final SidebarBannerListQueryUseCase sidebarBannerListQueryUseCase;
 
-    public BannerApiController(BannerQueryUseCase bannerQueryUseCase) {
-        this.bannerQueryUseCase = bannerQueryUseCase;
+    public BannerApiController(
+        HomeBannerListQueryUseCase homeBannerListQueryUseCase,
+        SidebarBannerListQueryUseCase sidebarBannerListQueryUseCase
+    ) {
+        this.homeBannerListQueryUseCase = homeBannerListQueryUseCase;
+        this.sidebarBannerListQueryUseCase = sidebarBannerListQueryUseCase;
     }
 
     @Operation(summary = "홈 배너 목록 조회")
     @GetMapping("/v1/home")
     public ResponseEntity<ApiResponse<List<BannerListItemResponse>>> getHomeBanners(@Valid @ModelAttribute PageRequest pageRequest) {
         PaginationResponse<BannerListItemResponse> pageResponse = PaginationResponse.from(
-            bannerQueryUseCase.getHomeBanners(pageRequest.page(), pageRequest.size())
+            homeBannerListQueryUseCase.getHomeBanners(pageRequest.page(), pageRequest.size())
                 .map(BannerListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
@@ -42,7 +48,7 @@ class BannerApiController {
     @GetMapping("/v1/sidebar")
     public ResponseEntity<ApiResponse<List<BannerListItemResponse>>> getSidebarBanners(@Valid @ModelAttribute PageRequest pageRequest) {
         PaginationResponse<BannerListItemResponse> pageResponse = PaginationResponse.from(
-            bannerQueryUseCase.getSidebarBanners(pageRequest.page(), pageRequest.size())
+            sidebarBannerListQueryUseCase.getSidebarBanners(pageRequest.page(), pageRequest.size())
                 .map(BannerListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));

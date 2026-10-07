@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.region.port.in.AdminDongQueryUseCase;
+import com.tastyhouse.application.region.port.in.AdminDongBoundaryQueryUseCase;
+import com.tastyhouse.application.region.port.in.AdminDongListQueryUseCase;
+import com.tastyhouse.application.region.port.in.AdminDongTreeQueryUseCase;
 import com.tastyhouse.application.region.port.out.AdminDongItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -29,10 +31,18 @@ import com.tastyhouse.ceoapi.region.adapter.in.web.response.AdminDongTreeRespons
 @RequestMapping("/api/admin-dongs")
 class AdminDongApiController {
 
-    private final AdminDongQueryUseCase adminDongQueryUseCase;
+    private final AdminDongListQueryUseCase adminDongListQueryUseCase;
+    private final AdminDongTreeQueryUseCase adminDongTreeQueryUseCase;
+    private final AdminDongBoundaryQueryUseCase adminDongBoundaryQueryUseCase;
 
-    public AdminDongApiController(AdminDongQueryUseCase adminDongQueryUseCase) {
-        this.adminDongQueryUseCase = adminDongQueryUseCase;
+    public AdminDongApiController(
+        AdminDongListQueryUseCase adminDongListQueryUseCase,
+        AdminDongTreeQueryUseCase adminDongTreeQueryUseCase,
+        AdminDongBoundaryQueryUseCase adminDongBoundaryQueryUseCase
+    ) {
+        this.adminDongListQueryUseCase = adminDongListQueryUseCase;
+        this.adminDongTreeQueryUseCase = adminDongTreeQueryUseCase;
+        this.adminDongBoundaryQueryUseCase = adminDongBoundaryQueryUseCase;
     }
 
     @Operation(summary = "행정동 검색", description = "배달가능지역으로 등록할 행정동을 검색합니다. 사용 중인 행정동만 조회합니다.")
@@ -41,7 +51,7 @@ class AdminDongApiController {
         @Valid @ModelAttribute AdminDongSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<AdminDongItemResult> pageResult = adminDongQueryUseCase.getAdminDongs(
+        PageResult<AdminDongItemResult> pageResult = adminDongListQueryUseCase.getAdminDongs(
             search.keyword(), pageRequest.page(), pageRequest.size()
         );
         PaginationResponse<AdminDongItemResponse> pageResponse =
@@ -60,7 +70,7 @@ class AdminDongApiController {
         @Valid @ModelAttribute AdminDongTreeRequest search
     ) {
         AdminDongTreeResponse response = AdminDongTreeResponse.from(
-            adminDongQueryUseCase.getAdminDongTree(search.sidoName(), search.sigunguName())
+            adminDongTreeQueryUseCase.getAdminDongTree(search.sidoName(), search.sigunguName())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -74,7 +84,7 @@ class AdminDongApiController {
         @Valid @ModelAttribute AdminDongBoundarySearchRequest search
     ) {
         AdminDongBoundaryResponse response = AdminDongBoundaryResponse.from(
-            adminDongQueryUseCase.getAdminDongBoundaries(
+            adminDongBoundaryQueryUseCase.getAdminDongBoundaries(
                 search.swLat(),
                 search.swLng(),
                 search.neLat(),

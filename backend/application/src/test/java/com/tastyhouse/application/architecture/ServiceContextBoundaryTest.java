@@ -78,7 +78,7 @@ class ServiceContextBoundaryTest {
         "com.tastyhouse.application.shop.service.ShopDeliveryAreaRadiusService",
         "com.tastyhouse.application.shop.service.ShopDeliveryAreaService",
         "com.tastyhouse.application.shop.service.ShopDeliveryTipService",
-        "com.tastyhouse.application.shop.service.ShopRequestCancelService"
+        "com.tastyhouse.application.shop.service.ShopRequestCancellationService"
     );
 
     private static final Set<String> SEALED_CYCLES = Set.of(
@@ -184,8 +184,6 @@ class ServiceContextBoundaryTest {
 
     private static boolean isStructuralDomainService(JavaClass javaClass) {
         return !javaClass.isInterface()
-            && !javaClass.getSimpleName().endsWith("CommandService")
-            && !javaClass.getSimpleName().endsWith("QueryService")
             && !javaClass.isAnnotatedWith(CONFIGURATION)
             && javaClass.getAllRawInterfaces().stream().noneMatch(ServiceContextBoundaryTest::isPortInInterface);
     }

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryDeleteCommand;
@@ -24,8 +23,10 @@ import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageCreateComma
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageDeleteUseCase;
+import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageUpdateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -45,7 +46,8 @@ class ShopPhotoCategoryAdminApiController {
     private final ShopPhotoCategoryImageCreateUseCase shopPhotoCategoryImageCreateUseCase;
     private final ShopPhotoCategoryImageUpdateUseCase shopPhotoCategoryImageUpdateUseCase;
     private final ShopPhotoCategoryImageDeleteUseCase shopPhotoCategoryImageDeleteUseCase;
-    private final ShopManagementQueryUseCase shopQueryUseCase;
+    private final ShopPhotoCategoryManagementQueryUseCase shopPhotoCategoryManagementQueryUseCase;
+    private final ShopPhotoCategoryImageManagementQueryUseCase shopPhotoCategoryImageManagementQueryUseCase;
 
     public ShopPhotoCategoryAdminApiController(
         ShopPhotoCategoryCreateUseCase shopPhotoCategoryCreateUseCase,
@@ -54,7 +56,8 @@ class ShopPhotoCategoryAdminApiController {
         ShopPhotoCategoryImageCreateUseCase shopPhotoCategoryImageCreateUseCase,
         ShopPhotoCategoryImageUpdateUseCase shopPhotoCategoryImageUpdateUseCase,
         ShopPhotoCategoryImageDeleteUseCase shopPhotoCategoryImageDeleteUseCase,
-        ShopManagementQueryUseCase shopQueryUseCase
+        ShopPhotoCategoryManagementQueryUseCase shopPhotoCategoryManagementQueryUseCase,
+        ShopPhotoCategoryImageManagementQueryUseCase shopPhotoCategoryImageManagementQueryUseCase
     ) {
         this.shopPhotoCategoryCreateUseCase = shopPhotoCategoryCreateUseCase;
         this.shopPhotoCategoryUpdateUseCase = shopPhotoCategoryUpdateUseCase;
@@ -62,13 +65,14 @@ class ShopPhotoCategoryAdminApiController {
         this.shopPhotoCategoryImageCreateUseCase = shopPhotoCategoryImageCreateUseCase;
         this.shopPhotoCategoryImageUpdateUseCase = shopPhotoCategoryImageUpdateUseCase;
         this.shopPhotoCategoryImageDeleteUseCase = shopPhotoCategoryImageDeleteUseCase;
-        this.shopQueryUseCase = shopQueryUseCase;
+        this.shopPhotoCategoryManagementQueryUseCase = shopPhotoCategoryManagementQueryUseCase;
+        this.shopPhotoCategoryImageManagementQueryUseCase = shopPhotoCategoryImageManagementQueryUseCase;
     }
 
     @Operation(summary = "포토 카테고리 목록 조회", description = "가게의 포토 카테고리 목록을 조회합니다.")
     @GetMapping("/v1/{id}/photo-categories")
     public ResponseEntity<ApiResponse<List<ShopPhotoCategoryResponse>>> getPhotoCategories(@PathVariable Long id) {
-        List<ShopPhotoCategoryResponse> response = shopQueryUseCase.getPhotoCategories(id).stream()
+        List<ShopPhotoCategoryResponse> response = shopPhotoCategoryManagementQueryUseCase.getPhotoCategories(id).stream()
             .map(ShopPhotoCategoryResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -107,7 +111,7 @@ class ShopPhotoCategoryAdminApiController {
     @Operation(summary = "포토 카테고리 이미지 목록 조회", description = "포토 카테고리에 속한 이미지 목록을 조회합니다.")
     @GetMapping("/v1/photo-categories/{categoryId}/images")
     public ResponseEntity<ApiResponse<List<ShopPhotoCategoryImageItemResponse>>> getPhotoCategoryImages(@PathVariable Long categoryId) {
-        List<ShopPhotoCategoryImageItemResponse> response = shopQueryUseCase.getPhotoCategoryImages(categoryId).stream()
+        List<ShopPhotoCategoryImageItemResponse> response = shopPhotoCategoryImageManagementQueryUseCase.getPhotoCategoryImages(categoryId).stream()
             .map(ShopPhotoCategoryImageItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

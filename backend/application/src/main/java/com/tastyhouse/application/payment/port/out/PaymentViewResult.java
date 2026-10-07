@@ -20,4 +20,25 @@ public record PaymentViewResult(
     String receiptUrl,
     LocalDateTime createdAt
 ) {
+
+    public static PaymentViewResult from(PaymentResult result) {
+        return new PaymentViewResult(
+            result.id(),
+            result.orderId(),
+            result.paymentMethod(),
+            result.paymentStatus(),
+            result.amount(),
+            result.pgProvider(),
+            result.pgTid(),
+            result.pgOrderId(),
+            result.cardCompany(),
+            result.cardNumber(),
+            result.installmentMonths(),
+            result.approvedAt(),
+            result.cancelledAt(),
+            result.cancelReason(),
+            result.receiptUrl(),
+            result.createdAt()
+        );
+    }
 }

@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopPhoneNumberCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopPhoneNumberCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopPhoneNumberCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopPhoneNumberDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopPhoneNumberDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopPhoneNumberPrimaryDesignateCommand;
+import com.tastyhouse.application.shop.port.in.ShopPhoneNumberPrimaryDesignateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopPhoneNumberQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopPhoneNumberCreateRequest;
@@ -32,11 +34,20 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopPhoneNumberRespons
 class ShopPhoneNumberApiController {
 
     private final ShopPhoneNumberQueryUseCase shopPhoneNumberQueryUseCase;
-    private final ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase;
+    private final ShopPhoneNumberCreateUseCase shopPhoneNumberCreateUseCase;
+    private final ShopPhoneNumberDeleteUseCase shopPhoneNumberDeleteUseCase;
+    private final ShopPhoneNumberPrimaryDesignateUseCase shopPhoneNumberPrimaryDesignateUseCase;
 
-    public ShopPhoneNumberApiController(ShopPhoneNumberQueryUseCase shopPhoneNumberQueryUseCase, ShopPhoneNumberCommandUseCase shopPhoneNumberCommandUseCase) {
+    public ShopPhoneNumberApiController(
+        ShopPhoneNumberQueryUseCase shopPhoneNumberQueryUseCase,
+        ShopPhoneNumberCreateUseCase shopPhoneNumberCreateUseCase,
+        ShopPhoneNumberDeleteUseCase shopPhoneNumberDeleteUseCase,
+        ShopPhoneNumberPrimaryDesignateUseCase shopPhoneNumberPrimaryDesignateUseCase
+    ) {
         this.shopPhoneNumberQueryUseCase = shopPhoneNumberQueryUseCase;
-        this.shopPhoneNumberCommandUseCase = shopPhoneNumberCommandUseCase;
+        this.shopPhoneNumberCreateUseCase = shopPhoneNumberCreateUseCase;
+        this.shopPhoneNumberDeleteUseCase = shopPhoneNumberDeleteUseCase;
+        this.shopPhoneNumberPrimaryDesignateUseCase = shopPhoneNumberPrimaryDesignateUseCase;
     }
 
     @Operation(summary = "내 가게 전화번호 목록 조회", description = "로그인한 점주가 소유한 가게의 전화번호 목록을 조회합니다.")
@@ -59,7 +70,7 @@ class ShopPhoneNumberApiController {
         @Valid @RequestBody ShopPhoneNumberCreateRequest request
     ) {
         ShopPhoneNumberCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long phoneNumberId = shopPhoneNumberCommandUseCase.addPhoneNumber(command);
+        Long phoneNumberId = shopPhoneNumberCreateUseCase.addPhoneNumber(command);
         return ResponseEntity.ok(ApiResponse.success(phoneNumberId));
     }
 
@@ -70,7 +81,7 @@ class ShopPhoneNumberApiController {
         @PathVariable Long phoneNumberId
     ) {
         ShopPhoneNumberDeleteCommand command = ShopPhoneNumberDeleteCommand.of(userDetails.getCeoId(), phoneNumberId);
-        shopPhoneNumberCommandUseCase.deletePhoneNumber(command);
+        shopPhoneNumberDeleteUseCase.deletePhoneNumber(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -81,7 +92,7 @@ class ShopPhoneNumberApiController {
         @PathVariable Long phoneNumberId
     ) {
         ShopPhoneNumberPrimaryDesignateCommand command = ShopPhoneNumberPrimaryDesignateCommand.of(userDetails.getCeoId(), phoneNumberId);
-        shopPhoneNumberCommandUseCase.designatePrimary(command);
+        shopPhoneNumberPrimaryDesignateUseCase.designatePrimary(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

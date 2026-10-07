@@ -14,7 +14,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.product.port.in.ProductQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductBatchQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductDetailQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductImagesQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionsQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductReviewCountQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductReviewStatisticsQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductReviewsByRatingQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductTodayDiscountQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -36,17 +43,40 @@ import com.tastyhouse.webapi.product.adapter.in.web.response.ProductTodayDiscoun
 @Tag(name = "Product", description = "상품 관리 API")
 class ProductApiController {
 
-    private final ProductQueryUseCase productQueryUseCase;
+    private final ProductTodayDiscountQueryUseCase productTodayDiscountQueryUseCase;
+    private final ProductDetailQueryUseCase productDetailQueryUseCase;
+    private final ProductBatchQueryUseCase productBatchQueryUseCase;
+    private final ProductImagesQueryUseCase productImagesQueryUseCase;
+    private final ProductOptionsQueryUseCase productOptionsQueryUseCase;
+    private final ProductReviewCountQueryUseCase productReviewCountQueryUseCase;
+    private final ProductReviewsByRatingQueryUseCase productReviewsByRatingQueryUseCase;
+    private final ProductReviewStatisticsQueryUseCase productReviewStatisticsQueryUseCase;
 
-    public ProductApiController(ProductQueryUseCase productQueryUseCase) {
-        this.productQueryUseCase = productQueryUseCase;
+    public ProductApiController(
+        ProductTodayDiscountQueryUseCase productTodayDiscountQueryUseCase,
+        ProductDetailQueryUseCase productDetailQueryUseCase,
+        ProductBatchQueryUseCase productBatchQueryUseCase,
+        ProductImagesQueryUseCase productImagesQueryUseCase,
+        ProductOptionsQueryUseCase productOptionsQueryUseCase,
+        ProductReviewCountQueryUseCase productReviewCountQueryUseCase,
+        ProductReviewsByRatingQueryUseCase productReviewsByRatingQueryUseCase,
+        ProductReviewStatisticsQueryUseCase productReviewStatisticsQueryUseCase
+    ) {
+        this.productTodayDiscountQueryUseCase = productTodayDiscountQueryUseCase;
+        this.productDetailQueryUseCase = productDetailQueryUseCase;
+        this.productBatchQueryUseCase = productBatchQueryUseCase;
+        this.productImagesQueryUseCase = productImagesQueryUseCase;
+        this.productOptionsQueryUseCase = productOptionsQueryUseCase;
+        this.productReviewCountQueryUseCase = productReviewCountQueryUseCase;
+        this.productReviewsByRatingQueryUseCase = productReviewsByRatingQueryUseCase;
+        this.productReviewStatisticsQueryUseCase = productReviewStatisticsQueryUseCase;
     }
 
     @Operation(summary = "상품 목록 조회 (오늘의 할인)", description = "할인율 기준으로 오늘의 할인 상품을 페이징하여 조회합니다. 상품명, 이미지, 원가, 할인가, 할인율 정보를 포함합니다.")
     @GetMapping("/v1/today-discounts")
     public ResponseEntity<ApiResponse<List<ProductTodayDiscountListItemResponse>>> getTodayDiscounts(@Valid @ModelAttribute PageRequest pageRequest) {
         PaginationResponse<ProductTodayDiscountListItemResponse> pageResponse = PaginationResponse.from(
-            productQueryUseCase.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size())
+            productTodayDiscountQueryUseCase.searchTodayDiscountProducts(pageRequest.page(), pageRequest.size())
                 .map(ProductTodayDiscountListItemResponse::from)
         );
         ApiResponse<List<ProductTodayDiscountListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
@@ -64,7 +94,7 @@ class ProductApiController {
         @Valid @ModelAttribute ProductDetailSearchRequest search
     ) {
         ProductDetailResponse response = ProductDetailResponse.from(
-            productQueryUseCase.findProductById(id, search.orderMethod())
+            productDetailQueryUseCase.findProductById(id, search.orderMethod())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -73,7 +103,7 @@ class ProductApiController {
     @PostMapping("/v1/batch")
     public ResponseEntity<ApiResponse<ProductBatchResponse>> getProductsBatch(@Valid @RequestBody ProductBatchRequest request) {
         ProductBatchResponse response = ProductBatchResponse.from(
-            productQueryUseCase.findProductsBatch(request.toQuery())
+            productBatchQueryUseCase.findProductsBatch(request.toQuery())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -81,7 +111,7 @@ class ProductApiController {
     @Operation(summary = "상품 이미지 목록 조회", description = "상품의 이미지 URL 목록을 조회합니다.")
     @GetMapping("/v1/{id}/images")
     public ResponseEntity<ApiResponse<ProductImagesResponse>> getProductImages(@PathVariable Long id) {
-        ProductImagesResponse response = ProductImagesResponse.from(productQueryUseCase.findProductImages(id));
+        ProductImagesResponse response = ProductImagesResponse.from(productImagesQueryUseCase.findProductImages(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -89,7 +119,7 @@ class ProductApiController {
     @GetMapping("/v1/{id}/options")
     public ResponseEntity<ApiResponse<ProductOptionGroupsResponse>> getProductOptions(@PathVariable Long id) {
         ProductOptionGroupsResponse response = ProductOptionGroupsResponse.from(
-            productQueryUseCase.findProductOptions(id)
+            productOptionsQueryUseCase.findProductOptions(id)
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -98,7 +128,7 @@ class ProductApiController {
     @GetMapping("/v1/{id}/reviews/count")
     public ResponseEntity<ApiResponse<ProductReviewCountResponse>> getProductReviewCount(@PathVariable Long id) {
         ProductReviewCountResponse response = ProductReviewCountResponse.from(
-            productQueryUseCase.findProductReviewCount(id)
+            productReviewCountQueryUseCase.findProductReviewCount(id)
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -111,7 +141,7 @@ class ProductApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         ProductReviewsByRatingPageResponse result = ProductReviewsByRatingPageResponse.from(
-            productQueryUseCase.getProductReviewsByRatingWithPagination(id, pageRequest.page(), pageRequest.size(), search.hasImage())
+            productReviewsByRatingQueryUseCase.getProductReviewsByRatingWithPagination(id, pageRequest.page(), pageRequest.size(), search.hasImage())
         );
         ApiResponse<ProductReviewsByRatingResponse> response = ApiResponse.success(result.response());
         return ResponseEntity.ok(response);
@@ -121,7 +151,7 @@ class ProductApiController {
     @GetMapping("/v1/{id}/reviews/statistics")
     public ResponseEntity<ApiResponse<ProductReviewStatisticsResponse>> getProductReviewStatistics(@PathVariable Long id) {
         ProductReviewStatisticsResponse statistics = ProductReviewStatisticsResponse.from(
-            productQueryUseCase.getProductReviewStatistics(id)
+            productReviewStatisticsQueryUseCase.getProductReviewStatistics(id)
         );
         ApiResponse<ProductReviewStatisticsResponse> response = ApiResponse.success(statistics);
         return ResponseEntity.ok(response);

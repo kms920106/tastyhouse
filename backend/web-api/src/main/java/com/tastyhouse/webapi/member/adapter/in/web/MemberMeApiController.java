@@ -11,8 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
+import com.tastyhouse.application.member.port.in.MemberMyGradeQueryUseCase;
+import com.tastyhouse.application.member.port.in.MemberMyProfileQueryUseCase;
 import com.tastyhouse.application.member.port.in.MemberProfileUpdateCommand;
-import com.tastyhouse.application.member.port.in.MemberScreenUseCase;
+import com.tastyhouse.application.member.port.in.MemberProfileUpdateUseCase;
+import com.tastyhouse.application.member.port.in.MemberStatsQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.member.adapter.in.web.request.UpdateProfileRequest;
@@ -25,10 +28,21 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MyProfileResponse;
 @Tag(name = "Member Me", description = "내 정보 관리 API")
 class MemberMeApiController {
 
-    private final MemberScreenUseCase memberUseCase;
+    private final MemberMyProfileQueryUseCase memberMyProfileQueryUseCase;
+    private final MemberProfileUpdateUseCase memberProfileUpdateUseCase;
+    private final MemberStatsQueryUseCase memberStatsQueryUseCase;
+    private final MemberMyGradeQueryUseCase memberMyGradeQueryUseCase;
 
-    public MemberMeApiController(MemberScreenUseCase memberUseCase) {
-        this.memberUseCase = memberUseCase;
+    public MemberMeApiController(
+        MemberMyProfileQueryUseCase memberMyProfileQueryUseCase,
+        MemberProfileUpdateUseCase memberProfileUpdateUseCase,
+        MemberStatsQueryUseCase memberStatsQueryUseCase,
+        MemberMyGradeQueryUseCase memberMyGradeQueryUseCase
+    ) {
+        this.memberMyProfileQueryUseCase = memberMyProfileQueryUseCase;
+        this.memberProfileUpdateUseCase = memberProfileUpdateUseCase;
+        this.memberStatsQueryUseCase = memberStatsQueryUseCase;
+        this.memberMyGradeQueryUseCase = memberMyGradeQueryUseCase;
     }
 
     @Operation(summary = "내 프로필 조회", description = "로그인한 회원의 프로필 정보(회원 ID, 닉네임, 등급, 상태메시지, 프로필 이미지)를 조회합니다.")
@@ -36,7 +50,7 @@ class MemberMeApiController {
     public ResponseEntity<ApiResponse<MyProfileResponse>> getMyProfile(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(MyProfileResponse.from(memberUseCase.getMyProfile(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(MyProfileResponse.from(memberMyProfileQueryUseCase.getMyProfile(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "프로필 수정", description = "로그인한 회원의 프로필 정보를 수정합니다. (닉네임, 상태메시지, 프로필 이미지)")
@@ -46,7 +60,7 @@ class MemberMeApiController {
         @Valid @RequestBody UpdateProfileRequest request
     ) {
         MemberProfileUpdateCommand command = request.toCommand(userDetails.getMemberId());
-        memberUseCase.updateMyProfile(command);
+        memberProfileUpdateUseCase.updateProfile(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -55,7 +69,7 @@ class MemberMeApiController {
     public ResponseEntity<ApiResponse<MemberStatsResponse>> getMyStats(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(MemberStatsResponse.from(memberUseCase.getMemberStats(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(MemberStatsResponse.from(memberStatsQueryUseCase.getMemberStats(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "내 등급 조회", description = "로그인한 회원의 현재 등급, 다음 등급, 현재 리뷰 수, 다음 등급까지 필요한 리뷰 수를 조회합니다.")
@@ -63,6 +77,6 @@ class MemberMeApiController {
     public ResponseEntity<ApiResponse<MyGradeResponse>> getMyGrade(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(MyGradeResponse.from(memberUseCase.getMyGrade(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(MyGradeResponse.from(memberMyGradeQueryUseCase.getMyGrade(userDetails.getMemberId()))));
     }
 }

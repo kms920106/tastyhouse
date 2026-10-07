@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.review.port.in.ReviewBlindRequestApproveCommand;
-import com.tastyhouse.application.review.port.in.ReviewBlindRequestManagementCommandUseCase;
-import com.tastyhouse.application.review.port.in.ReviewBlindRequestQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestApproveUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestDetailQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestListQueryUseCase;
 import com.tastyhouse.application.review.port.in.ReviewBlindRequestRejectCommand;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestRejectUseCase;
 import com.tastyhouse.application.review.port.out.ReviewBlindRequestListItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -33,15 +35,21 @@ import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewBlindRequest
 @RequestMapping("/api/reviews")
 class ReviewBlindRequestApiController {
 
-    private final ReviewBlindRequestQueryUseCase reviewBlindRequestQueryUseCase;
-    private final ReviewBlindRequestManagementCommandUseCase reviewBlindRequestCommandUseCase;
+    private final ReviewBlindRequestListQueryUseCase reviewBlindRequestListQueryUseCase;
+    private final ReviewBlindRequestDetailQueryUseCase reviewBlindRequestDetailQueryUseCase;
+    private final ReviewBlindRequestApproveUseCase reviewBlindRequestApproveUseCase;
+    private final ReviewBlindRequestRejectUseCase reviewBlindRequestRejectUseCase;
 
     public ReviewBlindRequestApiController(
-        ReviewBlindRequestQueryUseCase reviewBlindRequestQueryUseCase,
-        ReviewBlindRequestManagementCommandUseCase reviewBlindRequestCommandUseCase
+        ReviewBlindRequestListQueryUseCase reviewBlindRequestListQueryUseCase,
+        ReviewBlindRequestDetailQueryUseCase reviewBlindRequestDetailQueryUseCase,
+        ReviewBlindRequestApproveUseCase reviewBlindRequestApproveUseCase,
+        ReviewBlindRequestRejectUseCase reviewBlindRequestRejectUseCase
     ) {
-        this.reviewBlindRequestQueryUseCase = reviewBlindRequestQueryUseCase;
-        this.reviewBlindRequestCommandUseCase = reviewBlindRequestCommandUseCase;
+        this.reviewBlindRequestListQueryUseCase = reviewBlindRequestListQueryUseCase;
+        this.reviewBlindRequestDetailQueryUseCase = reviewBlindRequestDetailQueryUseCase;
+        this.reviewBlindRequestApproveUseCase = reviewBlindRequestApproveUseCase;
+        this.reviewBlindRequestRejectUseCase = reviewBlindRequestRejectUseCase;
     }
 
     @Operation(summary = "게시중단 요청 목록 조회", description = "리뷰 게시중단 요청 목록을 상점/상태/사유/기간으로 페이징 조회합니다.")
@@ -50,7 +58,7 @@ class ReviewBlindRequestApiController {
         @Valid @ModelAttribute ReviewBlindRequestSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ReviewBlindRequestListItemResult> pageResult = reviewBlindRequestQueryUseCase.getBlindRequests(
+        PageResult<ReviewBlindRequestListItemResult> pageResult = reviewBlindRequestListQueryUseCase.getBlindRequests(
             search.shopId(),
             search.status(),
             search.reason(),
@@ -69,7 +77,7 @@ class ReviewBlindRequestApiController {
     @Operation(summary = "게시중단 요청 상세 조회", description = "리뷰 게시중단 요청 심사 상세를 조회합니다.")
     @GetMapping("/v1/blind-requests/{id}")
     public ResponseEntity<ApiResponse<ReviewBlindRequestDetailResponse>> getBlindRequest(@PathVariable Long id) {
-        ReviewBlindRequestDetailResponse response = ReviewBlindRequestDetailResponse.from(reviewBlindRequestQueryUseCase.getBlindRequest(id));
+        ReviewBlindRequestDetailResponse response = ReviewBlindRequestDetailResponse.from(reviewBlindRequestDetailQueryUseCase.getBlindRequest(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -77,7 +85,7 @@ class ReviewBlindRequestApiController {
     @PutMapping("/v1/blind-requests/{id}/approve")
     public ResponseEntity<ApiResponse<Void>> approveBlindRequest(@PathVariable Long id) {
         ReviewBlindRequestApproveCommand command = ReviewBlindRequestApproveCommand.of(id);
-        reviewBlindRequestCommandUseCase.approveBlindRequest(command);
+        reviewBlindRequestApproveUseCase.approveBlindRequest(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -88,7 +96,7 @@ class ReviewBlindRequestApiController {
         @Valid @RequestBody ReviewBlindRequestRejectRequest request
     ) {
         ReviewBlindRequestRejectCommand command = request.toCommand(id);
-        reviewBlindRequestCommandUseCase.rejectBlindRequest(command);
+        reviewBlindRequestRejectUseCase.rejectBlindRequest(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

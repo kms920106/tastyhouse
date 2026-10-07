@@ -13,10 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.review.port.in.ReviewCommandUseCase;
 import com.tastyhouse.application.review.port.in.ReviewCommentCreateCommand;
-import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewCommentCreateUseCase;
+import com.tastyhouse.application.review.port.in.ReviewCommentListQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewCommentLookupUseCase;
 import com.tastyhouse.application.review.port.in.ReviewReplyCreateCommand;
+import com.tastyhouse.application.review.port.in.ReviewReplyCreateUseCase;
+import com.tastyhouse.application.review.port.in.ReviewVisibilityQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.review.adapter.in.web.request.CommentCreateRequest;
@@ -28,15 +31,24 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewCommentListRes
 @Tag(name = "Review Comment", description = "리뷰 댓글 API")
 class ReviewCommentApiController {
 
-    private final ReviewCommandUseCase reviewCommandUseCase;
-    private final ReviewQueryUseCase reviewQueryUseCase;
+    private final ReviewCommentCreateUseCase reviewCommentCreateUseCase;
+    private final ReviewCommentLookupUseCase reviewCommentLookupUseCase;
+    private final ReviewReplyCreateUseCase reviewReplyCreateUseCase;
+    private final ReviewVisibilityQueryUseCase reviewVisibilityQueryUseCase;
+    private final ReviewCommentListQueryUseCase reviewCommentListQueryUseCase;
 
     public ReviewCommentApiController(
-        ReviewCommandUseCase reviewCommandUseCase,
-        ReviewQueryUseCase reviewQueryUseCase
+        ReviewCommentCreateUseCase reviewCommentCreateUseCase,
+        ReviewCommentLookupUseCase reviewCommentLookupUseCase,
+        ReviewReplyCreateUseCase reviewReplyCreateUseCase,
+        ReviewVisibilityQueryUseCase reviewVisibilityQueryUseCase,
+        ReviewCommentListQueryUseCase reviewCommentListQueryUseCase
     ) {
-        this.reviewCommandUseCase = reviewCommandUseCase;
-        this.reviewQueryUseCase = reviewQueryUseCase;
+        this.reviewCommentCreateUseCase = reviewCommentCreateUseCase;
+        this.reviewCommentLookupUseCase = reviewCommentLookupUseCase;
+        this.reviewReplyCreateUseCase = reviewReplyCreateUseCase;
+        this.reviewVisibilityQueryUseCase = reviewVisibilityQueryUseCase;
+        this.reviewCommentListQueryUseCase = reviewCommentListQueryUseCase;
     }
 
     @Operation(summary = "댓글 등록", description = "리뷰에 댓글을 등록합니다. 생성된 댓글 ID를 반환합니다.")
@@ -46,9 +58,9 @@ class ReviewCommentApiController {
         @Valid @RequestBody CommentCreateRequest request,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        reviewQueryUseCase.requireVisibleReview(id, userDetails.getMemberId());
+        reviewVisibilityQueryUseCase.requireVisibleReview(id, userDetails.getMemberId());
         ReviewCommentCreateCommand command = request.toCommand(userDetails.getMemberId(), id);
-        Long commentId = reviewCommandUseCase.createComment(command);
+        Long commentId = reviewCommentCreateUseCase.createComment(command);
         return ResponseEntity.ok(ApiResponse.success(commentId));
     }
 
@@ -59,10 +71,10 @@ class ReviewCommentApiController {
         @Valid @RequestBody ReplyCreateRequest request,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        Long parentReviewId = reviewCommandUseCase.findReviewIdOfComment(commentId);
-        reviewQueryUseCase.requireVisibleReview(parentReviewId, userDetails.getMemberId());
+        Long parentReviewId = reviewCommentLookupUseCase.findReviewIdOfComment(commentId);
+        reviewVisibilityQueryUseCase.requireVisibleReview(parentReviewId, userDetails.getMemberId());
         ReviewReplyCreateCommand command = request.toCommand(userDetails.getMemberId(), commentId);
-        Long replyId = reviewCommandUseCase.createReply(command);
+        Long replyId = reviewReplyCreateUseCase.createReply(command);
         return ResponseEntity.ok(ApiResponse.success(replyId));
     }
 
@@ -73,7 +85,7 @@ class ReviewCommentApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReviewCommentListResponse response = ReviewCommentListResponse.from(
-            reviewQueryUseCase.searchCommentsWithReplies(id, memberIdOrNull(userDetails))
+            reviewCommentListQueryUseCase.searchCommentsWithReplies(id, memberIdOrNull(userDetails))
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }

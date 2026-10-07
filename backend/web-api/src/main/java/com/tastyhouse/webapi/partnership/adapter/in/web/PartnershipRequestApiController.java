@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.partnership.port.in.PartnershipCommandUseCase;
 import com.tastyhouse.application.partnership.port.in.PartnershipRequestCreateCommand;
+import com.tastyhouse.application.partnership.port.in.PartnershipRequestCreateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.partnership.adapter.in.web.request.PartnershipRequestCreateRequest;
 
@@ -19,10 +19,10 @@ import com.tastyhouse.webapi.partnership.adapter.in.web.request.PartnershipReque
 @Tag(name = "Partnership", description = "광고 및 제휴 API")
 class PartnershipRequestApiController {
 
-    private final PartnershipCommandUseCase partnershipCommandUseCase;
+    private final PartnershipRequestCreateUseCase partnershipRequestCreateUseCase;
 
-    public PartnershipRequestApiController(PartnershipCommandUseCase partnershipCommandUseCase) {
-        this.partnershipCommandUseCase = partnershipCommandUseCase;
+    public PartnershipRequestApiController(PartnershipRequestCreateUseCase partnershipRequestCreateUseCase) {
+        this.partnershipRequestCreateUseCase = partnershipRequestCreateUseCase;
     }
 
     @Operation(summary = "광고 및 제휴 신청", description = "광고 및 제휴를 신청합니다. 상호명, 위치 정보(주소, 상세주소), 성명, 연락처, 상담신청시간을 포함합니다. 생성된 제휴 신청 ID를 반환합니다.")
@@ -31,7 +31,7 @@ class PartnershipRequestApiController {
         @Valid @RequestBody PartnershipRequestCreateRequest request
     ) {
         PartnershipRequestCreateCommand command = request.toCommand();
-        Long partnershipRequestId = partnershipCommandUseCase.createPartnershipRequest(command);
+        Long partnershipRequestId = partnershipRequestCreateUseCase.createPartnershipRequest(command);
         return ResponseEntity.ok(ApiResponse.success(partnershipRequestId));
     }
 }

@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.product.port.in.ProductFeedbackCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductFeedbackCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductFeedbackCreateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.product.adapter.in.web.request.ProductFeedbackCreateRequest;
@@ -23,10 +23,10 @@ import com.tastyhouse.webapi.product.adapter.in.web.request.ProductFeedbackCreat
 @RequestMapping("/api/products")
 class ProductFeedbackApiController {
 
-    private final ProductFeedbackCommandUseCase productFeedbackCommandUseCase;
+    private final ProductFeedbackCreateUseCase productFeedbackCreateUseCase;
 
-    public ProductFeedbackApiController(ProductFeedbackCommandUseCase productFeedbackCommandUseCase) {
-        this.productFeedbackCommandUseCase = productFeedbackCommandUseCase;
+    public ProductFeedbackApiController(ProductFeedbackCreateUseCase productFeedbackCreateUseCase) {
+        this.productFeedbackCreateUseCase = productFeedbackCreateUseCase;
     }
 
     @Operation(summary = "메뉴 정보 의견 보내기",
@@ -40,7 +40,7 @@ class ProductFeedbackApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ProductFeedbackCreateCommand command = request.toCommand(userDetails.getMemberId(), id);
-        Long feedbackId = productFeedbackCommandUseCase.submitFeedback(command);
+        Long feedbackId = productFeedbackCreateUseCase.submitFeedback(command);
         return ResponseEntity.ok(ApiResponse.success(feedbackId));
     }
 }

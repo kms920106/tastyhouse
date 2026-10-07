@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageApproveCommand;
-import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageApproveUseCase;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageRejectCommand;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageRejectUseCase;
 import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageRequestResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -32,15 +33,18 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopMenuCollectionIm
 @RequestMapping("/api/shops")
 class ShopMenuCollectionImageAdminApiController {
 
-    private final ShopMenuCollectionImageManagementQueryUseCase shopMenuCollectionImageQueryUseCase;
-    private final ShopMenuCollectionImageManagementCommandUseCase shopMenuCollectionImageCommandUseCase;
+    private final ShopMenuCollectionImageManagementQueryUseCase shopMenuCollectionImageManagementQueryUseCase;
+    private final ShopMenuCollectionImageApproveUseCase shopMenuCollectionImageApproveUseCase;
+    private final ShopMenuCollectionImageRejectUseCase shopMenuCollectionImageRejectUseCase;
 
     public ShopMenuCollectionImageAdminApiController(
-        ShopMenuCollectionImageManagementQueryUseCase shopMenuCollectionImageQueryUseCase,
-        ShopMenuCollectionImageManagementCommandUseCase shopMenuCollectionImageCommandUseCase
+        ShopMenuCollectionImageManagementQueryUseCase shopMenuCollectionImageManagementQueryUseCase,
+        ShopMenuCollectionImageApproveUseCase shopMenuCollectionImageApproveUseCase,
+        ShopMenuCollectionImageRejectUseCase shopMenuCollectionImageRejectUseCase
     ) {
-        this.shopMenuCollectionImageQueryUseCase = shopMenuCollectionImageQueryUseCase;
-        this.shopMenuCollectionImageCommandUseCase = shopMenuCollectionImageCommandUseCase;
+        this.shopMenuCollectionImageManagementQueryUseCase = shopMenuCollectionImageManagementQueryUseCase;
+        this.shopMenuCollectionImageApproveUseCase = shopMenuCollectionImageApproveUseCase;
+        this.shopMenuCollectionImageRejectUseCase = shopMenuCollectionImageRejectUseCase;
     }
 
     @Operation(summary = "메뉴모음컷 검수 목록 조회",
@@ -52,7 +56,7 @@ class ShopMenuCollectionImageAdminApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PageResult<ShopMenuCollectionImageRequestResult> pageResult =
-            shopMenuCollectionImageQueryUseCase.getMenuCollectionImageRequests(
+            shopMenuCollectionImageManagementQueryUseCase.getMenuCollectionImageRequests(
                 search.status(), pageRequest.page(), pageRequest.size()
             );
         PaginationResponse<ShopMenuCollectionImageRequestItemResponse> pageResponse =
@@ -67,7 +71,7 @@ class ShopMenuCollectionImageAdminApiController {
     @PatchMapping("/v1/menu-collection-images/requests/{id}/approve")
     public ResponseEntity<ApiResponse<Void>> approveMenuCollectionImage(@PathVariable Long id) {
         ShopMenuCollectionImageApproveCommand command = ShopMenuCollectionImageApproveCommand.of(id);
-        shopMenuCollectionImageCommandUseCase.approveMenuCollectionImage(command);
+        shopMenuCollectionImageApproveUseCase.approveMenuCollectionImage(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -78,7 +82,7 @@ class ShopMenuCollectionImageAdminApiController {
         @Valid @RequestBody ShopMenuCollectionImageRejectRequest request
     ) {
         ShopMenuCollectionImageRejectCommand command = request.toCommand(id);
-        shopMenuCollectionImageCommandUseCase.rejectMenuCollectionImage(command);
+        shopMenuCollectionImageRejectUseCase.rejectMenuCollectionImage(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

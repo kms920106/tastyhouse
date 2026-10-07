@@ -14,15 +14,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopDeliveryTipCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryTipDistanceRemoveCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipDistanceRemoveUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryTipDistanceUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipDistanceUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryTipHolidayUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipHolidayUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryTipQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryTipRegionsRemoveCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipRegionsRemoveUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryTipRegionsUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipRegionsUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryTipSchedulesUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipSchedulesUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryTipTiersUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryTipTiersUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipDistanceUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryTipHolidayUpdateRequest;
@@ -37,11 +43,32 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryTipSetting
 class ShopDeliveryTipApiController {
 
     private final ShopDeliveryTipQueryUseCase shopDeliveryTipQueryUseCase;
-    private final ShopDeliveryTipCommandUseCase shopDeliveryTipCommandUseCase;
+    private final ShopDeliveryTipTiersUpdateUseCase shopDeliveryTipTiersUpdateUseCase;
+    private final ShopDeliveryTipDistanceUpdateUseCase shopDeliveryTipDistanceUpdateUseCase;
+    private final ShopDeliveryTipDistanceRemoveUseCase shopDeliveryTipDistanceRemoveUseCase;
+    private final ShopDeliveryTipRegionsUpdateUseCase shopDeliveryTipRegionsUpdateUseCase;
+    private final ShopDeliveryTipRegionsRemoveUseCase shopDeliveryTipRegionsRemoveUseCase;
+    private final ShopDeliveryTipSchedulesUpdateUseCase shopDeliveryTipSchedulesUpdateUseCase;
+    private final ShopDeliveryTipHolidayUpdateUseCase shopDeliveryTipHolidayUpdateUseCase;
 
-    public ShopDeliveryTipApiController(ShopDeliveryTipQueryUseCase shopDeliveryTipQueryUseCase, ShopDeliveryTipCommandUseCase shopDeliveryTipCommandUseCase) {
+    public ShopDeliveryTipApiController(
+        ShopDeliveryTipQueryUseCase shopDeliveryTipQueryUseCase,
+        ShopDeliveryTipTiersUpdateUseCase shopDeliveryTipTiersUpdateUseCase,
+        ShopDeliveryTipDistanceUpdateUseCase shopDeliveryTipDistanceUpdateUseCase,
+        ShopDeliveryTipDistanceRemoveUseCase shopDeliveryTipDistanceRemoveUseCase,
+        ShopDeliveryTipRegionsUpdateUseCase shopDeliveryTipRegionsUpdateUseCase,
+        ShopDeliveryTipRegionsRemoveUseCase shopDeliveryTipRegionsRemoveUseCase,
+        ShopDeliveryTipSchedulesUpdateUseCase shopDeliveryTipSchedulesUpdateUseCase,
+        ShopDeliveryTipHolidayUpdateUseCase shopDeliveryTipHolidayUpdateUseCase
+    ) {
         this.shopDeliveryTipQueryUseCase = shopDeliveryTipQueryUseCase;
-        this.shopDeliveryTipCommandUseCase = shopDeliveryTipCommandUseCase;
+        this.shopDeliveryTipTiersUpdateUseCase = shopDeliveryTipTiersUpdateUseCase;
+        this.shopDeliveryTipDistanceUpdateUseCase = shopDeliveryTipDistanceUpdateUseCase;
+        this.shopDeliveryTipDistanceRemoveUseCase = shopDeliveryTipDistanceRemoveUseCase;
+        this.shopDeliveryTipRegionsUpdateUseCase = shopDeliveryTipRegionsUpdateUseCase;
+        this.shopDeliveryTipRegionsRemoveUseCase = shopDeliveryTipRegionsRemoveUseCase;
+        this.shopDeliveryTipSchedulesUpdateUseCase = shopDeliveryTipSchedulesUpdateUseCase;
+        this.shopDeliveryTipHolidayUpdateUseCase = shopDeliveryTipHolidayUpdateUseCase;
     }
 
     @Operation(summary = "내 가게 배달팁 통합 조회", description = "로그인한 점주가 소유한 가게의 구간별·거리별·지역별·시간별·공휴일 배달팁을 통합 조회합니다. 아직 설정하지 않은 가게도 빈 값으로 응답합니다.")
@@ -63,7 +90,7 @@ class ShopDeliveryTipApiController {
         @Valid @RequestBody ShopDeliveryTipTiersUpdateRequest request
     ) {
         ShopDeliveryTipTiersUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopDeliveryTipCommandUseCase.updateTiers(command);
+        shopDeliveryTipTiersUpdateUseCase.updateTiers(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -75,7 +102,7 @@ class ShopDeliveryTipApiController {
         @Valid @RequestBody ShopDeliveryTipDistanceUpdateRequest request
     ) {
         ShopDeliveryTipDistanceUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopDeliveryTipCommandUseCase.updateDistanceTip(command);
+        shopDeliveryTipDistanceUpdateUseCase.updateDistanceTip(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -86,7 +113,7 @@ class ShopDeliveryTipApiController {
         @PathVariable Long id
     ) {
         ShopDeliveryTipDistanceRemoveCommand command = ShopDeliveryTipDistanceRemoveCommand.of(userDetails.getCeoId(), id);
-        shopDeliveryTipCommandUseCase.removeDistanceTip(command);
+        shopDeliveryTipDistanceRemoveUseCase.removeDistanceTip(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -98,7 +125,7 @@ class ShopDeliveryTipApiController {
         @Valid @RequestBody ShopDeliveryTipRegionsUpdateRequest request
     ) {
         ShopDeliveryTipRegionsUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopDeliveryTipCommandUseCase.updateRegionTips(command);
+        shopDeliveryTipRegionsUpdateUseCase.updateRegionTips(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -109,7 +136,7 @@ class ShopDeliveryTipApiController {
         @PathVariable Long id
     ) {
         ShopDeliveryTipRegionsRemoveCommand command = ShopDeliveryTipRegionsRemoveCommand.of(userDetails.getCeoId(), id);
-        shopDeliveryTipCommandUseCase.removeRegionTips(command);
+        shopDeliveryTipRegionsRemoveUseCase.removeRegionTips(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -121,7 +148,7 @@ class ShopDeliveryTipApiController {
         @Valid @RequestBody ShopDeliveryTipSchedulesUpdateRequest request
     ) {
         ShopDeliveryTipSchedulesUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopDeliveryTipCommandUseCase.updateScheduleTips(command);
+        shopDeliveryTipSchedulesUpdateUseCase.updateScheduleTips(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -133,7 +160,7 @@ class ShopDeliveryTipApiController {
         @Valid @RequestBody ShopDeliveryTipHolidayUpdateRequest request
     ) {
         ShopDeliveryTipHolidayUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopDeliveryTipCommandUseCase.updateHolidayTip(command);
+        shopDeliveryTipHolidayUpdateUseCase.updateHolidayTip(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

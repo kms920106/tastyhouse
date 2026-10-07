@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonDeleteCommand;
-import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonDeleteUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonDetailQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonPreviewQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaPolygonSaveRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaPolygonPreviewResponse;
@@ -29,15 +31,21 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaPolygo
 @RequestMapping("/api/shops")
 class ShopDeliveryAreaPolygonApiController {
 
-    private final ShopDeliveryAreaPolygonQueryUseCase shopDeliveryAreaPolygonQueryUseCase;
-    private final ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase;
+    private final ShopDeliveryAreaPolygonDetailQueryUseCase shopDeliveryAreaPolygonDetailQueryUseCase;
+    private final ShopDeliveryAreaPolygonSaveUseCase shopDeliveryAreaPolygonSaveUseCase;
+    private final ShopDeliveryAreaPolygonPreviewQueryUseCase shopDeliveryAreaPolygonPreviewQueryUseCase;
+    private final ShopDeliveryAreaPolygonDeleteUseCase shopDeliveryAreaPolygonDeleteUseCase;
 
     public ShopDeliveryAreaPolygonApiController(
-        ShopDeliveryAreaPolygonQueryUseCase shopDeliveryAreaPolygonQueryUseCase,
-        ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase
+        ShopDeliveryAreaPolygonDetailQueryUseCase shopDeliveryAreaPolygonDetailQueryUseCase,
+        ShopDeliveryAreaPolygonSaveUseCase shopDeliveryAreaPolygonSaveUseCase,
+        ShopDeliveryAreaPolygonPreviewQueryUseCase shopDeliveryAreaPolygonPreviewQueryUseCase,
+        ShopDeliveryAreaPolygonDeleteUseCase shopDeliveryAreaPolygonDeleteUseCase
     ) {
-        this.shopDeliveryAreaPolygonQueryUseCase = shopDeliveryAreaPolygonQueryUseCase;
-        this.shopDeliveryAreaCommandUseCase = shopDeliveryAreaCommandUseCase;
+        this.shopDeliveryAreaPolygonDetailQueryUseCase = shopDeliveryAreaPolygonDetailQueryUseCase;
+        this.shopDeliveryAreaPolygonSaveUseCase = shopDeliveryAreaPolygonSaveUseCase;
+        this.shopDeliveryAreaPolygonPreviewQueryUseCase = shopDeliveryAreaPolygonPreviewQueryUseCase;
+        this.shopDeliveryAreaPolygonDeleteUseCase = shopDeliveryAreaPolygonDeleteUseCase;
     }
 
     @Operation(
@@ -50,7 +58,7 @@ class ShopDeliveryAreaPolygonApiController {
         @PathVariable Long id
     ) {
         ShopDeliveryAreaPolygonResponse response =
-            ShopDeliveryAreaPolygonResponse.from(shopDeliveryAreaPolygonQueryUseCase.getPolygon(userDetails.getCeoId(), id));
+            ShopDeliveryAreaPolygonResponse.from(shopDeliveryAreaPolygonDetailQueryUseCase.getPolygon(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -65,7 +73,7 @@ class ShopDeliveryAreaPolygonApiController {
         @Valid @RequestBody ShopDeliveryAreaPolygonSaveRequest request
     ) {
         ShopDeliveryAreaPolygonSaveCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopDeliveryAreaCommandUseCase.savePolygon(command);
+        shopDeliveryAreaPolygonSaveUseCase.savePolygon(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -80,7 +88,7 @@ class ShopDeliveryAreaPolygonApiController {
         @Valid @RequestBody ShopDeliveryAreaPolygonSaveRequest request
     ) {
         ShopDeliveryAreaPolygonPreviewResponse response =
-            ShopDeliveryAreaPolygonPreviewResponse.from(shopDeliveryAreaPolygonQueryUseCase.previewPolygon(userDetails.getCeoId(), id, request.toRingCommands()));
+            ShopDeliveryAreaPolygonPreviewResponse.from(shopDeliveryAreaPolygonPreviewQueryUseCase.previewPolygon(userDetails.getCeoId(), id, request.toRingCommands()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -94,7 +102,7 @@ class ShopDeliveryAreaPolygonApiController {
         @PathVariable Long id
     ) {
         ShopDeliveryAreaPolygonDeleteCommand command = ShopDeliveryAreaPolygonDeleteCommand.of(userDetails.getCeoId(), id);
-        shopDeliveryAreaCommandUseCase.deletePolygon(command);
+        shopDeliveryAreaPolygonDeleteUseCase.deletePolygon(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

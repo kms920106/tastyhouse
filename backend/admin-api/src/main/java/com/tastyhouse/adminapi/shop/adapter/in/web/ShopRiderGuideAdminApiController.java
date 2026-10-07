@@ -19,11 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.AdminUserDetails;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.shop.port.in.ShopRiderGuideManagementCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopRiderGuideManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRiderGuideManagementDetailQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRiderGuideManagementListQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationManagementUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopRiderPickupLocationManagementUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideRevisionCommand;
+import com.tastyhouse.application.shop.port.in.ShopRiderVisitGuideRevisionUseCase;
 import com.tastyhouse.application.shop.port.out.ShopRiderGuideListItemResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -40,12 +43,24 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRiderGuideListIt
 @RequestMapping("/api/shops")
 class ShopRiderGuideAdminApiController {
 
-    private final ShopRiderGuideManagementQueryUseCase shopRiderGuideQueryUseCase;
-    private final ShopRiderGuideManagementCommandUseCase shopRiderGuideCommandUseCase;
+    private final ShopRiderGuideManagementListQueryUseCase shopRiderGuideManagementListQueryUseCase;
+    private final ShopRiderGuideManagementDetailQueryUseCase shopRiderGuideManagementDetailQueryUseCase;
+    private final ShopRiderVisitGuideDeleteUseCase shopRiderVisitGuideDeleteUseCase;
+    private final ShopRiderVisitGuideRevisionUseCase shopRiderVisitGuideRevisionUseCase;
+    private final ShopRiderPickupLocationManagementUpdateUseCase shopRiderPickupLocationManagementUpdateUseCase;
 
-    public ShopRiderGuideAdminApiController(ShopRiderGuideManagementQueryUseCase shopRiderGuideQueryUseCase, ShopRiderGuideManagementCommandUseCase shopRiderGuideCommandUseCase) {
-        this.shopRiderGuideQueryUseCase = shopRiderGuideQueryUseCase;
-        this.shopRiderGuideCommandUseCase = shopRiderGuideCommandUseCase;
+    public ShopRiderGuideAdminApiController(
+        ShopRiderGuideManagementListQueryUseCase shopRiderGuideManagementListQueryUseCase,
+        ShopRiderGuideManagementDetailQueryUseCase shopRiderGuideManagementDetailQueryUseCase,
+        ShopRiderVisitGuideDeleteUseCase shopRiderVisitGuideDeleteUseCase,
+        ShopRiderVisitGuideRevisionUseCase shopRiderVisitGuideRevisionUseCase,
+        ShopRiderPickupLocationManagementUpdateUseCase shopRiderPickupLocationManagementUpdateUseCase
+    ) {
+        this.shopRiderGuideManagementListQueryUseCase = shopRiderGuideManagementListQueryUseCase;
+        this.shopRiderGuideManagementDetailQueryUseCase = shopRiderGuideManagementDetailQueryUseCase;
+        this.shopRiderVisitGuideDeleteUseCase = shopRiderVisitGuideDeleteUseCase;
+        this.shopRiderVisitGuideRevisionUseCase = shopRiderVisitGuideRevisionUseCase;
+        this.shopRiderPickupLocationManagementUpdateUseCase = shopRiderPickupLocationManagementUpdateUseCase;
     }
 
     @Operation(summary = "라이더 안내 등록 가게 목록 조회",
@@ -55,7 +70,7 @@ class ShopRiderGuideAdminApiController {
         @Valid @ModelAttribute ShopRiderGuideSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopRiderGuideListItemResult> pageResult = shopRiderGuideQueryUseCase.getRiderGuides(
+        PageResult<ShopRiderGuideListItemResult> pageResult = shopRiderGuideManagementListQueryUseCase.getRiderGuides(
             search.shopName(), search.hasVisitGuide(), pageRequest.page(), pageRequest.size()
         );
         PaginationResponse<ShopRiderGuideListItemResponse> pageResponse =
@@ -69,7 +84,7 @@ class ShopRiderGuideAdminApiController {
         description = "가게 단건의 라이더 안내 문구·픽업 위치와 최근 변경 이력(최대 20건)을 조회합니다.")
     @GetMapping("/v1/{id}/rider-guide")
     public ResponseEntity<ApiResponse<ShopRiderGuideDetailResponse>> getRiderGuide(@PathVariable Long id) {
-        ShopRiderGuideManagementQueryUseCase.ShopRiderGuideDetail detail = shopRiderGuideQueryUseCase.getRiderGuide(id);
+        ShopRiderGuideManagementDetailQueryUseCase.ShopRiderGuideDetail detail = shopRiderGuideManagementDetailQueryUseCase.getRiderGuide(id);
         ShopRiderGuideDetailResponse response = ShopRiderGuideDetailResponse.from(detail.guide(), detail.histories());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -83,7 +98,7 @@ class ShopRiderGuideAdminApiController {
         @Valid @RequestBody ShopRiderVisitGuideDeleteRequest request
     ) {
         ShopRiderVisitGuideDeleteCommand command = request.toCommand(id, userDetails.getPrincipalId());
-        shopRiderGuideCommandUseCase.deleteVisitGuide(command);
+        shopRiderVisitGuideDeleteUseCase.deleteVisitGuide(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -96,7 +111,7 @@ class ShopRiderGuideAdminApiController {
         @Valid @RequestBody ShopRiderVisitGuideRevisionRequest request
     ) {
         ShopRiderVisitGuideRevisionCommand command = request.toCommand(id, userDetails.getPrincipalId());
-        Long historyId = shopRiderGuideCommandUseCase.requestRevision(command);
+        Long historyId = shopRiderVisitGuideRevisionUseCase.requestRevision(command);
         return ResponseEntity.ok(ApiResponse.success(historyId));
     }
 
@@ -109,7 +124,7 @@ class ShopRiderGuideAdminApiController {
         @Valid @RequestBody ShopRiderPickupLocationUpdateRequest request
     ) {
         ShopRiderPickupLocationManagementUpdateCommand command = request.toCommand(id, userDetails.getPrincipalId());
-        shopRiderGuideCommandUseCase.updatePickupLocation(command);
+        shopRiderPickupLocationManagementUpdateUseCase.updatePickupLocation(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

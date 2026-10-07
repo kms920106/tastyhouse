@@ -12,7 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.member.port.in.MemberScreenUseCase;
+import com.tastyhouse.application.coupon.port.in.CouponMyAvailableListQueryUseCase;
+import com.tastyhouse.application.coupon.port.in.CouponMyListQueryUseCase;
+import com.tastyhouse.application.member.port.in.MemberMyBookmarkedShopListQueryUseCase;
+import com.tastyhouse.application.member.port.in.MemberMyReviewCountQueryUseCase;
+import com.tastyhouse.application.member.port.in.MemberMyReviewListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -27,10 +31,24 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.ShopBookmarkListItem
 @Tag(name = "Member Me Activity", description = "내 활동 조회 API")
 class MemberMeActivityApiController {
 
-    private final MemberScreenUseCase memberUseCase;
+    private final CouponMyListQueryUseCase couponMyListQueryUseCase;
+    private final CouponMyAvailableListQueryUseCase couponMyAvailableListQueryUseCase;
+    private final MemberMyReviewCountQueryUseCase memberMyReviewCountQueryUseCase;
+    private final MemberMyReviewListQueryUseCase memberMyReviewListQueryUseCase;
+    private final MemberMyBookmarkedShopListQueryUseCase memberMyBookmarkedShopListQueryUseCase;
 
-    public MemberMeActivityApiController(MemberScreenUseCase memberUseCase) {
-        this.memberUseCase = memberUseCase;
+    public MemberMeActivityApiController(
+        CouponMyListQueryUseCase couponMyListQueryUseCase,
+        CouponMyAvailableListQueryUseCase couponMyAvailableListQueryUseCase,
+        MemberMyReviewCountQueryUseCase memberMyReviewCountQueryUseCase,
+        MemberMyReviewListQueryUseCase memberMyReviewListQueryUseCase,
+        MemberMyBookmarkedShopListQueryUseCase memberMyBookmarkedShopListQueryUseCase
+    ) {
+        this.couponMyListQueryUseCase = couponMyListQueryUseCase;
+        this.couponMyAvailableListQueryUseCase = couponMyAvailableListQueryUseCase;
+        this.memberMyReviewCountQueryUseCase = memberMyReviewCountQueryUseCase;
+        this.memberMyReviewListQueryUseCase = memberMyReviewListQueryUseCase;
+        this.memberMyBookmarkedShopListQueryUseCase = memberMyBookmarkedShopListQueryUseCase;
     }
 
     @Operation(summary = "보유 쿠폰 목록 조회", description = "현재 로그인한 회원이 보유한 모든 쿠폰을 조회합니다. (사용 여부 무관)")
@@ -39,7 +57,7 @@ class MemberMeActivityApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(
-            memberUseCase.getMyCoupons(userDetails.getMemberId())
+            couponMyListQueryUseCase.getMyCoupons(userDetails.getMemberId())
                 .stream()
                 .map(MyCouponListItemResponse::from)
                 .toList()
@@ -52,7 +70,7 @@ class MemberMeActivityApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         return ResponseEntity.ok(ApiResponse.success(
-            memberUseCase.getMyAvailableCoupons(userDetails.getMemberId())
+            couponMyAvailableListQueryUseCase.getMyAvailableCoupons(userDetails.getMemberId())
                 .stream()
                 .map(MyCouponListItemResponse::from)
                 .toList()
@@ -64,7 +82,7 @@ class MemberMeActivityApiController {
     public ResponseEntity<ApiResponse<MyReviewCountResponse>> getMyReviewCount(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(MyReviewCountResponse.from(memberUseCase.getMyReviewCount(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(MyReviewCountResponse.from(memberMyReviewCountQueryUseCase.getMyReviewCount(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "내가 작성한 리뷰 목록 조회", description = "로그인한 회원이 작성한 리뷰 목록을 페이징하여 조회합니다.")
@@ -74,7 +92,7 @@ class MemberMeActivityApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<MyReviewListItemResponse> pageResult = PaginationResponse.from(
-            memberUseCase.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+            memberMyReviewListQueryUseCase.getMyReviews(userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
                 .map(MyReviewListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -92,7 +110,7 @@ class MemberMeActivityApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<ShopBookmarkListItemResponse> pageResult = PaginationResponse.from(
-            memberUseCase.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+            memberMyBookmarkedShopListQueryUseCase.getMyBookmarkedShops(userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
                 .map(ShopBookmarkListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(

@@ -24,6 +24,7 @@ import org.springframework.context.annotation.ComponentScans;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.tastyhouse.architecture.ModuleOrigin;
+import com.tastyhouse.architecture.UseCaseServices;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
@@ -61,7 +62,7 @@ class LayerRulesTest {
     @Test
     void commandServicesShouldNotDependOnQueryPorts() {
         ArchRule rule = noClasses()
-            .that().haveSimpleNameEndingWith("CommandService")
+            .that(UseCaseServices.commands())
             .should().dependOnClassesThat().haveSimpleNameEndingWith("QueryPort")
             .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryService")
             .orShould().dependOnClassesThat().haveSimpleNameEndingWith("QueryUseCase")
@@ -73,10 +74,10 @@ class LayerRulesTest {
     @Test
     void queryServicesShouldNotDependOnWritePorts() {
         ArchRule rule = noClasses()
-            .that().haveSimpleNameEndingWith("QueryService")
-            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.shop.service.ShopQueryService")
-            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.admin.service.AdminQueryService")
-            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.ceo.service.CeoOwnerQueryService")
+            .that(UseCaseServices.queries())
+            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.shop.service.ShopDeliveryTipViewQueryService")
+            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.admin.service.AdminUsernameExistsQueryService")
+            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.ceo.service.CeoOwnerUsernameExistsQueryService")
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.application..port.out.write..")
             .because("QueryService는 write 포트(도메인 타입 리포지토리)를 주입하지 않는다(CQRS 교차 주입 금지)");
 
@@ -96,23 +97,101 @@ class LayerRulesTest {
     }
 
     @Test
-    void commandServicesShouldImplementUseCase() {
-        ArchRule rule = classes()
-            .that().haveSimpleNameEndingWith("CommandService")
-            .should().implement(resideInAPackage("..port.in.."))
-            .because("CommandService는 대응 CommandUseCase를 구현한다");
+    void useCaseServicesShouldImplementExactlyOneUseCase() {
+        List<JavaClass> services = useCaseServices();
+        List<String> violations = services.stream()
+            .filter(service -> portInInterfacesOf(service).size() != 1)
+            .map(service -> service.getName() + " → " + portInInterfacesOf(service).stream().map(JavaClass::getSimpleName).toList())
+            .toList();
 
-        rule.check(classes);
+        assertThat(violations)
+            .as("유스케이스 서비스는 port.in 인터페이스를 정확히 1개 구현한다(유스케이스 하나 = 포트 하나 = 서비스 하나)")
+            .isEmpty();
     }
 
     @Test
-    void queryServicesShouldImplementUseCase() {
-        ArchRule rule = classes()
-            .that().haveSimpleNameEndingWith("QueryService")
-            .should().implement(resideInAPackage("..port.in.."))
-            .because("QueryService는 대응 QueryUseCase를 구현한다");
+    void useCasesShouldDeclareSingleOperation() {
+        List<JavaClass> ports = classes.stream()
+            .filter(JavaClass::isInterface)
+            .filter(LayerRulesTest::isPortInType)
+            .filter(port -> port.getSimpleName().endsWith("UseCase"))
+            .filter(port -> !ModuleOrigin.isFrom(port, ModuleOrigin.BATCH))
+            .toList();
 
-        rule.check(classes);
+        assertThat(ports)
+            .as("web·admin·ceo의 UseCase 포트가 줄면 출처 판정이 깨져 이 규칙이 공허하게 통과할 수 있다")
+            .hasSizeGreaterThanOrEqualTo(582);
+
+        List<String> violations = ports.stream()
+            .filter(port -> abstractOperationsOf(port).size() != 1)
+            .map(port -> port.getName() + " → " + abstractOperationsOf(port))
+            .toList();
+
+        assertThat(violations)
+            .as("web·admin·ceo의 UseCase 포트는 연산 1개(추상 메서드 1개)만 선언한다 — 의미가 다른 오버로드도 이름을 나눈 별도 포트로 둔다")
+            .isEmpty();
+    }
+
+    @Test
+    void useCaseServiceNameShouldMatchPort() {
+        List<String> violations = useCaseServices().stream()
+            .filter(service -> portInInterfacesOf(service).size() == 1)
+            .filter(service -> {
+                String portName = portInInterfacesOf(service).get(0).getSimpleName();
+                String expected = portName.substring(0, portName.length() - "UseCase".length()) + "Service";
+                return !service.getSimpleName().equals(expected);
+            })
+            .map(service -> service.getSimpleName() + " ↔ " + portInInterfacesOf(service).get(0).getSimpleName())
+            .toList();
+
+        assertThat(violations)
+            .as("유스케이스 서비스의 이름은 구현한 포트 이름에서 UseCase를 Service로 바꾼 것이다")
+            .isEmpty();
+    }
+
+    @Test
+    void useCaseServicesShouldHaveSinglePublicOperation() {
+        List<String> violations = useCaseServices().stream()
+            .filter(service -> publicOperationsOf(service).size() != 1)
+            .map(service -> service.getName() + " → " + publicOperationsOf(service))
+            .toList();
+
+        assertThat(violations)
+            .as("유스케이스 서비스는 생성자를 뺀 public 메서드가 정확히 1개다(공유 로직은 Reader·Validator 또는 record 정적 팩토리로)")
+            .isEmpty();
+    }
+
+    private List<JavaClass> useCaseServices() {
+        List<JavaClass> services = classes.stream()
+            .filter(UseCaseServices::isUseCaseService)
+            .toList();
+        assertThat(services)
+            .as("유스케이스 서비스가 줄면 판정 술어가 깨져 이 규칙들이 공허하게 통과할 수 있다")
+            .hasSizeGreaterThanOrEqualTo(582);
+        return services;
+    }
+
+    private static List<JavaClass> portInInterfacesOf(JavaClass service) {
+        return service.getRawInterfaces().stream()
+            .filter(LayerRulesTest::isPortInType)
+            .toList();
+    }
+
+    private static List<String> abstractOperationsOf(JavaClass port) {
+        return port.getMethods().stream()
+            .filter(method -> method.getModifiers().contains(JavaModifier.ABSTRACT))
+            .map(JavaMethod::getName)
+            .toList();
+    }
+
+    private static List<String> publicOperationsOf(JavaClass service) {
+        return service.getMethods().stream()
+            .filter(method -> method.getModifiers().contains(JavaModifier.PUBLIC))
+            .filter(method -> !method.getModifiers().contains(JavaModifier.STATIC))
+            .filter(method -> !method.getModifiers().contains(JavaModifier.SYNTHETIC))
+            .filter(method -> !method.getModifiers().contains(JavaModifier.BRIDGE))
+            .map(JavaMethod::getName)
+            .toList();
     }
 
     @Test
@@ -161,7 +240,7 @@ class LayerRulesTest {
     @Test
     void commandServicesShouldNotDependOnRequestRecords() {
         ArchRule rule = noClasses()
-            .that().haveSimpleNameEndingWith("CommandService")
+            .that(UseCaseServices.commands())
             .should().dependOnClassesThat().resideInAnyPackage("..request..")
             .because("CommandService는 Request record를 받지 않는다(매핑은 컨트롤러가 소유)");
 
@@ -295,14 +374,12 @@ class LayerRulesTest {
 
         List<String> violations = coreClasses.stream()
             .filter(javaClass -> isPortInType(javaClass)
-                || (!javaClass.isInterface() && implementsPortInInterface(javaClass))
-                || javaClass.getSimpleName().endsWith("CommandService")
-                || javaClass.getSimpleName().endsWith("QueryService"))
+                || (!javaClass.isInterface() && implementsPortInInterface(javaClass)))
             .map(JavaClass::getName)
             .toList();
 
         assertThat(violations)
-            .as("core는 4앱 전부에 실리므로 UseCase·Command(..port.in..)·UseCase 구현·*CommandService/*QueryService를 두지 않는다 "
+            .as("core는 4앱 전부에 실리므로 UseCase·Command(..port.in..)·UseCase 구현(유스케이스 서비스)을 두지 않는다 "
                 + "— 그 앱의 {app}-application 모듈로 옮긴다")
             .isEmpty();
     }

@@ -7,6 +7,7 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.architecture.ModuleOrigin;
+import com.tastyhouse.architecture.UseCaseServices;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,10 +17,6 @@ class RuleAnchorTest {
     private final JavaClasses classes = new ClassFileImporter()
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
         .importPackages("com.tastyhouse.application");
-
-    private long countSuffix(String suffix) {
-        return classes.stream().filter(c -> c.getSimpleName().endsWith(suffix)).count();
-    }
 
     private long countBeans(String module) {
         return classes.stream()
@@ -49,32 +46,32 @@ class RuleAnchorTest {
 
     @Test
     void moduleUseCaseCounts() {
-        assertThat(countUseCases(ModuleOrigin.WEB)).as("web-application UseCase").isGreaterThanOrEqualTo(50);
-        assertThat(countUseCases(ModuleOrigin.ADMIN)).as("admin-application UseCase").isGreaterThanOrEqualTo(100);
-        assertThat(countUseCases(ModuleOrigin.CEO)).as("ceo-application UseCase").isGreaterThanOrEqualTo(95);
+        assertThat(countUseCases(ModuleOrigin.WEB)).as("web-application UseCase").isGreaterThanOrEqualTo(187);
+        assertThat(countUseCases(ModuleOrigin.ADMIN)).as("admin-application UseCase").isGreaterThanOrEqualTo(207);
+        assertThat(countUseCases(ModuleOrigin.CEO)).as("ceo-application UseCase").isGreaterThanOrEqualTo(188);
         assertThat(countUseCases(ModuleOrigin.BATCH)).as("batch-application UseCase").isEqualTo(7);
         assertThat(countUseCases(ModuleOrigin.CORE)).as("core에는 UseCase가 없다").isZero();
     }
 
     @Test
     void commandServicesExist() {
-        assertThat(countSuffix("CommandService"))
-            .as("*CommandService가 0건이면 CommandService 대상 규칙들이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(91);
+        assertThat(classes.stream().filter(UseCaseServices::isCommandService).count())
+            .as("명령 유스케이스 서비스가 0건이면 명령 서비스 대상 규칙들이 공허하게 통과한다")
+            .isGreaterThanOrEqualTo(314);
     }
 
     @Test
     void queryServicesExist() {
-        assertThat(countSuffix("QueryService"))
-            .as("*QueryService가 0건이면 QueryService 대상 규칙들이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(100);
+        assertThat(classes.stream().filter(UseCaseServices::isQueryService).count())
+            .as("조회 유스케이스 서비스가 0건이면 조회 서비스 대상 규칙들이 공허하게 통과한다")
+            .isGreaterThanOrEqualTo(268);
     }
 
     @Test
     void inboundPortsExist() {
         assertThat(classes.stream().filter(c -> resideInAPackage("..port.in..").test(c)).count())
             .as("..port.in..이 0건이면 경계 타입·web 플럼빙 규칙이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(556);
+            .isGreaterThanOrEqualTo(891);
     }
 
     @Test

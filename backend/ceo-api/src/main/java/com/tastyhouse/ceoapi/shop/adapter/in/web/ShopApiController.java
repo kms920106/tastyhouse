@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.shop.port.in.ShopOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOwnerDetailQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOwnerListQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopListItemResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -29,10 +30,15 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopListItemResponse;
 @RequestMapping("/api/shops")
 class ShopApiController {
 
-    private final ShopOwnerQueryUseCase shopQueryUseCase;
+    private final ShopOwnerListQueryUseCase shopOwnerListQueryUseCase;
+    private final ShopOwnerDetailQueryUseCase shopOwnerDetailQueryUseCase;
 
-    public ShopApiController(ShopOwnerQueryUseCase shopQueryUseCase) {
-        this.shopQueryUseCase = shopQueryUseCase;
+    public ShopApiController(
+        ShopOwnerListQueryUseCase shopOwnerListQueryUseCase,
+        ShopOwnerDetailQueryUseCase shopOwnerDetailQueryUseCase
+    ) {
+        this.shopOwnerListQueryUseCase = shopOwnerListQueryUseCase;
+        this.shopOwnerDetailQueryUseCase = shopOwnerDetailQueryUseCase;
     }
 
     @Operation(summary = "내 가게 목록 조회", description = "로그인한 점주가 소유한 가게 목록을 조회합니다.")
@@ -42,7 +48,7 @@ class ShopApiController {
         @Valid @ModelAttribute ShopSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopListItemResult> pageResult = shopQueryUseCase.getMyShops(
+        PageResult<ShopListItemResult> pageResult = shopOwnerListQueryUseCase.getMyShops(
             userDetails.getCeoId(),
             request.name(),
             request.stationId(),
@@ -66,7 +72,7 @@ class ShopApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopDetailResponse response = ShopDetailResponse.from(shopQueryUseCase.getMyShop(userDetails.getCeoId(), id));
+        ShopDetailResponse response = ShopDetailResponse.from(shopOwnerDetailQueryUseCase.getMyShop(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

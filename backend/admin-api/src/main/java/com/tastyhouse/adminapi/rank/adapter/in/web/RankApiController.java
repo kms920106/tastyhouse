@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.rank.port.in.RankAggregateCommand;
-import com.tastyhouse.application.rank.port.in.RankCommandUseCase;
-import com.tastyhouse.application.rank.port.in.RankManagementQueryUseCase;
+import com.tastyhouse.application.rank.port.in.RankAggregateUseCase;
+import com.tastyhouse.application.rank.port.in.RankMemberManagementListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankAggregateRequest;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankSearchRequest;
@@ -26,12 +26,15 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankMemberListItemRe
 @RequestMapping("/api/ranks")
 class RankApiController {
 
-    private final RankCommandUseCase rankCommandUseCase;
-    private final RankManagementQueryUseCase rankQueryUseCase;
+    private final RankMemberManagementListQueryUseCase rankMemberManagementListQueryUseCase;
+    private final RankAggregateUseCase rankAggregateUseCase;
 
-    public RankApiController(RankCommandUseCase rankCommandUseCase, RankManagementQueryUseCase rankQueryUseCase) {
-        this.rankCommandUseCase = rankCommandUseCase;
-        this.rankQueryUseCase = rankQueryUseCase;
+    public RankApiController(
+        RankMemberManagementListQueryUseCase rankMemberManagementListQueryUseCase,
+        RankAggregateUseCase rankAggregateUseCase
+    ) {
+        this.rankMemberManagementListQueryUseCase = rankMemberManagementListQueryUseCase;
+        this.rankAggregateUseCase = rankAggregateUseCase;
     }
 
     @Operation(summary = "회원 랭킹 목록 조회", description = "유저별 리뷰 작성 개수 기준 랭킹을 조회합니다. (전체/월간/주간)")
@@ -39,7 +42,7 @@ class RankApiController {
     public ResponseEntity<ApiResponse<List<RankMemberListItemResponse>>> getMemberRankList(
         @Valid @ModelAttribute RankSearchRequest search
     ) {
-        List<RankMemberListItemResponse> ranks = rankQueryUseCase.getMemberRankList(search.type(), search.limit()).stream()
+        List<RankMemberListItemResponse> ranks = rankMemberManagementListQueryUseCase.getMemberRankList(search.type(), search.limit()).stream()
             .map(RankMemberListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(ranks));
@@ -49,7 +52,7 @@ class RankApiController {
     @PostMapping("/v1/aggregations")
     public ResponseEntity<ApiResponse<Void>> aggregate(@Valid @RequestBody RankAggregateRequest request) {
         RankAggregateCommand command = request.toCommand();
-        rankCommandUseCase.aggregate(command);
+        rankAggregateUseCase.aggregate(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

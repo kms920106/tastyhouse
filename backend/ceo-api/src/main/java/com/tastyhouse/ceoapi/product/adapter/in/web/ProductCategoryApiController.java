@@ -18,11 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.product.port.in.ProductCategoryCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductCategoryDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductCategoryDeleteUseCase;
 import com.tastyhouse.application.product.port.in.ProductCategoryOwnerCreateCommand;
+import com.tastyhouse.application.product.port.in.ProductCategoryOwnerCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductCategoryQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductCategoryUpdateCommand;
+import com.tastyhouse.application.product.port.in.ProductCategoryUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryDeleteRequest;
@@ -36,14 +38,20 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductCategoryResp
 class ProductCategoryApiController {
 
     private final ProductCategoryQueryUseCase productCategoryQueryUseCase;
-    private final ProductCategoryCommandUseCase productCategoryCommandUseCase;
+    private final ProductCategoryOwnerCreateUseCase productCategoryOwnerCreateUseCase;
+    private final ProductCategoryUpdateUseCase productCategoryUpdateUseCase;
+    private final ProductCategoryDeleteUseCase productCategoryDeleteUseCase;
 
     public ProductCategoryApiController(
         ProductCategoryQueryUseCase productCategoryQueryUseCase,
-        ProductCategoryCommandUseCase productCategoryCommandUseCase
+        ProductCategoryOwnerCreateUseCase productCategoryOwnerCreateUseCase,
+        ProductCategoryUpdateUseCase productCategoryUpdateUseCase,
+        ProductCategoryDeleteUseCase productCategoryDeleteUseCase
     ) {
         this.productCategoryQueryUseCase = productCategoryQueryUseCase;
-        this.productCategoryCommandUseCase = productCategoryCommandUseCase;
+        this.productCategoryOwnerCreateUseCase = productCategoryOwnerCreateUseCase;
+        this.productCategoryUpdateUseCase = productCategoryUpdateUseCase;
+        this.productCategoryDeleteUseCase = productCategoryDeleteUseCase;
     }
 
     @Operation(summary = "메뉴그룹 목록 조회", description = "노출 순서(sort) 오름차순으로 반환합니다.")
@@ -66,7 +74,7 @@ class ProductCategoryApiController {
         @Valid @RequestBody ProductCategoryCreateRequest request
     ) {
         ProductCategoryOwnerCreateCommand command = request.toCommand(userDetails.getCeoId());
-        Long productCategoryId = productCategoryCommandUseCase.createProductCategory(command);
+        Long productCategoryId = productCategoryOwnerCreateUseCase.createProductCategory(command);
         return ResponseEntity.ok(ApiResponse.success(productCategoryId));
     }
 
@@ -78,7 +86,7 @@ class ProductCategoryApiController {
         @Valid @RequestBody ProductCategoryUpdateRequest request
     ) {
         ProductCategoryUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productCategoryCommandUseCase.updateProductCategory(command);
+        productCategoryUpdateUseCase.updateProductCategory(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -92,7 +100,7 @@ class ProductCategoryApiController {
         @Valid @RequestBody ProductCategoryDeleteRequest request
     ) {
         ProductCategoryDeleteCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productCategoryCommandUseCase.deleteProductCategory(command);
+        productCategoryDeleteUseCase.deleteProductCategory(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

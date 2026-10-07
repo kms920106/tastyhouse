@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopOrderNoticeOwnerCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOrderNoticeOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopOrderNoticeOwnerUpsertUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOrderNoticeUpsertCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopOrderNoticeUpsertRequest;
@@ -25,15 +25,15 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOrderNoticeRespons
 @RequestMapping("/api/shops")
 class ShopOrderNoticeApiController {
 
-    private final ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryUseCase;
-    private final ShopOrderNoticeOwnerCommandUseCase shopOrderNoticeCommandUseCase;
+    private final ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeOwnerQueryUseCase;
+    private final ShopOrderNoticeOwnerUpsertUseCase shopOrderNoticeOwnerUpsertUseCase;
 
     public ShopOrderNoticeApiController(
-        ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeQueryUseCase,
-        ShopOrderNoticeOwnerCommandUseCase shopOrderNoticeCommandUseCase
+        ShopOrderNoticeOwnerQueryUseCase shopOrderNoticeOwnerQueryUseCase,
+        ShopOrderNoticeOwnerUpsertUseCase shopOrderNoticeOwnerUpsertUseCase
     ) {
-        this.shopOrderNoticeQueryUseCase = shopOrderNoticeQueryUseCase;
-        this.shopOrderNoticeCommandUseCase = shopOrderNoticeCommandUseCase;
+        this.shopOrderNoticeOwnerQueryUseCase = shopOrderNoticeOwnerQueryUseCase;
+        this.shopOrderNoticeOwnerUpsertUseCase = shopOrderNoticeOwnerUpsertUseCase;
     }
 
     @Operation(summary = "주문안내 조회", description = "가게의 주문안내를 조회합니다. 미설정이면 content가 null이며, 관리자 게시중단 여부와 사유가 함께 내려갑니다.")
@@ -42,7 +42,7 @@ class ShopOrderNoticeApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        ShopOrderNoticeResponse response = shopOrderNoticeQueryUseCase.getOrderNotice(userDetails.getCeoId(), id)
+        ShopOrderNoticeResponse response = shopOrderNoticeOwnerQueryUseCase.getOrderNotice(userDetails.getCeoId(), id)
             .map(ShopOrderNoticeResponse::from)
             .orElseGet(ShopOrderNoticeResponse::empty);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -56,7 +56,7 @@ class ShopOrderNoticeApiController {
         @Valid @RequestBody ShopOrderNoticeUpsertRequest request
     ) {
         ShopOrderNoticeUpsertCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopOrderNoticeCommandUseCase.upsertOrderNotice(command);
+        shopOrderNoticeOwnerUpsertUseCase.upsertOrderNotice(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

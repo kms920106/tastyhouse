@@ -14,10 +14,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.point.port.in.PointCommandUseCase;
 import com.tastyhouse.application.point.port.in.PointDeductCommand;
+import com.tastyhouse.application.point.port.in.PointDeductUseCase;
 import com.tastyhouse.application.point.port.in.PointEarnCommand;
-import com.tastyhouse.application.point.port.in.PointManagementQueryUseCase;
+import com.tastyhouse.application.point.port.in.PointEarnUseCase;
+import com.tastyhouse.application.point.port.in.PointManagementBalanceQueryUseCase;
+import com.tastyhouse.application.point.port.in.PointManagementHistoryListQueryUseCase;
 import com.tastyhouse.application.point.port.out.PointHistoryResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -34,18 +36,27 @@ import com.tastyhouse.adminapi.point.adapter.in.web.response.PointHistoryRespons
 @RequestMapping("/api/points")
 class PointApiController {
 
-    private final PointCommandUseCase pointCommandUseCase;
-    private final PointManagementQueryUseCase pointQueryUseCase;
+    private final PointEarnUseCase pointEarnUseCase;
+    private final PointDeductUseCase pointDeductUseCase;
+    private final PointManagementBalanceQueryUseCase pointManagementBalanceQueryUseCase;
+    private final PointManagementHistoryListQueryUseCase pointManagementHistoryListQueryUseCase;
 
-    public PointApiController(PointCommandUseCase pointCommandUseCase, PointManagementQueryUseCase pointQueryUseCase) {
-        this.pointCommandUseCase = pointCommandUseCase;
-        this.pointQueryUseCase = pointQueryUseCase;
+    public PointApiController(
+        PointEarnUseCase pointEarnUseCase,
+        PointDeductUseCase pointDeductUseCase,
+        PointManagementBalanceQueryUseCase pointManagementBalanceQueryUseCase,
+        PointManagementHistoryListQueryUseCase pointManagementHistoryListQueryUseCase
+    ) {
+        this.pointEarnUseCase = pointEarnUseCase;
+        this.pointDeductUseCase = pointDeductUseCase;
+        this.pointManagementBalanceQueryUseCase = pointManagementBalanceQueryUseCase;
+        this.pointManagementHistoryListQueryUseCase = pointManagementHistoryListQueryUseCase;
     }
 
     @Operation(summary = "회원 포인트 잔액 조회", description = "회원의 사용 가능 포인트와 이번 달 소멸 예정 포인트를 조회합니다.")
     @GetMapping("/v1/members/{memberId}")
     public ResponseEntity<ApiResponse<PointBalanceResponse>> getPointBalance(@PathVariable Long memberId) {
-        PointBalanceResponse response = pointQueryUseCase.getPointBalance(memberId)
+        PointBalanceResponse response = pointManagementBalanceQueryUseCase.getPointBalance(memberId)
             .map(result -> PointBalanceResponse.from(memberId, result))
             .orElseGet(() -> PointBalanceResponse.zero(memberId));
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -58,7 +69,7 @@ class PointApiController {
         @Valid @ModelAttribute PointSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<PointHistoryResult> pageResult = pointQueryUseCase.getPointHistories(memberId, search.type(), pageRequest.page(), pageRequest.size());
+        PageResult<PointHistoryResult> pageResult = pointManagementHistoryListQueryUseCase.getPointHistories(memberId, search.type(), pageRequest.page(), pageRequest.size());
         PaginationResponse<PointHistoryResponse> pageResponse = PaginationResponse.from(pageResult.map(PointHistoryResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
@@ -70,7 +81,7 @@ class PointApiController {
         @Valid @RequestBody PointEarnRequest request
     ) {
         PointEarnCommand command = request.toCommand(memberId);
-        pointCommandUseCase.earnPoint(command);
+        pointEarnUseCase.earnPoint(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -81,7 +92,7 @@ class PointApiController {
         @Valid @RequestBody PointDeductRequest request
     ) {
         PointDeductCommand command = request.toCommand(memberId);
-        pointCommandUseCase.deductPoint(command);
+        pointDeductUseCase.deductPoint(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

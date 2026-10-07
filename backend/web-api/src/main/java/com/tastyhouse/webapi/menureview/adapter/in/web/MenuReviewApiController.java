@@ -18,11 +18,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.menureview.port.in.MenuReviewCommandUseCase;
 import com.tastyhouse.application.menureview.port.in.MenuReviewCreateCommand;
+import com.tastyhouse.application.menureview.port.in.MenuReviewCreateUseCase;
 import com.tastyhouse.application.menureview.port.in.MenuReviewDeleteCommand;
-import com.tastyhouse.application.menureview.port.in.MenuReviewQueryUseCase;
+import com.tastyhouse.application.menureview.port.in.MenuReviewDeleteUseCase;
+import com.tastyhouse.application.menureview.port.in.MenuReviewProductListQueryUseCase;
 import com.tastyhouse.application.menureview.port.in.MenuReviewUpdateCommand;
+import com.tastyhouse.application.menureview.port.in.MenuReviewUpdateUseCase;
+import com.tastyhouse.application.menureview.port.in.MenuReviewWritableItemQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -37,15 +40,24 @@ import com.tastyhouse.webapi.menureview.adapter.in.web.response.MenuReviewWritab
 @Tag(name = "MenuReview", description = "메뉴 평가 API")
 class MenuReviewApiController {
 
-    private final MenuReviewCommandUseCase menuReviewCommandUseCase;
-    private final MenuReviewQueryUseCase menuReviewQueryUseCase;
+    private final MenuReviewCreateUseCase menuReviewCreateUseCase;
+    private final MenuReviewUpdateUseCase menuReviewUpdateUseCase;
+    private final MenuReviewDeleteUseCase menuReviewDeleteUseCase;
+    private final MenuReviewWritableItemQueryUseCase menuReviewWritableItemQueryUseCase;
+    private final MenuReviewProductListQueryUseCase menuReviewProductListQueryUseCase;
 
     public MenuReviewApiController(
-        MenuReviewCommandUseCase menuReviewCommandUseCase,
-        MenuReviewQueryUseCase menuReviewQueryUseCase
+        MenuReviewCreateUseCase menuReviewCreateUseCase,
+        MenuReviewUpdateUseCase menuReviewUpdateUseCase,
+        MenuReviewDeleteUseCase menuReviewDeleteUseCase,
+        MenuReviewWritableItemQueryUseCase menuReviewWritableItemQueryUseCase,
+        MenuReviewProductListQueryUseCase menuReviewProductListQueryUseCase
     ) {
-        this.menuReviewCommandUseCase = menuReviewCommandUseCase;
-        this.menuReviewQueryUseCase = menuReviewQueryUseCase;
+        this.menuReviewCreateUseCase = menuReviewCreateUseCase;
+        this.menuReviewUpdateUseCase = menuReviewUpdateUseCase;
+        this.menuReviewDeleteUseCase = menuReviewDeleteUseCase;
+        this.menuReviewWritableItemQueryUseCase = menuReviewWritableItemQueryUseCase;
+        this.menuReviewProductListQueryUseCase = menuReviewProductListQueryUseCase;
     }
 
     @Operation(
@@ -59,7 +71,7 @@ class MenuReviewApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         List<MenuReviewWritableItemResponse> response =
-            menuReviewQueryUseCase.findWritableItems(orderId, userDetails.getMemberId()).stream()
+            menuReviewWritableItemQueryUseCase.findWritableItems(orderId, userDetails.getMemberId()).stream()
                 .map(MenuReviewWritableItemResponse::from)
                 .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -76,7 +88,7 @@ class MenuReviewApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         MenuReviewCreateCommand command = request.toCommand(userDetails.getMemberId());
-        Long menuReviewId = menuReviewCommandUseCase.createMenuReview(command);
+        Long menuReviewId = menuReviewCreateUseCase.createMenuReview(command);
         return ResponseEntity.ok(ApiResponse.success(menuReviewId));
     }
 
@@ -88,7 +100,7 @@ class MenuReviewApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         MenuReviewUpdateCommand command = request.toCommand(userDetails.getMemberId(), id);
-        menuReviewCommandUseCase.updateMenuReview(command);
+        menuReviewUpdateUseCase.updateMenuReview(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -99,7 +111,7 @@ class MenuReviewApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         MenuReviewDeleteCommand command = MenuReviewDeleteCommand.of(userDetails.getMemberId(), id);
-        menuReviewCommandUseCase.deleteMenuReview(command);
+        menuReviewDeleteUseCase.deleteMenuReview(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -110,7 +122,7 @@ class MenuReviewApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PaginationResponse<MenuReviewListItemResponse> pageResponse = PaginationResponse.from(
-            menuReviewQueryUseCase.findByProductId(productId, pageRequest.page(), pageRequest.size())
+            menuReviewProductListQueryUseCase.findByProductId(productId, pageRequest.page(), pageRequest.size())
                 .map(MenuReviewListItemResponse::from)
         );
         ApiResponse<List<MenuReviewListItemResponse>> response = ApiResponse.success(

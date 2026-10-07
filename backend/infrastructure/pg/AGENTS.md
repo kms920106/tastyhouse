@@ -88,11 +88,11 @@ public class PgRouterConfig {
 | 계약 (`com.tastyhouse.application.payment.port.out`) | 누가 구현하나 | 누가 주입하나 |
 |---|---|---|
 | `PgProviderGateway` — `provider()`(반환 타입 `PgProviderCode`) + 승인·취소 | 벤더 어댑터(`TossPaymentGatewayAdapter` 등), 벤더마다 하나 | 라우터(`List`로) |
-| `PgPaymentGateway` — `supports(PgProvider)`(도메인 `PgProvider`) + 승인·취소(첫 인자 `PgProvider`) | **라우터 `PgPaymentGatewayRouter` 하나뿐** | application `PaymentCommandService` |
+| `PgPaymentGateway` — `supports(PgProvider)`(도메인 `PgProvider`) + 승인·취소(첫 인자 `PgProvider`) | **라우터 `PgPaymentGatewayRouter` 하나뿐** | application `PgPaymentConfirmService`·`PaymentCancelService` |
 
 - 벤더가 둘 이상 떠도 `PgPaymentGateway` 구현은 라우터 하나라 **빈 모호성이 없다.** 벤더 어댑터가 `PgPaymentGateway`를 직접 구현하게 되돌리지 않는다 — 두 번째 벤더가 들어오는 순간 `NoUniqueBeanDefinitionException`으로 web-api가 뜨지 않는다.
 - 라우터는 Spring을 모르는 순수 POJO이고 `application/payment/service/PgPaymentGatewayRouter`에 있다(과거엔 `domain`에 있었으나 chunk 02-vendor-ports로 `application`으로 이동했다 — `PgProviderGateway`·`PgConfirmResult`·`PgCancelResult` 등 이 라우터가 다루는 계약 자체가 `application` 소유이므로, 계약과 같은 모듈에 두는 것이 자연스럽다). ~~`application`의 `PgRouterConfig`가 `@Bean`으로 등록한다.~~ 지금은 클래스에 `@WebApp` 마커만 달아 스캔으로 등록된다(Spring 애노테이션이 아니라 프로젝트 마커라 "Spring을 모르는" 성질은 유지된다). 같은 `provider()`를 반환하는 벤더가 둘이면 생성자가 `IllegalStateException`으로 기동을 멈추고, 미등록 PG로 승인·취소를 요청하면 `BusinessException(ErrorCode.PG_PROVIDER_UNSUPPORTED)`를 던진다.
-- 취소는 `supports`로 먼저 묻는다. PG 콜백 경로(`POST /api/payments/v1/confirm`)는 요청 본문의 아무 PG명으로나 결제를 완료시킬 수 있어서, 담당 벤더가 없는 PG의 완료 결제가 존재한다. 그런 결제는 지금처럼 PG 취소 없이 DB만 취소한다(`PaymentCommandService#doCancelPayment`). 이 정책이 옳은지는 콜백 엔드포인트 정리와 함께 판단할 후속 항목이다.
+- 취소는 `supports`로 먼저 묻는다. PG 콜백 경로(`POST /api/payments/v1/confirm`)는 요청 본문의 아무 PG명으로나 결제를 완료시킬 수 있어서, 담당 벤더가 없는 PG의 완료 결제가 존재한다. 그런 결제는 지금처럼 PG 취소 없이 DB만 취소한다(`PaymentCancelService#doCancelPayment`). 이 정책이 옳은지는 콜백 엔드포인트 정리와 함께 판단할 후속 항목이다.
 
 ## 벤더 추가 절차 (예: 다날)
 

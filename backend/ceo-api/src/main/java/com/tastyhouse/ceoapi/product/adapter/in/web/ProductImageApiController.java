@@ -21,10 +21,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.product.port.in.ProductImageChangeRequestCommand;
-import com.tastyhouse.application.product.port.in.ProductImageCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductImageChangeRequestUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductImageDeleteUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageReorderCommand;
+import com.tastyhouse.application.product.port.in.ProductImageReorderUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductImageSortRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
@@ -36,14 +38,20 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductImageStatusR
 class ProductImageApiController {
 
     private final ProductImageQueryUseCase productImageQueryUseCase;
-    private final ProductImageCommandUseCase productImageCommandUseCase;
+    private final ProductImageChangeRequestUseCase productImageChangeRequestUseCase;
+    private final ProductImageReorderUseCase productImageReorderUseCase;
+    private final ProductImageDeleteUseCase productImageDeleteUseCase;
 
     public ProductImageApiController(
         ProductImageQueryUseCase productImageQueryUseCase,
-        ProductImageCommandUseCase productImageCommandUseCase
+        ProductImageChangeRequestUseCase productImageChangeRequestUseCase,
+        ProductImageReorderUseCase productImageReorderUseCase,
+        ProductImageDeleteUseCase productImageDeleteUseCase
     ) {
         this.productImageQueryUseCase = productImageQueryUseCase;
-        this.productImageCommandUseCase = productImageCommandUseCase;
+        this.productImageChangeRequestUseCase = productImageChangeRequestUseCase;
+        this.productImageReorderUseCase = productImageReorderUseCase;
+        this.productImageDeleteUseCase = productImageDeleteUseCase;
     }
 
     @Operation(summary = "메뉴 이미지 목록 조회",
@@ -72,7 +80,7 @@ class ProductImageApiController {
     ) {
         ProductImageChangeRequestCommand command =
             ProductImageChangeRequestCommand.of(userDetails.getCeoId(), shopId, id);
-        Long requestId = productImageCommandUseCase.requestImageChange(command, file);
+        Long requestId = productImageChangeRequestUseCase.requestImageChange(command, file);
         return ResponseEntity.ok(ApiResponse.success(requestId));
     }
 
@@ -86,7 +94,7 @@ class ProductImageApiController {
         @Valid @RequestBody ProductImageSortRequest request
     ) {
         ProductImageReorderCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productImageCommandUseCase.reorderImages(command);
+        productImageReorderUseCase.reorderImages(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -100,7 +108,7 @@ class ProductImageApiController {
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
         ProductImageDeleteCommand command = request.toImageDeleteCommand(userDetails.getCeoId(), imageId);
-        productImageCommandUseCase.deleteImage(command);
+        productImageDeleteUseCase.deleteImage(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

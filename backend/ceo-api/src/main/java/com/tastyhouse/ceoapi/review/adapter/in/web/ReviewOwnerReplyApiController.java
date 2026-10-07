@@ -14,10 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.review.port.in.ReviewOwnerReplyCommandUseCase;
 import com.tastyhouse.application.review.port.in.ReviewOwnerReplyCreateCommand;
+import com.tastyhouse.application.review.port.in.ReviewOwnerReplyCreateUseCase;
 import com.tastyhouse.application.review.port.in.ReviewOwnerReplyDeleteCommand;
+import com.tastyhouse.application.review.port.in.ReviewOwnerReplyDeleteUseCase;
 import com.tastyhouse.application.review.port.in.ReviewOwnerReplyUpdateCommand;
+import com.tastyhouse.application.review.port.in.ReviewOwnerReplyUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewOwnerReplyCreateRequest;
 
@@ -26,10 +28,18 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewOwnerReplyCreat
 @RequestMapping("/api/shops")
 class ReviewOwnerReplyApiController {
 
-    private final ReviewOwnerReplyCommandUseCase reviewOwnerReplyCommandUseCase;
+    private final ReviewOwnerReplyCreateUseCase reviewOwnerReplyCreateUseCase;
+    private final ReviewOwnerReplyUpdateUseCase reviewOwnerReplyUpdateUseCase;
+    private final ReviewOwnerReplyDeleteUseCase reviewOwnerReplyDeleteUseCase;
 
-    public ReviewOwnerReplyApiController(ReviewOwnerReplyCommandUseCase reviewOwnerReplyCommandUseCase) {
-        this.reviewOwnerReplyCommandUseCase = reviewOwnerReplyCommandUseCase;
+    public ReviewOwnerReplyApiController(
+        ReviewOwnerReplyCreateUseCase reviewOwnerReplyCreateUseCase,
+        ReviewOwnerReplyUpdateUseCase reviewOwnerReplyUpdateUseCase,
+        ReviewOwnerReplyDeleteUseCase reviewOwnerReplyDeleteUseCase
+    ) {
+        this.reviewOwnerReplyCreateUseCase = reviewOwnerReplyCreateUseCase;
+        this.reviewOwnerReplyUpdateUseCase = reviewOwnerReplyUpdateUseCase;
+        this.reviewOwnerReplyDeleteUseCase = reviewOwnerReplyDeleteUseCase;
     }
 
     @Operation(
@@ -45,7 +55,7 @@ class ReviewOwnerReplyApiController {
         @Valid @RequestBody ReviewOwnerReplyCreateRequest request
     ) {
         ReviewOwnerReplyCreateCommand command = request.toCommand(userDetails.getCeoId(), id, reviewId);
-        Long ownerReplyId = reviewOwnerReplyCommandUseCase.register(command);
+        Long ownerReplyId = reviewOwnerReplyCreateUseCase.register(command);
         return ResponseEntity.ok(ApiResponse.success(ownerReplyId));
     }
 
@@ -61,7 +71,7 @@ class ReviewOwnerReplyApiController {
         @Valid @RequestBody ReviewOwnerReplyCreateRequest request
     ) {
         ReviewOwnerReplyUpdateCommand command = request.toUpdateCommand(userDetails.getCeoId(), id, reviewId);
-        reviewOwnerReplyCommandUseCase.modify(command);
+        reviewOwnerReplyUpdateUseCase.modify(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -77,7 +87,7 @@ class ReviewOwnerReplyApiController {
     ) {
         ReviewOwnerReplyDeleteCommand command =
             ReviewOwnerReplyDeleteCommand.of(userDetails.getCeoId(), id, reviewId);
-        reviewOwnerReplyCommandUseCase.remove(command);
+        reviewOwnerReplyDeleteUseCase.remove(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

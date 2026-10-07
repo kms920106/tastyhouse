@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.bug.port.in.BugReportCommandUseCase;
 import com.tastyhouse.application.bug.port.in.BugReportCreateCommand;
+import com.tastyhouse.application.bug.port.in.BugReportCreateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.bug.adapter.in.web.request.BugReportCreateRequest;
@@ -21,10 +21,10 @@ import com.tastyhouse.webapi.bug.adapter.in.web.request.BugReportCreateRequest;
 @Tag(name = "BugReport", description = "버그 제보 API")
 class BugReportApiController {
 
-    private final BugReportCommandUseCase bugReportCommandUseCase;
+    private final BugReportCreateUseCase bugReportCreateUseCase;
 
-    public BugReportApiController(BugReportCommandUseCase bugReportCommandUseCase) {
-        this.bugReportCommandUseCase = bugReportCommandUseCase;
+    public BugReportApiController(BugReportCreateUseCase bugReportCreateUseCase) {
+        this.bugReportCreateUseCase = bugReportCreateUseCase;
     }
 
     @Operation(summary = "버그 제보 등록", description = "버그 제보를 등록합니다. 단말기 정보, 제목, 내용, 이미지를 포함할 수 있습니다. 생성된 버그 제보 ID를 반환합니다.")
@@ -34,7 +34,7 @@ class BugReportApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         BugReportCreateCommand command = request.toCommand(userDetails.getMemberId());
-        Long bugReportId = bugReportCommandUseCase.createBugReport(command);
+        Long bugReportId = bugReportCreateUseCase.createBugReport(command);
         return ResponseEntity.ok(ApiResponse.success(bugReportId));
     }
 }

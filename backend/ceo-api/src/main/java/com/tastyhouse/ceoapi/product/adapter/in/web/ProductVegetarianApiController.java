@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.product.port.in.ProductVegetarianClearCommand;
-import com.tastyhouse.application.product.port.in.ProductVegetarianCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductVegetarianClearUseCase;
 import com.tastyhouse.application.product.port.in.ProductVegetarianQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductVegetarianRequestCommand;
+import com.tastyhouse.application.product.port.in.ProductVegetarianRequestUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductVegetarianRequest;
@@ -30,14 +31,17 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductVegetarianSt
 class ProductVegetarianApiController {
 
     private final ProductVegetarianQueryUseCase productVegetarianQueryUseCase;
-    private final ProductVegetarianCommandUseCase productVegetarianCommandUseCase;
+    private final ProductVegetarianRequestUseCase productVegetarianRequestUseCase;
+    private final ProductVegetarianClearUseCase productVegetarianClearUseCase;
 
     public ProductVegetarianApiController(
         ProductVegetarianQueryUseCase productVegetarianQueryUseCase,
-        ProductVegetarianCommandUseCase productVegetarianCommandUseCase
+        ProductVegetarianRequestUseCase productVegetarianRequestUseCase,
+        ProductVegetarianClearUseCase productVegetarianClearUseCase
     ) {
         this.productVegetarianQueryUseCase = productVegetarianQueryUseCase;
-        this.productVegetarianCommandUseCase = productVegetarianCommandUseCase;
+        this.productVegetarianRequestUseCase = productVegetarianRequestUseCase;
+        this.productVegetarianClearUseCase = productVegetarianClearUseCase;
     }
 
     @Operation(summary = "메뉴 채식 설정 조회",
@@ -63,7 +67,7 @@ class ProductVegetarianApiController {
         @Valid @RequestBody ProductVegetarianRequest request
     ) {
         ProductVegetarianRequestCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long requestId = productVegetarianCommandUseCase.requestVegetarian(command);
+        Long requestId = productVegetarianRequestUseCase.requestVegetarian(command);
         return ResponseEntity.ok(ApiResponse.success(requestId));
     }
 
@@ -76,7 +80,7 @@ class ProductVegetarianApiController {
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
         ProductVegetarianClearCommand command = request.toVegetarianClearCommand(userDetails.getCeoId(), id);
-        productVegetarianCommandUseCase.clearVegetarian(command);
+        productVegetarianClearUseCase.clearVegetarian(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

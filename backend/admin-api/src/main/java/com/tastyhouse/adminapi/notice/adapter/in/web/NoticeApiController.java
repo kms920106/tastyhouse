@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.notice.port.in.NoticeCommandUseCase;
 import com.tastyhouse.application.notice.port.in.NoticeCreateCommand;
+import com.tastyhouse.application.notice.port.in.NoticeCreateUseCase;
 import com.tastyhouse.application.notice.port.in.NoticeDeleteCommand;
-import com.tastyhouse.application.notice.port.in.NoticeManagementQueryUseCase;
+import com.tastyhouse.application.notice.port.in.NoticeDeleteUseCase;
+import com.tastyhouse.application.notice.port.in.NoticeManagementDetailQueryUseCase;
+import com.tastyhouse.application.notice.port.in.NoticeManagementListQueryUseCase;
 import com.tastyhouse.application.notice.port.in.NoticeUpdateCommand;
+import com.tastyhouse.application.notice.port.in.NoticeUpdateUseCase;
 import com.tastyhouse.application.notice.port.out.NoticeManagementListItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -37,12 +40,24 @@ import com.tastyhouse.adminapi.notice.adapter.in.web.response.NoticeListItemResp
 @RequestMapping("/api/notices")
 class NoticeApiController {
 
-    private final NoticeCommandUseCase noticeCommandUseCase;
-    private final NoticeManagementQueryUseCase noticeQueryUseCase;
+    private final NoticeCreateUseCase noticeCreateUseCase;
+    private final NoticeUpdateUseCase noticeUpdateUseCase;
+    private final NoticeDeleteUseCase noticeDeleteUseCase;
+    private final NoticeManagementListQueryUseCase noticeManagementListQueryUseCase;
+    private final NoticeManagementDetailQueryUseCase noticeManagementDetailQueryUseCase;
 
-    public NoticeApiController(NoticeCommandUseCase noticeCommandUseCase, NoticeManagementQueryUseCase noticeQueryUseCase) {
-        this.noticeCommandUseCase = noticeCommandUseCase;
-        this.noticeQueryUseCase = noticeQueryUseCase;
+    public NoticeApiController(
+        NoticeCreateUseCase noticeCreateUseCase,
+        NoticeUpdateUseCase noticeUpdateUseCase,
+        NoticeDeleteUseCase noticeDeleteUseCase,
+        NoticeManagementListQueryUseCase noticeManagementListQueryUseCase,
+        NoticeManagementDetailQueryUseCase noticeManagementDetailQueryUseCase
+    ) {
+        this.noticeCreateUseCase = noticeCreateUseCase;
+        this.noticeUpdateUseCase = noticeUpdateUseCase;
+        this.noticeDeleteUseCase = noticeDeleteUseCase;
+        this.noticeManagementListQueryUseCase = noticeManagementListQueryUseCase;
+        this.noticeManagementDetailQueryUseCase = noticeManagementDetailQueryUseCase;
     }
 
     @Operation(summary = "공지사항 목록 조회", description = "공지사항 목록을 페이징 조회합니다. (비노출 공지 포함) title/content는 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
@@ -51,7 +66,7 @@ class NoticeApiController {
         @Valid @ModelAttribute NoticeSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<NoticeManagementListItemResult> pageResult = noticeQueryUseCase.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
+        PageResult<NoticeManagementListItemResult> pageResult = noticeManagementListQueryUseCase.getNotices(search.title(), search.content(), search.visible(), pageRequest.page(), pageRequest.size());
         PaginationResponse<NoticeListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(NoticeListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
@@ -60,14 +75,14 @@ class NoticeApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createNotice(@Valid @RequestBody NoticeCreateRequest request) {
         NoticeCreateCommand command = request.toCommand();
-        Long id = noticeCommandUseCase.createNotice(command);
+        Long id = noticeCreateUseCase.createNotice(command);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
     @Operation(summary = "공지사항 상세 조회", description = "공지사항 상세을 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<NoticeDetailResponse>> getNotice(@PathVariable Long id) {
-        NoticeDetailResponse response = NoticeDetailResponse.from(noticeQueryUseCase.getNotice(id));
+        NoticeDetailResponse response = NoticeDetailResponse.from(noticeManagementDetailQueryUseCase.getNotice(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -78,7 +93,7 @@ class NoticeApiController {
         @Valid @RequestBody NoticeUpdateRequest request
     ) {
         NoticeUpdateCommand command = request.toCommand(id);
-        noticeCommandUseCase.updateNotice(command);
+        noticeUpdateUseCase.updateNotice(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -86,7 +101,7 @@ class NoticeApiController {
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteNotice(@PathVariable Long id) {
         NoticeDeleteCommand command = NoticeDeleteCommand.of(id);
-        noticeCommandUseCase.deleteNotice(command);
+        noticeDeleteUseCase.deleteNotice(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

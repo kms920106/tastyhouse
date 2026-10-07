@@ -15,11 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.rank.port.in.RankCommandUseCase;
-import com.tastyhouse.application.rank.port.in.RankManagementQueryUseCase;
 import com.tastyhouse.application.rank.port.in.RankPeriodCreateCommand;
+import com.tastyhouse.application.rank.port.in.RankPeriodCreateUseCase;
 import com.tastyhouse.application.rank.port.in.RankPeriodDeleteCommand;
+import com.tastyhouse.application.rank.port.in.RankPeriodDeleteUseCase;
+import com.tastyhouse.application.rank.port.in.RankPeriodManagementDetailQueryUseCase;
+import com.tastyhouse.application.rank.port.in.RankPeriodManagementListQueryUseCase;
 import com.tastyhouse.application.rank.port.in.RankPeriodUpdateCommand;
+import com.tastyhouse.application.rank.port.in.RankPeriodUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPeriodCreateRequest;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPeriodUpdateRequest;
@@ -31,18 +34,30 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPeriodListItemRe
 @RequestMapping("/api/ranks")
 class RankPeriodAdminApiController {
 
-    private final RankCommandUseCase rankCommandUseCase;
-    private final RankManagementQueryUseCase rankQueryUseCase;
+    private final RankPeriodManagementListQueryUseCase rankPeriodManagementListQueryUseCase;
+    private final RankPeriodCreateUseCase rankPeriodCreateUseCase;
+    private final RankPeriodManagementDetailQueryUseCase rankPeriodManagementDetailQueryUseCase;
+    private final RankPeriodUpdateUseCase rankPeriodUpdateUseCase;
+    private final RankPeriodDeleteUseCase rankPeriodDeleteUseCase;
 
-    public RankPeriodAdminApiController(RankCommandUseCase rankCommandUseCase, RankManagementQueryUseCase rankQueryUseCase) {
-        this.rankCommandUseCase = rankCommandUseCase;
-        this.rankQueryUseCase = rankQueryUseCase;
+    public RankPeriodAdminApiController(
+        RankPeriodManagementListQueryUseCase rankPeriodManagementListQueryUseCase,
+        RankPeriodCreateUseCase rankPeriodCreateUseCase,
+        RankPeriodManagementDetailQueryUseCase rankPeriodManagementDetailQueryUseCase,
+        RankPeriodUpdateUseCase rankPeriodUpdateUseCase,
+        RankPeriodDeleteUseCase rankPeriodDeleteUseCase
+    ) {
+        this.rankPeriodManagementListQueryUseCase = rankPeriodManagementListQueryUseCase;
+        this.rankPeriodCreateUseCase = rankPeriodCreateUseCase;
+        this.rankPeriodManagementDetailQueryUseCase = rankPeriodManagementDetailQueryUseCase;
+        this.rankPeriodUpdateUseCase = rankPeriodUpdateUseCase;
+        this.rankPeriodDeleteUseCase = rankPeriodDeleteUseCase;
     }
 
     @Operation(summary = "랭킹 기간 목록 조회", description = "등록된 랭킹 기간 목록을 조회합니다.")
     @GetMapping("/v1/periods")
     public ResponseEntity<ApiResponse<List<RankPeriodListItemResponse>>> getPeriods() {
-        List<RankPeriodListItemResponse> periods = rankQueryUseCase.getPeriods().stream()
+        List<RankPeriodListItemResponse> periods = rankPeriodManagementListQueryUseCase.getPeriods().stream()
             .map(RankPeriodListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(periods));
@@ -52,14 +67,14 @@ class RankPeriodAdminApiController {
     @PostMapping("/v1/periods")
     public ResponseEntity<ApiResponse<Long>> createPeriod(@Valid @RequestBody RankPeriodCreateRequest request) {
         RankPeriodCreateCommand command = request.toCommand();
-        Long id = rankCommandUseCase.createPeriod(command);
+        Long id = rankPeriodCreateUseCase.createPeriod(command);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
     @Operation(summary = "랭킹 기간 상세 조회", description = "랭킹 기간 상세를 조회합니다.")
     @GetMapping("/v1/periods/{id}")
     public ResponseEntity<ApiResponse<RankPeriodDetailResponse>> getPeriod(@PathVariable Long id) {
-        RankPeriodDetailResponse response = RankPeriodDetailResponse.from(rankQueryUseCase.getPeriod(id));
+        RankPeriodDetailResponse response = RankPeriodDetailResponse.from(rankPeriodManagementDetailQueryUseCase.getPeriod(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -70,7 +85,7 @@ class RankPeriodAdminApiController {
         @Valid @RequestBody RankPeriodUpdateRequest request
     ) {
         RankPeriodUpdateCommand command = request.toCommand(id);
-        rankCommandUseCase.updatePeriod(command);
+        rankPeriodUpdateUseCase.updatePeriod(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -78,7 +93,7 @@ class RankPeriodAdminApiController {
     @DeleteMapping("/v1/periods/{id}")
     public ResponseEntity<ApiResponse<Void>> deletePeriod(@PathVariable Long id) {
         RankPeriodDeleteCommand command = RankPeriodDeleteCommand.of(id);
-        rankCommandUseCase.deletePeriod(command);
+        rankPeriodDeleteUseCase.deletePeriod(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

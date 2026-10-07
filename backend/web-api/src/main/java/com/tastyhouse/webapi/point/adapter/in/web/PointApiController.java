@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.point.port.in.PointQueryUseCase;
+import com.tastyhouse.application.point.port.in.PointBalanceQueryUseCase;
+import com.tastyhouse.application.point.port.in.PointHistoryQueryUseCase;
+import com.tastyhouse.application.point.port.in.PointUsableQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.point.adapter.in.web.response.PointHistoryResponse;
@@ -20,10 +22,18 @@ import com.tastyhouse.webapi.point.adapter.in.web.response.PointUsableResponse;
 @Tag(name = "Point", description = "내 포인트 조회 API")
 class PointApiController {
 
-    private final PointQueryUseCase pointQueryUseCase;
+    private final PointBalanceQueryUseCase pointBalanceQueryUseCase;
+    private final PointHistoryQueryUseCase pointHistoryQueryUseCase;
+    private final PointUsableQueryUseCase pointUsableQueryUseCase;
 
-    public PointApiController(PointQueryUseCase pointQueryUseCase) {
-        this.pointQueryUseCase = pointQueryUseCase;
+    public PointApiController(
+        PointBalanceQueryUseCase pointBalanceQueryUseCase,
+        PointHistoryQueryUseCase pointHistoryQueryUseCase,
+        PointUsableQueryUseCase pointUsableQueryUseCase
+    ) {
+        this.pointBalanceQueryUseCase = pointBalanceQueryUseCase;
+        this.pointHistoryQueryUseCase = pointHistoryQueryUseCase;
+        this.pointUsableQueryUseCase = pointUsableQueryUseCase;
     }
 
     @Operation(summary = "보유 포인트 조회", description = "현재 로그인한 회원의 사용 가능한 포인트와 이번달 소멸 예정 포인트를 조회합니다.")
@@ -31,7 +41,7 @@ class PointApiController {
     public ResponseEntity<ApiResponse<PointResponse>> getMyPoint(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(PointResponse.from(pointQueryUseCase.getMemberPoint(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(PointResponse.from(pointBalanceQueryUseCase.getMemberPoint(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "포인트 내역 조회", description = "사용 가능 포인트, 이번달 소멸 예정 포인트, 포인트 적립/사용 내역 목록을 조회합니다.")
@@ -39,7 +49,7 @@ class PointApiController {
     public ResponseEntity<ApiResponse<PointHistoryResponse>> getMyPointHistory(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(PointHistoryResponse.from(pointQueryUseCase.getPointHistory(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(PointHistoryResponse.from(pointHistoryQueryUseCase.getPointHistory(userDetails.getMemberId()))));
     }
 
     @Operation(summary = "사용 가능 포인트 조회 (주문용)", description = "주문 시 사용 가능한 포인트를 조회합니다.")
@@ -47,6 +57,6 @@ class PointApiController {
     public ResponseEntity<ApiResponse<PointUsableResponse>> getMyUsablePoint(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(PointUsableResponse.of(pointQueryUseCase.getUsablePoint(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(PointUsableResponse.of(pointUsableQueryUseCase.getUsablePoint(userDetails.getMemberId()))));
     }
 }

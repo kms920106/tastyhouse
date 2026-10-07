@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
 import com.tastyhouse.application.review.port.in.ReviewBlindConsentCommand;
-import com.tastyhouse.application.review.port.in.ReviewBlindConsentCommandUseCase;
 import com.tastyhouse.application.review.port.in.ReviewBlindConsentQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBlindConsentUseCase;
 import com.tastyhouse.application.review.port.in.ReviewBlindRejectCommand;
+import com.tastyhouse.application.review.port.in.ReviewBlindRejectUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeResponse;
@@ -24,14 +25,17 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewBlindNoticeRes
 @Tag(name = "Review Blind Consent", description = "게시중단 리뷰 삭제 동의 API")
 class ReviewBlindConsentApiController {
 
-    private final ReviewBlindConsentCommandUseCase reviewBlindConsentCommandUseCase;
+    private final ReviewBlindConsentUseCase reviewBlindConsentUseCase;
+    private final ReviewBlindRejectUseCase reviewBlindRejectUseCase;
     private final ReviewBlindConsentQueryUseCase reviewBlindConsentQueryUseCase;
 
     public ReviewBlindConsentApiController(
-        ReviewBlindConsentCommandUseCase reviewBlindConsentCommandUseCase,
+        ReviewBlindConsentUseCase reviewBlindConsentUseCase,
+        ReviewBlindRejectUseCase reviewBlindRejectUseCase,
         ReviewBlindConsentQueryUseCase reviewBlindConsentQueryUseCase
     ) {
-        this.reviewBlindConsentCommandUseCase = reviewBlindConsentCommandUseCase;
+        this.reviewBlindConsentUseCase = reviewBlindConsentUseCase;
+        this.reviewBlindRejectUseCase = reviewBlindRejectUseCase;
         this.reviewBlindConsentQueryUseCase = reviewBlindConsentQueryUseCase;
     }
 
@@ -63,7 +67,7 @@ class ReviewBlindConsentApiController {
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId
     ) {
         ReviewBlindConsentCommand command = ReviewBlindConsentCommand.of(userDetails.getMemberId(), reviewId);
-        reviewBlindConsentCommandUseCase.consent(command);
+        reviewBlindConsentUseCase.consent(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -78,7 +82,7 @@ class ReviewBlindConsentApiController {
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long reviewId
     ) {
         ReviewBlindRejectCommand command = ReviewBlindRejectCommand.of(userDetails.getMemberId(), reviewId);
-        reviewBlindConsentCommandUseCase.reject(command);
+        reviewBlindRejectUseCase.reject(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

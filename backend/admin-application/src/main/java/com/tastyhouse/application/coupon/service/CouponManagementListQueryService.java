@@ -1,0 +1,38 @@
+package com.tastyhouse.application.coupon.service;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.domain.coupon.model.DiscountType;
+import com.tastyhouse.application.coupon.port.in.CouponManagementListQueryUseCase;
+import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
+import com.tastyhouse.application.coupon.port.out.CouponManagementQueryPort;
+import com.tastyhouse.application.coupon.port.out.CouponSearchCondition;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+
+@Service
+@Transactional(readOnly = true)
+class CouponManagementListQueryService implements CouponManagementListQueryUseCase {
+
+    private final CouponManagementQueryPort couponManagementQueryPort;
+
+    public CouponManagementListQueryService(CouponManagementQueryPort couponManagementQueryPort) {
+        this.couponManagementQueryPort = couponManagementQueryPort;
+    }
+
+    @Override
+    public PageResult<CouponListItemResult> getCoupons(
+        String name,
+        String discountType,
+        Boolean visible,
+        int page,
+        int size
+    ) {
+        String type = discountType == null ? null : DiscountType.from(discountType).name();
+        CouponSearchCondition condition = CouponSearchCondition.of(name, type, visible);
+        PageQuery pageQuery = PageQuery.of(page, size);
+
+        return couponManagementQueryPort.findAllCoupons(condition, pageQuery);
+    }
+}

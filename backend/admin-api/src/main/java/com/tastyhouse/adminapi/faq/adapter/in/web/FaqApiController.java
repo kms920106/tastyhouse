@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.faq.port.in.FaqCommandUseCase;
 import com.tastyhouse.application.faq.port.in.FaqCreateCommand;
+import com.tastyhouse.application.faq.port.in.FaqCreateUseCase;
 import com.tastyhouse.application.faq.port.in.FaqDeleteCommand;
-import com.tastyhouse.application.faq.port.in.FaqManagementQueryUseCase;
+import com.tastyhouse.application.faq.port.in.FaqDeleteUseCase;
+import com.tastyhouse.application.faq.port.in.FaqManagementDetailQueryUseCase;
+import com.tastyhouse.application.faq.port.in.FaqManagementListQueryUseCase;
 import com.tastyhouse.application.faq.port.in.FaqUpdateCommand;
+import com.tastyhouse.application.faq.port.in.FaqUpdateUseCase;
 import com.tastyhouse.application.faq.port.out.FaqManagementListItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -37,19 +40,31 @@ import com.tastyhouse.adminapi.faq.adapter.in.web.response.FaqListItemResponse;
 @RequestMapping("/api/faqs")
 class FaqApiController {
 
-    private final FaqCommandUseCase faqCommandUseCase;
-    private final FaqManagementQueryUseCase faqQueryUseCase;
+    private final FaqCreateUseCase faqCreateUseCase;
+    private final FaqUpdateUseCase faqUpdateUseCase;
+    private final FaqDeleteUseCase faqDeleteUseCase;
+    private final FaqManagementListQueryUseCase faqManagementListQueryUseCase;
+    private final FaqManagementDetailQueryUseCase faqManagementDetailQueryUseCase;
 
-    public FaqApiController(FaqCommandUseCase faqCommandUseCase, FaqManagementQueryUseCase faqQueryUseCase) {
-        this.faqCommandUseCase = faqCommandUseCase;
-        this.faqQueryUseCase = faqQueryUseCase;
+    public FaqApiController(
+        FaqCreateUseCase faqCreateUseCase,
+        FaqUpdateUseCase faqUpdateUseCase,
+        FaqDeleteUseCase faqDeleteUseCase,
+        FaqManagementListQueryUseCase faqManagementListQueryUseCase,
+        FaqManagementDetailQueryUseCase faqManagementDetailQueryUseCase
+    ) {
+        this.faqCreateUseCase = faqCreateUseCase;
+        this.faqUpdateUseCase = faqUpdateUseCase;
+        this.faqDeleteUseCase = faqDeleteUseCase;
+        this.faqManagementListQueryUseCase = faqManagementListQueryUseCase;
+        this.faqManagementDetailQueryUseCase = faqManagementDetailQueryUseCase;
     }
 
     @Operation(summary = "FAQ 항목 등록", description = "새로운 FAQ 항목을 등록합니다.")
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createFaq(@Valid @RequestBody FaqCreateRequest request) {
         FaqCreateCommand command = request.toCommand();
-        Long id = faqCommandUseCase.createFaq(command);
+        Long id = faqCreateUseCase.createFaq(command);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
@@ -59,7 +74,7 @@ class FaqApiController {
         @Valid @ModelAttribute FaqSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<FaqManagementListItemResult> pageResult = faqQueryUseCase.getFaqs(search.categoryId(), search.question(), search.visible(), pageRequest.page(), pageRequest.size());
+        PageResult<FaqManagementListItemResult> pageResult = faqManagementListQueryUseCase.getFaqs(search.categoryId(), search.question(), search.visible(), pageRequest.page(), pageRequest.size());
         PaginationResponse<FaqListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(FaqListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
@@ -67,7 +82,7 @@ class FaqApiController {
     @Operation(summary = "FAQ 항목 상세 조회", description = "FAQ 항목 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<FaqDetailResponse>> getFaq(@PathVariable Long id) {
-        FaqDetailResponse response = FaqDetailResponse.from(faqQueryUseCase.getFaq(id));
+        FaqDetailResponse response = FaqDetailResponse.from(faqManagementDetailQueryUseCase.getFaq(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -78,7 +93,7 @@ class FaqApiController {
         @Valid @RequestBody FaqUpdateRequest request
     ) {
         FaqUpdateCommand command = request.toCommand(id);
-        faqCommandUseCase.updateFaq(command);
+        faqUpdateUseCase.updateFaq(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -86,7 +101,7 @@ class FaqApiController {
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteFaq(@PathVariable Long id) {
         FaqDeleteCommand command = FaqDeleteCommand.of(id);
-        faqCommandUseCase.deleteFaq(command);
+        faqDeleteUseCase.deleteFaq(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

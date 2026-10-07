@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopTagManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.TagCreateCommand;
 import com.tastyhouse.application.shop.port.in.TagCreateUseCase;
 import com.tastyhouse.application.shop.port.in.TagDeleteCommand;
@@ -30,22 +30,22 @@ class ShopTagAdminApiController {
 
     private final TagCreateUseCase tagCreateUseCase;
     private final TagDeleteUseCase tagDeleteUseCase;
-    private final ShopManagementQueryUseCase shopQueryUseCase;
+    private final ShopTagManagementQueryUseCase shopTagManagementQueryUseCase;
 
     public ShopTagAdminApiController(
         TagCreateUseCase tagCreateUseCase,
         TagDeleteUseCase tagDeleteUseCase,
-        ShopManagementQueryUseCase shopQueryUseCase
+        ShopTagManagementQueryUseCase shopTagManagementQueryUseCase
     ) {
         this.tagCreateUseCase = tagCreateUseCase;
         this.tagDeleteUseCase = tagDeleteUseCase;
-        this.shopQueryUseCase = shopQueryUseCase;
+        this.shopTagManagementQueryUseCase = shopTagManagementQueryUseCase;
     }
 
     @Operation(summary = "태그 목록 조회", description = "태그 목록을 조회합니다.")
     @GetMapping("/v1/tags")
     public ResponseEntity<ApiResponse<List<TagResponse>>> getTags() {
-        List<TagResponse> response = shopQueryUseCase.getTags().stream()
+        List<TagResponse> response = shopTagManagementQueryUseCase.getTags().stream()
             .map(TagResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

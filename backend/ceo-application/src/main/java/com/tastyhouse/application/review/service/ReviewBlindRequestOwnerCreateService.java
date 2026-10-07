@@ -1,0 +1,40 @@
+package com.tastyhouse.application.review.service;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tastyhouse.domain.review.model.ReviewBlindReason;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestCreateCommand;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestOwnerCreateUseCase;
+import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
+
+@Service
+@Transactional
+class ReviewBlindRequestOwnerCreateService implements ReviewBlindRequestOwnerCreateUseCase {
+
+    private final ReviewBlindRequestService reviewBlindRequestService;
+    private final ShopOwnershipValidator shopOwnershipValidator;
+
+    public ReviewBlindRequestOwnerCreateService(
+        ReviewBlindRequestService reviewBlindRequestService,
+        ShopOwnershipValidator shopOwnershipValidator
+    ) {
+        this.reviewBlindRequestService = reviewBlindRequestService;
+        this.shopOwnershipValidator = shopOwnershipValidator;
+    }
+
+    @Override
+    public Long request(ReviewBlindRequestCreateCommand command) {
+        Long ceoId = command.ceoId();
+        Long shopId = command.shopId();
+        Long reviewId = command.reviewId();
+        String detailReason = command.detailReason();
+        List<Long> attachmentFileIds = command.attachmentFileIds();
+
+        shopOwnershipValidator.validateOwnership(ceoId, shopId);
+        ReviewBlindReason blindReason = ReviewBlindReason.from(command.reason());
+        return reviewBlindRequestService.request(shopId, reviewId, ceoId, blindReason, detailReason, attachmentFileIds);
+    }
+}

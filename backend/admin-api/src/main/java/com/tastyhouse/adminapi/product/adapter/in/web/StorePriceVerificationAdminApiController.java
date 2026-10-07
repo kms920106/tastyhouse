@@ -15,10 +15,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.product.port.in.StorePriceVerificationApproveCommand;
-import com.tastyhouse.application.product.port.in.StorePriceVerificationCommandUseCase;
-import com.tastyhouse.application.product.port.in.StorePriceVerificationQueryUseCase;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationApproveUseCase;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationDetailQueryUseCase;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationItemListQueryUseCase;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationListQueryUseCase;
 import com.tastyhouse.application.product.port.in.StorePriceVerificationRejectCommand;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationRejectUseCase;
 import com.tastyhouse.application.product.port.in.StorePriceVerificationStartReviewCommand;
+import com.tastyhouse.application.product.port.in.StorePriceVerificationStartReviewUseCase;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -34,15 +38,27 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.StorePriceVerific
 @RequestMapping("/api/shops")
 class StorePriceVerificationAdminApiController {
 
-    private final StorePriceVerificationQueryUseCase storePriceVerificationQueryUseCase;
-    private final StorePriceVerificationCommandUseCase storePriceVerificationCommandUseCase;
+    private final StorePriceVerificationListQueryUseCase storePriceVerificationListQueryUseCase;
+    private final StorePriceVerificationDetailQueryUseCase storePriceVerificationDetailQueryUseCase;
+    private final StorePriceVerificationItemListQueryUseCase storePriceVerificationItemListQueryUseCase;
+    private final StorePriceVerificationStartReviewUseCase storePriceVerificationStartReviewUseCase;
+    private final StorePriceVerificationApproveUseCase storePriceVerificationApproveUseCase;
+    private final StorePriceVerificationRejectUseCase storePriceVerificationRejectUseCase;
 
     public StorePriceVerificationAdminApiController(
-        StorePriceVerificationQueryUseCase storePriceVerificationQueryUseCase,
-        StorePriceVerificationCommandUseCase storePriceVerificationCommandUseCase
+        StorePriceVerificationListQueryUseCase storePriceVerificationListQueryUseCase,
+        StorePriceVerificationDetailQueryUseCase storePriceVerificationDetailQueryUseCase,
+        StorePriceVerificationItemListQueryUseCase storePriceVerificationItemListQueryUseCase,
+        StorePriceVerificationStartReviewUseCase storePriceVerificationStartReviewUseCase,
+        StorePriceVerificationApproveUseCase storePriceVerificationApproveUseCase,
+        StorePriceVerificationRejectUseCase storePriceVerificationRejectUseCase
     ) {
-        this.storePriceVerificationQueryUseCase = storePriceVerificationQueryUseCase;
-        this.storePriceVerificationCommandUseCase = storePriceVerificationCommandUseCase;
+        this.storePriceVerificationListQueryUseCase = storePriceVerificationListQueryUseCase;
+        this.storePriceVerificationDetailQueryUseCase = storePriceVerificationDetailQueryUseCase;
+        this.storePriceVerificationItemListQueryUseCase = storePriceVerificationItemListQueryUseCase;
+        this.storePriceVerificationStartReviewUseCase = storePriceVerificationStartReviewUseCase;
+        this.storePriceVerificationApproveUseCase = storePriceVerificationApproveUseCase;
+        this.storePriceVerificationRejectUseCase = storePriceVerificationRejectUseCase;
     }
 
     @Operation(summary = "매장 가격 인증 요청 목록 조회",
@@ -55,7 +71,7 @@ class StorePriceVerificationAdminApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PageResult<StorePriceVerificationListItemResult> pageResult =
-            storePriceVerificationQueryUseCase.getVerifications(
+            storePriceVerificationListQueryUseCase.getVerifications(
                 search.status(), pageRequest.page(), pageRequest.size()
             );
         PaginationResponse<StorePriceVerificationListItemResponse> pageResponse =
@@ -73,10 +89,10 @@ class StorePriceVerificationAdminApiController {
     public ResponseEntity<ApiResponse<StorePriceVerificationDetailResponse>> getStorePriceVerification(
         @PathVariable Long id
     ) {
-        StorePriceVerificationListItemResult verification = storePriceVerificationQueryUseCase.getVerification(id);
+        StorePriceVerificationListItemResult verification = storePriceVerificationDetailQueryUseCase.getVerification(id);
         StorePriceVerificationDetailResponse response = StorePriceVerificationDetailResponse.from(
             verification,
-            storePriceVerificationQueryUseCase.getVerificationItems(id)
+            storePriceVerificationItemListQueryUseCase.getVerificationItems(id)
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -87,7 +103,7 @@ class StorePriceVerificationAdminApiController {
     @PatchMapping("/v1/store-price-verifications/{id}/review")
     public ResponseEntity<ApiResponse<Void>> startStorePriceVerificationReview(@PathVariable Long id) {
         StorePriceVerificationStartReviewCommand command = StorePriceVerificationStartReviewCommand.of(id);
-        storePriceVerificationCommandUseCase.startReview(command);
+        storePriceVerificationStartReviewUseCase.startReview(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -98,7 +114,7 @@ class StorePriceVerificationAdminApiController {
     @PatchMapping("/v1/store-price-verifications/{id}/approve")
     public ResponseEntity<ApiResponse<Void>> approveStorePriceVerification(@PathVariable Long id) {
         StorePriceVerificationApproveCommand command = StorePriceVerificationApproveCommand.of(id);
-        storePriceVerificationCommandUseCase.approve(command);
+        storePriceVerificationApproveUseCase.approve(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -110,7 +126,7 @@ class StorePriceVerificationAdminApiController {
         @Valid @RequestBody StorePriceVerificationRejectRequest request
     ) {
         StorePriceVerificationRejectCommand command = request.toCommand(id);
-        storePriceVerificationCommandUseCase.reject(command);
+        storePriceVerificationRejectUseCase.reject(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -19,9 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopRequestCancelCommand;
-import com.tastyhouse.application.shop.port.in.ShopRequestCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRequestCancelUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRequestCommentListQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopRequestCommentOwnerCreateCommand;
-import com.tastyhouse.application.shop.port.in.ShopRequestQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRequestCommentOwnerCreateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRequestDetailQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRequestListQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopRequestTypeCatalogQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopRequestListItemViewResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -38,15 +42,27 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopRequestTypeCatalog
 @RequestMapping("/api/shops")
 class ShopRequestApiController {
 
-    private final ShopRequestQueryUseCase shopRequestQueryUseCase;
-    private final ShopRequestCommandUseCase shopRequestCommandUseCase;
+    private final ShopRequestListQueryUseCase shopRequestListQueryUseCase;
+    private final ShopRequestDetailQueryUseCase shopRequestDetailQueryUseCase;
+    private final ShopRequestCommentListQueryUseCase shopRequestCommentListQueryUseCase;
+    private final ShopRequestTypeCatalogQueryUseCase shopRequestTypeCatalogQueryUseCase;
+    private final ShopRequestCancelUseCase shopRequestCancelUseCase;
+    private final ShopRequestCommentOwnerCreateUseCase shopRequestCommentOwnerCreateUseCase;
 
     public ShopRequestApiController(
-        ShopRequestQueryUseCase shopRequestQueryUseCase,
-        ShopRequestCommandUseCase shopRequestCommandUseCase
+        ShopRequestListQueryUseCase shopRequestListQueryUseCase,
+        ShopRequestDetailQueryUseCase shopRequestDetailQueryUseCase,
+        ShopRequestCommentListQueryUseCase shopRequestCommentListQueryUseCase,
+        ShopRequestTypeCatalogQueryUseCase shopRequestTypeCatalogQueryUseCase,
+        ShopRequestCancelUseCase shopRequestCancelUseCase,
+        ShopRequestCommentOwnerCreateUseCase shopRequestCommentOwnerCreateUseCase
     ) {
-        this.shopRequestQueryUseCase = shopRequestQueryUseCase;
-        this.shopRequestCommandUseCase = shopRequestCommandUseCase;
+        this.shopRequestListQueryUseCase = shopRequestListQueryUseCase;
+        this.shopRequestDetailQueryUseCase = shopRequestDetailQueryUseCase;
+        this.shopRequestCommentListQueryUseCase = shopRequestCommentListQueryUseCase;
+        this.shopRequestTypeCatalogQueryUseCase = shopRequestTypeCatalogQueryUseCase;
+        this.shopRequestCancelUseCase = shopRequestCancelUseCase;
+        this.shopRequestCommentOwnerCreateUseCase = shopRequestCommentOwnerCreateUseCase;
     }
 
     @Operation(
@@ -60,7 +76,7 @@ class ShopRequestApiController {
         @Valid @ModelAttribute ShopRequestSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopRequestListItemViewResult> pageResult = shopRequestQueryUseCase.getRequests(
+        PageResult<ShopRequestListItemViewResult> pageResult = shopRequestListQueryUseCase.getRequests(
             userDetails.getCeoId(),
             id,
             request.requestType(),
@@ -91,7 +107,7 @@ class ShopRequestApiController {
         @PathVariable Long requestId
     ) {
         ShopRequestDetailResponse response =
-            ShopRequestDetailResponse.from(shopRequestQueryUseCase.getRequestDetail(userDetails.getCeoId(), id, requestId));
+            ShopRequestDetailResponse.from(shopRequestDetailQueryUseCase.getRequestDetail(userDetails.getCeoId(), id, requestId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -106,7 +122,7 @@ class ShopRequestApiController {
         @PathVariable Long requestId
     ) {
         ShopRequestCancelCommand command = ShopRequestCancelCommand.of(userDetails.getCeoId(), id, requestId);
-        shopRequestCommandUseCase.cancelRequest(command);
+        shopRequestCancelUseCase.cancelRequest(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -120,7 +136,7 @@ class ShopRequestApiController {
         @PathVariable Long id,
         @PathVariable Long requestId
     ) {
-        List<ShopRequestCommentResponse> response = shopRequestQueryUseCase.getComments(userDetails.getCeoId(), id, requestId).stream()
+        List<ShopRequestCommentResponse> response = shopRequestCommentListQueryUseCase.getComments(userDetails.getCeoId(), id, requestId).stream()
             .map(ShopRequestCommentResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -138,7 +154,7 @@ class ShopRequestApiController {
         @Valid @RequestBody ShopRequestCommentCreateRequest request
     ) {
         ShopRequestCommentOwnerCreateCommand command = request.toCommand(userDetails.getCeoId(), id, requestId);
-        Long commentId = shopRequestCommandUseCase.addComment(command);
+        Long commentId = shopRequestCommentOwnerCreateUseCase.addComment(command);
         return ResponseEntity.ok(ApiResponse.success(commentId));
     }
 
@@ -149,7 +165,7 @@ class ShopRequestApiController {
     @GetMapping("/v1/request-types")
     public ResponseEntity<ApiResponse<ShopRequestTypeCatalogResponse>> getRequestTypes() {
         ShopRequestTypeCatalogResponse response =
-            ShopRequestTypeCatalogResponse.from(shopRequestQueryUseCase.getRequestTypes());
+            ShopRequestTypeCatalogResponse.from(shopRequestTypeCatalogQueryUseCase.getRequestTypes());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

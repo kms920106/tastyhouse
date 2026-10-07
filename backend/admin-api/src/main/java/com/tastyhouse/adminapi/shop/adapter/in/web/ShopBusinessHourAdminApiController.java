@@ -21,15 +21,16 @@ import com.tastyhouse.application.shop.port.in.ShopBreakTimeCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeManagementCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeManagementDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopBreakTimeManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeManagementUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBreakTimeUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourManagementUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBusinessHourUpdateUseCase;
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopBreakTimeSaveRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopBusinessHourSaveRequest;
@@ -47,7 +48,8 @@ class ShopBusinessHourAdminApiController {
     private final ShopBreakTimeCreateUseCase shopBreakTimeCreateUseCase;
     private final ShopBreakTimeUpdateUseCase shopBreakTimeUpdateUseCase;
     private final ShopBreakTimeDeleteUseCase shopBreakTimeDeleteUseCase;
-    private final ShopManagementQueryUseCase shopQueryUseCase;
+    private final ShopBusinessHourManagementQueryUseCase shopBusinessHourManagementQueryUseCase;
+    private final ShopBreakTimeManagementQueryUseCase shopBreakTimeManagementQueryUseCase;
 
     public ShopBusinessHourAdminApiController(
         ShopBusinessHourCreateUseCase shopBusinessHourCreateUseCase,
@@ -56,7 +58,8 @@ class ShopBusinessHourAdminApiController {
         ShopBreakTimeCreateUseCase shopBreakTimeCreateUseCase,
         ShopBreakTimeUpdateUseCase shopBreakTimeUpdateUseCase,
         ShopBreakTimeDeleteUseCase shopBreakTimeDeleteUseCase,
-        ShopManagementQueryUseCase shopQueryUseCase
+        ShopBusinessHourManagementQueryUseCase shopBusinessHourManagementQueryUseCase,
+        ShopBreakTimeManagementQueryUseCase shopBreakTimeManagementQueryUseCase
     ) {
         this.shopBusinessHourCreateUseCase = shopBusinessHourCreateUseCase;
         this.shopBusinessHourUpdateUseCase = shopBusinessHourUpdateUseCase;
@@ -64,13 +67,14 @@ class ShopBusinessHourAdminApiController {
         this.shopBreakTimeCreateUseCase = shopBreakTimeCreateUseCase;
         this.shopBreakTimeUpdateUseCase = shopBreakTimeUpdateUseCase;
         this.shopBreakTimeDeleteUseCase = shopBreakTimeDeleteUseCase;
-        this.shopQueryUseCase = shopQueryUseCase;
+        this.shopBusinessHourManagementQueryUseCase = shopBusinessHourManagementQueryUseCase;
+        this.shopBreakTimeManagementQueryUseCase = shopBreakTimeManagementQueryUseCase;
     }
 
     @Operation(summary = "운영시간 목록 조회", description = "가게의 운영시간 목록을 조회합니다.")
     @GetMapping("/v1/{id}/business-hours")
     public ResponseEntity<ApiResponse<List<ShopBusinessHourResponse>>> getBusinessHours(@PathVariable Long id) {
-        List<ShopBusinessHourResponse> response = shopQueryUseCase.getBusinessHours(id).stream()
+        List<ShopBusinessHourResponse> response = shopBusinessHourManagementQueryUseCase.getBusinessHours(id).stream()
             .map(ShopBusinessHourResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -114,7 +118,7 @@ class ShopBusinessHourAdminApiController {
     @Operation(summary = "브레이크타임 목록 조회", description = "가게의 브레이크타임 목록을 조회합니다.")
     @GetMapping("/v1/{id}/break-times")
     public ResponseEntity<ApiResponse<List<ShopBreakTimeResponse>>> getBreakTimes(@PathVariable Long id) {
-        List<ShopBreakTimeResponse> response = shopQueryUseCase.getBreakTimes(id).stream()
+        List<ShopBreakTimeResponse> response = shopBreakTimeManagementQueryUseCase.getBreakTimes(id).stream()
             .map(ShopBreakTimeResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

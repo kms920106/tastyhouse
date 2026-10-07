@@ -17,8 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.product.port.in.ProductRepresentativeClearCommand;
-import com.tastyhouse.application.product.port.in.ProductRepresentativeCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeClearUseCase;
 import com.tastyhouse.application.product.port.in.ProductRepresentativeRequestCommand;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeRequestUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductRepresentativeCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
@@ -28,12 +29,15 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequ
 @RequestMapping("/api/products")
 class ProductRepresentativeApiController {
 
-    private final ProductRepresentativeCommandUseCase productRepresentativeCommandUseCase;
+    private final ProductRepresentativeRequestUseCase productRepresentativeRequestUseCase;
+    private final ProductRepresentativeClearUseCase productRepresentativeClearUseCase;
 
     public ProductRepresentativeApiController(
-        ProductRepresentativeCommandUseCase productRepresentativeCommandUseCase
+        ProductRepresentativeRequestUseCase productRepresentativeRequestUseCase,
+        ProductRepresentativeClearUseCase productRepresentativeClearUseCase
     ) {
-        this.productRepresentativeCommandUseCase = productRepresentativeCommandUseCase;
+        this.productRepresentativeRequestUseCase = productRepresentativeRequestUseCase;
+        this.productRepresentativeClearUseCase = productRepresentativeClearUseCase;
     }
 
     @Operation(summary = "사장님 추천 메뉴 지정 요청",
@@ -45,7 +49,7 @@ class ProductRepresentativeApiController {
         @Valid @RequestBody ProductRepresentativeCreateRequest request
     ) {
         ProductRepresentativeRequestCommand command = request.toCommand(userDetails.getCeoId());
-        List<Long> requestIds = productRepresentativeCommandUseCase.requestRepresentative(command);
+        List<Long> requestIds = productRepresentativeRequestUseCase.requestRepresentative(command);
         return ResponseEntity.ok(ApiResponse.success(requestIds));
     }
 
@@ -59,7 +63,7 @@ class ProductRepresentativeApiController {
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
         ProductRepresentativeClearCommand command = request.toRepresentativeClearCommand(userDetails.getCeoId(), id);
-        productRepresentativeCommandUseCase.clearRepresentative(command);
+        productRepresentativeClearUseCase.clearRepresentative(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

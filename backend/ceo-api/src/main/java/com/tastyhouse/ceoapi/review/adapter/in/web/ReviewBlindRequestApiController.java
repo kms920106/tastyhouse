@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.review.port.in.ReviewBlindRequestCancelCommand;
 import com.tastyhouse.application.review.port.in.ReviewBlindRequestCreateCommand;
-import com.tastyhouse.application.review.port.in.ReviewBlindRequestOwnerCommandUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestOwnerCancelUseCase;
+import com.tastyhouse.application.review.port.in.ReviewBlindRequestOwnerCreateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewBlindRequestCreateRequest;
 
@@ -24,10 +25,15 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.request.ReviewBlindRequestCre
 @RequestMapping("/api/shops")
 class ReviewBlindRequestApiController {
 
-    private final ReviewBlindRequestOwnerCommandUseCase reviewBlindRequestCommandUseCase;
+    private final ReviewBlindRequestOwnerCreateUseCase reviewBlindRequestOwnerCreateUseCase;
+    private final ReviewBlindRequestOwnerCancelUseCase reviewBlindRequestOwnerCancelUseCase;
 
-    public ReviewBlindRequestApiController(ReviewBlindRequestOwnerCommandUseCase reviewBlindRequestCommandUseCase) {
-        this.reviewBlindRequestCommandUseCase = reviewBlindRequestCommandUseCase;
+    public ReviewBlindRequestApiController(
+        ReviewBlindRequestOwnerCreateUseCase reviewBlindRequestOwnerCreateUseCase,
+        ReviewBlindRequestOwnerCancelUseCase reviewBlindRequestOwnerCancelUseCase
+    ) {
+        this.reviewBlindRequestOwnerCreateUseCase = reviewBlindRequestOwnerCreateUseCase;
+        this.reviewBlindRequestOwnerCancelUseCase = reviewBlindRequestOwnerCancelUseCase;
     }
 
     @Operation(
@@ -44,7 +50,7 @@ class ReviewBlindRequestApiController {
         @Valid @RequestBody ReviewBlindRequestCreateRequest request
     ) {
         ReviewBlindRequestCreateCommand command = request.toCommand(userDetails.getCeoId(), id, reviewId);
-        Long blindRequestId = reviewBlindRequestCommandUseCase.request(command);
+        Long blindRequestId = reviewBlindRequestOwnerCreateUseCase.request(command);
         return ResponseEntity.ok(ApiResponse.success(blindRequestId));
     }
 
@@ -61,7 +67,7 @@ class ReviewBlindRequestApiController {
     ) {
         ReviewBlindRequestCancelCommand command =
             ReviewBlindRequestCancelCommand.of(userDetails.getCeoId(), id, requestId);
-        reviewBlindRequestCommandUseCase.cancel(command);
+        reviewBlindRequestOwnerCancelUseCase.cancel(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

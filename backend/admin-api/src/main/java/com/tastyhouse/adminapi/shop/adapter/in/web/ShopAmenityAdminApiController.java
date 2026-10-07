@@ -20,12 +20,13 @@ import com.tastyhouse.application.auth.security.AdminUserDetails;
 import com.tastyhouse.application.shop.port.in.ShopAmenityAssignUseCase;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryCreateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopAmenityManagementAssignCommand;
+import com.tastyhouse.application.shop.port.in.ShopAmenityManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopAmenityManagementUnassignCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityUnassignUseCase;
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopAmenityAssignRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopAmenityCategoryCreateRequest;
@@ -42,26 +43,29 @@ class ShopAmenityAdminApiController {
     private final ShopAmenityCategoryUpdateUseCase shopAmenityCategoryUpdateUseCase;
     private final ShopAmenityAssignUseCase shopAmenityAssignUseCase;
     private final ShopAmenityUnassignUseCase shopAmenityUnassignUseCase;
-    private final ShopManagementQueryUseCase shopQueryUseCase;
+    private final ShopAmenityCategoryManagementQueryUseCase shopAmenityCategoryManagementQueryUseCase;
+    private final ShopAmenityManagementQueryUseCase shopAmenityManagementQueryUseCase;
 
     public ShopAmenityAdminApiController(
         ShopAmenityCategoryCreateUseCase shopAmenityCategoryCreateUseCase,
         ShopAmenityCategoryUpdateUseCase shopAmenityCategoryUpdateUseCase,
         ShopAmenityAssignUseCase shopAmenityAssignUseCase,
         ShopAmenityUnassignUseCase shopAmenityUnassignUseCase,
-        ShopManagementQueryUseCase shopQueryUseCase
+        ShopAmenityCategoryManagementQueryUseCase shopAmenityCategoryManagementQueryUseCase,
+        ShopAmenityManagementQueryUseCase shopAmenityManagementQueryUseCase
     ) {
         this.shopAmenityCategoryCreateUseCase = shopAmenityCategoryCreateUseCase;
         this.shopAmenityCategoryUpdateUseCase = shopAmenityCategoryUpdateUseCase;
         this.shopAmenityAssignUseCase = shopAmenityAssignUseCase;
         this.shopAmenityUnassignUseCase = shopAmenityUnassignUseCase;
-        this.shopQueryUseCase = shopQueryUseCase;
+        this.shopAmenityCategoryManagementQueryUseCase = shopAmenityCategoryManagementQueryUseCase;
+        this.shopAmenityManagementQueryUseCase = shopAmenityManagementQueryUseCase;
     }
 
     @Operation(summary = "편의시설 카테고리 목록 조회", description = "편의시설 마스터 카테고리 목록을 조회합니다.")
     @GetMapping("/v1/amenity-categories")
     public ResponseEntity<ApiResponse<List<ShopAmenityCategoryResponse>>> getAmenityCategories() {
-        List<ShopAmenityCategoryResponse> response = shopQueryUseCase.getAmenityCategories().stream()
+        List<ShopAmenityCategoryResponse> response = shopAmenityCategoryManagementQueryUseCase.getAmenityCategories().stream()
             .map(ShopAmenityCategoryResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -89,7 +93,7 @@ class ShopAmenityAdminApiController {
     @Operation(summary = "가게 편의시설 목록 조회", description = "가게에 지정된 편의시설 목록을 조회합니다.")
     @GetMapping("/v1/{id}/amenities")
     public ResponseEntity<ApiResponse<List<ShopAmenityResponse>>> getShopAmenities(@PathVariable Long id) {
-        List<ShopAmenityResponse> response = shopQueryUseCase.getShopAmenities(id).stream()
+        List<ShopAmenityResponse> response = shopAmenityManagementQueryUseCase.getShopAmenities(id).stream()
             .map(ShopAmenityResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

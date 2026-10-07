@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopStatusCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopStatusQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopStatusUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopStatusUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopStatusUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStatusResponse;
@@ -26,11 +26,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopStatusResponse;
 class ShopStatusApiController {
 
     private final ShopStatusQueryUseCase shopStatusQueryUseCase;
-    private final ShopStatusCommandUseCase shopStatusCommandUseCase;
+    private final ShopStatusUpdateUseCase shopStatusUpdateUseCase;
 
-    public ShopStatusApiController(ShopStatusQueryUseCase shopStatusQueryUseCase, ShopStatusCommandUseCase shopStatusCommandUseCase) {
+    public ShopStatusApiController(
+        ShopStatusQueryUseCase shopStatusQueryUseCase,
+        ShopStatusUpdateUseCase shopStatusUpdateUseCase
+    ) {
         this.shopStatusQueryUseCase = shopStatusQueryUseCase;
-        this.shopStatusCommandUseCase = shopStatusCommandUseCase;
+        this.shopStatusUpdateUseCase = shopStatusUpdateUseCase;
     }
 
     @Operation(summary = "내 가게 노출 상태 조회", description = "로그인한 점주가 소유한 가게의 노출정지·폐업 상태를 조회합니다.")
@@ -52,7 +55,7 @@ class ShopStatusApiController {
         @Valid @RequestBody ShopStatusUpdateRequest request
     ) {
         ShopStatusUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopStatusCommandUseCase.updateStatus(command);
+        shopStatusUpdateUseCase.updateStatus(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -12,7 +12,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopSearchQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopAmenityListQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopBestListQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopEditorChoiceQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopFoodTypeListQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopLatestListQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMapMarkerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopStationListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -32,10 +38,30 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopStationListItemRes
 @Tag(name = "Shop", description = "가게 관리 API")
 class ShopApiController {
 
-    private final ShopSearchQueryUseCase shopSearchQueryUseCase;
+    private final ShopMapMarkerQueryUseCase shopMapMarkerQueryUseCase;
+    private final ShopBestListQueryUseCase shopBestListQueryUseCase;
+    private final ShopEditorChoiceQueryUseCase shopEditorChoiceQueryUseCase;
+    private final ShopLatestListQueryUseCase shopLatestListQueryUseCase;
+    private final ShopStationListQueryUseCase shopStationListQueryUseCase;
+    private final ShopFoodTypeListQueryUseCase shopFoodTypeListQueryUseCase;
+    private final ShopAmenityListQueryUseCase shopAmenityListQueryUseCase;
 
-    public ShopApiController(ShopSearchQueryUseCase shopSearchQueryUseCase) {
-        this.shopSearchQueryUseCase = shopSearchQueryUseCase;
+    public ShopApiController(
+        ShopMapMarkerQueryUseCase shopMapMarkerQueryUseCase,
+        ShopBestListQueryUseCase shopBestListQueryUseCase,
+        ShopEditorChoiceQueryUseCase shopEditorChoiceQueryUseCase,
+        ShopLatestListQueryUseCase shopLatestListQueryUseCase,
+        ShopStationListQueryUseCase shopStationListQueryUseCase,
+        ShopFoodTypeListQueryUseCase shopFoodTypeListQueryUseCase,
+        ShopAmenityListQueryUseCase shopAmenityListQueryUseCase
+    ) {
+        this.shopMapMarkerQueryUseCase = shopMapMarkerQueryUseCase;
+        this.shopBestListQueryUseCase = shopBestListQueryUseCase;
+        this.shopEditorChoiceQueryUseCase = shopEditorChoiceQueryUseCase;
+        this.shopLatestListQueryUseCase = shopLatestListQueryUseCase;
+        this.shopStationListQueryUseCase = shopStationListQueryUseCase;
+        this.shopFoodTypeListQueryUseCase = shopFoodTypeListQueryUseCase;
+        this.shopAmenityListQueryUseCase = shopAmenityListQueryUseCase;
     }
 
     @Operation(summary = "지도 마커 목록 조회", description = "지도에서 드래그한 위치 기준 주변 가게의 마커 정보(위도, 경도, 상호명)를 조회합니다.")
@@ -43,7 +69,7 @@ class ShopApiController {
     public ResponseEntity<ApiResponse<List<ShopMapMarkerResponse>>> getMapMarkers(
         @Valid @ModelAttribute ShopMapMarkerSearchRequest search
     ) {
-        List<ShopMapMarkerResponse> markers = shopSearchQueryUseCase
+        List<ShopMapMarkerResponse> markers = shopMapMarkerQueryUseCase
             .searchMapMarkers(search.latitude(), search.longitude()).stream()
             .map(ShopMapMarkerResponse::from)
             .toList();
@@ -58,7 +84,7 @@ class ShopApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         PaginationResponse<ShopBestListItemResponse> pageResponse = PaginationResponse.from(
-            shopSearchQueryUseCase.searchBestShops(memberIdOrNull(userDetails), pageRequest.page(), pageRequest.size())
+            shopBestListQueryUseCase.searchBestShops(memberIdOrNull(userDetails), pageRequest.page(), pageRequest.size())
                 .map(ShopBestListItemResponse::from)
         );
         ApiResponse<List<ShopBestListItemResponse>> response = ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements());
@@ -68,7 +94,7 @@ class ShopApiController {
     @Operation(summary = "테하 초이스 조회", description = "특정 테하 초이스의 가게 이미지, 제목, 내용, 관련 상품 목록을 조회합니다.")
     @GetMapping("/v1/editor-choice")
     public ResponseEntity<ApiResponse<List<ShopEditorChoiceResponse>>> getEditorChoices(@Valid @ModelAttribute PageRequest pageRequest) {
-        List<ShopEditorChoiceResponse> editorChoiceResponses = shopSearchQueryUseCase
+        List<ShopEditorChoiceResponse> editorChoiceResponses = shopEditorChoiceQueryUseCase
             .searchEditorChoices(pageRequest.page(), pageRequest.size()).stream()
             .map(ShopEditorChoiceResponse::from)
             .toList();
@@ -84,7 +110,7 @@ class ShopApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         PaginationResponse<ShopLatestListItemResponse> pageResponse = PaginationResponse.from(
-            shopSearchQueryUseCase.searchLatestShops(
+            shopLatestListQueryUseCase.searchLatestShops(
                 search.stationId(),
                 search.foodTypes(),
                 search.amenities(),
@@ -100,7 +126,7 @@ class ShopApiController {
     @Operation(summary = "지하철역 목록 조회", description = "지하철역 목록을 가나다라 순으로 조회합니다. ID와 역명을 반환합니다.")
     @GetMapping("/v1/stations")
     public ResponseEntity<ApiResponse<List<ShopStationListItemResponse>>> getStations() {
-        List<ShopStationListItemResponse> stations = shopSearchQueryUseCase.searchAllStations().stream()
+        List<ShopStationListItemResponse> stations = shopStationListQueryUseCase.searchAllStations().stream()
             .map(ShopStationListItemResponse::from)
             .toList();
         ApiResponse<List<ShopStationListItemResponse>> response = ApiResponse.success(stations);
@@ -110,7 +136,7 @@ class ShopApiController {
     @Operation(summary = "음식종류 목록 조회", description = "음식종류 전체 목록을 조회합니다. 코드와 표시명을 반환합니다.")
     @GetMapping("/v1/food-types")
     public ResponseEntity<ApiResponse<List<ShopFoodTypeListItemResponse>>> getFoodTypes() {
-        List<ShopFoodTypeListItemResponse> foodTypes = shopSearchQueryUseCase.searchAllFoodTypes().stream()
+        List<ShopFoodTypeListItemResponse> foodTypes = shopFoodTypeListQueryUseCase.searchAllFoodTypes().stream()
             .map(ShopFoodTypeListItemResponse::from)
             .toList();
         ApiResponse<List<ShopFoodTypeListItemResponse>> response = ApiResponse.success(foodTypes);
@@ -120,7 +146,7 @@ class ShopApiController {
     @Operation(summary = "편의시설 목록 조회", description = "편의시설 전체 목록을 조회합니다. 코드와 표시명을 반환합니다.")
     @GetMapping("/v1/amenities")
     public ResponseEntity<ApiResponse<List<ShopAmenityListItemResponse>>> getAmenities() {
-        List<ShopAmenityListItemResponse> amenities = shopSearchQueryUseCase.searchAllAmenities().stream()
+        List<ShopAmenityListItemResponse> amenities = shopAmenityListQueryUseCase.searchAllAmenities().stream()
             .map(ShopAmenityListItemResponse::from)
             .toList();
         ApiResponse<List<ShopAmenityListItemResponse>> response = ApiResponse.success(amenities);

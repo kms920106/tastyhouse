@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryQueryUseCase;
+import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryListQueryUseCase;
 import com.tastyhouse.application.ceo.port.out.CeoLoginHistoryResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -27,10 +27,10 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoLoginHistoryListItem
 @RequestMapping("/api/ceos")
 class CeoLoginHistoryApiController {
 
-    private final CeoLoginHistoryQueryUseCase ceoLoginHistoryQueryUseCase;
+    private final CeoLoginHistoryListQueryUseCase ceoLoginHistoryListQueryUseCase;
 
-    public CeoLoginHistoryApiController(CeoLoginHistoryQueryUseCase ceoLoginHistoryQueryUseCase) {
-        this.ceoLoginHistoryQueryUseCase = ceoLoginHistoryQueryUseCase;
+    public CeoLoginHistoryApiController(CeoLoginHistoryListQueryUseCase ceoLoginHistoryListQueryUseCase) {
+        this.ceoLoginHistoryListQueryUseCase = ceoLoginHistoryListQueryUseCase;
     }
 
     @Operation(
@@ -44,7 +44,7 @@ class CeoLoginHistoryApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PageResult<CeoLoginHistoryResult> pageResult =
-            ceoLoginHistoryQueryUseCase.getLoginHistories(
+            ceoLoginHistoryListQueryUseCase.getLoginHistories(
                 userDetails.getCeoId(),
                 request.result(),
                 request.startDate(),

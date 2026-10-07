@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.event.port.in.EventQueryUseCase;
+import com.tastyhouse.application.event.port.in.EventAnnouncementListQueryUseCase;
+import com.tastyhouse.application.event.port.in.EventDetailQueryUseCase;
+import com.tastyhouse.application.event.port.in.EventListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -27,10 +29,18 @@ import com.tastyhouse.webapi.event.adapter.in.web.response.EventListItemResponse
 @Tag(name = "Event", description = "이벤트 관리 API")
 class EventApiController {
 
-    private final EventQueryUseCase eventQueryUseCase;
+    private final EventListQueryUseCase eventListQueryUseCase;
+    private final EventDetailQueryUseCase eventDetailQueryUseCase;
+    private final EventAnnouncementListQueryUseCase eventAnnouncementListQueryUseCase;
 
-    public EventApiController(EventQueryUseCase eventQueryUseCase) {
-        this.eventQueryUseCase = eventQueryUseCase;
+    public EventApiController(
+        EventListQueryUseCase eventListQueryUseCase,
+        EventDetailQueryUseCase eventDetailQueryUseCase,
+        EventAnnouncementListQueryUseCase eventAnnouncementListQueryUseCase
+    ) {
+        this.eventListQueryUseCase = eventListQueryUseCase;
+        this.eventDetailQueryUseCase = eventDetailQueryUseCase;
+        this.eventAnnouncementListQueryUseCase = eventAnnouncementListQueryUseCase;
     }
 
     @Operation(summary = "이벤트 목록 조회", description = "상태별 이벤트 목록을 조회합니다. (진행중, 종료)")
@@ -40,7 +50,7 @@ class EventApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var pageResult = PaginationResponse.from(
-            eventQueryUseCase.getEventList(search.status(), pageRequest.page(), pageRequest.size())
+            eventListQueryUseCase.getEventList(search.status(), pageRequest.page(), pageRequest.size())
                 .map(EventListItemResponse::from)
         );
         ApiResponse<List<EventListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());
@@ -53,7 +63,7 @@ class EventApiController {
         @Parameter(description = "이벤트 ID", example = "1")
         @PathVariable Long id
     ) {
-        EventDetailResponse event = EventDetailResponse.from(eventQueryUseCase.getEventDetail(id));
+        EventDetailResponse event = EventDetailResponse.from(eventDetailQueryUseCase.getEventDetail(id));
         return ResponseEntity.ok(ApiResponse.success(event));
     }
 
@@ -63,7 +73,7 @@ class EventApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var pageResult = PaginationResponse.from(
-            eventQueryUseCase.getEventAnnouncementList(pageRequest.page(), pageRequest.size())
+            eventAnnouncementListQueryUseCase.getEventAnnouncementList(pageRequest.page(), pageRequest.size())
                 .map(EventAnnouncementListItemResponse::from)
         );
         ApiResponse<List<EventAnnouncementListItemResponse>> response = ApiResponse.success(pageResult.content(), pageRequest.page(), pageRequest.size(), pageResult.totalElements());

@@ -15,11 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.rank.port.in.RankCommandUseCase;
-import com.tastyhouse.application.rank.port.in.RankManagementQueryUseCase;
 import com.tastyhouse.application.rank.port.in.RankPrizeCreateCommand;
+import com.tastyhouse.application.rank.port.in.RankPrizeCreateUseCase;
 import com.tastyhouse.application.rank.port.in.RankPrizeDeleteCommand;
+import com.tastyhouse.application.rank.port.in.RankPrizeDeleteUseCase;
+import com.tastyhouse.application.rank.port.in.RankPrizeManagementDetailQueryUseCase;
+import com.tastyhouse.application.rank.port.in.RankPrizeManagementListQueryUseCase;
 import com.tastyhouse.application.rank.port.in.RankPrizeUpdateCommand;
+import com.tastyhouse.application.rank.port.in.RankPrizeUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPrizeCreateRequest;
 import com.tastyhouse.adminapi.rank.adapter.in.web.request.RankPrizeUpdateRequest;
@@ -31,18 +34,30 @@ import com.tastyhouse.adminapi.rank.adapter.in.web.response.RankPrizeListItemRes
 @RequestMapping("/api/ranks")
 class RankPrizeAdminApiController {
 
-    private final RankCommandUseCase rankCommandUseCase;
-    private final RankManagementQueryUseCase rankQueryUseCase;
+    private final RankPrizeManagementListQueryUseCase rankPrizeManagementListQueryUseCase;
+    private final RankPrizeCreateUseCase rankPrizeCreateUseCase;
+    private final RankPrizeManagementDetailQueryUseCase rankPrizeManagementDetailQueryUseCase;
+    private final RankPrizeUpdateUseCase rankPrizeUpdateUseCase;
+    private final RankPrizeDeleteUseCase rankPrizeDeleteUseCase;
 
-    public RankPrizeAdminApiController(RankCommandUseCase rankCommandUseCase, RankManagementQueryUseCase rankQueryUseCase) {
-        this.rankCommandUseCase = rankCommandUseCase;
-        this.rankQueryUseCase = rankQueryUseCase;
+    public RankPrizeAdminApiController(
+        RankPrizeManagementListQueryUseCase rankPrizeManagementListQueryUseCase,
+        RankPrizeCreateUseCase rankPrizeCreateUseCase,
+        RankPrizeManagementDetailQueryUseCase rankPrizeManagementDetailQueryUseCase,
+        RankPrizeUpdateUseCase rankPrizeUpdateUseCase,
+        RankPrizeDeleteUseCase rankPrizeDeleteUseCase
+    ) {
+        this.rankPrizeManagementListQueryUseCase = rankPrizeManagementListQueryUseCase;
+        this.rankPrizeCreateUseCase = rankPrizeCreateUseCase;
+        this.rankPrizeManagementDetailQueryUseCase = rankPrizeManagementDetailQueryUseCase;
+        this.rankPrizeUpdateUseCase = rankPrizeUpdateUseCase;
+        this.rankPrizeDeleteUseCase = rankPrizeDeleteUseCase;
     }
 
     @Operation(summary = "랭킹 경품 목록 조회", description = "해당 기간의 등수별 경품 목록을 조회합니다.")
     @GetMapping("/v1/periods/{id}/prizes")
     public ResponseEntity<ApiResponse<List<RankPrizeListItemResponse>>> getPrizes(@PathVariable Long id) {
-        List<RankPrizeListItemResponse> prizes = rankQueryUseCase.getPrizesByPeriod(id).stream()
+        List<RankPrizeListItemResponse> prizes = rankPrizeManagementListQueryUseCase.getPrizesByPeriod(id).stream()
             .map(RankPrizeListItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(prizes));
@@ -55,14 +70,14 @@ class RankPrizeAdminApiController {
         @Valid @RequestBody RankPrizeCreateRequest request
     ) {
         RankPrizeCreateCommand command = request.toCommand(id);
-        Long prizeId = rankCommandUseCase.createPrize(command);
+        Long prizeId = rankPrizeCreateUseCase.createPrize(command);
         return ResponseEntity.ok(ApiResponse.success(prizeId));
     }
 
     @Operation(summary = "랭킹 경품 상세 조회", description = "랭킹 경품 상세를 조회합니다.")
     @GetMapping("/v1/prizes/{prizeId}")
     public ResponseEntity<ApiResponse<RankPrizeDetailResponse>> getPrize(@PathVariable Long prizeId) {
-        RankPrizeDetailResponse response = RankPrizeDetailResponse.from(rankQueryUseCase.getPrize(prizeId));
+        RankPrizeDetailResponse response = RankPrizeDetailResponse.from(rankPrizeManagementDetailQueryUseCase.getPrize(prizeId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -73,7 +88,7 @@ class RankPrizeAdminApiController {
         @Valid @RequestBody RankPrizeUpdateRequest request
     ) {
         RankPrizeUpdateCommand command = request.toCommand(prizeId);
-        rankCommandUseCase.updatePrize(command);
+        rankPrizeUpdateUseCase.updatePrize(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -81,7 +96,7 @@ class RankPrizeAdminApiController {
     @DeleteMapping("/v1/prizes/{prizeId}")
     public ResponseEntity<ApiResponse<Void>> deletePrize(@PathVariable Long prizeId) {
         RankPrizeDeleteCommand command = RankPrizeDeleteCommand.of(prizeId);
-        rankCommandUseCase.deletePrize(command);
+        rankPrizeDeleteUseCase.deletePrize(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

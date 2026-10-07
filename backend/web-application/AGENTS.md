@@ -4,7 +4,7 @@
 
 ## 무엇이 여기 사는가
 
-- web 전용 `@Service`/`@Component` 빈 — `*CommandService`/`*QueryService`(오케스트레이터)와 web만 쓰는 도메인 서비스(예: `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PaymentCancellationService`)
+- web 전용 `@Service`/`@Component` 빈 — 유스케이스당 서비스 1개(`{도메인}{동작}Service`/`{도메인}{관점}QueryService`, 예: `payment/service/PaymentConfirmService`·`payment/service/PaymentDetailQueryService`. 유스케이스 분리 전의 `{도메인}CommandService`/`{도메인}QueryService` 쌍과 파사드 `MemberService`는 하나도 남지 않았다)와 web만 쓰는 도메인 서비스(예: `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PaymentCancellationService`)
 - UseCase 인터페이스와 Command record(`<ctx>/port/in/`)
 - **web 전용 SPI 포트**(구현 벤더가 web에만 조립되는 포트):
   - `mail.port.out.{MailSender,MailSendResult}` — 구현 `infrastructure:javamail`·`aws-ses`
@@ -24,6 +24,7 @@
 
 - **`@Configuration`과 도메인 이벤트 리스너(`@TransactionalEventListener`)를 여기 두지 않는다** — 코어에만 둔다(`backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `listenersAndConfigsShouldResideInCore`). 리스너가 앱 모듈에 있으면 다른 앱이 같은 이벤트를 발행할 때 후속 처리가 조용히 사라진다.
 - **빈이면 `@Service`/`@Component`를 단다.** 앱 마커는 없다.
+- **유스케이스 하나 = 포트 하나 = 서비스 하나다.** 포트(`<ctx>/port/in/*UseCase`)는 추상 메서드 1개, 서비스는 그 포트 1개만 구현하고 이름은 포트명의 `UseCase`→`Service`, 생성자를 뺀 public 메서드는 1개다. 가드는 코어 `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`의 `useCaseServicesShouldImplementExactlyOneUseCase`·`useCasesShouldDeclareSingleOperation`·`useCaseServiceNameShouldMatchPort`·`useCaseServicesShouldHaveSinglePublicOperation`이고, 명령/조회 판별은 testFixtures `UseCaseServices`(구현 포트명이 `QueryUseCase`로 끝나면 조회)다. 근거는 `backend/application/AGENTS.md`의 봉인·가드 목록 "유스케이스 서비스 1:1 규칙 4종" 항목이다. 여러 연산이 함께 쓰는 로딩·검증은 같은 패키지의 `{도메인}{명사}Reader`/`Validator`(`@Component`)로 뺀다 — 이 협력 빈은 `ServiceContextBoundaryTest`의 검사 대상이 된다.
 - **이 모듈 전용 에러코드는 `WebErrorCode`(`backend/web-application/src/main/java/com/tastyhouse/application/shared/exception/WebErrorCode.java`)에 둔다; 두 번째 앱이 쓰면 코어 `ApplicationErrorCode`로 올린다.** 예외는 `ApplicationException(WebErrorCode.X)`로 던진다. 규칙 정본은 `backend/application/AGENTS.md`의 봉인·가드 목록 "에러 카탈로그 가드" 항목이다.
 - **두 번째 앱이 쓰게 되면 코어로 옮긴다.** 이 모듈에는 web 하나만 쓰는 것만 둔다.
 - **web 전용 SPI 포트를 코어로 옮기지 않는다.** 코어로 가면 admin·ceo·batch의 코어 빈이 그 포트를 주입해도 컴파일이 통과하고, 구현이 없는 앱에서 기동 시점에야 실패한다. 여기 있으면 코어가 import하는 순간 컴파일 에러다.

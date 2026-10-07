@@ -22,8 +22,12 @@ import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shop.port.in.ShopNoticeCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeExposureChangeCommand;
-import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerCreateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerDeleteUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerExposureChangeUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerListQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerUpdateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerValidationQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUpdateCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopNoticeCreateRequest;
@@ -37,12 +41,27 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopNoticeResponse;
 @RequestMapping("/api/shops")
 class ShopNoticeApiController {
 
-    private final ShopNoticeOwnerQueryUseCase shopNoticeQueryUseCase;
-    private final ShopNoticeOwnerCommandUseCase shopNoticeCommandUseCase;
+    private final ShopNoticeOwnerListQueryUseCase shopNoticeOwnerListQueryUseCase;
+    private final ShopNoticeOwnerCreateUseCase shopNoticeOwnerCreateUseCase;
+    private final ShopNoticeOwnerUpdateUseCase shopNoticeOwnerUpdateUseCase;
+    private final ShopNoticeOwnerDeleteUseCase shopNoticeOwnerDeleteUseCase;
+    private final ShopNoticeOwnerExposureChangeUseCase shopNoticeOwnerExposureChangeUseCase;
+    private final ShopNoticeOwnerValidationQueryUseCase shopNoticeOwnerValidationQueryUseCase;
 
-    public ShopNoticeApiController(ShopNoticeOwnerQueryUseCase shopNoticeQueryUseCase, ShopNoticeOwnerCommandUseCase shopNoticeCommandUseCase) {
-        this.shopNoticeQueryUseCase = shopNoticeQueryUseCase;
-        this.shopNoticeCommandUseCase = shopNoticeCommandUseCase;
+    public ShopNoticeApiController(
+        ShopNoticeOwnerListQueryUseCase shopNoticeOwnerListQueryUseCase,
+        ShopNoticeOwnerCreateUseCase shopNoticeOwnerCreateUseCase,
+        ShopNoticeOwnerUpdateUseCase shopNoticeOwnerUpdateUseCase,
+        ShopNoticeOwnerDeleteUseCase shopNoticeOwnerDeleteUseCase,
+        ShopNoticeOwnerExposureChangeUseCase shopNoticeOwnerExposureChangeUseCase,
+        ShopNoticeOwnerValidationQueryUseCase shopNoticeOwnerValidationQueryUseCase
+    ) {
+        this.shopNoticeOwnerListQueryUseCase = shopNoticeOwnerListQueryUseCase;
+        this.shopNoticeOwnerCreateUseCase = shopNoticeOwnerCreateUseCase;
+        this.shopNoticeOwnerUpdateUseCase = shopNoticeOwnerUpdateUseCase;
+        this.shopNoticeOwnerDeleteUseCase = shopNoticeOwnerDeleteUseCase;
+        this.shopNoticeOwnerExposureChangeUseCase = shopNoticeOwnerExposureChangeUseCase;
+        this.shopNoticeOwnerValidationQueryUseCase = shopNoticeOwnerValidationQueryUseCase;
     }
 
     @Operation(summary = "공지 목록 조회", description = "가게의 점주 공지 목록을 조회합니다. 앱에 노출 중인 공지가 맨 위로 정렬됩니다.")
@@ -51,7 +70,7 @@ class ShopNoticeApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopNoticeResponse> response = shopNoticeQueryUseCase.getNotices(userDetails.getCeoId(), id).stream()
+        List<ShopNoticeResponse> response = shopNoticeOwnerListQueryUseCase.getNotices(userDetails.getCeoId(), id).stream()
             .map(ShopNoticeResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -65,7 +84,7 @@ class ShopNoticeApiController {
         @Valid @ModelAttribute ShopNoticeCreateRequest request
     ) {
         ShopNoticeCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long noticeId = shopNoticeCommandUseCase.createNotice(command, request.files());
+        Long noticeId = shopNoticeOwnerCreateUseCase.createNotice(command, request.files());
         return ResponseEntity.ok(ApiResponse.success(noticeId));
     }
 
@@ -78,7 +97,7 @@ class ShopNoticeApiController {
         @Valid @ModelAttribute ShopNoticeUpdateRequest request
     ) {
         ShopNoticeUpdateCommand command = request.toCommand(userDetails.getCeoId(), id, noticeId);
-        shopNoticeCommandUseCase.updateNotice(command, request.files());
+        shopNoticeOwnerUpdateUseCase.updateNotice(command, request.files());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -90,7 +109,7 @@ class ShopNoticeApiController {
         @PathVariable Long noticeId
     ) {
         ShopNoticeDeleteCommand command = ShopNoticeDeleteCommand.of(userDetails.getCeoId(), id, noticeId);
-        shopNoticeCommandUseCase.deleteNotice(command);
+        shopNoticeOwnerDeleteUseCase.deleteNotice(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -103,7 +122,7 @@ class ShopNoticeApiController {
         @Valid @RequestBody ShopNoticeExposureRequest request
     ) {
         ShopNoticeExposureChangeCommand command = request.toCommand(userDetails.getCeoId(), id, noticeId);
-        shopNoticeCommandUseCase.changeExposure(command);
+        shopNoticeOwnerExposureChangeUseCase.changeExposure(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -114,7 +133,7 @@ class ShopNoticeApiController {
         @PathVariable Long id,
         @Valid @RequestBody ShopNoticeValidateRequest request
     ) {
-        List<String> violations = shopNoticeQueryUseCase.validateNotice(userDetails.getCeoId(), id, request.content());
+        List<String> violations = shopNoticeOwnerValidationQueryUseCase.validateNotice(userDetails.getCeoId(), id, request.content());
         return ResponseEntity.ok(ApiResponse.success(violations));
     }
 }

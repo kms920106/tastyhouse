@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.notice.port.in.NoticeQueryUseCase;
+import com.tastyhouse.application.notice.port.in.NoticeListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -22,17 +22,17 @@ import com.tastyhouse.webapi.notice.adapter.in.web.response.NoticeListItemRespon
 @Tag(name = "Notice", description = "공지사항 관리 API")
 class NoticeApiController {
 
-    private final NoticeQueryUseCase noticeQueryUseCase;
+    private final NoticeListQueryUseCase noticeListQueryUseCase;
 
-    public NoticeApiController(NoticeQueryUseCase noticeQueryUseCase) {
-        this.noticeQueryUseCase = noticeQueryUseCase;
+    public NoticeApiController(NoticeListQueryUseCase noticeListQueryUseCase) {
+        this.noticeListQueryUseCase = noticeListQueryUseCase;
     }
 
     @Operation(summary = "공지사항 목록 조회", description = "페이징된 공지사항 목록을 조회합니다.")
     @GetMapping("/v1")
     public ResponseEntity<ApiResponse<List<NoticeListItemResponse>>> getNoticeList(@Valid @ModelAttribute PageRequest pageRequest) {
         PaginationResponse<NoticeListItemResponse> pageResult = PaginationResponse.from(
-            noticeQueryUseCase.getNoticeList(pageRequest.page(), pageRequest.size())
+            noticeListQueryUseCase.getNoticeList(pageRequest.page(), pageRequest.size())
                 .map(NoticeListItemResponse::from)
         );
 

@@ -15,9 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.product.port.in.ProductFeedbackOwnerCommandUseCase;
-import com.tastyhouse.application.product.port.in.ProductFeedbackQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductFeedbackListQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductFeedbackReadCommand;
+import com.tastyhouse.application.product.port.in.ProductFeedbackReadUseCase;
+import com.tastyhouse.application.product.port.in.ProductFeedbackUnreadQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductFeedbackSummaryResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -32,15 +33,18 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductFeedbackUnre
 @RequestMapping("/api/products")
 class ProductFeedbackApiController {
 
-    private final ProductFeedbackQueryUseCase productFeedbackQueryUseCase;
-    private final ProductFeedbackOwnerCommandUseCase productFeedbackCommandUseCase;
+    private final ProductFeedbackListQueryUseCase productFeedbackListQueryUseCase;
+    private final ProductFeedbackUnreadQueryUseCase productFeedbackUnreadQueryUseCase;
+    private final ProductFeedbackReadUseCase productFeedbackReadUseCase;
 
     public ProductFeedbackApiController(
-        ProductFeedbackQueryUseCase productFeedbackQueryUseCase,
-        ProductFeedbackOwnerCommandUseCase productFeedbackCommandUseCase
+        ProductFeedbackListQueryUseCase productFeedbackListQueryUseCase,
+        ProductFeedbackUnreadQueryUseCase productFeedbackUnreadQueryUseCase,
+        ProductFeedbackReadUseCase productFeedbackReadUseCase
     ) {
-        this.productFeedbackQueryUseCase = productFeedbackQueryUseCase;
-        this.productFeedbackCommandUseCase = productFeedbackCommandUseCase;
+        this.productFeedbackListQueryUseCase = productFeedbackListQueryUseCase;
+        this.productFeedbackUnreadQueryUseCase = productFeedbackUnreadQueryUseCase;
+        this.productFeedbackReadUseCase = productFeedbackReadUseCase;
     }
 
     @Operation(summary = "고객 의견 목록 조회",
@@ -52,7 +56,7 @@ class ProductFeedbackApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductFeedbackSearchRequest request
     ) {
-        PageResult<ProductFeedbackSummaryResult> pageResult = productFeedbackQueryUseCase.getFeedbacks(
+        PageResult<ProductFeedbackSummaryResult> pageResult = productFeedbackListQueryUseCase.getFeedbacks(
             userDetails.getCeoId(), request.shopId(), request.page(), request.size()
         );
         PaginationResponse<ProductFeedbackResponse> result =
@@ -72,7 +76,7 @@ class ProductFeedbackApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductFeedbackUnreadResponse response = ProductFeedbackUnreadResponse.from(productFeedbackQueryUseCase.getUnread( userDetails.getCeoId(), request.shopId() ));
+        ProductFeedbackUnreadResponse response = ProductFeedbackUnreadResponse.from(productFeedbackUnreadQueryUseCase.getUnread( userDetails.getCeoId(), request.shopId() ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -85,7 +89,7 @@ class ProductFeedbackApiController {
         @Valid @RequestBody ProductShopScopeRequest request
     ) {
         ProductFeedbackReadCommand command = request.toFeedbackReadCommand(userDetails.getCeoId());
-        productFeedbackCommandUseCase.markRead(command);
+        productFeedbackReadUseCase.markRead(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

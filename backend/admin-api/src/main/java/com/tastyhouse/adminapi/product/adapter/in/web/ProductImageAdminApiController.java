@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.product.port.in.ProductImageCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductImageCreateUseCase;
-import com.tastyhouse.application.product.port.in.ProductManagementQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductImageManagementListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.product.adapter.in.web.request.ProductImageCreateRequest;
 import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductImagesResponse;
@@ -23,18 +23,21 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductImagesResp
 @RequestMapping("/api/products")
 class ProductImageAdminApiController {
 
+    private final ProductImageManagementListQueryUseCase productImageManagementListQueryUseCase;
     private final ProductImageCreateUseCase productImageCreateUseCase;
-    private final ProductManagementQueryUseCase productQueryUseCase;
 
-    public ProductImageAdminApiController(ProductImageCreateUseCase productImageCreateUseCase, ProductManagementQueryUseCase productQueryUseCase) {
+    public ProductImageAdminApiController(
+        ProductImageManagementListQueryUseCase productImageManagementListQueryUseCase,
+        ProductImageCreateUseCase productImageCreateUseCase
+    ) {
+        this.productImageManagementListQueryUseCase = productImageManagementListQueryUseCase;
         this.productImageCreateUseCase = productImageCreateUseCase;
-        this.productQueryUseCase = productQueryUseCase;
     }
 
     @Operation(summary = "상품 이미지 목록 조회", description = "상품에 등록된 이미지 URL 목록을 조회합니다.")
     @GetMapping("/v1/{id}/images")
     public ResponseEntity<ApiResponse<ProductImagesResponse>> getProductImages(@PathVariable Long id) {
-        ProductImagesResponse response = ProductImagesResponse.from(productQueryUseCase.getProductImages(id));
+        ProductImagesResponse response = ProductImagesResponse.from(productImageManagementListQueryUseCase.getProductImages(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

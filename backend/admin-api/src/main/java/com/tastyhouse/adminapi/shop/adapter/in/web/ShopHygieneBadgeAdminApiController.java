@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeManagementQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopHygieneBadgeCreateRequest;
@@ -27,18 +28,24 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopHygieneBadgeResp
 @RequestMapping("/api/shops")
 class ShopHygieneBadgeAdminApiController {
 
-    private final ShopHygieneBadgeManagementQueryUseCase shopHygieneBadgeQueryUseCase;
-    private final ShopHygieneBadgeCommandUseCase shopHygieneBadgeCommandUseCase;
+    private final ShopHygieneBadgeManagementQueryUseCase shopHygieneBadgeManagementQueryUseCase;
+    private final ShopHygieneBadgeCreateUseCase shopHygieneBadgeCreateUseCase;
+    private final ShopHygieneBadgeDeleteUseCase shopHygieneBadgeDeleteUseCase;
 
-    public ShopHygieneBadgeAdminApiController(ShopHygieneBadgeManagementQueryUseCase shopHygieneBadgeQueryUseCase, ShopHygieneBadgeCommandUseCase shopHygieneBadgeCommandUseCase) {
-        this.shopHygieneBadgeQueryUseCase = shopHygieneBadgeQueryUseCase;
-        this.shopHygieneBadgeCommandUseCase = shopHygieneBadgeCommandUseCase;
+    public ShopHygieneBadgeAdminApiController(
+        ShopHygieneBadgeManagementQueryUseCase shopHygieneBadgeManagementQueryUseCase,
+        ShopHygieneBadgeCreateUseCase shopHygieneBadgeCreateUseCase,
+        ShopHygieneBadgeDeleteUseCase shopHygieneBadgeDeleteUseCase
+    ) {
+        this.shopHygieneBadgeManagementQueryUseCase = shopHygieneBadgeManagementQueryUseCase;
+        this.shopHygieneBadgeCreateUseCase = shopHygieneBadgeCreateUseCase;
+        this.shopHygieneBadgeDeleteUseCase = shopHygieneBadgeDeleteUseCase;
     }
 
     @Operation(summary = "위생 인증 뱃지 목록 조회", description = "가게의 위생 인증 뱃지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/hygiene-badges")
     public ResponseEntity<ApiResponse<List<ShopHygieneBadgeResponse>>> getHygieneBadges(@PathVariable Long id) {
-        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeQueryUseCase.getHygieneBadges(id).stream()
+        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeManagementQueryUseCase.getHygieneBadges(id).stream()
             .map(ShopHygieneBadgeResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -51,7 +58,7 @@ class ShopHygieneBadgeAdminApiController {
         @Valid @RequestBody ShopHygieneBadgeCreateRequest request
     ) {
         ShopHygieneBadgeCreateCommand command = request.toCommand(id);
-        Long hygieneBadgeId = shopHygieneBadgeCommandUseCase.createHygieneBadge(command);
+        Long hygieneBadgeId = shopHygieneBadgeCreateUseCase.createHygieneBadge(command);
         return ResponseEntity.ok(ApiResponse.success(hygieneBadgeId));
     }
 
@@ -59,7 +66,7 @@ class ShopHygieneBadgeAdminApiController {
     @DeleteMapping("/v1/hygiene-badges/{hygieneBadgeId}")
     public ResponseEntity<ApiResponse<Void>> deleteHygieneBadge(@PathVariable Long hygieneBadgeId) {
         ShopHygieneBadgeDeleteCommand command = ShopHygieneBadgeDeleteCommand.of(hygieneBadgeId);
-        shopHygieneBadgeCommandUseCase.deleteHygieneBadge(command);
+        shopHygieneBadgeDeleteUseCase.deleteHygieneBadge(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -15,13 +15,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopClosedDayCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayOwnerCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopClosedDayOwnerCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayOwnerDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopClosedDayOwnerDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopHolidayClosureUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopHolidayClosureUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureDeleteUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopClosedDayCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopHolidayClosureUpdateRequest;
@@ -34,11 +38,26 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopClosedDaysResponse
 class ShopClosedDayApiController {
 
     private final ShopClosedDayQueryUseCase shopClosedDayQueryUseCase;
-    private final ShopClosedDayCommandUseCase shopClosedDayCommandUseCase;
+    private final ShopHolidayClosureUpdateUseCase shopHolidayClosureUpdateUseCase;
+    private final ShopClosedDayOwnerCreateUseCase shopClosedDayOwnerCreateUseCase;
+    private final ShopClosedDayOwnerDeleteUseCase shopClosedDayOwnerDeleteUseCase;
+    private final ShopTemporaryClosureCreateUseCase shopTemporaryClosureCreateUseCase;
+    private final ShopTemporaryClosureDeleteUseCase shopTemporaryClosureDeleteUseCase;
 
-    public ShopClosedDayApiController(ShopClosedDayQueryUseCase shopClosedDayQueryUseCase, ShopClosedDayCommandUseCase shopClosedDayCommandUseCase) {
+    public ShopClosedDayApiController(
+        ShopClosedDayQueryUseCase shopClosedDayQueryUseCase,
+        ShopHolidayClosureUpdateUseCase shopHolidayClosureUpdateUseCase,
+        ShopClosedDayOwnerCreateUseCase shopClosedDayOwnerCreateUseCase,
+        ShopClosedDayOwnerDeleteUseCase shopClosedDayOwnerDeleteUseCase,
+        ShopTemporaryClosureCreateUseCase shopTemporaryClosureCreateUseCase,
+        ShopTemporaryClosureDeleteUseCase shopTemporaryClosureDeleteUseCase
+    ) {
         this.shopClosedDayQueryUseCase = shopClosedDayQueryUseCase;
-        this.shopClosedDayCommandUseCase = shopClosedDayCommandUseCase;
+        this.shopHolidayClosureUpdateUseCase = shopHolidayClosureUpdateUseCase;
+        this.shopClosedDayOwnerCreateUseCase = shopClosedDayOwnerCreateUseCase;
+        this.shopClosedDayOwnerDeleteUseCase = shopClosedDayOwnerDeleteUseCase;
+        this.shopTemporaryClosureCreateUseCase = shopTemporaryClosureCreateUseCase;
+        this.shopTemporaryClosureDeleteUseCase = shopTemporaryClosureDeleteUseCase;
     }
 
     @Operation(summary = "내 가게 휴무 통합 조회", description = "로그인한 점주가 소유한 가게의 공휴일 휴무 여부·정기 휴무·임시 휴무를 통합 조회합니다.")
@@ -60,7 +79,7 @@ class ShopClosedDayApiController {
         @Valid @RequestBody ShopHolidayClosureUpdateRequest request
     ) {
         ShopHolidayClosureUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopClosedDayCommandUseCase.updateHolidayClosure(command);
+        shopHolidayClosureUpdateUseCase.updateHolidayClosure(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -72,7 +91,7 @@ class ShopClosedDayApiController {
         @Valid @RequestBody ShopClosedDayCreateRequest request
     ) {
         ShopClosedDayOwnerCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long closedDayId = shopClosedDayCommandUseCase.createClosedDay(command);
+        Long closedDayId = shopClosedDayOwnerCreateUseCase.createClosedDay(command);
         return ResponseEntity.ok(ApiResponse.success(closedDayId));
     }
 
@@ -83,7 +102,7 @@ class ShopClosedDayApiController {
         @PathVariable Long closedDayId
     ) {
         ShopClosedDayOwnerDeleteCommand command = ShopClosedDayOwnerDeleteCommand.of(userDetails.getCeoId(), closedDayId);
-        shopClosedDayCommandUseCase.deleteClosedDay(command);
+        shopClosedDayOwnerDeleteUseCase.deleteClosedDay(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -95,7 +114,7 @@ class ShopClosedDayApiController {
         @Valid @RequestBody ShopTemporaryClosureCreateRequest request
     ) {
         ShopTemporaryClosureCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long temporaryClosureId = shopClosedDayCommandUseCase.createTemporaryClosure(command);
+        Long temporaryClosureId = shopTemporaryClosureCreateUseCase.createTemporaryClosure(command);
         return ResponseEntity.ok(ApiResponse.success(temporaryClosureId));
     }
 
@@ -106,7 +125,7 @@ class ShopClosedDayApiController {
         @PathVariable Long temporaryClosureId
     ) {
         ShopTemporaryClosureDeleteCommand command = ShopTemporaryClosureDeleteCommand.of(userDetails.getCeoId(), temporaryClosureId);
-        shopClosedDayCommandUseCase.deleteTemporaryClosure(command);
+        shopTemporaryClosureDeleteUseCase.deleteTemporaryClosure(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

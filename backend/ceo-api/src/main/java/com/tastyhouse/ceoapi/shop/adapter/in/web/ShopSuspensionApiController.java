@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionBulkCreateCommand;
-import com.tastyhouse.application.shop.port.in.ShopSuspensionCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopSuspensionBulkCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopSuspensionCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionReleaseCommand;
+import com.tastyhouse.application.shop.port.in.ShopSuspensionReleaseUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSuspensionBulkCreateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopSuspensionCreateRequest;
@@ -32,11 +34,20 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopSuspensionResponse
 class ShopSuspensionApiController {
 
     private final ShopSuspensionQueryUseCase shopSuspensionQueryUseCase;
-    private final ShopSuspensionCommandUseCase shopSuspensionCommandUseCase;
+    private final ShopSuspensionCreateUseCase shopSuspensionCreateUseCase;
+    private final ShopSuspensionReleaseUseCase shopSuspensionReleaseUseCase;
+    private final ShopSuspensionBulkCreateUseCase shopSuspensionBulkCreateUseCase;
 
-    public ShopSuspensionApiController(ShopSuspensionQueryUseCase shopSuspensionQueryUseCase, ShopSuspensionCommandUseCase shopSuspensionCommandUseCase) {
+    public ShopSuspensionApiController(
+        ShopSuspensionQueryUseCase shopSuspensionQueryUseCase,
+        ShopSuspensionCreateUseCase shopSuspensionCreateUseCase,
+        ShopSuspensionReleaseUseCase shopSuspensionReleaseUseCase,
+        ShopSuspensionBulkCreateUseCase shopSuspensionBulkCreateUseCase
+    ) {
         this.shopSuspensionQueryUseCase = shopSuspensionQueryUseCase;
-        this.shopSuspensionCommandUseCase = shopSuspensionCommandUseCase;
+        this.shopSuspensionCreateUseCase = shopSuspensionCreateUseCase;
+        this.shopSuspensionReleaseUseCase = shopSuspensionReleaseUseCase;
+        this.shopSuspensionBulkCreateUseCase = shopSuspensionBulkCreateUseCase;
     }
 
     @Operation(summary = "영업 임시중지 목록 조회", description = "가게의 영업 임시중지 목록을 조회합니다.")
@@ -59,7 +70,7 @@ class ShopSuspensionApiController {
         @Valid @RequestBody ShopSuspensionCreateRequest request
     ) {
         ShopSuspensionCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        List<Long> suspensionIds = shopSuspensionCommandUseCase.createSuspension(command);
+        List<Long> suspensionIds = shopSuspensionCreateUseCase.createSuspension(command);
         return ResponseEntity.ok(ApiResponse.success(suspensionIds));
     }
 
@@ -71,7 +82,7 @@ class ShopSuspensionApiController {
         @PathVariable Long suspensionId
     ) {
         ShopSuspensionReleaseCommand command = ShopSuspensionReleaseCommand.of(userDetails.getCeoId(), id, suspensionId);
-        shopSuspensionCommandUseCase.releaseSuspension(command);
+        shopSuspensionReleaseUseCase.releaseSuspension(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -82,7 +93,7 @@ class ShopSuspensionApiController {
         @Valid @RequestBody ShopSuspensionBulkCreateRequest request
     ) {
         ShopSuspensionBulkCreateCommand command = request.toCommand(userDetails.getCeoId());
-        List<Long> suspensionIds = shopSuspensionCommandUseCase.createSuspensionsBulk(command);
+        List<Long> suspensionIds = shopSuspensionBulkCreateUseCase.createSuspensionsBulk(command);
         return ResponseEntity.ok(ApiResponse.success(suspensionIds));
     }
 }

@@ -19,9 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardCreateCommand;
-import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteCommand;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardUpdateCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopContentBoardCreateRequest;
@@ -33,12 +35,21 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopContentBoardRespon
 @RequestMapping("/api/shops")
 class ShopContentBoardApiController {
 
-    private final ShopContentBoardOwnerQueryUseCase shopContentBoardQueryUseCase;
-    private final ShopContentBoardOwnerCommandUseCase shopContentBoardCommandUseCase;
+    private final ShopContentBoardOwnerQueryUseCase shopContentBoardOwnerQueryUseCase;
+    private final ShopContentBoardOwnerCreateUseCase shopContentBoardOwnerCreateUseCase;
+    private final ShopContentBoardOwnerUpdateUseCase shopContentBoardOwnerUpdateUseCase;
+    private final ShopContentBoardOwnerDeleteUseCase shopContentBoardOwnerDeleteUseCase;
 
-    public ShopContentBoardApiController(ShopContentBoardOwnerQueryUseCase shopContentBoardQueryUseCase, ShopContentBoardOwnerCommandUseCase shopContentBoardCommandUseCase) {
-        this.shopContentBoardQueryUseCase = shopContentBoardQueryUseCase;
-        this.shopContentBoardCommandUseCase = shopContentBoardCommandUseCase;
+    public ShopContentBoardApiController(
+        ShopContentBoardOwnerQueryUseCase shopContentBoardOwnerQueryUseCase,
+        ShopContentBoardOwnerCreateUseCase shopContentBoardOwnerCreateUseCase,
+        ShopContentBoardOwnerUpdateUseCase shopContentBoardOwnerUpdateUseCase,
+        ShopContentBoardOwnerDeleteUseCase shopContentBoardOwnerDeleteUseCase
+    ) {
+        this.shopContentBoardOwnerQueryUseCase = shopContentBoardOwnerQueryUseCase;
+        this.shopContentBoardOwnerCreateUseCase = shopContentBoardOwnerCreateUseCase;
+        this.shopContentBoardOwnerUpdateUseCase = shopContentBoardOwnerUpdateUseCase;
+        this.shopContentBoardOwnerDeleteUseCase = shopContentBoardOwnerDeleteUseCase;
     }
 
     @Operation(summary = "콘텐츠보드 목록 조회", description = "가게의 콘텐츠보드 목록을 조회합니다.")
@@ -47,7 +58,7 @@ class ShopContentBoardApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopContentBoardResponse> response = shopContentBoardQueryUseCase.getContentBoards(userDetails.getCeoId(), id).stream()
+        List<ShopContentBoardResponse> response = shopContentBoardOwnerQueryUseCase.getContentBoards(userDetails.getCeoId(), id).stream()
             .map(ShopContentBoardResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -61,7 +72,7 @@ class ShopContentBoardApiController {
         @Valid @ModelAttribute ShopContentBoardCreateRequest request
     ) {
         ShopContentBoardCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long contentBoardId = shopContentBoardCommandUseCase.createContentBoard(command, request.file());
+        Long contentBoardId = shopContentBoardOwnerCreateUseCase.createContentBoard(command, request.file());
         return ResponseEntity.ok(ApiResponse.success(contentBoardId));
     }
 
@@ -74,7 +85,7 @@ class ShopContentBoardApiController {
         @Valid @ModelAttribute ShopContentBoardUpdateRequest request
     ) {
         ShopContentBoardUpdateCommand command = request.toCommand(userDetails.getCeoId(), id, contentBoardId);
-        shopContentBoardCommandUseCase.updateContentBoard(command, request.file());
+        shopContentBoardOwnerUpdateUseCase.updateContentBoard(command, request.file());
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -86,7 +97,7 @@ class ShopContentBoardApiController {
         @PathVariable Long contentBoardId
     ) {
         ShopContentBoardOwnerDeleteCommand command = ShopContentBoardOwnerDeleteCommand.of(userDetails.getCeoId(), id, contentBoardId);
-        shopContentBoardCommandUseCase.deleteContentBoard(command);
+        shopContentBoardOwnerDeleteUseCase.deleteContentBoard(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopMinOrderAmountUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMinOrderAmountUpdateRequest;
 
@@ -22,10 +22,10 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMinOrderAmountUpdat
 @RequestMapping("/api/shops")
 class ShopMinOrderAmountApiController {
 
-    private final ShopMinOrderAmountCommandUseCase shopMinOrderAmountCommandUseCase;
+    private final ShopMinOrderAmountUpdateUseCase shopMinOrderAmountUpdateUseCase;
 
-    public ShopMinOrderAmountApiController(ShopMinOrderAmountCommandUseCase shopMinOrderAmountCommandUseCase) {
-        this.shopMinOrderAmountCommandUseCase = shopMinOrderAmountCommandUseCase;
+    public ShopMinOrderAmountApiController(ShopMinOrderAmountUpdateUseCase shopMinOrderAmountUpdateUseCase) {
+        this.shopMinOrderAmountUpdateUseCase = shopMinOrderAmountUpdateUseCase;
     }
 
     @Operation(
@@ -40,7 +40,7 @@ class ShopMinOrderAmountApiController {
         @Valid @RequestBody ShopMinOrderAmountUpdateRequest request
     ) {
         ShopMinOrderAmountUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopMinOrderAmountCommandUseCase.updateMinOrderAmount(command);
+        shopMinOrderAmountUpdateUseCase.updateMinOrderAmount(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

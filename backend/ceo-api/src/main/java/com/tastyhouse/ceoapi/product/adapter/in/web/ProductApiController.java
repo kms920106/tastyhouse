@@ -36,20 +36,20 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductDetailRespon
 @RequestMapping("/api/products")
 class ProductApiController {
 
-    private final ProductOwnerQueryUseCase productQueryUseCase;
-    private final ProductOwnerCreateUseCase productCreateUseCase;
-    private final ProductOwnerUpdateUseCase productUpdateUseCase;
+    private final ProductOwnerQueryUseCase productOwnerQueryUseCase;
+    private final ProductOwnerCreateUseCase productOwnerCreateUseCase;
+    private final ProductOwnerUpdateUseCase productOwnerUpdateUseCase;
     private final ProductDeleteUseCase productDeleteUseCase;
 
     public ProductApiController(
-        ProductOwnerQueryUseCase productQueryUseCase,
-        ProductOwnerCreateUseCase productCreateUseCase,
-        ProductOwnerUpdateUseCase productUpdateUseCase,
+        ProductOwnerQueryUseCase productOwnerQueryUseCase,
+        ProductOwnerCreateUseCase productOwnerCreateUseCase,
+        ProductOwnerUpdateUseCase productOwnerUpdateUseCase,
         ProductDeleteUseCase productDeleteUseCase
     ) {
-        this.productQueryUseCase = productQueryUseCase;
-        this.productCreateUseCase = productCreateUseCase;
-        this.productUpdateUseCase = productUpdateUseCase;
+        this.productOwnerQueryUseCase = productOwnerQueryUseCase;
+        this.productOwnerCreateUseCase = productOwnerCreateUseCase;
+        this.productOwnerUpdateUseCase = productOwnerUpdateUseCase;
         this.productDeleteUseCase = productDeleteUseCase;
     }
 
@@ -62,7 +62,7 @@ class ProductApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductDetailResponse response = ProductDetailResponse.from(productQueryUseCase.getProduct(userDetails.getCeoId(), request.shopId(), id));
+        ProductDetailResponse response = ProductDetailResponse.from(productOwnerQueryUseCase.getProduct(userDetails.getCeoId(), request.shopId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -76,7 +76,7 @@ class ProductApiController {
         @Valid @RequestBody ProductCreateRequest request
     ) {
         ProductOwnerCreateCommand command = request.toCommand(userDetails.getCeoId());
-        Long productId = productCreateUseCase.createProduct(command);
+        Long productId = productOwnerCreateUseCase.createProduct(command);
         return ResponseEntity.ok(ApiResponse.success(productId));
     }
 
@@ -90,7 +90,7 @@ class ProductApiController {
         @Valid @RequestBody ProductUpdateRequest request
     ) {
         ProductOwnerUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productUpdateUseCase.updateProduct(command);
+        productOwnerUpdateUseCase.updateProduct(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.auth.port.in.AdminAuthCommandUseCase;
 import com.tastyhouse.application.auth.port.in.AdminAuthLoginCommand;
+import com.tastyhouse.application.auth.port.in.AdminLoginUseCase;
+import com.tastyhouse.application.auth.port.in.AdminLogoutUseCase;
+import com.tastyhouse.application.auth.port.in.AdminTokenRefreshUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
@@ -24,10 +26,18 @@ import com.tastyhouse.adminapi.auth.adapter.in.web.response.JwtResponse;
 @RequestMapping("/api/auth")
 class AuthApiController {
 
-    private final AdminAuthCommandUseCase authCommandUseCase;
+    private final AdminLoginUseCase adminLoginUseCase;
+    private final AdminTokenRefreshUseCase adminTokenRefreshUseCase;
+    private final AdminLogoutUseCase adminLogoutUseCase;
 
-    public AuthApiController(AdminAuthCommandUseCase authCommandUseCase) {
-        this.authCommandUseCase = authCommandUseCase;
+    public AuthApiController(
+        AdminLoginUseCase adminLoginUseCase,
+        AdminTokenRefreshUseCase adminTokenRefreshUseCase,
+        AdminLogoutUseCase adminLogoutUseCase
+    ) {
+        this.adminLoginUseCase = adminLoginUseCase;
+        this.adminTokenRefreshUseCase = adminTokenRefreshUseCase;
+        this.adminLogoutUseCase = adminLogoutUseCase;
     }
 
     @Operation(summary = "관리자 로그인", description = "아이디/비밀번호 인증 후 JWT(Access/Refresh)를 발급합니다.")
@@ -35,19 +45,19 @@ class AuthApiController {
     @PostMapping("/v1/login")
     public ResponseEntity<ApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest request) {
         AdminAuthLoginCommand command = request.toCommand();
-        return ResponseEntity.ok(ApiResponse.success(JwtResponse.from(authCommandUseCase.login(command))));
+        return ResponseEntity.ok(ApiResponse.success(JwtResponse.from(adminLoginUseCase.login(command))));
     }
 
     @Operation(summary = "토큰 갱신", description = "Refresh Token으로 새로운 Access/Refresh Token을 발급합니다.")
     @PostMapping("/v1/refresh")
     public ResponseEntity<ApiResponse<JwtResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(JwtResponse.from(authCommandUseCase.refresh(request.refreshToken()))));
+        return ResponseEntity.ok(ApiResponse.success(JwtResponse.from(adminTokenRefreshUseCase.refresh(request.refreshToken()))));
     }
 
     @Operation(summary = "로그아웃", description = "Access Token을 블랙리스트에 등록하고 Refresh Token을 삭제합니다.")
     @PostMapping("/v1/logout")
     public ResponseEntity<ApiResponse<Void>> logout(@RequestHeader("Authorization") String bearerToken) {
-        authCommandUseCase.logout(bearerToken);
+        adminLogoutUseCase.logout(bearerToken);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

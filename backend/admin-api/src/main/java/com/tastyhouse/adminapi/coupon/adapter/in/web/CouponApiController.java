@@ -16,12 +16,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.coupon.port.in.CouponCommandUseCase;
 import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
+import com.tastyhouse.application.coupon.port.in.CouponCreateUseCase;
 import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;
+import com.tastyhouse.application.coupon.port.in.CouponDeleteUseCase;
 import com.tastyhouse.application.coupon.port.in.CouponIssueCommand;
-import com.tastyhouse.application.coupon.port.in.CouponManagementQueryUseCase;
+import com.tastyhouse.application.coupon.port.in.CouponManagementDetailQueryUseCase;
+import com.tastyhouse.application.coupon.port.in.CouponManagementIssueUseCase;
+import com.tastyhouse.application.coupon.port.in.CouponManagementIssuedListQueryUseCase;
+import com.tastyhouse.application.coupon.port.in.CouponManagementListQueryUseCase;
 import com.tastyhouse.application.coupon.port.in.CouponUpdateCommand;
+import com.tastyhouse.application.coupon.port.in.CouponUpdateUseCase;
 import com.tastyhouse.application.coupon.port.out.CouponListItemResult;
 import com.tastyhouse.application.coupon.port.out.MemberCouponItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -41,12 +46,30 @@ import com.tastyhouse.adminapi.coupon.adapter.in.web.response.MemberCouponItemRe
 @RequestMapping("/api/coupons")
 class CouponApiController {
 
-    private final CouponCommandUseCase couponCommandUseCase;
-    private final CouponManagementQueryUseCase couponQueryUseCase;
+    private final CouponCreateUseCase couponCreateUseCase;
+    private final CouponUpdateUseCase couponUpdateUseCase;
+    private final CouponDeleteUseCase couponDeleteUseCase;
+    private final CouponManagementIssueUseCase couponManagementIssueUseCase;
+    private final CouponManagementListQueryUseCase couponManagementListQueryUseCase;
+    private final CouponManagementDetailQueryUseCase couponManagementDetailQueryUseCase;
+    private final CouponManagementIssuedListQueryUseCase couponManagementIssuedListQueryUseCase;
 
-    public CouponApiController(CouponCommandUseCase couponCommandUseCase, CouponManagementQueryUseCase couponQueryUseCase) {
-        this.couponCommandUseCase = couponCommandUseCase;
-        this.couponQueryUseCase = couponQueryUseCase;
+    public CouponApiController(
+        CouponCreateUseCase couponCreateUseCase,
+        CouponUpdateUseCase couponUpdateUseCase,
+        CouponDeleteUseCase couponDeleteUseCase,
+        CouponManagementIssueUseCase couponManagementIssueUseCase,
+        CouponManagementListQueryUseCase couponManagementListQueryUseCase,
+        CouponManagementDetailQueryUseCase couponManagementDetailQueryUseCase,
+        CouponManagementIssuedListQueryUseCase couponManagementIssuedListQueryUseCase
+    ) {
+        this.couponCreateUseCase = couponCreateUseCase;
+        this.couponUpdateUseCase = couponUpdateUseCase;
+        this.couponDeleteUseCase = couponDeleteUseCase;
+        this.couponManagementIssueUseCase = couponManagementIssueUseCase;
+        this.couponManagementListQueryUseCase = couponManagementListQueryUseCase;
+        this.couponManagementDetailQueryUseCase = couponManagementDetailQueryUseCase;
+        this.couponManagementIssuedListQueryUseCase = couponManagementIssuedListQueryUseCase;
     }
 
     @Operation(summary = "쿠폰 목록 조회", description = "쿠폰 목록을 페이징 조회합니다. (삭제된 쿠폰 제외) discountType 미지정 시 전체 유형, name은 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
@@ -55,7 +78,7 @@ class CouponApiController {
         @Valid @ModelAttribute CouponSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<CouponListItemResult> pageResult = couponQueryUseCase.getCoupons(search.name(), search.discountType(), search.visible(), pageRequest.page(), pageRequest.size());
+        PageResult<CouponListItemResult> pageResult = couponManagementListQueryUseCase.getCoupons(search.name(), search.discountType(), search.visible(), pageRequest.page(), pageRequest.size());
         PaginationResponse<CouponListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(CouponListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
@@ -64,14 +87,14 @@ class CouponApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createCoupon(@Valid @RequestBody CouponCreateRequest request) {
         CouponCreateCommand command = request.toCommand();
-        Long id = couponCommandUseCase.createCoupon(command);
+        Long id = couponCreateUseCase.createCoupon(command);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
     @Operation(summary = "쿠폰 상세 조회", description = "쿠폰 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<CouponDetailResponse>> getCoupon(@PathVariable Long id) {
-        CouponDetailResponse response = CouponDetailResponse.from(couponQueryUseCase.getCoupon(id));
+        CouponDetailResponse response = CouponDetailResponse.from(couponManagementDetailQueryUseCase.getCoupon(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -82,7 +105,7 @@ class CouponApiController {
         @Valid @RequestBody CouponUpdateRequest request
     ) {
         CouponUpdateCommand command = request.toCommand(id);
-        couponCommandUseCase.updateCoupon(command);
+        couponUpdateUseCase.updateCoupon(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -90,7 +113,7 @@ class CouponApiController {
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteCoupon(@PathVariable Long id) {
         CouponDeleteCommand command = CouponDeleteCommand.of(id);
-        couponCommandUseCase.deleteCoupon(command);
+        couponDeleteUseCase.deleteCoupon(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -101,7 +124,7 @@ class CouponApiController {
         @Valid @RequestBody CouponIssueRequest request
     ) {
         CouponIssueCommand command = request.toCommand(id);
-        Long memberCouponId = couponCommandUseCase.issueCoupon(command);
+        Long memberCouponId = couponManagementIssueUseCase.issueCoupon(command);
         return ResponseEntity.ok(ApiResponse.success(memberCouponId));
     }
 
@@ -111,7 +134,7 @@ class CouponApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<MemberCouponItemResult> pageResult = couponQueryUseCase.getIssuedCoupons(id, pageRequest.page(), pageRequest.size());
+        PageResult<MemberCouponItemResult> pageResult = couponManagementIssuedListQueryUseCase.getIssuedCoupons(id, pageRequest.page(), pageRequest.size());
         PaginationResponse<MemberCouponItemResponse> pageResponse = PaginationResponse.from(pageResult.map(MemberCouponItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }

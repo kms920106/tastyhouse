@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.shop.port.in.ShopChangeHistoryQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopChangeHistoryListQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopChangeHistoryTypeQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopChangeHistoryResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -29,10 +30,15 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopChangeHistoryListI
 @RequestMapping("/api/shops")
 class ShopChangeHistoryApiController {
 
-    private final ShopChangeHistoryQueryUseCase shopChangeHistoryQueryUseCase;
+    private final ShopChangeHistoryListQueryUseCase shopChangeHistoryListQueryUseCase;
+    private final ShopChangeHistoryTypeQueryUseCase shopChangeHistoryTypeQueryUseCase;
 
-    public ShopChangeHistoryApiController(ShopChangeHistoryQueryUseCase shopChangeHistoryQueryUseCase) {
-        this.shopChangeHistoryQueryUseCase = shopChangeHistoryQueryUseCase;
+    public ShopChangeHistoryApiController(
+        ShopChangeHistoryListQueryUseCase shopChangeHistoryListQueryUseCase,
+        ShopChangeHistoryTypeQueryUseCase shopChangeHistoryTypeQueryUseCase
+    ) {
+        this.shopChangeHistoryListQueryUseCase = shopChangeHistoryListQueryUseCase;
+        this.shopChangeHistoryTypeQueryUseCase = shopChangeHistoryTypeQueryUseCase;
     }
 
     @Operation(
@@ -46,7 +52,7 @@ class ShopChangeHistoryApiController {
         @Valid @ModelAttribute ShopChangeHistorySearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopChangeHistoryResult> pageResult = shopChangeHistoryQueryUseCase.getChangeHistories(
+        PageResult<ShopChangeHistoryResult> pageResult = shopChangeHistoryListQueryUseCase.getChangeHistories(
                 userDetails.getCeoId(),
                 id,
                 request.category(),
@@ -71,7 +77,7 @@ class ShopChangeHistoryApiController {
     )
     @GetMapping("/v1/change-history-types")
     public ResponseEntity<ApiResponse<List<ShopChangeCategoryResponse>>> getChangeHistoryTypes() {
-        List<ShopChangeCategoryResponse> response = shopChangeHistoryQueryUseCase.getChangeHistoryTypes().stream()
+        List<ShopChangeCategoryResponse> response = shopChangeHistoryTypeQueryUseCase.getChangeHistoryTypes().stream()
             .map(ShopChangeCategoryResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

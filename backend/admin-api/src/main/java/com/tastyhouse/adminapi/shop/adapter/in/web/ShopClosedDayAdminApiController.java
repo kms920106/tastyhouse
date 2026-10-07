@@ -20,7 +20,7 @@ import com.tastyhouse.application.shop.port.in.ShopClosedDayCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayManagementCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopClosedDayManagementDeleteCommand;
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopClosedDayManagementQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopClosedDaySaveRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopClosedDayResponse;
@@ -32,22 +32,22 @@ class ShopClosedDayAdminApiController {
 
     private final ShopClosedDayCreateUseCase shopClosedDayCreateUseCase;
     private final ShopClosedDayDeleteUseCase shopClosedDayDeleteUseCase;
-    private final ShopManagementQueryUseCase shopQueryUseCase;
+    private final ShopClosedDayManagementQueryUseCase shopClosedDayManagementQueryUseCase;
 
     public ShopClosedDayAdminApiController(
         ShopClosedDayCreateUseCase shopClosedDayCreateUseCase,
         ShopClosedDayDeleteUseCase shopClosedDayDeleteUseCase,
-        ShopManagementQueryUseCase shopQueryUseCase
+        ShopClosedDayManagementQueryUseCase shopClosedDayManagementQueryUseCase
     ) {
         this.shopClosedDayCreateUseCase = shopClosedDayCreateUseCase;
         this.shopClosedDayDeleteUseCase = shopClosedDayDeleteUseCase;
-        this.shopQueryUseCase = shopQueryUseCase;
+        this.shopClosedDayManagementQueryUseCase = shopClosedDayManagementQueryUseCase;
     }
 
     @Operation(summary = "정기 휴무일 목록 조회", description = "가게의 정기 휴무일 목록을 조회합니다.")
     @GetMapping("/v1/{id}/closed-days")
     public ResponseEntity<ApiResponse<List<ShopClosedDayResponse>>> getClosedDays(@PathVariable Long id) {
-        List<ShopClosedDayResponse> response = shopQueryUseCase.getClosedDays(id).stream()
+        List<ShopClosedDayResponse> response = shopClosedDayManagementQueryUseCase.getClosedDays(id).stream()
             .map(ShopClosedDayResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

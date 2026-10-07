@@ -18,11 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
 import com.tastyhouse.application.member.port.in.MemberDeliveryAddressChangeDefaultCommand;
-import com.tastyhouse.application.member.port.in.MemberDeliveryAddressCommandUseCase;
+import com.tastyhouse.application.member.port.in.MemberDeliveryAddressChangeDefaultUseCase;
 import com.tastyhouse.application.member.port.in.MemberDeliveryAddressCreateCommand;
+import com.tastyhouse.application.member.port.in.MemberDeliveryAddressCreateUseCase;
 import com.tastyhouse.application.member.port.in.MemberDeliveryAddressDeleteCommand;
+import com.tastyhouse.application.member.port.in.MemberDeliveryAddressDeleteUseCase;
 import com.tastyhouse.application.member.port.in.MemberDeliveryAddressQueryUseCase;
 import com.tastyhouse.application.member.port.in.MemberDeliveryAddressUpdateCommand;
+import com.tastyhouse.application.member.port.in.MemberDeliveryAddressUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.member.adapter.in.web.request.MemberDeliveryAddressCreateRequest;
@@ -34,15 +37,24 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MemberDeliveryAddres
 @Tag(name = "Member Delivery Address", description = "회원 배달 주소록 API")
 class MemberDeliveryAddressApiController {
 
-    private final MemberDeliveryAddressCommandUseCase memberDeliveryAddressCommandUseCase;
     private final MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryUseCase;
+    private final MemberDeliveryAddressCreateUseCase memberDeliveryAddressCreateUseCase;
+    private final MemberDeliveryAddressUpdateUseCase memberDeliveryAddressUpdateUseCase;
+    private final MemberDeliveryAddressDeleteUseCase memberDeliveryAddressDeleteUseCase;
+    private final MemberDeliveryAddressChangeDefaultUseCase memberDeliveryAddressChangeDefaultUseCase;
 
     public MemberDeliveryAddressApiController(
-        MemberDeliveryAddressCommandUseCase memberDeliveryAddressCommandUseCase,
-        MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryUseCase
+        MemberDeliveryAddressQueryUseCase memberDeliveryAddressQueryUseCase,
+        MemberDeliveryAddressCreateUseCase memberDeliveryAddressCreateUseCase,
+        MemberDeliveryAddressUpdateUseCase memberDeliveryAddressUpdateUseCase,
+        MemberDeliveryAddressDeleteUseCase memberDeliveryAddressDeleteUseCase,
+        MemberDeliveryAddressChangeDefaultUseCase memberDeliveryAddressChangeDefaultUseCase
     ) {
-        this.memberDeliveryAddressCommandUseCase = memberDeliveryAddressCommandUseCase;
         this.memberDeliveryAddressQueryUseCase = memberDeliveryAddressQueryUseCase;
+        this.memberDeliveryAddressCreateUseCase = memberDeliveryAddressCreateUseCase;
+        this.memberDeliveryAddressUpdateUseCase = memberDeliveryAddressUpdateUseCase;
+        this.memberDeliveryAddressDeleteUseCase = memberDeliveryAddressDeleteUseCase;
+        this.memberDeliveryAddressChangeDefaultUseCase = memberDeliveryAddressChangeDefaultUseCase;
     }
 
     @Operation(
@@ -73,7 +85,7 @@ class MemberDeliveryAddressApiController {
         @Valid @RequestBody MemberDeliveryAddressCreateRequest request
     ) {
         MemberDeliveryAddressCreateCommand command = request.toCommand(userDetails.getMemberId());
-        Long addressId = memberDeliveryAddressCommandUseCase.createDeliveryAddress(command);
+        Long addressId = memberDeliveryAddressCreateUseCase.createDeliveryAddress(command);
         return ResponseEntity.ok(ApiResponse.success(addressId));
     }
 
@@ -89,7 +101,7 @@ class MemberDeliveryAddressApiController {
         @Valid @RequestBody MemberDeliveryAddressUpdateRequest request
     ) {
         MemberDeliveryAddressUpdateCommand command = request.toCommand(userDetails.getMemberId(), id);
-        memberDeliveryAddressCommandUseCase.updateDeliveryAddress(command);
+        memberDeliveryAddressUpdateUseCase.updateDeliveryAddress(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -100,7 +112,7 @@ class MemberDeliveryAddressApiController {
         @PathVariable Long id
     ) {
         MemberDeliveryAddressDeleteCommand command = MemberDeliveryAddressDeleteCommand.of(userDetails.getMemberId(), id);
-        memberDeliveryAddressCommandUseCase.deleteDeliveryAddress(command);
+        memberDeliveryAddressDeleteUseCase.deleteDeliveryAddress(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -114,7 +126,7 @@ class MemberDeliveryAddressApiController {
         @PathVariable Long id
     ) {
         MemberDeliveryAddressChangeDefaultCommand command = MemberDeliveryAddressChangeDefaultCommand.of(userDetails.getMemberId(), id);
-        memberDeliveryAddressCommandUseCase.changeDefaultDeliveryAddress(command);
+        memberDeliveryAddressChangeDefaultUseCase.changeDefaultDeliveryAddress(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

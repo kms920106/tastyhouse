@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.product.port.in.ProductNutritionCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductAllergenTypeListQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductNutritionDeleteCommand;
-import com.tastyhouse.application.product.port.in.ProductNutritionOwnerQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductNutritionDeleteUseCase;
+import com.tastyhouse.application.product.port.in.ProductNutritionOwnerDetailQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductNutritionUpdateCommand;
+import com.tastyhouse.application.product.port.in.ProductNutritionUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductNutritionUpdateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductShopScopeRequest;
@@ -32,12 +34,21 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductNutritionRes
 @RequestMapping("/api/products")
 class ProductNutritionApiController {
 
-    private final ProductNutritionOwnerQueryUseCase productNutritionQueryUseCase;
-    private final ProductNutritionCommandUseCase productNutritionCommandUseCase;
+    private final ProductNutritionOwnerDetailQueryUseCase productNutritionOwnerDetailQueryUseCase;
+    private final ProductAllergenTypeListQueryUseCase productAllergenTypeListQueryUseCase;
+    private final ProductNutritionUpdateUseCase productNutritionUpdateUseCase;
+    private final ProductNutritionDeleteUseCase productNutritionDeleteUseCase;
 
-    public ProductNutritionApiController(ProductNutritionOwnerQueryUseCase productNutritionQueryUseCase, ProductNutritionCommandUseCase productNutritionCommandUseCase) {
-        this.productNutritionQueryUseCase = productNutritionQueryUseCase;
-        this.productNutritionCommandUseCase = productNutritionCommandUseCase;
+    public ProductNutritionApiController(
+        ProductNutritionOwnerDetailQueryUseCase productNutritionOwnerDetailQueryUseCase,
+        ProductAllergenTypeListQueryUseCase productAllergenTypeListQueryUseCase,
+        ProductNutritionUpdateUseCase productNutritionUpdateUseCase,
+        ProductNutritionDeleteUseCase productNutritionDeleteUseCase
+    ) {
+        this.productNutritionOwnerDetailQueryUseCase = productNutritionOwnerDetailQueryUseCase;
+        this.productAllergenTypeListQueryUseCase = productAllergenTypeListQueryUseCase;
+        this.productNutritionUpdateUseCase = productNutritionUpdateUseCase;
+        this.productNutritionDeleteUseCase = productNutritionDeleteUseCase;
     }
 
     @Operation(summary = "알레르기 유발성분 코드 목록",
@@ -45,7 +56,7 @@ class ProductNutritionApiController {
             + "목록이 바뀌어도 화면 배포가 필요하지 않습니다.")
     @GetMapping("/v1/allergens")
     public ResponseEntity<ApiResponse<List<ProductAllergenTypeResponse>>> getAllergenTypes() {
-        List<ProductAllergenTypeResponse> response = productNutritionQueryUseCase.getAllergenTypes().stream()
+        List<ProductAllergenTypeResponse> response = productAllergenTypeListQueryUseCase.getAllergenTypes().stream()
             .map(ProductAllergenTypeResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -60,7 +71,7 @@ class ProductNutritionApiController {
         @PathVariable Long id,
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
-        ProductNutritionResponse response = ProductNutritionResponse.from(productNutritionQueryUseCase.getNutrition( userDetails.getCeoId(), request.shopId(), id ));
+        ProductNutritionResponse response = ProductNutritionResponse.from(productNutritionOwnerDetailQueryUseCase.getNutrition( userDetails.getCeoId(), request.shopId(), id ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -74,7 +85,7 @@ class ProductNutritionApiController {
         @Valid @RequestBody ProductNutritionUpdateRequest request
     ) {
         ProductNutritionUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productNutritionCommandUseCase.updateNutrition(command);
+        productNutritionUpdateUseCase.updateNutrition(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -88,7 +99,7 @@ class ProductNutritionApiController {
         @Valid @ModelAttribute ProductShopScopeRequest request
     ) {
         ProductNutritionDeleteCommand command = request.toNutritionDeleteCommand(userDetails.getCeoId(), id);
-        productNutritionCommandUseCase.deleteNutrition(command);
+        productNutritionDeleteUseCase.deleteNutrition(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

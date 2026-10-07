@@ -16,9 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.review.port.in.ShopReviewCommandUseCase;
-import com.tastyhouse.application.review.port.in.ShopReviewQueryUseCase;
+import com.tastyhouse.application.review.port.in.ShopReviewBlindReasonListQueryUseCase;
+import com.tastyhouse.application.review.port.in.ShopReviewDetailQueryUseCase;
+import com.tastyhouse.application.review.port.in.ShopReviewListQueryUseCase;
 import com.tastyhouse.application.review.port.in.ShopReviewSortTypeChangeCommand;
+import com.tastyhouse.application.review.port.in.ShopReviewSortTypeChangeUseCase;
+import com.tastyhouse.application.review.port.in.ShopReviewSortTypeQueryUseCase;
+import com.tastyhouse.application.review.port.in.ShopReviewStatisticsQueryUseCase;
 import com.tastyhouse.application.review.port.out.ShopReviewListItemViewResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -37,15 +41,27 @@ import com.tastyhouse.ceoapi.review.adapter.in.web.response.ShopReviewStatistics
 @RequestMapping("/api/shops")
 class ShopReviewApiController {
 
-    private final ShopReviewQueryUseCase shopReviewQueryUseCase;
-    private final ShopReviewCommandUseCase shopReviewCommandUseCase;
+    private final ShopReviewListQueryUseCase shopReviewListQueryUseCase;
+    private final ShopReviewDetailQueryUseCase shopReviewDetailQueryUseCase;
+    private final ShopReviewStatisticsQueryUseCase shopReviewStatisticsQueryUseCase;
+    private final ShopReviewSortTypeQueryUseCase shopReviewSortTypeQueryUseCase;
+    private final ShopReviewBlindReasonListQueryUseCase shopReviewBlindReasonListQueryUseCase;
+    private final ShopReviewSortTypeChangeUseCase shopReviewSortTypeChangeUseCase;
 
     public ShopReviewApiController(
-        ShopReviewQueryUseCase shopReviewQueryUseCase,
-        ShopReviewCommandUseCase shopReviewCommandUseCase
+        ShopReviewListQueryUseCase shopReviewListQueryUseCase,
+        ShopReviewDetailQueryUseCase shopReviewDetailQueryUseCase,
+        ShopReviewStatisticsQueryUseCase shopReviewStatisticsQueryUseCase,
+        ShopReviewSortTypeQueryUseCase shopReviewSortTypeQueryUseCase,
+        ShopReviewBlindReasonListQueryUseCase shopReviewBlindReasonListQueryUseCase,
+        ShopReviewSortTypeChangeUseCase shopReviewSortTypeChangeUseCase
     ) {
-        this.shopReviewQueryUseCase = shopReviewQueryUseCase;
-        this.shopReviewCommandUseCase = shopReviewCommandUseCase;
+        this.shopReviewListQueryUseCase = shopReviewListQueryUseCase;
+        this.shopReviewDetailQueryUseCase = shopReviewDetailQueryUseCase;
+        this.shopReviewStatisticsQueryUseCase = shopReviewStatisticsQueryUseCase;
+        this.shopReviewSortTypeQueryUseCase = shopReviewSortTypeQueryUseCase;
+        this.shopReviewBlindReasonListQueryUseCase = shopReviewBlindReasonListQueryUseCase;
+        this.shopReviewSortTypeChangeUseCase = shopReviewSortTypeChangeUseCase;
     }
 
     @Operation(
@@ -60,7 +76,7 @@ class ShopReviewApiController {
         @Valid @ModelAttribute ShopReviewSearchRequest request,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopReviewListItemViewResult> pageResult = shopReviewQueryUseCase.getReviews(
+        PageResult<ShopReviewListItemViewResult> pageResult = shopReviewListQueryUseCase.getReviews(
             userDetails.getCeoId(),
             id,
             request.tab(),
@@ -94,7 +110,7 @@ class ShopReviewApiController {
         @PathVariable Long id
     ) {
         ShopReviewStatisticsResponse response =
-            ShopReviewStatisticsResponse.from(shopReviewQueryUseCase.getStatistics(userDetails.getCeoId(), id));
+            ShopReviewStatisticsResponse.from(shopReviewStatisticsQueryUseCase.getStatistics(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -109,7 +125,7 @@ class ShopReviewApiController {
         @PathVariable Long id
     ) {
         ShopReviewSortTypeResponse response =
-            ShopReviewSortTypeResponse.from(shopReviewQueryUseCase.getSortType(userDetails.getCeoId(), id));
+            ShopReviewSortTypeResponse.from(shopReviewSortTypeQueryUseCase.getSortType(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -125,7 +141,7 @@ class ShopReviewApiController {
         @Valid @RequestBody ShopReviewSortTypeUpdateRequest request
     ) {
         ShopReviewSortTypeChangeCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopReviewCommandUseCase.changeSortType(command);
+        shopReviewSortTypeChangeUseCase.changeSortType(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -140,7 +156,7 @@ class ShopReviewApiController {
         @PathVariable Long reviewId
     ) {
         ShopReviewDetailResponse response =
-            ShopReviewDetailResponse.from(shopReviewQueryUseCase.getReviewDetail(userDetails.getCeoId(), id, reviewId));
+            ShopReviewDetailResponse.from(shopReviewDetailQueryUseCase.getReviewDetail(userDetails.getCeoId(), id, reviewId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -151,7 +167,7 @@ class ShopReviewApiController {
     )
     @GetMapping("/v1/review-blind-reasons")
     public ResponseEntity<ApiResponse<List<ReviewBlindReasonCatalogResponse>>> getBlindReasons() {
-        List<ReviewBlindReasonCatalogResponse> response = shopReviewQueryUseCase.getBlindReasons().stream()
+        List<ReviewBlindReasonCatalogResponse> response = shopReviewBlindReasonListQueryUseCase.getBlindReasons().stream()
             .map(ReviewBlindReasonCatalogResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

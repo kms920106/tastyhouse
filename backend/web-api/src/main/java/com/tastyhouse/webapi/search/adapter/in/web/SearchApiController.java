@@ -12,7 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.search.port.in.SearchQueryUseCase;
+import com.tastyhouse.application.search.port.in.SearchMenuQueryUseCase;
+import com.tastyhouse.application.search.port.in.SearchPopularKeywordQueryUseCase;
+import com.tastyhouse.application.search.port.in.SearchRecommendedKeywordQueryUseCase;
+import com.tastyhouse.application.search.port.in.SearchReviewQueryUseCase;
+import com.tastyhouse.application.search.port.in.SearchShopPublicQueryUseCase;
+import com.tastyhouse.application.search.port.in.SearchShopQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -31,17 +36,34 @@ import com.tastyhouse.webapi.search.adapter.in.web.response.SearchShopListItemRe
 @Tag(name = "Search", description = "검색 API")
 class SearchApiController {
 
-    private final SearchQueryUseCase searchQueryUseCase;
+    private final SearchPopularKeywordQueryUseCase searchPopularKeywordQueryUseCase;
+    private final SearchRecommendedKeywordQueryUseCase searchRecommendedKeywordQueryUseCase;
+    private final SearchMenuQueryUseCase searchMenuQueryUseCase;
+    private final SearchReviewQueryUseCase searchReviewQueryUseCase;
+    private final SearchShopQueryUseCase searchShopQueryUseCase;
+    private final SearchShopPublicQueryUseCase searchShopPublicQueryUseCase;
 
-    public SearchApiController(SearchQueryUseCase searchQueryUseCase) {
-        this.searchQueryUseCase = searchQueryUseCase;
+    public SearchApiController(
+        SearchPopularKeywordQueryUseCase searchPopularKeywordQueryUseCase,
+        SearchRecommendedKeywordQueryUseCase searchRecommendedKeywordQueryUseCase,
+        SearchMenuQueryUseCase searchMenuQueryUseCase,
+        SearchReviewQueryUseCase searchReviewQueryUseCase,
+        SearchShopQueryUseCase searchShopQueryUseCase,
+        SearchShopPublicQueryUseCase searchShopPublicQueryUseCase
+    ) {
+        this.searchPopularKeywordQueryUseCase = searchPopularKeywordQueryUseCase;
+        this.searchRecommendedKeywordQueryUseCase = searchRecommendedKeywordQueryUseCase;
+        this.searchMenuQueryUseCase = searchMenuQueryUseCase;
+        this.searchReviewQueryUseCase = searchReviewQueryUseCase;
+        this.searchShopQueryUseCase = searchShopQueryUseCase;
+        this.searchShopPublicQueryUseCase = searchShopPublicQueryUseCase;
     }
 
     @Operation(summary = "인기 검색어 조회", description = "1~10위 인기 검색어 반환. 신규 진입 키워드는 isNew=true.")
     @GetMapping("/v1/popular-keywords")
     public ResponseEntity<ApiResponse<List<SearchPopularKeywordResponse>>> getPopularKeywords() {
         return ResponseEntity.ok(ApiResponse.success(
-            searchQueryUseCase.getPopularKeywords().stream()
+            searchPopularKeywordQueryUseCase.getPopularKeywords().stream()
                 .map(SearchPopularKeywordResponse::from)
                 .toList()
         ));
@@ -51,7 +73,7 @@ class SearchApiController {
     @GetMapping("/v1/recommended-keywords")
     public ResponseEntity<ApiResponse<List<SearchRecommendedKeywordResponse>>> getRecommendedKeywords() {
         return ResponseEntity.ok(ApiResponse.success(
-            searchQueryUseCase.getRecommendedKeywords().stream()
+            searchRecommendedKeywordQueryUseCase.getRecommendedKeywords().stream()
                 .map(SearchRecommendedKeywordResponse::from)
                 .toList()
         ));
@@ -65,7 +87,7 @@ class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var result = PaginationResponse.from(
-            searchQueryUseCase.searchMenus(search.query(), pageRequest.page(), pageRequest.size())
+            searchMenuQueryUseCase.searchMenus(search.query(), pageRequest.page(), pageRequest.size())
                 .map(ProductSummaryResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -81,7 +103,7 @@ class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var result = PaginationResponse.from(
-            searchQueryUseCase.searchReviews(search.query(), pageRequest.page(), pageRequest.size())
+            searchReviewQueryUseCase.searchReviews(search.query(), pageRequest.page(), pageRequest.size())
                 .map(SearchReviewListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -98,7 +120,7 @@ class SearchApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         var result = PaginationResponse.from(
-            searchQueryUseCase.searchShopsPaged(search.query(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
+            searchShopQueryUseCase.searchShopsPaged(search.query(), userDetails.getMemberId(), pageRequest.page(), pageRequest.size())
                 .map(SearchShopListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(
@@ -114,7 +136,7 @@ class SearchApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         var result = PaginationResponse.from(
-            searchQueryUseCase.searchShopsPublic(search.query(), pageRequest.page(), pageRequest.size())
+            searchShopPublicQueryUseCase.searchShopsPublic(search.query(), pageRequest.page(), pageRequest.size())
                 .map(SearchShopListItemResponse::from)
         );
         return ResponseEntity.ok(ApiResponse.success(

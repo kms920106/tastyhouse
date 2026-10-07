@@ -15,9 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
+import com.tastyhouse.application.member.port.in.MemberPasswordVerifyUseCase;
+import com.tastyhouse.application.member.port.in.MemberPersonalInfoQueryUseCase;
 import com.tastyhouse.application.member.port.in.MemberPersonalInfoUpdateCommand;
-import com.tastyhouse.application.member.port.in.MemberScreenUseCase;
+import com.tastyhouse.application.member.port.in.MemberVerifiedPasswordUpdateUseCase;
+import com.tastyhouse.application.member.port.in.MemberVerifiedPersonalInfoUpdateUseCase;
 import com.tastyhouse.application.member.port.in.MemberWithdrawCommand;
+import com.tastyhouse.application.member.port.in.MemberWithdrawWithLogoutUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.member.adapter.in.web.request.UpdatePasswordRequest;
@@ -32,10 +36,24 @@ import com.tastyhouse.webapi.member.adapter.in.web.response.MemberVerifyPassword
 @Tag(name = "Member Me Account", description = "내 계정 관리 API")
 class MemberMeAccountApiController {
 
-    private final MemberScreenUseCase memberUseCase;
+    private final MemberPasswordVerifyUseCase memberPasswordVerifyUseCase;
+    private final MemberPersonalInfoQueryUseCase memberPersonalInfoQueryUseCase;
+    private final MemberVerifiedPersonalInfoUpdateUseCase memberVerifiedPersonalInfoUpdateUseCase;
+    private final MemberVerifiedPasswordUpdateUseCase memberVerifiedPasswordUpdateUseCase;
+    private final MemberWithdrawWithLogoutUseCase memberWithdrawWithLogoutUseCase;
 
-    public MemberMeAccountApiController(MemberScreenUseCase memberUseCase) {
-        this.memberUseCase = memberUseCase;
+    public MemberMeAccountApiController(
+        MemberPasswordVerifyUseCase memberPasswordVerifyUseCase,
+        MemberPersonalInfoQueryUseCase memberPersonalInfoQueryUseCase,
+        MemberVerifiedPersonalInfoUpdateUseCase memberVerifiedPersonalInfoUpdateUseCase,
+        MemberVerifiedPasswordUpdateUseCase memberVerifiedPasswordUpdateUseCase,
+        MemberWithdrawWithLogoutUseCase memberWithdrawWithLogoutUseCase
+    ) {
+        this.memberPasswordVerifyUseCase = memberPasswordVerifyUseCase;
+        this.memberPersonalInfoQueryUseCase = memberPersonalInfoQueryUseCase;
+        this.memberVerifiedPersonalInfoUpdateUseCase = memberVerifiedPersonalInfoUpdateUseCase;
+        this.memberVerifiedPasswordUpdateUseCase = memberVerifiedPasswordUpdateUseCase;
+        this.memberWithdrawWithLogoutUseCase = memberWithdrawWithLogoutUseCase;
     }
 
     @Operation(summary = "비밀번호 인증 (개인정보 수정 진입)", description = "개인정보 수정 화면 진입 전 현재 비밀번호를 검증합니다. 검증 성공 시 5분간 유효한 verifyToken을 반환합니다.")
@@ -45,7 +63,7 @@ class MemberMeAccountApiController {
         @Valid @RequestBody VerifyPasswordRequest request
     ) {
         MemberVerifyPasswordResponse response =
-            MemberVerifyPasswordResponse.from(memberUseCase.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password()));
+            MemberVerifyPasswordResponse.from(memberPasswordVerifyUseCase.verifyPasswordAndIssueToken(userDetails.getMemberId(), request.password()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -54,7 +72,7 @@ class MemberMeAccountApiController {
     public ResponseEntity<ApiResponse<MemberPersonalInfoResponse>> getMyPersonalInfo(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        return ResponseEntity.ok(ApiResponse.success(MemberPersonalInfoResponse.from(memberUseCase.getPersonalInfo(userDetails.getMemberId()))));
+        return ResponseEntity.ok(ApiResponse.success(MemberPersonalInfoResponse.from(memberPersonalInfoQueryUseCase.getPersonalInfo(userDetails.getMemberId()))));
     }
 
     @Operation(
@@ -71,7 +89,7 @@ class MemberMeAccountApiController {
         @Valid @RequestBody UpdatePersonalInfoRequest request
     ) {
         MemberPersonalInfoUpdateCommand command = request.toCommand(userDetails.getMemberId());
-        memberUseCase.updatePersonalInfo(command, verifyToken, smsVerifyToken);
+        memberVerifiedPersonalInfoUpdateUseCase.updatePersonalInfo(command, verifyToken, smsVerifyToken);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -86,7 +104,7 @@ class MemberMeAccountApiController {
         @Valid @RequestBody UpdatePasswordRequest request
     ) {
         MemberPasswordUpdateCommand command = request.toCommand(userDetails.getMemberId());
-        memberUseCase.updatePassword(command, verifyToken);
+        memberVerifiedPasswordUpdateUseCase.updatePassword(command, verifyToken);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -98,7 +116,7 @@ class MemberMeAccountApiController {
         @Valid @RequestBody WithdrawMemberRequest request
     ) {
         MemberWithdrawCommand command = request.toCommand(userDetails.getMemberId());
-        memberUseCase.withdrawMember(command, bearerToken);
+        memberWithdrawWithLogoutUseCase.withdrawMember(command, bearerToken);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

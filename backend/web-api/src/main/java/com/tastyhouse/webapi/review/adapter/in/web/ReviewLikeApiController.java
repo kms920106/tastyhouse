@@ -11,9 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.review.port.in.ReviewCommandUseCase;
+import com.tastyhouse.application.review.port.in.ReviewLikeStatusQueryUseCase;
 import com.tastyhouse.application.review.port.in.ReviewLikeToggleCommand;
-import com.tastyhouse.application.review.port.in.ReviewQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewLikeToggleUseCase;
+import com.tastyhouse.application.review.port.in.ReviewVisibilityQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewLikeResponse;
@@ -24,15 +25,18 @@ import com.tastyhouse.webapi.review.adapter.in.web.response.ReviewLikeStatusResp
 @Tag(name = "Review Like", description = "리뷰 좋아요 API")
 class ReviewLikeApiController {
 
-    private final ReviewCommandUseCase reviewCommandUseCase;
-    private final ReviewQueryUseCase reviewQueryUseCase;
+    private final ReviewLikeToggleUseCase reviewLikeToggleUseCase;
+    private final ReviewLikeStatusQueryUseCase reviewLikeStatusQueryUseCase;
+    private final ReviewVisibilityQueryUseCase reviewVisibilityQueryUseCase;
 
     public ReviewLikeApiController(
-        ReviewCommandUseCase reviewCommandUseCase,
-        ReviewQueryUseCase reviewQueryUseCase
+        ReviewLikeToggleUseCase reviewLikeToggleUseCase,
+        ReviewLikeStatusQueryUseCase reviewLikeStatusQueryUseCase,
+        ReviewVisibilityQueryUseCase reviewVisibilityQueryUseCase
     ) {
-        this.reviewCommandUseCase = reviewCommandUseCase;
-        this.reviewQueryUseCase = reviewQueryUseCase;
+        this.reviewLikeToggleUseCase = reviewLikeToggleUseCase;
+        this.reviewLikeStatusQueryUseCase = reviewLikeStatusQueryUseCase;
+        this.reviewVisibilityQueryUseCase = reviewVisibilityQueryUseCase;
     }
 
     @Operation(summary = "리뷰 좋아요 여부 조회", description = "리뷰가 현재 사용자에 의해 좋아요되었는지 여부를 조회합니다.")
@@ -46,7 +50,7 @@ class ReviewLikeApiController {
             liked = ReviewLikeStatusResponse.from(false);
         } else {
             Long memberId = userDetails.getMemberId();
-            liked = ReviewLikeStatusResponse.from(reviewQueryUseCase.isLiked(id, memberId));
+            liked = ReviewLikeStatusResponse.from(reviewLikeStatusQueryUseCase.isLiked(id, memberId));
         }
         return ResponseEntity.ok(ApiResponse.success(liked));
     }
@@ -57,9 +61,9 @@ class ReviewLikeApiController {
         @Parameter(description = "리뷰 ID", example = "1") @PathVariable Long id,
         @CurrentUser MemberUserDetails userDetails
     ) {
-        reviewQueryUseCase.requireVisibleReview(id, userDetails.getMemberId());
+        reviewVisibilityQueryUseCase.requireVisibleReview(id, userDetails.getMemberId());
         ReviewLikeToggleCommand command = ReviewLikeToggleCommand.of(userDetails.getMemberId(), id);
-        boolean liked = reviewCommandUseCase.toggleReviewLike(command);
+        boolean liked = reviewLikeToggleUseCase.toggleReviewLike(command);
         return ResponseEntity.ok(ApiResponse.success(ReviewLikeResponse.from(liked)));
     }
 }

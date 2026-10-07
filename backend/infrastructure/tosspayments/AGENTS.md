@@ -26,7 +26,7 @@ com.tastyhouse.infrastructure.tosspayments/
 
 ## 포트 반환 타입 — `PgProviderCode`(application 소유) vs `PgProvider`(domain 소유)
 
-`PgProviderGateway.provider()`는 도메인 `PgProvider`를 직접 반환하지 않고, `application`이 새로 선언한 `PgProviderCode`(`com.tastyhouse.application.payment.port.out`, 상수명은 `PgProvider`와 동일 — `TOSS`·`KAKAO`·`NICE`·`KG_INICIS`·`NHN_KCP`·`SETTLE_BANK`)를 반환한다. 소비자 쪽 포트 `PgPaymentGateway`(라우터만 구현, web-api·`PaymentCommandService`가 실제로 호출하는 계약)는 그대로 도메인 `PgProvider`를 쓴다.
+`PgProviderGateway.provider()`는 도메인 `PgProvider`를 직접 반환하지 않고, `application`이 새로 선언한 `PgProviderCode`(`com.tastyhouse.application.payment.port.out`, 상수명은 `PgProvider`와 동일 — `TOSS`·`KAKAO`·`NICE`·`KG_INICIS`·`NHN_KCP`·`SETTLE_BANK`)를 반환한다. 소비자 쪽 포트 `PgPaymentGateway`(라우터만 구현, web-application의 `PgPaymentConfirmService`·`PaymentCancelService`가 실제로 호출하는 계약)는 그대로 도메인 `PgProvider`를 쓴다.
 
 라우터 `PgPaymentGatewayRouter`(지금은 `domain`이 아니라 `web-application`의 `payment/service/`에 있다 — 앱 마커 제거 전에는 `application`)가 등록 시점에 `PgProviderCode.name()` → `PgProvider.valueOf(name)`으로 변환해 두 enum을 잇는다. 이 변환이 어긋나지 않는지는 `application`의 `architecture/EnumCodeConstantsTest`가 상수 집합 일치를 검증한다. 벤더가 새 PG사를 추가하면 `PgProviderCode`와 `PgProvider` 양쪽에 같은 이름으로 상수를 추가해야 하며, 한쪽만 추가하면 이 테스트가 실패한다.
 
@@ -59,7 +59,7 @@ pg:
 
 - **실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **`@ConditionalOnProperty`를 붙이지 않는다** — 결제 벤더는 배타 선택이 아니라 공존한다(`../pg/AGENTS.md`의 봉인 항목).
-- **결제 실패는 예외가 아니라 결과로 돌려준다** — `TossPaymentClient`는 HTTP 오류·무응답을 `code`/`message`가 채워진 응답 객체로 바꾸고, 어댑터가 `PgConfirmResult.success=false`·`PgCancelResult.success=false`로 옮긴다. 성공·실패 판정과 `BusinessException` 번역은 application(`PaymentCommandService`)이 한다.
+- **결제 실패는 예외가 아니라 결과로 돌려준다** — `TossPaymentClient`는 HTTP 오류·무응답을 `code`/`message`가 채워진 응답 객체로 바꾸고, 어댑터가 `PgConfirmResult.success=false`·`PgCancelResult.success=false`로 옮긴다. 성공·실패 판정과 `BusinessException` 번역은 application(`PgPaymentConfirmService`·`PaymentCancelService`)이 한다.
 
 ## 봉인·가드 목록
 

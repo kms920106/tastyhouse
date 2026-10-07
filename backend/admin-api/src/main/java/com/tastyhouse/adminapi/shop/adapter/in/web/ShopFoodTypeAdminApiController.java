@@ -19,11 +19,12 @@ import com.tastyhouse.application.shop.port.in.ShopFoodTypeAssignCommand;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeAssignUseCase;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryCreateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryUpdateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopFoodTypeManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeUnassignCommand;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeUnassignUseCase;
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopFoodTypeAssignRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopFoodTypeCategoryCreateRequest;
@@ -40,26 +41,29 @@ class ShopFoodTypeAdminApiController {
     private final ShopFoodTypeCategoryUpdateUseCase shopFoodTypeCategoryUpdateUseCase;
     private final ShopFoodTypeAssignUseCase shopFoodTypeAssignUseCase;
     private final ShopFoodTypeUnassignUseCase shopFoodTypeUnassignUseCase;
-    private final ShopManagementQueryUseCase shopQueryUseCase;
+    private final ShopFoodTypeCategoryManagementQueryUseCase shopFoodTypeCategoryManagementQueryUseCase;
+    private final ShopFoodTypeManagementQueryUseCase shopFoodTypeManagementQueryUseCase;
 
     public ShopFoodTypeAdminApiController(
         ShopFoodTypeCategoryCreateUseCase shopFoodTypeCategoryCreateUseCase,
         ShopFoodTypeCategoryUpdateUseCase shopFoodTypeCategoryUpdateUseCase,
         ShopFoodTypeAssignUseCase shopFoodTypeAssignUseCase,
         ShopFoodTypeUnassignUseCase shopFoodTypeUnassignUseCase,
-        ShopManagementQueryUseCase shopQueryUseCase
+        ShopFoodTypeCategoryManagementQueryUseCase shopFoodTypeCategoryManagementQueryUseCase,
+        ShopFoodTypeManagementQueryUseCase shopFoodTypeManagementQueryUseCase
     ) {
         this.shopFoodTypeCategoryCreateUseCase = shopFoodTypeCategoryCreateUseCase;
         this.shopFoodTypeCategoryUpdateUseCase = shopFoodTypeCategoryUpdateUseCase;
         this.shopFoodTypeAssignUseCase = shopFoodTypeAssignUseCase;
         this.shopFoodTypeUnassignUseCase = shopFoodTypeUnassignUseCase;
-        this.shopQueryUseCase = shopQueryUseCase;
+        this.shopFoodTypeCategoryManagementQueryUseCase = shopFoodTypeCategoryManagementQueryUseCase;
+        this.shopFoodTypeManagementQueryUseCase = shopFoodTypeManagementQueryUseCase;
     }
 
     @Operation(summary = "음식종류 카테고리 목록 조회", description = "음식종류 마스터 카테고리 목록을 조회합니다.")
     @GetMapping("/v1/food-type-categories")
     public ResponseEntity<ApiResponse<List<ShopFoodTypeCategoryResponse>>> getFoodTypeCategories() {
-        List<ShopFoodTypeCategoryResponse> response = shopQueryUseCase.getFoodTypeCategories().stream()
+        List<ShopFoodTypeCategoryResponse> response = shopFoodTypeCategoryManagementQueryUseCase.getFoodTypeCategories().stream()
             .map(ShopFoodTypeCategoryResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -87,7 +91,7 @@ class ShopFoodTypeAdminApiController {
     @Operation(summary = "가게 음식종류 목록 조회", description = "가게에 지정된 음식종류 목록을 조회합니다.")
     @GetMapping("/v1/{id}/food-types")
     public ResponseEntity<ApiResponse<List<ShopFoodTypeResponse>>> getShopFoodTypes(@PathVariable Long id) {
-        List<ShopFoodTypeResponse> response = shopQueryUseCase.getShopFoodTypes(id).stream()
+        List<ShopFoodTypeResponse> response = shopFoodTypeManagementQueryUseCase.getShopFoodTypes(id).stream()
             .map(ShopFoodTypeResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

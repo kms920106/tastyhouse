@@ -15,9 +15,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
-import com.tastyhouse.application.order.port.in.OrderCommandUseCase;
 import com.tastyhouse.application.order.port.in.OrderCreateCommand;
-import com.tastyhouse.application.order.port.in.OrderQueryUseCase;
+import com.tastyhouse.application.order.port.in.OrderCreateUseCase;
+import com.tastyhouse.application.order.port.in.OrderDetailQueryUseCase;
+import com.tastyhouse.application.order.port.in.OrderListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
 import com.tastyhouse.apicommon.common.PaginationResponse;
@@ -31,12 +32,18 @@ import com.tastyhouse.webapi.order.adapter.in.web.response.OrderDetailResponse;
 @Tag(name = "Order", description = "주문 API")
 class OrderApiController {
 
-    private final OrderCommandUseCase orderCommandUseCase;
-    private final OrderQueryUseCase orderQueryUseCase;
+    private final OrderCreateUseCase orderCreateUseCase;
+    private final OrderListQueryUseCase orderListQueryUseCase;
+    private final OrderDetailQueryUseCase orderDetailQueryUseCase;
 
-    public OrderApiController(OrderCommandUseCase orderCommandUseCase, OrderQueryUseCase orderQueryUseCase) {
-        this.orderCommandUseCase = orderCommandUseCase;
-        this.orderQueryUseCase = orderQueryUseCase;
+    public OrderApiController(
+        OrderCreateUseCase orderCreateUseCase,
+        OrderListQueryUseCase orderListQueryUseCase,
+        OrderDetailQueryUseCase orderDetailQueryUseCase
+    ) {
+        this.orderCreateUseCase = orderCreateUseCase;
+        this.orderListQueryUseCase = orderListQueryUseCase;
+        this.orderDetailQueryUseCase = orderDetailQueryUseCase;
     }
 
     @Operation(summary = "주문 생성", description = "새로운 주문을 생성합니다. 생성된 주문 ID를 반환합니다.")
@@ -46,7 +53,7 @@ class OrderApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         OrderCreateCommand command = request.toCommand(userDetails.getMemberId());
-        Long orderId = orderCommandUseCase.createOrder(command);
+        Long orderId = orderCreateUseCase.createOrder(command);
         return ResponseEntity.ok(ApiResponse.success(orderId));
     }
 
@@ -58,7 +65,7 @@ class OrderApiController {
     ) {
         Long memberId = userDetails.getMemberId();
         PaginationResponse<OrderListItemResponse> page = PaginationResponse.from(
-            orderQueryUseCase.getOrderList(memberId, pageRequest.page(), pageRequest.size())
+            orderListQueryUseCase.getOrderList(memberId, pageRequest.page(), pageRequest.size())
                 .map(OrderListItemResponse::from)
         );
         ApiResponse<List<OrderListItemResponse>> response = ApiResponse.success(
@@ -77,7 +84,7 @@ class OrderApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         Long memberId = userDetails.getMemberId();
-        OrderDetailResponse response = OrderDetailResponse.from(orderQueryUseCase.getOrderDetail(memberId, id));
+        OrderDetailResponse response = OrderDetailResponse.from(orderDetailQueryUseCase.getOrderDetail(memberId, id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

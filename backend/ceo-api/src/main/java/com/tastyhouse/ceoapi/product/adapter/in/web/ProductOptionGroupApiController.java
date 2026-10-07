@@ -18,11 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupDeleteCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupDeleteUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupListQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupDeleteRequest;
@@ -35,15 +37,21 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupR
 @RequestMapping("/api/products")
 class ProductOptionGroupApiController {
 
-    private final ProductOptionGroupQueryUseCase productOptionGroupQueryUseCase;
-    private final ProductOptionGroupCommandUseCase productOptionGroupCommandUseCase;
+    private final ProductOptionGroupListQueryUseCase productOptionGroupListQueryUseCase;
+    private final ProductOptionGroupOwnerCreateUseCase productOptionGroupOwnerCreateUseCase;
+    private final ProductOptionGroupUpdateUseCase productOptionGroupUpdateUseCase;
+    private final ProductOptionGroupDeleteUseCase productOptionGroupDeleteUseCase;
 
     public ProductOptionGroupApiController(
-        ProductOptionGroupQueryUseCase productOptionGroupQueryUseCase,
-        ProductOptionGroupCommandUseCase productOptionGroupCommandUseCase
+        ProductOptionGroupListQueryUseCase productOptionGroupListQueryUseCase,
+        ProductOptionGroupOwnerCreateUseCase productOptionGroupOwnerCreateUseCase,
+        ProductOptionGroupUpdateUseCase productOptionGroupUpdateUseCase,
+        ProductOptionGroupDeleteUseCase productOptionGroupDeleteUseCase
     ) {
-        this.productOptionGroupQueryUseCase = productOptionGroupQueryUseCase;
-        this.productOptionGroupCommandUseCase = productOptionGroupCommandUseCase;
+        this.productOptionGroupListQueryUseCase = productOptionGroupListQueryUseCase;
+        this.productOptionGroupOwnerCreateUseCase = productOptionGroupOwnerCreateUseCase;
+        this.productOptionGroupUpdateUseCase = productOptionGroupUpdateUseCase;
+        this.productOptionGroupDeleteUseCase = productOptionGroupDeleteUseCase;
     }
 
     @Operation(summary = "옵션그룹 목록 조회",
@@ -54,7 +62,7 @@ class ProductOptionGroupApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupSearchRequest request
     ) {
-        List<ProductOptionGroupResponse> response = productOptionGroupQueryUseCase.getProductOptionGroups( userDetails.getCeoId(), request.shopId() ).stream()
+        List<ProductOptionGroupResponse> response = productOptionGroupListQueryUseCase.getProductOptionGroups( userDetails.getCeoId(), request.shopId() ).stream()
             .map(ProductOptionGroupResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -69,7 +77,7 @@ class ProductOptionGroupApiController {
         @Valid @RequestBody ProductOptionGroupCreateRequest request
     ) {
         ProductOptionGroupOwnerCreateCommand command = request.toCommand(userDetails.getCeoId());
-        Long optionGroupId = productOptionGroupCommandUseCase.createProductOptionGroup(command);
+        Long optionGroupId = productOptionGroupOwnerCreateUseCase.createProductOptionGroup(command);
         return ResponseEntity.ok(ApiResponse.success(optionGroupId));
     }
 
@@ -85,7 +93,7 @@ class ProductOptionGroupApiController {
         @Valid @RequestBody ProductOptionGroupUpdateRequest request
     ) {
         ProductOptionGroupUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productOptionGroupCommandUseCase.updateProductOptionGroup(command);
+        productOptionGroupUpdateUseCase.updateProductOptionGroup(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -99,7 +107,7 @@ class ProductOptionGroupApiController {
         @Valid @RequestBody ProductOptionGroupDeleteRequest request
     ) {
         ProductOptionGroupDeleteCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productOptionGroupCommandUseCase.deleteProductOptionGroup(command);
+        productOptionGroupDeleteUseCase.deleteProductOptionGroup(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -17,13 +17,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.MemberUserDetails;
+import com.tastyhouse.application.reservation.port.in.ReservationAvailabilityQueryUseCase;
 import com.tastyhouse.application.reservation.port.in.ReservationCancelCommand;
-import com.tastyhouse.application.reservation.port.in.ReservationCommandUseCase;
+import com.tastyhouse.application.reservation.port.in.ReservationCancelUseCase;
 import com.tastyhouse.application.reservation.port.in.ReservationCompleteCommand;
+import com.tastyhouse.application.reservation.port.in.ReservationCompleteDetailQueryUseCase;
+import com.tastyhouse.application.reservation.port.in.ReservationCompleteUseCase;
 import com.tastyhouse.application.reservation.port.in.ReservationConfirmCommand;
+import com.tastyhouse.application.reservation.port.in.ReservationConfirmUseCase;
 import com.tastyhouse.application.reservation.port.in.ReservationCreateCommand;
-import com.tastyhouse.application.reservation.port.in.ReservationQueryUseCase;
+import com.tastyhouse.application.reservation.port.in.ReservationCreateUseCase;
+import com.tastyhouse.application.reservation.port.in.ReservationDetailByIdQueryUseCase;
+import com.tastyhouse.application.reservation.port.in.ReservationDetailQueryUseCase;
+import com.tastyhouse.application.reservation.port.in.ReservationMyListQueryUseCase;
 import com.tastyhouse.application.reservation.port.in.ReservationRejectCommand;
+import com.tastyhouse.application.reservation.port.in.ReservationRejectUseCase;
+import com.tastyhouse.application.reservation.port.in.ReservationShopListQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.reservation.adapter.in.web.request.ReservationCreateRequest;
@@ -38,15 +47,42 @@ import com.tastyhouse.webapi.reservation.adapter.in.web.response.ReservationSlot
 @Tag(name = "Reservation", description = "예약 API")
 class ReservationApiController {
 
-    private final ReservationCommandUseCase reservationCommandUseCase;
-    private final ReservationQueryUseCase reservationQueryUseCase;
+    private final ReservationAvailabilityQueryUseCase reservationAvailabilityQueryUseCase;
+    private final ReservationCreateUseCase reservationCreateUseCase;
+    private final ReservationMyListQueryUseCase reservationMyListQueryUseCase;
+    private final ReservationCompleteDetailQueryUseCase reservationCompleteDetailQueryUseCase;
+    private final ReservationDetailQueryUseCase reservationDetailQueryUseCase;
+    private final ReservationCancelUseCase reservationCancelUseCase;
+    private final ReservationConfirmUseCase reservationConfirmUseCase;
+    private final ReservationRejectUseCase reservationRejectUseCase;
+    private final ReservationCompleteUseCase reservationCompleteUseCase;
+    private final ReservationDetailByIdQueryUseCase reservationDetailByIdQueryUseCase;
+    private final ReservationShopListQueryUseCase reservationShopListQueryUseCase;
 
     public ReservationApiController(
-        ReservationCommandUseCase reservationCommandUseCase,
-        ReservationQueryUseCase reservationQueryUseCase
+        ReservationAvailabilityQueryUseCase reservationAvailabilityQueryUseCase,
+        ReservationCreateUseCase reservationCreateUseCase,
+        ReservationMyListQueryUseCase reservationMyListQueryUseCase,
+        ReservationCompleteDetailQueryUseCase reservationCompleteDetailQueryUseCase,
+        ReservationDetailQueryUseCase reservationDetailQueryUseCase,
+        ReservationCancelUseCase reservationCancelUseCase,
+        ReservationConfirmUseCase reservationConfirmUseCase,
+        ReservationRejectUseCase reservationRejectUseCase,
+        ReservationCompleteUseCase reservationCompleteUseCase,
+        ReservationDetailByIdQueryUseCase reservationDetailByIdQueryUseCase,
+        ReservationShopListQueryUseCase reservationShopListQueryUseCase
     ) {
-        this.reservationCommandUseCase = reservationCommandUseCase;
-        this.reservationQueryUseCase = reservationQueryUseCase;
+        this.reservationAvailabilityQueryUseCase = reservationAvailabilityQueryUseCase;
+        this.reservationCreateUseCase = reservationCreateUseCase;
+        this.reservationMyListQueryUseCase = reservationMyListQueryUseCase;
+        this.reservationCompleteDetailQueryUseCase = reservationCompleteDetailQueryUseCase;
+        this.reservationDetailQueryUseCase = reservationDetailQueryUseCase;
+        this.reservationCancelUseCase = reservationCancelUseCase;
+        this.reservationConfirmUseCase = reservationConfirmUseCase;
+        this.reservationRejectUseCase = reservationRejectUseCase;
+        this.reservationCompleteUseCase = reservationCompleteUseCase;
+        this.reservationDetailByIdQueryUseCase = reservationDetailByIdQueryUseCase;
+        this.reservationShopListQueryUseCase = reservationShopListQueryUseCase;
     }
 
     @Operation(summary = "슬롯 가용성 조회", description = "가게의 특정 날짜 슬롯별 잔여/가용 정보를 조회합니다. 로그인 필수 — 내 예약 슬롯은 available=false로 반환.")
@@ -56,7 +92,7 @@ class ReservationApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationSlotAvailabilityResponse response = ReservationSlotAvailabilityResponse.from(
-            reservationQueryUseCase.getAvailability(search.shopId(), search.date(), userDetails.getMemberId())
+            reservationAvailabilityQueryUseCase.getAvailability(search.shopId(), search.date(), userDetails.getMemberId())
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -68,7 +104,7 @@ class ReservationApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationCreateCommand command = request.toCommand(userDetails.getMemberId());
-        Long reservationId = reservationCommandUseCase.createReservation(command);
+        Long reservationId = reservationCreateUseCase.createReservation(command);
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(reservationId));
     }
@@ -78,7 +114,7 @@ class ReservationApiController {
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getMyReservations(
         @CurrentUser MemberUserDetails userDetails
     ) {
-        List<ReservationResponse> responses = reservationQueryUseCase.getMyReservations(userDetails.getMemberId()).stream()
+        List<ReservationResponse> responses = reservationMyListQueryUseCase.getMyReservations(userDetails.getMemberId()).stream()
             .map(ReservationResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(responses));
@@ -91,7 +127,7 @@ class ReservationApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationCompleteDetailResponse response = ReservationCompleteDetailResponse.from(
-            reservationQueryUseCase.getCompleteDetail(userDetails.getMemberId(), id)
+            reservationCompleteDetailQueryUseCase.getCompleteDetail(userDetails.getMemberId(), id)
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -103,7 +139,7 @@ class ReservationApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationDetailResponse response = ReservationDetailResponse.from(
-            reservationQueryUseCase.getReservationDetail(userDetails.getMemberId(), id)
+            reservationDetailQueryUseCase.getReservationDetail(userDetails.getMemberId(), id)
         );
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -115,7 +151,7 @@ class ReservationApiController {
         @CurrentUser MemberUserDetails userDetails
     ) {
         ReservationCancelCommand command = ReservationCancelCommand.of(userDetails.getMemberId(), id);
-        reservationCommandUseCase.cancelReservation(command);
+        reservationCancelUseCase.cancelReservation(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -123,8 +159,8 @@ class ReservationApiController {
     @PatchMapping("/v1/{id}/confirm")
     public ResponseEntity<ApiResponse<ReservationResponse>> confirm(@PathVariable Long id) {
         ReservationConfirmCommand command = ReservationConfirmCommand.of(id);
-        reservationCommandUseCase.confirmReservation(command);
-        ReservationResponse response = ReservationResponse.from(reservationQueryUseCase.getReservation(id));
+        reservationConfirmUseCase.confirmReservation(command);
+        ReservationResponse response = ReservationResponse.from(reservationDetailByIdQueryUseCase.getReservation(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -132,8 +168,8 @@ class ReservationApiController {
     @PatchMapping("/v1/{id}/reject")
     public ResponseEntity<ApiResponse<ReservationResponse>> reject(@PathVariable Long id) {
         ReservationRejectCommand command = ReservationRejectCommand.of(id);
-        reservationCommandUseCase.rejectReservation(command);
-        ReservationResponse response = ReservationResponse.from(reservationQueryUseCase.getReservation(id));
+        reservationRejectUseCase.rejectReservation(command);
+        ReservationResponse response = ReservationResponse.from(reservationDetailByIdQueryUseCase.getReservation(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -141,15 +177,15 @@ class ReservationApiController {
     @PatchMapping("/v1/{id}/complete")
     public ResponseEntity<ApiResponse<ReservationResponse>> complete(@PathVariable Long id) {
         ReservationCompleteCommand command = ReservationCompleteCommand.of(id);
-        reservationCommandUseCase.completeReservation(command);
-        ReservationResponse response = ReservationResponse.from(reservationQueryUseCase.getReservation(id));
+        reservationCompleteUseCase.completeReservation(command);
+        ReservationResponse response = ReservationResponse.from(reservationDetailByIdQueryUseCase.getReservation(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "가게별 예약 목록 조회(점주)", description = "특정 가게의 예약 목록을 조회합니다.")
     @GetMapping("/v1/shops/{shopId}")
     public ResponseEntity<ApiResponse<List<ReservationResponse>>> getShopReservations(@PathVariable Long shopId) {
-        List<ReservationResponse> responses = reservationQueryUseCase.getShopReservations(shopId).stream()
+        List<ReservationResponse> responses = reservationShopListQueryUseCase.getShopReservations(shopId).stream()
             .map(ReservationResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(responses));

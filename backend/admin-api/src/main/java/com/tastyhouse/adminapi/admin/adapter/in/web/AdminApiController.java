@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.admin.port.in.AdminCommandUseCase;
 import com.tastyhouse.application.admin.port.in.AdminCreateCommand;
+import com.tastyhouse.application.admin.port.in.AdminCreateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.admin.adapter.in.web.request.AdminCreateRequest;
 
@@ -21,10 +21,10 @@ import com.tastyhouse.adminapi.admin.adapter.in.web.request.AdminCreateRequest;
 @RequestMapping("/api/admins")
 class AdminApiController {
 
-    private final AdminCommandUseCase adminCommandUseCase;
+    private final AdminCreateUseCase adminCreateUseCase;
 
-    public AdminApiController(AdminCommandUseCase adminCommandUseCase) {
-        this.adminCommandUseCase = adminCommandUseCase;
+    public AdminApiController(AdminCreateUseCase adminCreateUseCase) {
+        this.adminCreateUseCase = adminCreateUseCase;
     }
 
     @Operation(summary = "관리자 계정 생성", description = "신규 관리자 계정을 생성합니다. 최고관리자(SUPER_ADMIN)만 호출할 수 있습니다. 생성된 관리자 ID를 반환합니다.")
@@ -32,7 +32,7 @@ class AdminApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createAdmin(@Valid @RequestBody AdminCreateRequest request) {
         AdminCreateCommand command = request.toCommand();
-        Long id = adminCommandUseCase.createAdmin(command);
+        Long id = adminCreateUseCase.createAdmin(command);
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success(id));
     }

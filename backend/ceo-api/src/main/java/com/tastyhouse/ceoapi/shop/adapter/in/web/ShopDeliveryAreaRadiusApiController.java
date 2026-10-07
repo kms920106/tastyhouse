@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaRadiusRequest;
@@ -30,14 +30,14 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaRadius
 class ShopDeliveryAreaRadiusApiController {
 
     private final ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryUseCase;
-    private final ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase;
+    private final ShopDeliveryAreaRadiusApplyUseCase shopDeliveryAreaRadiusApplyUseCase;
 
     public ShopDeliveryAreaRadiusApiController(
         ShopDeliveryAreaRadiusQueryUseCase shopDeliveryAreaRadiusQueryUseCase,
-        ShopDeliveryAreaCommandUseCase shopDeliveryAreaCommandUseCase
+        ShopDeliveryAreaRadiusApplyUseCase shopDeliveryAreaRadiusApplyUseCase
     ) {
         this.shopDeliveryAreaRadiusQueryUseCase = shopDeliveryAreaRadiusQueryUseCase;
-        this.shopDeliveryAreaCommandUseCase = shopDeliveryAreaCommandUseCase;
+        this.shopDeliveryAreaRadiusApplyUseCase = shopDeliveryAreaRadiusApplyUseCase;
     }
 
     @Operation(
@@ -68,7 +68,7 @@ class ShopDeliveryAreaRadiusApiController {
     ) {
         ShopDeliveryAreaRadiusApplyCommand command = request.toCommand(userDetails.getCeoId(), id);
         ShopDeliveryAreaBulkResponse response =
-            ShopDeliveryAreaBulkResponse.from(shopDeliveryAreaCommandUseCase.applyRadius(command));
+            ShopDeliveryAreaBulkResponse.from(shopDeliveryAreaRadiusApplyUseCase.applyRadius(command));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

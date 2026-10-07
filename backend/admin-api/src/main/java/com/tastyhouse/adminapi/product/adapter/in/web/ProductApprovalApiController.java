@@ -14,14 +14,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.product.port.in.ProductApprovalCommandUseCase;
-import com.tastyhouse.application.product.port.in.ProductApprovalQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageChangeApproveCommand;
+import com.tastyhouse.application.product.port.in.ProductImageChangeApproveUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageChangeRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductImageChangeRejectUseCase;
+import com.tastyhouse.application.product.port.in.ProductImageChangeRequestListQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductRepresentativeApproveCommand;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeApproveUseCase;
 import com.tastyhouse.application.product.port.in.ProductRepresentativeRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeRejectUseCase;
+import com.tastyhouse.application.product.port.in.ProductRepresentativeRequestListQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductVegetarianApproveCommand;
+import com.tastyhouse.application.product.port.in.ProductVegetarianApproveUseCase;
 import com.tastyhouse.application.product.port.in.ProductVegetarianRejectCommand;
+import com.tastyhouse.application.product.port.in.ProductVegetarianRejectUseCase;
+import com.tastyhouse.application.product.port.in.ProductVegetarianRequestListQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
@@ -40,15 +47,36 @@ import com.tastyhouse.adminapi.product.adapter.in.web.response.ProductVegetarian
 @RequestMapping("/api/products")
 class ProductApprovalApiController {
 
-    private final ProductApprovalQueryUseCase productApprovalQueryUseCase;
-    private final ProductApprovalCommandUseCase productApprovalCommandUseCase;
+    private final ProductImageChangeRequestListQueryUseCase productImageChangeRequestListQueryUseCase;
+    private final ProductImageChangeApproveUseCase productImageChangeApproveUseCase;
+    private final ProductImageChangeRejectUseCase productImageChangeRejectUseCase;
+    private final ProductVegetarianRequestListQueryUseCase productVegetarianRequestListQueryUseCase;
+    private final ProductVegetarianApproveUseCase productVegetarianApproveUseCase;
+    private final ProductVegetarianRejectUseCase productVegetarianRejectUseCase;
+    private final ProductRepresentativeRequestListQueryUseCase productRepresentativeRequestListQueryUseCase;
+    private final ProductRepresentativeApproveUseCase productRepresentativeApproveUseCase;
+    private final ProductRepresentativeRejectUseCase productRepresentativeRejectUseCase;
 
     public ProductApprovalApiController(
-        ProductApprovalQueryUseCase productApprovalQueryUseCase,
-        ProductApprovalCommandUseCase productApprovalCommandUseCase
+        ProductImageChangeRequestListQueryUseCase productImageChangeRequestListQueryUseCase,
+        ProductImageChangeApproveUseCase productImageChangeApproveUseCase,
+        ProductImageChangeRejectUseCase productImageChangeRejectUseCase,
+        ProductVegetarianRequestListQueryUseCase productVegetarianRequestListQueryUseCase,
+        ProductVegetarianApproveUseCase productVegetarianApproveUseCase,
+        ProductVegetarianRejectUseCase productVegetarianRejectUseCase,
+        ProductRepresentativeRequestListQueryUseCase productRepresentativeRequestListQueryUseCase,
+        ProductRepresentativeApproveUseCase productRepresentativeApproveUseCase,
+        ProductRepresentativeRejectUseCase productRepresentativeRejectUseCase
     ) {
-        this.productApprovalQueryUseCase = productApprovalQueryUseCase;
-        this.productApprovalCommandUseCase = productApprovalCommandUseCase;
+        this.productImageChangeRequestListQueryUseCase = productImageChangeRequestListQueryUseCase;
+        this.productImageChangeApproveUseCase = productImageChangeApproveUseCase;
+        this.productImageChangeRejectUseCase = productImageChangeRejectUseCase;
+        this.productVegetarianRequestListQueryUseCase = productVegetarianRequestListQueryUseCase;
+        this.productVegetarianApproveUseCase = productVegetarianApproveUseCase;
+        this.productVegetarianRejectUseCase = productVegetarianRejectUseCase;
+        this.productRepresentativeRequestListQueryUseCase = productRepresentativeRequestListQueryUseCase;
+        this.productRepresentativeApproveUseCase = productRepresentativeApproveUseCase;
+        this.productRepresentativeRejectUseCase = productRepresentativeRejectUseCase;
     }
 
     @Operation(summary = "메뉴 이미지 변경 요청 목록 조회",
@@ -58,7 +86,7 @@ class ProductApprovalApiController {
         @Valid @ModelAttribute ProductApprovalSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ProductImageChangeRequestResult> pageResult = productApprovalQueryUseCase.getImageChangeRequests(
+        PageResult<ProductImageChangeRequestResult> pageResult = productImageChangeRequestListQueryUseCase.getImageChangeRequests(
             search.status(), pageRequest.page(), pageRequest.size()
         );
         PaginationResponse<ProductImageChangeRequestItemResponse> pageResponse = PaginationResponse.from(pageResult.map(ProductImageChangeRequestItemResponse::from));
@@ -72,7 +100,7 @@ class ProductApprovalApiController {
     @PatchMapping("/v1/image-change-requests/{id}/approve")
     public ResponseEntity<ApiResponse<Void>> approveImageChange(@PathVariable Long id) {
         ProductImageChangeApproveCommand command = ProductImageChangeApproveCommand.of(id);
-        productApprovalCommandUseCase.approveImageChange(command);
+        productImageChangeApproveUseCase.approveImageChange(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -83,7 +111,7 @@ class ProductApprovalApiController {
         @Valid @RequestBody ProductApprovalRejectRequest request
     ) {
         ProductImageChangeRejectCommand command = request.toImageChangeCommand(id);
-        productApprovalCommandUseCase.rejectImageChange(command);
+        productImageChangeRejectUseCase.rejectImageChange(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -94,7 +122,7 @@ class ProductApprovalApiController {
         @Valid @ModelAttribute ProductApprovalSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ProductVegetarianRequestResult> pageResult = productApprovalQueryUseCase.getVegetarianRequests(
+        PageResult<ProductVegetarianRequestResult> pageResult = productVegetarianRequestListQueryUseCase.getVegetarianRequests(
             search.status(), pageRequest.page(), pageRequest.size()
         );
         PaginationResponse<ProductVegetarianRequestItemResponse> pageResponse = PaginationResponse.from(pageResult.map(ProductVegetarianRequestItemResponse::from));
@@ -108,7 +136,7 @@ class ProductApprovalApiController {
     @PatchMapping("/v1/vegetarian-requests/{id}/approve")
     public ResponseEntity<ApiResponse<Void>> approveVegetarian(@PathVariable Long id) {
         ProductVegetarianApproveCommand command = ProductVegetarianApproveCommand.of(id);
-        productApprovalCommandUseCase.approveVegetarian(command);
+        productVegetarianApproveUseCase.approveVegetarian(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -119,7 +147,7 @@ class ProductApprovalApiController {
         @Valid @RequestBody ProductApprovalRejectRequest request
     ) {
         ProductVegetarianRejectCommand command = request.toVegetarianCommand(id);
-        productApprovalCommandUseCase.rejectVegetarian(command);
+        productVegetarianRejectUseCase.rejectVegetarian(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -131,7 +159,7 @@ class ProductApprovalApiController {
         @Valid @ModelAttribute ProductApprovalSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ProductRepresentativeRequestResult> pageResult = productApprovalQueryUseCase.getRepresentativeRequests(
+        PageResult<ProductRepresentativeRequestResult> pageResult = productRepresentativeRequestListQueryUseCase.getRepresentativeRequests(
             search.status(), pageRequest.page(), pageRequest.size()
         );
         PaginationResponse<ProductRepresentativeRequestItemResponse> pageResponse = PaginationResponse.from(pageResult.map(ProductRepresentativeRequestItemResponse::from));
@@ -146,7 +174,7 @@ class ProductApprovalApiController {
     @PatchMapping("/v1/representative-requests/{id}/approve")
     public ResponseEntity<ApiResponse<Void>> approveRepresentative(@PathVariable Long id) {
         ProductRepresentativeApproveCommand command = ProductRepresentativeApproveCommand.of(id);
-        productApprovalCommandUseCase.approveRepresentative(command);
+        productRepresentativeApproveUseCase.approveRepresentative(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -157,7 +185,7 @@ class ProductApprovalApiController {
         @Valid @RequestBody ProductApprovalRejectRequest request
     ) {
         ProductRepresentativeRejectCommand command = request.toRepresentativeCommand(id);
-        productApprovalCommandUseCase.rejectRepresentative(command);
+        productRepresentativeRejectUseCase.rejectRepresentative(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

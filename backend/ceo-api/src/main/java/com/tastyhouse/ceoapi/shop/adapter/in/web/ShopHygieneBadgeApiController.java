@@ -21,10 +21,10 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopHygieneBadgeRespon
 @RequestMapping("/api/shops")
 class ShopHygieneBadgeApiController {
 
-    private final ShopHygieneBadgeOwnerQueryUseCase shopHygieneBadgeQueryUseCase;
+    private final ShopHygieneBadgeOwnerQueryUseCase shopHygieneBadgeOwnerQueryUseCase;
 
-    public ShopHygieneBadgeApiController(ShopHygieneBadgeOwnerQueryUseCase shopHygieneBadgeQueryUseCase) {
-        this.shopHygieneBadgeQueryUseCase = shopHygieneBadgeQueryUseCase;
+    public ShopHygieneBadgeApiController(ShopHygieneBadgeOwnerQueryUseCase shopHygieneBadgeOwnerQueryUseCase) {
+        this.shopHygieneBadgeOwnerQueryUseCase = shopHygieneBadgeOwnerQueryUseCase;
     }
 
     @Operation(summary = "위생 인증 뱃지 목록 조회", description = "가게의 위생 인증 뱃지 목록을 조회합니다.")
@@ -33,7 +33,7 @@ class ShopHygieneBadgeApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeQueryUseCase.getHygieneBadges(userDetails.getCeoId(), id).stream()
+        List<ShopHygieneBadgeResponse> response = shopHygieneBadgeOwnerQueryUseCase.getHygieneBadges(userDetails.getCeoId(), id).stream()
             .map(ShopHygieneBadgeResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

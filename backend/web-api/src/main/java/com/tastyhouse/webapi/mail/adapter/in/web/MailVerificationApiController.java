@@ -10,9 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
-import com.tastyhouse.application.mail.port.in.MailVerificationCommandUseCase;
 import com.tastyhouse.application.mail.port.in.MailVerificationConfirmCommand;
+import com.tastyhouse.application.mail.port.in.MailVerificationConfirmUseCase;
 import com.tastyhouse.application.mail.port.in.MailVerificationSendCommand;
+import com.tastyhouse.application.mail.port.in.MailVerificationSendUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
@@ -25,14 +26,17 @@ import com.tastyhouse.webapi.mail.adapter.in.web.response.MailVerificationTokenR
 @Tag(name = "Mail Verification", description = "메일(이메일 주소) 인증 API")
 class MailVerificationApiController {
 
-    private final MailVerificationCommandUseCase mailVerificationCommandUseCase;
+    private final MailVerificationSendUseCase mailVerificationSendUseCase;
+    private final MailVerificationConfirmUseCase mailVerificationConfirmUseCase;
     private final MemberJwtTokenProvider jwtTokenProvider;
 
     public MailVerificationApiController(
-        MailVerificationCommandUseCase mailVerificationCommandUseCase,
+        MailVerificationSendUseCase mailVerificationSendUseCase,
+        MailVerificationConfirmUseCase mailVerificationConfirmUseCase,
         MemberJwtTokenProvider jwtTokenProvider
     ) {
-        this.mailVerificationCommandUseCase = mailVerificationCommandUseCase;
+        this.mailVerificationSendUseCase = mailVerificationSendUseCase;
+        this.mailVerificationConfirmUseCase = mailVerificationConfirmUseCase;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -47,7 +51,7 @@ class MailVerificationApiController {
         @Valid @RequestBody MailVerificationSendRequest request
     ) {
         MailVerificationSendCommand command = request.toCommand();
-        mailVerificationCommandUseCase.sendVerificationCode(command);
+        mailVerificationSendUseCase.sendVerificationCode(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -61,7 +65,7 @@ class MailVerificationApiController {
         @Valid @RequestBody MailVerificationConfirmRequest request
     ) {
         MailVerificationConfirmCommand command = request.toCommand();
-        String email = mailVerificationCommandUseCase.confirmVerificationCode(command);
+        String email = mailVerificationConfirmUseCase.confirmVerificationCode(command);
         String mailVerifyToken = jwtTokenProvider.createMailVerifyToken(email);
         return ResponseEntity.ok(ApiResponse.success(MailVerificationTokenResponse.from(mailVerifyToken)));
     }

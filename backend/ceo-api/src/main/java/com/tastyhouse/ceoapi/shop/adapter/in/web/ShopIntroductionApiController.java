@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopIntroductionCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopIntroductionQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopIntroductionDetailQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopIntroductionUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopIntroductionUpdateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopIntroductionValidationQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopIntroductionUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopIntroductionValidateRequest;
@@ -28,12 +29,18 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopIntroductionValida
 @RequestMapping("/api/shops")
 class ShopIntroductionApiController {
 
-    private final ShopIntroductionQueryUseCase shopIntroductionQueryUseCase;
-    private final ShopIntroductionCommandUseCase shopIntroductionCommandUseCase;
+    private final ShopIntroductionDetailQueryUseCase shopIntroductionDetailQueryUseCase;
+    private final ShopIntroductionUpdateUseCase shopIntroductionUpdateUseCase;
+    private final ShopIntroductionValidationQueryUseCase shopIntroductionValidationQueryUseCase;
 
-    public ShopIntroductionApiController(ShopIntroductionQueryUseCase shopIntroductionQueryUseCase, ShopIntroductionCommandUseCase shopIntroductionCommandUseCase) {
-        this.shopIntroductionQueryUseCase = shopIntroductionQueryUseCase;
-        this.shopIntroductionCommandUseCase = shopIntroductionCommandUseCase;
+    public ShopIntroductionApiController(
+        ShopIntroductionDetailQueryUseCase shopIntroductionDetailQueryUseCase,
+        ShopIntroductionUpdateUseCase shopIntroductionUpdateUseCase,
+        ShopIntroductionValidationQueryUseCase shopIntroductionValidationQueryUseCase
+    ) {
+        this.shopIntroductionDetailQueryUseCase = shopIntroductionDetailQueryUseCase;
+        this.shopIntroductionUpdateUseCase = shopIntroductionUpdateUseCase;
+        this.shopIntroductionValidationQueryUseCase = shopIntroductionValidationQueryUseCase;
     }
 
     @Operation(summary = "내 가게소개 조회", description = "로그인한 점주가 소유한 가게의 최근 가게소개(사장님 한마디)를 조회합니다.")
@@ -43,7 +50,7 @@ class ShopIntroductionApiController {
         @PathVariable Long id
     ) {
         ShopIntroductionResponse response =
-            ShopIntroductionResponse.from(shopIntroductionQueryUseCase.getIntroduction(userDetails.getCeoId(), id));
+            ShopIntroductionResponse.from(shopIntroductionDetailQueryUseCase.getIntroduction(userDetails.getCeoId(), id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -55,7 +62,7 @@ class ShopIntroductionApiController {
         @Valid @RequestBody ShopIntroductionUpdateRequest request
     ) {
         ShopIntroductionUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopIntroductionCommandUseCase.updateIntroduction(command);
+        shopIntroductionUpdateUseCase.updateIntroduction(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -67,7 +74,7 @@ class ShopIntroductionApiController {
         @Valid @RequestBody ShopIntroductionValidateRequest request
     ) {
         ShopIntroductionValidationResponse response =
-            ShopIntroductionValidationResponse.from(shopIntroductionQueryUseCase.validateIntroduction(userDetails.getCeoId(), id, request.message()));
+            ShopIntroductionValidationResponse.from(shopIntroductionValidationQueryUseCase.validateIntroduction(userDetails.getCeoId(), id, request.message()));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

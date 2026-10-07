@@ -12,7 +12,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tastyhouse.application.shop.port.in.ShopBannerListQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDetailQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopInfoQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopPhotoListQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopPopularProductQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopProductListQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopReviewByRatingQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopReviewStatisticsQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopNoticeResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -34,9 +42,35 @@ import com.tastyhouse.webapi.shop.adapter.in.web.response.ShopReviewsByRatingRes
 class ShopDetailApiController {
 
     private final ShopDetailQueryUseCase shopDetailQueryUseCase;
+    private final ShopInfoQueryUseCase shopInfoQueryUseCase;
+    private final ShopBannerListQueryUseCase shopBannerListQueryUseCase;
+    private final ShopNoticeQueryUseCase shopNoticeQueryUseCase;
+    private final ShopProductListQueryUseCase shopProductListQueryUseCase;
+    private final ShopPopularProductQueryUseCase shopPopularProductQueryUseCase;
+    private final ShopPhotoListQueryUseCase shopPhotoListQueryUseCase;
+    private final ShopReviewByRatingQueryUseCase shopReviewByRatingQueryUseCase;
+    private final ShopReviewStatisticsQueryUseCase shopReviewStatisticsQueryUseCase;
 
-    public ShopDetailApiController(ShopDetailQueryUseCase shopDetailQueryUseCase) {
+    public ShopDetailApiController(
+        ShopDetailQueryUseCase shopDetailQueryUseCase,
+        ShopInfoQueryUseCase shopInfoQueryUseCase,
+        ShopBannerListQueryUseCase shopBannerListQueryUseCase,
+        ShopNoticeQueryUseCase shopNoticeQueryUseCase,
+        ShopProductListQueryUseCase shopProductListQueryUseCase,
+        ShopPopularProductQueryUseCase shopPopularProductQueryUseCase,
+        ShopPhotoListQueryUseCase shopPhotoListQueryUseCase,
+        ShopReviewByRatingQueryUseCase shopReviewByRatingQueryUseCase,
+        ShopReviewStatisticsQueryUseCase shopReviewStatisticsQueryUseCase
+    ) {
         this.shopDetailQueryUseCase = shopDetailQueryUseCase;
+        this.shopInfoQueryUseCase = shopInfoQueryUseCase;
+        this.shopBannerListQueryUseCase = shopBannerListQueryUseCase;
+        this.shopNoticeQueryUseCase = shopNoticeQueryUseCase;
+        this.shopProductListQueryUseCase = shopProductListQueryUseCase;
+        this.shopPopularProductQueryUseCase = shopPopularProductQueryUseCase;
+        this.shopPhotoListQueryUseCase = shopPhotoListQueryUseCase;
+        this.shopReviewByRatingQueryUseCase = shopReviewByRatingQueryUseCase;
+        this.shopReviewStatisticsQueryUseCase = shopReviewStatisticsQueryUseCase;
     }
 
     @Operation(summary = "가게 상세 조회", description = "가게의 기본 정보를 조회합니다. 상호명, 주소, 위도/경도, 평점, 전화번호, 썸네일 이미지를 포함합니다.")
@@ -49,7 +83,7 @@ class ShopDetailApiController {
     @Operation(summary = "정보 조회", description = "가게의 기본 정보를 조회합니다. 운영시간, 전화번호 등을 포함합니다.")
     @GetMapping("/v1/{id}/info")
     public ResponseEntity<ApiResponse<ShopInfoResponse>> getShopInfo(@PathVariable Long id) {
-        ShopInfoResponse shopInfo = ShopInfoResponse.from(shopDetailQueryUseCase.getShopInfo(id));
+        ShopInfoResponse shopInfo = ShopInfoResponse.from(shopInfoQueryUseCase.getShopInfo(id));
         ApiResponse<ShopInfoResponse> response = ApiResponse.success(shopInfo);
         return ResponseEntity.ok(response);
     }
@@ -57,7 +91,7 @@ class ShopDetailApiController {
     @Operation(summary = "배너 이미지 조회", description = "가게의 배너 이미지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/banners")
     public ResponseEntity<ApiResponse<List<ShopBannerResponse>>> getShopBanners(@PathVariable Long id) {
-        List<ShopBannerResponse> banners = shopDetailQueryUseCase.getShopBanners(id).stream()
+        List<ShopBannerResponse> banners = shopBannerListQueryUseCase.getShopBanners(id).stream()
             .map(ShopBannerResponse::from)
             .toList();
         ApiResponse<List<ShopBannerResponse>> response = ApiResponse.success(banners);
@@ -67,7 +101,7 @@ class ShopDetailApiController {
     @Operation(summary = "점주 공지 조회", description = "가게에 노출 중인 점주 공지 1건을 조회합니다. 노출 중인 공지가 없으면 data가 null입니다.")
     @GetMapping("/v1/{id}/notice")
     public ResponseEntity<ApiResponse<ShopNoticeResponse>> getShopNotice(@PathVariable Long id) {
-        ShopNoticeResult noticeResult = shopDetailQueryUseCase.getShopNotice(id);
+        ShopNoticeResult noticeResult = shopNoticeQueryUseCase.getShopNotice(id);
         ShopNoticeResponse notice = noticeResult == null ? null : ShopNoticeResponse.from(noticeResult);
         ApiResponse<ShopNoticeResponse> response = ApiResponse.success(notice);
         return ResponseEntity.ok(response);
@@ -76,7 +110,7 @@ class ShopDetailApiController {
     @Operation(summary = "상품 목록 조회", description = "가게의 상품 목록을 조회합니다. 카테고리별로 그룹화되어 반환됩니다.")
     @GetMapping("/v1/{id}/products")
     public ResponseEntity<ApiResponse<List<ShopProductCategoryResponse>>> getShopProducts(@PathVariable Long id) {
-        List<ShopProductCategoryResponse> products = shopDetailQueryUseCase.getShopProducts(id).stream()
+        List<ShopProductCategoryResponse> products = shopProductListQueryUseCase.getShopProducts(id).stream()
             .map(ShopProductCategoryResponse::from)
             .toList();
         ApiResponse<List<ShopProductCategoryResponse>> response = ApiResponse.success(products);
@@ -89,7 +123,7 @@ class ShopDetailApiController {
             + "인증이 필요하지 않습니다.")
     @GetMapping("/v1/{id}/popular-products")
     public ResponseEntity<ApiResponse<List<ShopPopularProductResponse>>> getPopularProducts(@PathVariable Long id) {
-        List<ShopPopularProductResponse> popularProducts = shopDetailQueryUseCase.getPopularProducts(id).stream()
+        List<ShopPopularProductResponse> popularProducts = shopPopularProductQueryUseCase.getPopularProducts(id).stream()
             .map(ShopPopularProductResponse::from)
             .toList();
         ApiResponse<List<ShopPopularProductResponse>> response = ApiResponse.success(popularProducts);
@@ -99,7 +133,7 @@ class ShopDetailApiController {
     @Operation(summary = "포토 목록 조회", description = "가게의 사진 목록을 조회합니다. 카테고리별로 그룹화되어 반환됩니다.")
     @GetMapping("/v1/{id}/photos")
     public ResponseEntity<ApiResponse<List<ShopPhotoCategoryResponse>>> getShopPhotos(@PathVariable Long id) {
-        List<ShopPhotoCategoryResponse> photos = shopDetailQueryUseCase.getShopPhotos(id).stream()
+        List<ShopPhotoCategoryResponse> photos = shopPhotoListQueryUseCase.getShopPhotos(id).stream()
             .map(ShopPhotoCategoryResponse::from)
             .toList();
         ApiResponse<List<ShopPhotoCategoryResponse>> response = ApiResponse.success(photos);
@@ -114,7 +148,7 @@ class ShopDetailApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         ShopReviewsByRatingPageResponse result = ShopReviewsByRatingPageResponse.from(
-            shopDetailQueryUseCase.getShopReviewsByRatingWithPagination(
+            shopReviewByRatingQueryUseCase.getShopReviewsByRatingWithPagination(
                 id,
                 pageRequest.page(),
                 pageRequest.size(),
@@ -130,7 +164,7 @@ class ShopDetailApiController {
     @GetMapping("/v1/{id}/reviews/statistics")
     public ResponseEntity<ApiResponse<ShopReviewStatisticsResponse>> getShopReviewStatistics(@PathVariable Long id) {
         ShopReviewStatisticsResponse statistics =
-            ShopReviewStatisticsResponse.from(shopDetailQueryUseCase.getShopReviewStatistics(id));
+            ShopReviewStatisticsResponse.from(shopReviewStatisticsQueryUseCase.getShopReviewStatistics(id));
         ApiResponse<ShopReviewStatisticsResponse> response = ApiResponse.success(statistics);
         return ResponseEntity.ok(response);
     }

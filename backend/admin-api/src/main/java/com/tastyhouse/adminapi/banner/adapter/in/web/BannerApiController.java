@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.banner.port.in.BannerCommandUseCase;
 import com.tastyhouse.application.banner.port.in.BannerCreateCommand;
+import com.tastyhouse.application.banner.port.in.BannerCreateUseCase;
 import com.tastyhouse.application.banner.port.in.BannerDeleteCommand;
-import com.tastyhouse.application.banner.port.in.BannerManagementQueryUseCase;
+import com.tastyhouse.application.banner.port.in.BannerDeleteUseCase;
+import com.tastyhouse.application.banner.port.in.BannerManagementDetailQueryUseCase;
+import com.tastyhouse.application.banner.port.in.BannerManagementListQueryUseCase;
 import com.tastyhouse.application.banner.port.in.BannerUpdateCommand;
+import com.tastyhouse.application.banner.port.in.BannerUpdateUseCase;
 import com.tastyhouse.application.banner.port.out.BannerManagementListItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -37,12 +40,24 @@ import com.tastyhouse.adminapi.banner.adapter.in.web.response.BannerListItemResp
 @RequestMapping("/api/banners")
 class BannerApiController {
 
-    private final BannerCommandUseCase bannerCommandUseCase;
-    private final BannerManagementQueryUseCase bannerQueryUseCase;
+    private final BannerCreateUseCase bannerCreateUseCase;
+    private final BannerUpdateUseCase bannerUpdateUseCase;
+    private final BannerDeleteUseCase bannerDeleteUseCase;
+    private final BannerManagementListQueryUseCase bannerManagementListQueryUseCase;
+    private final BannerManagementDetailQueryUseCase bannerManagementDetailQueryUseCase;
 
-    public BannerApiController(BannerCommandUseCase bannerCommandUseCase, BannerManagementQueryUseCase bannerQueryUseCase) {
-        this.bannerCommandUseCase = bannerCommandUseCase;
-        this.bannerQueryUseCase = bannerQueryUseCase;
+    public BannerApiController(
+        BannerCreateUseCase bannerCreateUseCase,
+        BannerUpdateUseCase bannerUpdateUseCase,
+        BannerDeleteUseCase bannerDeleteUseCase,
+        BannerManagementListQueryUseCase bannerManagementListQueryUseCase,
+        BannerManagementDetailQueryUseCase bannerManagementDetailQueryUseCase
+    ) {
+        this.bannerCreateUseCase = bannerCreateUseCase;
+        this.bannerUpdateUseCase = bannerUpdateUseCase;
+        this.bannerDeleteUseCase = bannerDeleteUseCase;
+        this.bannerManagementListQueryUseCase = bannerManagementListQueryUseCase;
+        this.bannerManagementDetailQueryUseCase = bannerManagementDetailQueryUseCase;
     }
 
     @Operation(summary = "배너 목록 조회", description = "배너 목록을 페이징 조회합니다. (비노출·노출기간 만료 배너 포함) type 미지정 시 전체 유형 조회, title은 부분 일치 검색, visible은 null=전체/true=노출/false=비노출")
@@ -51,7 +66,7 @@ class BannerApiController {
         @Valid @ModelAttribute BannerSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<BannerManagementListItemResult> pageResult = bannerQueryUseCase.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
+        PageResult<BannerManagementListItemResult> pageResult = bannerManagementListQueryUseCase.getBanners(search.type(), search.title(), search.visible(), pageRequest.page(), pageRequest.size());
         PaginationResponse<BannerListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(BannerListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
@@ -60,14 +75,14 @@ class BannerApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createBanner(@Valid @RequestBody BannerCreateRequest request) {
         BannerCreateCommand command = request.toCommand();
-        Long id = bannerCommandUseCase.createBanner(command);
+        Long id = bannerCreateUseCase.createBanner(command);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
     @Operation(summary = "배너 상세 조회", description = "배너 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<BannerDetailResponse>> getBanner(@PathVariable Long id) {
-        BannerDetailResponse response = BannerDetailResponse.from(bannerQueryUseCase.getBanner(id));
+        BannerDetailResponse response = BannerDetailResponse.from(bannerManagementDetailQueryUseCase.getBanner(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -78,7 +93,7 @@ class BannerApiController {
         @Valid @RequestBody BannerUpdateRequest request
     ) {
         BannerUpdateCommand command = request.toCommand(id);
-        bannerCommandUseCase.updateBanner(command);
+        bannerUpdateUseCase.updateBanner(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -86,7 +101,7 @@ class BannerApiController {
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteBanner(@PathVariable Long id) {
         BannerDeleteCommand command = BannerDeleteCommand.of(id);
-        bannerCommandUseCase.deleteBanner(command);
+        bannerDeleteUseCase.deleteBanner(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -16,9 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopImageChangeApproveCommand;
-import com.tastyhouse.application.shop.port.in.ShopImageChangeCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopImageChangeApproveUseCase;
 import com.tastyhouse.application.shop.port.in.ShopImageChangeQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopImageChangeRejectCommand;
+import com.tastyhouse.application.shop.port.in.ShopImageChangeRejectUseCase;
 import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -33,11 +34,17 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopImageChangeReque
 class ShopImageChangeAdminApiController {
 
     private final ShopImageChangeQueryUseCase shopImageChangeQueryUseCase;
-    private final ShopImageChangeCommandUseCase shopImageChangeCommandUseCase;
+    private final ShopImageChangeApproveUseCase shopImageChangeApproveUseCase;
+    private final ShopImageChangeRejectUseCase shopImageChangeRejectUseCase;
 
-    public ShopImageChangeAdminApiController(ShopImageChangeQueryUseCase shopImageChangeQueryUseCase, ShopImageChangeCommandUseCase shopImageChangeCommandUseCase) {
+    public ShopImageChangeAdminApiController(
+        ShopImageChangeQueryUseCase shopImageChangeQueryUseCase,
+        ShopImageChangeApproveUseCase shopImageChangeApproveUseCase,
+        ShopImageChangeRejectUseCase shopImageChangeRejectUseCase
+    ) {
         this.shopImageChangeQueryUseCase = shopImageChangeQueryUseCase;
-        this.shopImageChangeCommandUseCase = shopImageChangeCommandUseCase;
+        this.shopImageChangeApproveUseCase = shopImageChangeApproveUseCase;
+        this.shopImageChangeRejectUseCase = shopImageChangeRejectUseCase;
     }
 
     @Operation(summary = "이미지 변경 요청 목록 조회", description = "가게 상표/대표이미지 변경 요청 목록을 조건 페이징 조회합니다.")
@@ -60,7 +67,7 @@ class ShopImageChangeAdminApiController {
     @PatchMapping("/v1/image-change-requests/{requestId}/approve")
     public ResponseEntity<ApiResponse<Void>> approveImageChange(@PathVariable Long requestId) {
         ShopImageChangeApproveCommand command = ShopImageChangeApproveCommand.of(requestId);
-        shopImageChangeCommandUseCase.approveImageChange(command);
+        shopImageChangeApproveUseCase.approveImageChange(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -71,7 +78,7 @@ class ShopImageChangeAdminApiController {
         @Valid @RequestBody ShopImageChangeRejectRequest request
     ) {
         ShopImageChangeRejectCommand command = request.toCommand(requestId);
-        shopImageChangeCommandUseCase.rejectImageChange(command);
+        shopImageChangeRejectUseCase.rejectImageChange(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

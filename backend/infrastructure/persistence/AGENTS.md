@@ -391,7 +391,7 @@ DAO와 같은 `<ctx>/query/` 패키지의 Row·Result는 `import`가 없어서 �
 > | 항목 | 덩어리 01 (아래 본문) | 03b 이후 |
 > |---|---|---|
 > | enum 컬럼 투영 | `x.status.stringValue()` | 엔티티 필드가 `String`이라 `x.status`(`StringPath`)를 그대로 투영한다. 이미 붙어 있는 `.stringValue()`는 결과가 같아 남겨 둔 곳이 있다 — 지우든 두든 동작은 같다 |
-> | 라벨 슬롯(`{field}Description`/`{field}DisplayName`) | `EnumLabelProjection.labelOf(x.status, Status::getDescription)` | **`Expressions.nullExpression(String.class)`**로 자리만 채우고, QueryService가 `XxxEnum.valueOf(result.status()).getDescription()`을 Result wither(`withDescriptions(...)` 등)로 채운다. 참고: `.../shop/query/ShopQueryAdapter.java`·`.../shop/query/ShopCeoAssignmentHistoryQueryAdapter.java`의 `nullExpression` 슬롯 ↔ `backend/application/src/main/java/com/tastyhouse/application/shop/service/ShopChangeHistoryQueryService.java` |
+> | 라벨 슬롯(`{field}Description`/`{field}DisplayName`) | `EnumLabelProjection.labelOf(x.status, Status::getDescription)` | **`Expressions.nullExpression(String.class)`**로 자리만 채우고, QueryService가 `XxxEnum.valueOf(result.status()).getDescription()`을 Result wither(`withDescriptions(...)` 등)로 채운다. 참고: `.../shop/query/ShopQueryAdapter.java`·`.../shop/query/ShopCeoAssignmentHistoryQueryAdapter.java`의 `nullExpression` 슬롯 ↔ `backend/ceo-application/src/main/java/com/tastyhouse/application/shop/service/ShopChangeHistoryListQueryService.java`(유스케이스 분리 전 `backend/application/.../shop/service/ShopChangeHistoryQueryService.java`) |
 > | 상관 서브쿼리가 enum을 돌려줄 때 | `labelOf(..., ReviewBlindStatus::name)` | `Expression<String>`을 그대로 반환(`ShopReviewManagementQueryAdapter#latestBlindRequestStatus`) — 컬럼이 이미 문자열이다 |
 > | 테스트 | `ProjectionConstructorMatchingTest`가 `labelOf` 래퍼 인자를 이름 판정에서 제외 | 그 분기는 삭제됐다. `.stringValue()` 꼬리 벗기기(`STRING_VALUE_SUFFIX`)는 남아 있는 호출 때문에 유지 |
 >
@@ -910,7 +910,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 **대상**: ~~`.../shared/persistence/GeoPolygonTextCodec.java`~~ **(03b로 이동)** `backend/domain/src/main/java/com/tastyhouse/domain/shared/geo/GeoPolygonTextCodec.java` → `decode`
 
-> **(번복됨 — 덩어리 03b, 위치만)** 코덱은 이 모듈을 떠나 `domain`의 `shared/geo/`로 갔고 테스트(`GeoPolygonTextCodecTest`)도 `domain/src/test/.../shared/geo/`로 함께 옮겼다. 이 모듈의 매퍼가 `GeoRing`/`GeoPolygon`(domain 타입)을 인코딩할 수 없게 됐기 때문이다. ~~지금 인코딩·디코딩은 application이 한다 — `application/shop/store/ShopDeliveryAreaPolygonStateMapper`·`application/region/store/AdminDongStateMapper`(write 경로). 이 모듈은 인코딩된 문자열(`XxxSnapshot.encodedRings`)만 `LONGTEXT` 컬럼에 옮긴다.~~ **(번복됨 — persistence domain 재허용: write 경로만)** write 경로의 인코딩·디코딩은 다시 이 모듈의 `shop/persistence/ShopDeliveryAreaPolygonMapper`·`region/persistence/AdminDongMapper`가 domain 코덱을 직접 불러 한다. read 경로는 그대로 `application/shop/service/ShopDeliveryAreaPolygonQueryService`·`application/region/service/AdminDongQueryService`다(조회 DAO는 domain-free라 문자열만 넘긴다). 코덱 자체는 `domain`에 그대로 둔다. **실패를 조용히 넘기지 않는다는 금지 자체는 그대로**이며, 이제 `domain/AGENTS.md`의 봉인 항목이다.
+> **(번복됨 — 덩어리 03b, 위치만)** 코덱은 이 모듈을 떠나 `domain`의 `shared/geo/`로 갔고 테스트(`GeoPolygonTextCodecTest`)도 `domain/src/test/.../shared/geo/`로 함께 옮겼다. 이 모듈의 매퍼가 `GeoRing`/`GeoPolygon`(domain 타입)을 인코딩할 수 없게 됐기 때문이다. ~~지금 인코딩·디코딩은 application이 한다 — `application/shop/store/ShopDeliveryAreaPolygonStateMapper`·`application/region/store/AdminDongStateMapper`(write 경로). 이 모듈은 인코딩된 문자열(`XxxSnapshot.encodedRings`)만 `LONGTEXT` 컬럼에 옮긴다.~~ **(번복됨 — persistence domain 재허용: write 경로만)** write 경로의 인코딩·디코딩은 다시 이 모듈의 `shop/persistence/ShopDeliveryAreaPolygonMapper`·`region/persistence/AdminDongMapper`가 domain 코덱을 직접 불러 한다. read 경로는 ceo-application `shop/service/ShopDeliveryAreaPolygonDetailQueryService`·`ShopDeliveryAreaPolygonPreviewQueryService`·`region/service/AdminDongBoundaryQueryService`(유스케이스 분리 전 `application/shop/service/ShopDeliveryAreaPolygonQueryService`·`application/region/service/AdminDongQueryService`)다(조회 DAO는 domain-free라 문자열만 넘긴다). 코덱 자체는 `domain`에 그대로 둔다. **실패를 조용히 넘기지 않는다는 금지 자체는 그대로**이며, 이제 `domain/AGENTS.md`의 봉인 항목이다.
 
 형식이 깨진 입력은 `IllegalArgumentException`으로 실패시킨다 — **조용히 건너뛰면 도형의 일부가 사라진 채 복원되어, 점주가 그린 것과 다른 배달지역이 저장된 것처럼 보인다.** 저장 형식은 "경도 위도" 순서이고 `GeoPoint`는 (위도, 경도) 순서이므로 복원 시 뒤집는 자리를 지우지 않는다.
 
@@ -1046,7 +1046,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### `ProductQueryAdapter` 클래스 역할
 
-`product` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ProductPersistencePort` 등 9개)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api·batch-module)의 `ProductQueryService`가 주입해 쓰며, 소비 모듈은 QueryDSL을 알지 않는다. 소비자별 메서드 분리는 아래와 같다.
+`product` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ProductPersistencePort` 등 9개)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api·batch-module)의 조회 서비스(당시 `ProductQueryService` — web은 유스케이스 분리로 `ProductDetailQueryService`·`ProductBatchQueryService` 등 per-op 서비스)가 주입해 쓰며, 소비 모듈은 QueryDSL을 알지 않는다. 소비자별 메서드 분리는 아래와 같다.
 
 | 소비자 | 메서드 |
 |---|---|
@@ -1339,7 +1339,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 **대상**: `.../reservation/query/ReservationQueryAdapter.java`
 
-- `existsBlockingReservation`의 차단 대상 상태는 도메인이 소유하므로 **`ReservationStatus.blockingStatuses()`를 그대로 참조한다.** 여기에 상태 목록을 복제하면 실제 차단 로직과 갈린다. **(번복됨 — 03b, 형태만)** 이 DAO는 domain을 볼 수 없으므로 차단 상태를 **파라미터 `Collection<String> blockingStatuses`로 받는다**(`existsBlockingReservation(Long memberId, Long shopId, LocalDate date, Collection<String> blockingStatuses)`). 목록은 호출하는 application이 `ReservationStatus.blockingStatuses()`에서 `name()`으로 만들어 넘긴다 — `application/reservation/service/ReservationQueryService`(읽기 경로)·~~`application/reservation/store/ReservationStore`(write 포트 `existsBlockingByMemberShopDate`)~~ — **(번복됨 — persistence domain 재허용)** write 경로는 이제 이 모듈의 `reservation/persistence/ReservationPersistenceAdapter`이 `ReservationStatus.blockingStatuses()`에서 직접 `name()` 목록을 만든다(조회 DAO는 여전히 파라미터로 받는다). "단일 원천은 도메인"이라는 취지는 그대로이며, **이 DAO에 상태 문자열 목록을 하드코딩하지 않는다.**
+- `existsBlockingReservation`의 차단 대상 상태는 도메인이 소유하므로 **`ReservationStatus.blockingStatuses()`를 그대로 참조한다.** 여기에 상태 목록을 복제하면 실제 차단 로직과 갈린다. **(번복됨 — 03b, 형태만)** 이 DAO는 domain을 볼 수 없으므로 차단 상태를 **파라미터 `Collection<String> blockingStatuses`로 받는다**(`existsBlockingReservation(Long memberId, Long shopId, LocalDate date, Collection<String> blockingStatuses)`). 목록은 호출하는 application이 `ReservationStatus.blockingStatuses()`에서 `name()`으로 만들어 넘긴다 — `web-application`의 `reservation/service/ReservationAvailabilityQueryService`(읽기 경로, 당시 `ReservationQueryService`)·~~`application/reservation/store/ReservationStore`(write 포트 `existsBlockingByMemberShopDate`)~~ — **(번복됨 — persistence domain 재허용)** write 경로는 이제 이 모듈의 `reservation/persistence/ReservationPersistenceAdapter`이 `ReservationStatus.blockingStatuses()`에서 직접 `name()` 목록을 만든다(조회 DAO는 여전히 파라미터로 받는다). "단일 원천은 도메인"이라는 취지는 그대로이며, **이 DAO에 상태 문자열 목록을 하드코딩하지 않는다.**
 - `findSlotOccupancies`는 **행이 존재하는 슬롯만** 돌려준다. 행이 없는 시간대는 예약 0건이므로 결과에 없고, **소비 측이 전체 슬롯 목록과 병합해 기본 정원으로 채운다.**
 - 가게·파일을 join으로 함께 투영해, 과거 예약을 도메인 모델로 읽은 뒤 가게를 건당 다시 조회하던 목록 크기만큼의 반복 조회를 없앴다.
 
@@ -1645,7 +1645,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 **도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** 목록·상세 조회는 `ReviewQueryAdapter`, 관리(admin) 화면 전용 조회는 `ReviewManagementQueryAdapter`가 담당하고, 여기에는 집계·통계만 둔다.
 
-소비자: web-api `ReviewQueryService`(가게 리뷰 통계 조합, 회원 리뷰 수)·`ProductQueryService`(상품 상세의 매장 리뷰 통계), ceo-api `ShopReviewQueryService`(점주 통계 대시보드 — 기간 오버로드 사용).
+소비자: web-application `ReviewShopStatisticsQueryService`·`ReviewShopByRatingQueryService`(가게 리뷰 통계 조합)·`ReviewMemberCountQueryService`(회원 리뷰 수)·`ProductDetailQueryService`·`ProductReviewStatisticsQueryService`·`ProductReviewCountQueryService`·`ProductReviewsByRatingQueryService`(상품 상세의 매장 리뷰 통계) — 유스케이스 분리 전에는 `ReviewQueryService`·`ProductQueryService` 두 클래스였다, ceo-application `ShopReviewStatisticsQueryService`(점주 통계 대시보드 — 기간 오버로드 사용. 유스케이스 분리 전 `ShopReviewQueryService`).
 
 #### 기간 오버로드는 기존 오버로드의 한계 때문에 신설됐다
 
@@ -1747,7 +1747,7 @@ join이 아니라 `EXISTS`로 판정해 **행이 불어나지 않게 한다.** `
 
 #### `OrderQueryAdapter` 클래스 역할
 
-주문 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`OrderPersistencePort`/`OrderProductPersistencePort`/`OrderProductOptionPersistencePort`)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api)의 `OrderQueryService`가 이 DAO를 주입해 쓴다.
+주문 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`OrderPersistencePort`/`OrderProductPersistencePort`/`OrderProductOptionPersistencePort`)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api)의 조회 서비스(당시 `OrderQueryService` — web은 유스케이스 분리로 `OrderDetailQueryService`·`OrderListQueryService`)가 이 DAO를 주입해 쓴다.
 
 **소비자별 메서드 분리(공통 지침 패턴 3)**: 회원 화면용 `findOrders(MemberId, PageQuery)`, 관리자 화면용 `findOrders(OrderSearchCondition, PageQuery)` — **이름은 admin 마커 없이 순수 동작명을 쓰고 시그니처(회원 스코프 `MemberId` 유무)로 구별한다.** 상세 조회는 두 화면이 같은 필드 셋을 쓰므로 `findOrderDetail(OrderId)` 하나를 공유한다.
 
@@ -1774,7 +1774,7 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 
 헤더에 가게명·가게 전화번호를 join하고, 상품 라인(각 라인의 선택 옵션 포함)과 결제 요약을 별도 조회해 덧붙인다. web-api(내 주문 상세)·admin-api(주문 관리 상세)가 공유한다.
 
-**회원 스코프 검증은 하지 않는다** — 소유권 검증은 write 경로의 도메인 모델(`Order#validateOwnership`)이 담당하고, web-api `OrderQueryService`가 이 결과의 `memberId`를 요청 회원과 대조한다.
+**회원 스코프 검증은 하지 않는다** — 소유권 검증은 write 경로의 도메인 모델(`Order#validateOwnership`)이 담당하고, web-application `order/service/OrderDetailQueryService` → `getOrderDetail`이 이 결과의 `memberId`를 요청 회원과 대조한다(분리 전 이름은 `OrderQueryService`).
 
 상품 라인(`findOrderProducts`)은 각 라인의 선택 옵션을 **한 번의 조회로 모아 라인별로 배분한다**(N+1 회피).
 
@@ -2012,7 +2012,7 @@ admin 목록(`findAllCoupons`)과 web 내 쿠폰 목록(`findMemberCoupons`/`fin
 
 **대상**: `.../shared/query/GeoRingsResolver.java`
 
-> **(번복됨 — 덩어리 03b) `GeoRingsResolver`와 그 계약 `application/shared/port/out/GeoRingsQueryPort`는 삭제됐다.** 아래 첫 항목의 전제("좌표 인코딩 형식은 영속 계층의 지식")가 번복됐기 때문이다 — 이 모듈이 domain 기하 타입(`GeoRing`)을 만들 수 없게 되면서 형식 지식은 코덱과 함께 `domain/shared/geo/GeoPolygonTextCodec`으로 옮겨 갔고, 디코딩은 이제 **QueryService가 코덱을 직접 호출**한다(`application/region/service/AdminDongQueryService`·`application/shop/service/ShopDeliveryAreaPolygonQueryService`의 `GeoPolygonTextCodec.decodeRings(...)`). 별도 빈이 필요했던 이유(api가 `..persistence..`를 볼 수 없다)도 사라졌다 — 코덱은 domain의 정적 유틸이고 QueryService는 domain을 본다. **api가 저장 형식을 모른다는 결론은 그대로**다(api는 여전히 디코딩된 `*ViewResult`만 받는다). 경계 미보유·도형 미설정이 정상 상태라는 규칙도 코덱(`decodeRings`가 값 없으면 빈 목록)과 QueryService에 그대로 있다. 아래는 당시 근거다.
+> **(번복됨 — 덩어리 03b) `GeoRingsResolver`와 그 계약 `application/shared/port/out/GeoRingsQueryPort`는 삭제됐다.** 아래 첫 항목의 전제("좌표 인코딩 형식은 영속 계층의 지식")가 번복됐기 때문이다 — 이 모듈이 domain 기하 타입(`GeoRing`)을 만들 수 없게 되면서 형식 지식은 코덱과 함께 `domain/shared/geo/GeoPolygonTextCodec`으로 옮겨 갔고, 디코딩은 이제 **QueryService가 코덱을 직접 호출**한다(ceo-application `region/service/AdminDongBoundaryQueryService`·`shop/service/ShopDeliveryAreaPolygonDetailQueryService`·`ShopDeliveryAreaPolygonPreviewQueryService` — 유스케이스 분리 전 `AdminDongQueryService`·`ShopDeliveryAreaPolygonQueryService` — 의 `GeoPolygonTextCodec.decodeRings(...)`). 별도 빈이 필요했던 이유(api가 `..persistence..`를 볼 수 없다)도 사라졌다 — 코덱은 domain의 정적 유틸이고 QueryService는 domain을 본다. **api가 저장 형식을 모른다는 결론은 그대로**다(api는 여전히 디코딩된 `*ViewResult`만 받는다). 경계 미보유·도형 미설정이 정상 상태라는 규칙도 코덱(`decodeRings`가 값 없으면 빈 목록)과 QueryService에 그대로 있다. 아래는 당시 근거다.
 
 - **왜 별도 빈인가**: 좌표 인코딩 형식은 영속 계층의 지식이라 `GeoPolygonTextCodec`이 `..persistence..`에 있는데, api 모듈은 그 패키지에 의존할 수 없다(ArchUnit `shouldNotDependOnInfrastructurePersistence`). 그렇다고 api가 인코딩 형식을 알게 하면 **저장 형식이 바뀔 때 api까지 함께 고쳐야 한다.**
 - 그래서 `FileUrlResolver`와 같은 형태를 취한다 — **read 측이 소비자가 바로 쓸 수 있는 형태까지 완성해서 내려보낸다.** api는 도메인 기하 타입만 받고 저장 형식을 알지 않는다.

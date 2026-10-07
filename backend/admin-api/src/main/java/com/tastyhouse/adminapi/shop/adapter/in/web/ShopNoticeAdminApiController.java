@@ -18,9 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tastyhouse.application.auth.security.AdminUserDetails;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopNoticeHideCommand;
-import com.tastyhouse.application.shop.port.in.ShopNoticeManagementCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopNoticeHideUseCase;
 import com.tastyhouse.application.shop.port.in.ShopNoticeManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUnhideCommand;
+import com.tastyhouse.application.shop.port.in.ShopNoticeUnhideUseCase;
 import com.tastyhouse.application.shop.port.out.ShopNoticeManagementListItemResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -34,12 +35,18 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopNoticeManagement
 @RequestMapping("/api/shops")
 class ShopNoticeAdminApiController {
 
-    private final ShopNoticeManagementQueryUseCase shopNoticeQueryUseCase;
-    private final ShopNoticeManagementCommandUseCase shopNoticeCommandUseCase;
+    private final ShopNoticeManagementQueryUseCase shopNoticeManagementQueryUseCase;
+    private final ShopNoticeHideUseCase shopNoticeHideUseCase;
+    private final ShopNoticeUnhideUseCase shopNoticeUnhideUseCase;
 
-    public ShopNoticeAdminApiController(ShopNoticeManagementQueryUseCase shopNoticeQueryUseCase, ShopNoticeManagementCommandUseCase shopNoticeCommandUseCase) {
-        this.shopNoticeQueryUseCase = shopNoticeQueryUseCase;
-        this.shopNoticeCommandUseCase = shopNoticeCommandUseCase;
+    public ShopNoticeAdminApiController(
+        ShopNoticeManagementQueryUseCase shopNoticeManagementQueryUseCase,
+        ShopNoticeHideUseCase shopNoticeHideUseCase,
+        ShopNoticeUnhideUseCase shopNoticeUnhideUseCase
+    ) {
+        this.shopNoticeManagementQueryUseCase = shopNoticeManagementQueryUseCase;
+        this.shopNoticeHideUseCase = shopNoticeHideUseCase;
+        this.shopNoticeUnhideUseCase = shopNoticeUnhideUseCase;
     }
 
     @Operation(summary = "점주 공지 목록 조회", description = "전체 가게의 점주 공지를 조건 페이징 조회합니다. shopId/shopName/hidden은 필터(미지정 시 전체)입니다.")
@@ -48,7 +55,7 @@ class ShopNoticeAdminApiController {
         @Valid @ModelAttribute ShopNoticeSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopNoticeManagementListItemResult> pageResult = shopNoticeQueryUseCase.getNotices(
+        PageResult<ShopNoticeManagementListItemResult> pageResult = shopNoticeManagementQueryUseCase.getNotices(
             search.shopId(), search.shopName(), search.hidden(), pageRequest.page(), pageRequest.size()
         );
         PaginationResponse<ShopNoticeManagementListItemResponse> pageResponse =
@@ -66,7 +73,7 @@ class ShopNoticeAdminApiController {
         @Valid @RequestBody ShopNoticeHideRequest request
     ) {
         ShopNoticeHideCommand command = request.toCommand(userDetails.getPrincipalId(), noticeId);
-        shopNoticeCommandUseCase.hideNotice(command);
+        shopNoticeHideUseCase.hideNotice(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -77,7 +84,7 @@ class ShopNoticeAdminApiController {
         @PathVariable Long noticeId
     ) {
         ShopNoticeUnhideCommand command = ShopNoticeUnhideCommand.of(userDetails.getPrincipalId(), noticeId);
-        shopNoticeCommandUseCase.unhideNotice(command);
+        shopNoticeUnhideUseCase.unhideNotice(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

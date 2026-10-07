@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.ceo.port.in.CeoShopAccessHistoryQueryUseCase;
+import com.tastyhouse.application.ceo.port.in.CeoShopAccessHistoryListQueryUseCase;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.out.ShopCeoAssignmentHistoryResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -27,12 +27,12 @@ import com.tastyhouse.ceoapi.ceo.adapter.in.web.response.CeoShopAccessHistoryLis
 @RequestMapping("/api/ceos")
 class CeoShopAccessHistoryApiController {
 
-    private final CeoShopAccessHistoryQueryUseCase ceoShopAccessHistoryQueryUseCase;
+    private final CeoShopAccessHistoryListQueryUseCase ceoShopAccessHistoryListQueryUseCase;
 
     public CeoShopAccessHistoryApiController(
-        CeoShopAccessHistoryQueryUseCase ceoShopAccessHistoryQueryUseCase
+        CeoShopAccessHistoryListQueryUseCase ceoShopAccessHistoryListQueryUseCase
     ) {
-        this.ceoShopAccessHistoryQueryUseCase = ceoShopAccessHistoryQueryUseCase;
+        this.ceoShopAccessHistoryListQueryUseCase = ceoShopAccessHistoryListQueryUseCase;
     }
 
     @Operation(
@@ -46,7 +46,7 @@ class CeoShopAccessHistoryApiController {
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
         PageResult<ShopCeoAssignmentHistoryResult> pageResult =
-            ceoShopAccessHistoryQueryUseCase.getShopAccessHistories(
+            ceoShopAccessHistoryListQueryUseCase.getShopAccessHistories(
                 userDetails.getCeoId(),
                 request.actionType(),
                 request.shopId(),

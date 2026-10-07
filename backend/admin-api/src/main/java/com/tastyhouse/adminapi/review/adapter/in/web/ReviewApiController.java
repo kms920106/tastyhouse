@@ -16,13 +16,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.review.port.in.ReviewCommentDeleteCommand;
+import com.tastyhouse.application.review.port.in.ReviewCommentDeleteUseCase;
 import com.tastyhouse.application.review.port.in.ReviewCommentHiddenChangeCommand;
+import com.tastyhouse.application.review.port.in.ReviewCommentHiddenChangeUseCase;
+import com.tastyhouse.application.review.port.in.ReviewCommentManagementListQueryUseCase;
 import com.tastyhouse.application.review.port.in.ReviewHiddenChangeCommand;
-import com.tastyhouse.application.review.port.in.ReviewManagementCommandUseCase;
+import com.tastyhouse.application.review.port.in.ReviewHiddenChangeUseCase;
 import com.tastyhouse.application.review.port.in.ReviewManagementDeleteCommand;
-import com.tastyhouse.application.review.port.in.ReviewManagementQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewManagementDeleteUseCase;
+import com.tastyhouse.application.review.port.in.ReviewManagementDetailQueryUseCase;
+import com.tastyhouse.application.review.port.in.ReviewManagementListQueryUseCase;
 import com.tastyhouse.application.review.port.in.ReviewReplyDeleteCommand;
+import com.tastyhouse.application.review.port.in.ReviewReplyDeleteUseCase;
 import com.tastyhouse.application.review.port.in.ReviewReplyHiddenChangeCommand;
+import com.tastyhouse.application.review.port.in.ReviewReplyHiddenChangeUseCase;
+import com.tastyhouse.application.review.port.in.ReviewReplyManagementListQueryUseCase;
 import com.tastyhouse.application.review.port.out.ReviewCommentListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewListItemResult;
 import com.tastyhouse.application.review.port.out.ReviewReplyListItemResult;
@@ -41,12 +49,39 @@ import com.tastyhouse.adminapi.review.adapter.in.web.response.ReviewManagementDe
 @RequestMapping("/api/reviews")
 class ReviewApiController {
 
-    private final ReviewManagementCommandUseCase reviewCommandUseCase;
-    private final ReviewManagementQueryUseCase reviewQueryUseCase;
+    private final ReviewManagementListQueryUseCase reviewManagementListQueryUseCase;
+    private final ReviewManagementDetailQueryUseCase reviewManagementDetailQueryUseCase;
+    private final ReviewHiddenChangeUseCase reviewHiddenChangeUseCase;
+    private final ReviewManagementDeleteUseCase reviewManagementDeleteUseCase;
+    private final ReviewCommentManagementListQueryUseCase reviewCommentManagementListQueryUseCase;
+    private final ReviewReplyManagementListQueryUseCase reviewReplyManagementListQueryUseCase;
+    private final ReviewCommentHiddenChangeUseCase reviewCommentHiddenChangeUseCase;
+    private final ReviewCommentDeleteUseCase reviewCommentDeleteUseCase;
+    private final ReviewReplyHiddenChangeUseCase reviewReplyHiddenChangeUseCase;
+    private final ReviewReplyDeleteUseCase reviewReplyDeleteUseCase;
 
-    public ReviewApiController(ReviewManagementCommandUseCase reviewCommandUseCase, ReviewManagementQueryUseCase reviewQueryUseCase) {
-        this.reviewCommandUseCase = reviewCommandUseCase;
-        this.reviewQueryUseCase = reviewQueryUseCase;
+    public ReviewApiController(
+        ReviewManagementListQueryUseCase reviewManagementListQueryUseCase,
+        ReviewManagementDetailQueryUseCase reviewManagementDetailQueryUseCase,
+        ReviewHiddenChangeUseCase reviewHiddenChangeUseCase,
+        ReviewManagementDeleteUseCase reviewManagementDeleteUseCase,
+        ReviewCommentManagementListQueryUseCase reviewCommentManagementListQueryUseCase,
+        ReviewReplyManagementListQueryUseCase reviewReplyManagementListQueryUseCase,
+        ReviewCommentHiddenChangeUseCase reviewCommentHiddenChangeUseCase,
+        ReviewCommentDeleteUseCase reviewCommentDeleteUseCase,
+        ReviewReplyHiddenChangeUseCase reviewReplyHiddenChangeUseCase,
+        ReviewReplyDeleteUseCase reviewReplyDeleteUseCase
+    ) {
+        this.reviewManagementListQueryUseCase = reviewManagementListQueryUseCase;
+        this.reviewManagementDetailQueryUseCase = reviewManagementDetailQueryUseCase;
+        this.reviewHiddenChangeUseCase = reviewHiddenChangeUseCase;
+        this.reviewManagementDeleteUseCase = reviewManagementDeleteUseCase;
+        this.reviewCommentManagementListQueryUseCase = reviewCommentManagementListQueryUseCase;
+        this.reviewReplyManagementListQueryUseCase = reviewReplyManagementListQueryUseCase;
+        this.reviewCommentHiddenChangeUseCase = reviewCommentHiddenChangeUseCase;
+        this.reviewCommentDeleteUseCase = reviewCommentDeleteUseCase;
+        this.reviewReplyHiddenChangeUseCase = reviewReplyHiddenChangeUseCase;
+        this.reviewReplyDeleteUseCase = reviewReplyDeleteUseCase;
     }
 
     @Operation(summary = "리뷰 목록 조회", description = "리뷰 목록을 페이징 조회합니다. (숨김 리뷰 포함) shopId/productId/memberId/hidden/content/평점 범위로 필터링할 수 있습니다.")
@@ -55,7 +90,7 @@ class ReviewApiController {
         @Valid @ModelAttribute ReviewSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ReviewListItemResult> pageResult = reviewQueryUseCase.getReviews(
+        PageResult<ReviewListItemResult> pageResult = reviewManagementListQueryUseCase.getReviews(
             search.shopId(),
             search.productId(),
             search.memberId(),
@@ -74,7 +109,7 @@ class ReviewApiController {
     @Operation(summary = "리뷰 상세 조회", description = "숨김 리뷰를 포함하여 리뷰 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ReviewManagementDetailResponse>> getReview(@PathVariable Long id) {
-        ReviewManagementDetailResponse response = ReviewManagementDetailResponse.from(reviewQueryUseCase.getReview(id));
+        ReviewManagementDetailResponse response = ReviewManagementDetailResponse.from(reviewManagementDetailQueryUseCase.getReview(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -85,7 +120,7 @@ class ReviewApiController {
         @Valid @RequestBody ReviewHiddenUpdateRequest request
     ) {
         ReviewHiddenChangeCommand command = request.toReviewCommand(id);
-        reviewCommandUseCase.changeReviewHidden(command);
+        reviewHiddenChangeUseCase.changeReviewHidden(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -93,15 +128,15 @@ class ReviewApiController {
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteReview(@PathVariable Long id) {
         ReviewManagementDeleteCommand command = ReviewManagementDeleteCommand.of(id);
-        reviewCommandUseCase.deleteReview(command);
+        reviewManagementDeleteUseCase.deleteReview(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "리뷰 댓글/답글 조회", description = "리뷰의 모든 댓글과 답글을 숨김 포함하여 조회합니다.")
     @GetMapping("/v1/{id}/comments")
     public ResponseEntity<ApiResponse<List<ReviewCommentListItemResponse>>> getComments(@PathVariable Long id) {
-        List<ReviewCommentListItemResult> comments = reviewQueryUseCase.getComments(id);
-        List<ReviewReplyListItemResult> replies = reviewQueryUseCase.getReplies(comments);
+        List<ReviewCommentListItemResult> comments = reviewCommentManagementListQueryUseCase.getComments(id);
+        List<ReviewReplyListItemResult> replies = reviewReplyManagementListQueryUseCase.getReplies(comments);
         List<ReviewCommentListItemResponse> response = comments.stream()
             .map(comment -> ReviewCommentListItemResponse.from(comment, replies))
             .toList();
@@ -115,7 +150,7 @@ class ReviewApiController {
         @Valid @RequestBody ReviewHiddenUpdateRequest request
     ) {
         ReviewCommentHiddenChangeCommand command = request.toCommentCommand(commentId);
-        reviewCommandUseCase.changeCommentHidden(command);
+        reviewCommentHiddenChangeUseCase.changeCommentHidden(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -123,7 +158,7 @@ class ReviewApiController {
     @DeleteMapping("/v1/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(@PathVariable Long commentId) {
         ReviewCommentDeleteCommand command = ReviewCommentDeleteCommand.of(commentId);
-        reviewCommandUseCase.deleteComment(command);
+        reviewCommentDeleteUseCase.deleteComment(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -134,7 +169,7 @@ class ReviewApiController {
         @Valid @RequestBody ReviewHiddenUpdateRequest request
     ) {
         ReviewReplyHiddenChangeCommand command = request.toReplyCommand(replyId);
-        reviewCommandUseCase.changeReplyHidden(command);
+        reviewReplyHiddenChangeUseCase.changeReplyHidden(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -142,7 +177,7 @@ class ReviewApiController {
     @DeleteMapping("/v1/replies/{replyId}")
     public ResponseEntity<ApiResponse<Void>> deleteReply(@PathVariable Long replyId) {
         ReviewReplyDeleteCommand command = ReviewReplyDeleteCommand.of(replyId);
-        reviewCommandUseCase.deleteReply(command);
+        reviewReplyDeleteUseCase.deleteReply(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

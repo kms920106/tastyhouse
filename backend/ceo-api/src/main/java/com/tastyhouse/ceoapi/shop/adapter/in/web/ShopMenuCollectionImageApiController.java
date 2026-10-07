@@ -23,8 +23,10 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageDeleteCommand;
-import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageOwnerCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageOwnerCreateUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageOwnerDeleteUseCase;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageOwnerQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageOwnerReorderUseCase;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageReorderCommand;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopMenuCollectionImageOrderRequest;
@@ -35,15 +37,21 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopMenuCollectionImag
 @RequestMapping("/api/shops")
 class ShopMenuCollectionImageApiController {
 
-    private final ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryUseCase;
-    private final ShopMenuCollectionImageOwnerCommandUseCase shopMenuCollectionImageCommandUseCase;
+    private final ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageOwnerQueryUseCase;
+    private final ShopMenuCollectionImageOwnerCreateUseCase shopMenuCollectionImageOwnerCreateUseCase;
+    private final ShopMenuCollectionImageOwnerReorderUseCase shopMenuCollectionImageOwnerReorderUseCase;
+    private final ShopMenuCollectionImageOwnerDeleteUseCase shopMenuCollectionImageOwnerDeleteUseCase;
 
     public ShopMenuCollectionImageApiController(
-        ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageQueryUseCase,
-        ShopMenuCollectionImageOwnerCommandUseCase shopMenuCollectionImageCommandUseCase
+        ShopMenuCollectionImageOwnerQueryUseCase shopMenuCollectionImageOwnerQueryUseCase,
+        ShopMenuCollectionImageOwnerCreateUseCase shopMenuCollectionImageOwnerCreateUseCase,
+        ShopMenuCollectionImageOwnerReorderUseCase shopMenuCollectionImageOwnerReorderUseCase,
+        ShopMenuCollectionImageOwnerDeleteUseCase shopMenuCollectionImageOwnerDeleteUseCase
     ) {
-        this.shopMenuCollectionImageQueryUseCase = shopMenuCollectionImageQueryUseCase;
-        this.shopMenuCollectionImageCommandUseCase = shopMenuCollectionImageCommandUseCase;
+        this.shopMenuCollectionImageOwnerQueryUseCase = shopMenuCollectionImageOwnerQueryUseCase;
+        this.shopMenuCollectionImageOwnerCreateUseCase = shopMenuCollectionImageOwnerCreateUseCase;
+        this.shopMenuCollectionImageOwnerReorderUseCase = shopMenuCollectionImageOwnerReorderUseCase;
+        this.shopMenuCollectionImageOwnerDeleteUseCase = shopMenuCollectionImageOwnerDeleteUseCase;
     }
 
     @Operation(summary = "메뉴모음컷 목록 조회",
@@ -53,7 +61,7 @@ class ShopMenuCollectionImageApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopMenuCollectionImageResponse> response = shopMenuCollectionImageQueryUseCase.getMenuCollectionImages(userDetails.getCeoId(), id).stream()
+        List<ShopMenuCollectionImageResponse> response = shopMenuCollectionImageOwnerQueryUseCase.getMenuCollectionImages(userDetails.getCeoId(), id).stream()
             .map(ShopMenuCollectionImageResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -70,7 +78,7 @@ class ShopMenuCollectionImageApiController {
         @RequestParam("file") MultipartFile file
     ) {
         ShopMenuCollectionImageCreateCommand command = ShopMenuCollectionImageCreateCommand.of(userDetails.getCeoId(), id);
-        Long imageId = shopMenuCollectionImageCommandUseCase.registerMenuCollectionImage(command, file);
+        Long imageId = shopMenuCollectionImageOwnerCreateUseCase.registerMenuCollectionImage(command, file);
         return ResponseEntity.ok(ApiResponse.success(imageId));
     }
 
@@ -84,7 +92,7 @@ class ShopMenuCollectionImageApiController {
         @Valid @RequestBody ShopMenuCollectionImageOrderRequest request
     ) {
         ShopMenuCollectionImageReorderCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopMenuCollectionImageCommandUseCase.reorderMenuCollectionImages(command);
+        shopMenuCollectionImageOwnerReorderUseCase.reorderMenuCollectionImages(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -98,7 +106,7 @@ class ShopMenuCollectionImageApiController {
         @PathVariable Long imageId
     ) {
         ShopMenuCollectionImageDeleteCommand command = ShopMenuCollectionImageDeleteCommand.of(userDetails.getCeoId(), id, imageId);
-        shopMenuCollectionImageCommandUseCase.deleteMenuCollectionImage(command);
+        shopMenuCollectionImageOwnerDeleteUseCase.deleteMenuCollectionImage(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

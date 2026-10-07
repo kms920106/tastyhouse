@@ -30,7 +30,9 @@ import com.tastyhouse.application.shop.port.in.ShopCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopCupDepositChangeCommand;
 import com.tastyhouse.application.shop.port.in.ShopCupDepositChangeUseCase;
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDetailManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopListManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopStationManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopUpdateUseCase;
 import com.tastyhouse.application.shop.port.out.ShopListItemResult;
@@ -57,7 +59,9 @@ class ShopApiController {
     private final ShopUpdateUseCase shopUpdateUseCase;
     private final ShopCloseUseCase shopCloseUseCase;
     private final ShopCupDepositChangeUseCase shopCupDepositChangeUseCase;
-    private final ShopManagementQueryUseCase shopQueryUseCase;
+    private final ShopStationManagementQueryUseCase shopStationManagementQueryUseCase;
+    private final ShopListManagementQueryUseCase shopListManagementQueryUseCase;
+    private final ShopDetailManagementQueryUseCase shopDetailManagementQueryUseCase;
 
     public ShopApiController(
         ShopCreateUseCase shopCreateUseCase,
@@ -66,7 +70,9 @@ class ShopApiController {
         ShopUpdateUseCase shopUpdateUseCase,
         ShopCloseUseCase shopCloseUseCase,
         ShopCupDepositChangeUseCase shopCupDepositChangeUseCase,
-        ShopManagementQueryUseCase shopQueryUseCase
+        ShopStationManagementQueryUseCase shopStationManagementQueryUseCase,
+        ShopListManagementQueryUseCase shopListManagementQueryUseCase,
+        ShopDetailManagementQueryUseCase shopDetailManagementQueryUseCase
     ) {
         this.shopCreateUseCase = shopCreateUseCase;
         this.shopCeoAssignUseCase = shopCeoAssignUseCase;
@@ -74,13 +80,15 @@ class ShopApiController {
         this.shopUpdateUseCase = shopUpdateUseCase;
         this.shopCloseUseCase = shopCloseUseCase;
         this.shopCupDepositChangeUseCase = shopCupDepositChangeUseCase;
-        this.shopQueryUseCase = shopQueryUseCase;
+        this.shopStationManagementQueryUseCase = shopStationManagementQueryUseCase;
+        this.shopListManagementQueryUseCase = shopListManagementQueryUseCase;
+        this.shopDetailManagementQueryUseCase = shopDetailManagementQueryUseCase;
     }
 
     @Operation(summary = "지하철역 목록 조회", description = "가게 등록·수정 시 선택 가능한 지하철역 목록을 조회합니다.")
     @GetMapping("/v1/stations")
     public ResponseEntity<ApiResponse<List<StationResponse>>> getStations() {
-        List<StationResponse> response = shopQueryUseCase.getStations().stream()
+        List<StationResponse> response = shopStationManagementQueryUseCase.getStations().stream()
             .map(StationResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -92,7 +100,7 @@ class ShopApiController {
         @Valid @ModelAttribute ShopSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopListItemResult> pageResult = shopQueryUseCase.getShops(
+        PageResult<ShopListItemResult> pageResult = shopListManagementQueryUseCase.getShops(
             search.name(), search.stationId(), search.permanentlyClosed(),
             pageRequest.page(), pageRequest.size()
         );
@@ -144,7 +152,7 @@ class ShopApiController {
     @Operation(summary = "가게 상세 조회", description = "가게 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<ShopDetailResponse>> getShop(@PathVariable Long id) {
-        ShopManagementQueryUseCase.ShopDetail detail = shopQueryUseCase.getShop(id);
+        ShopDetailManagementQueryUseCase.ShopDetail detail = shopDetailManagementQueryUseCase.getShop(id);
         ShopDetailResponse response = ShopDetailResponse.from(detail.shop(), detail.thumbnailImageUrl());
         return ResponseEntity.ok(ApiResponse.success(response));
     }

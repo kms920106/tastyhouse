@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.order.port.in.OrderDeleteCommand;
-import com.tastyhouse.application.order.port.in.OrderManagementCommandUseCase;
-import com.tastyhouse.application.order.port.in.OrderManagementQueryUseCase;
+import com.tastyhouse.application.order.port.in.OrderDeleteUseCase;
+import com.tastyhouse.application.order.port.in.OrderManagementDetailQueryUseCase;
+import com.tastyhouse.application.order.port.in.OrderManagementListQueryUseCase;
+import com.tastyhouse.application.order.port.in.OrderManagementStatusChangeUseCase;
 import com.tastyhouse.application.order.port.in.OrderStatusChangeCommand;
 import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -34,12 +36,21 @@ import com.tastyhouse.adminapi.order.adapter.in.web.response.OrderListItemRespon
 @RequestMapping("/api/orders")
 class OrderApiController {
 
-    private final OrderManagementCommandUseCase orderCommandUseCase;
-    private final OrderManagementQueryUseCase orderQueryUseCase;
+    private final OrderManagementStatusChangeUseCase orderManagementStatusChangeUseCase;
+    private final OrderDeleteUseCase orderDeleteUseCase;
+    private final OrderManagementListQueryUseCase orderManagementListQueryUseCase;
+    private final OrderManagementDetailQueryUseCase orderManagementDetailQueryUseCase;
 
-    public OrderApiController(OrderManagementCommandUseCase orderCommandUseCase, OrderManagementQueryUseCase orderQueryUseCase) {
-        this.orderCommandUseCase = orderCommandUseCase;
-        this.orderQueryUseCase = orderQueryUseCase;
+    public OrderApiController(
+        OrderManagementStatusChangeUseCase orderManagementStatusChangeUseCase,
+        OrderDeleteUseCase orderDeleteUseCase,
+        OrderManagementListQueryUseCase orderManagementListQueryUseCase,
+        OrderManagementDetailQueryUseCase orderManagementDetailQueryUseCase
+    ) {
+        this.orderManagementStatusChangeUseCase = orderManagementStatusChangeUseCase;
+        this.orderDeleteUseCase = orderDeleteUseCase;
+        this.orderManagementListQueryUseCase = orderManagementListQueryUseCase;
+        this.orderManagementDetailQueryUseCase = orderManagementDetailQueryUseCase;
     }
 
     @Operation(summary = "주문 목록 조회", description = "주문 목록을 페이징 조회합니다. 가게/주문상태/주문방법/결제상태/주문번호/주문자명/기간 필터를 지원합니다.")
@@ -48,7 +59,7 @@ class OrderApiController {
         @Valid @ModelAttribute OrderSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<OrderManagementListItemResult> pageResult = orderQueryUseCase.getOrders(
+        PageResult<OrderManagementListItemResult> pageResult = orderManagementListQueryUseCase.getOrders(
             search.shopId(), search.orderStatus(), search.orderMethod(), search.paymentStatus(),
             search.orderNumber(), search.ordererName(), search.startDate(), search.endDate(),
             pageRequest.page(), pageRequest.size());
@@ -59,7 +70,7 @@ class OrderApiController {
     @Operation(summary = "주문 상세 조회", description = "주문 상세 정보를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<OrderDetailResponse>> getOrder(@PathVariable Long id) {
-        OrderDetailResponse response = OrderDetailResponse.from(orderQueryUseCase.getOrder(id));
+        OrderDetailResponse response = OrderDetailResponse.from(orderManagementDetailQueryUseCase.getOrder(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -70,7 +81,7 @@ class OrderApiController {
         @Valid @RequestBody OrderStatusUpdateRequest request
     ) {
         OrderStatusChangeCommand command = request.toCommand(id);
-        orderCommandUseCase.changeStatus(command);
+        orderManagementStatusChangeUseCase.changeStatus(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -78,7 +89,7 @@ class OrderApiController {
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteOrder(@PathVariable Long id) {
         OrderDeleteCommand command = OrderDeleteCommand.of(id);
-        orderCommandUseCase.deleteOrder(command);
+        orderDeleteUseCase.deleteOrder(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.shared.port.out.page.PageResult;
-import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentManagementCommandUseCase;
-import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentManagementDetailQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentManagementListQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentRejectCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentRejectUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentStatusChangeCommand;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentStatusChangeUseCase;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaAdjustmentListItemResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -34,15 +36,21 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopDeliveryAreaAdju
 @RequestMapping("/api/shops")
 class ShopDeliveryAreaAdjustmentAdminApiController {
 
-    private final ShopDeliveryAreaAdjustmentManagementQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase;
-    private final ShopDeliveryAreaAdjustmentManagementCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;
+    private final ShopDeliveryAreaAdjustmentManagementListQueryUseCase shopDeliveryAreaAdjustmentManagementListQueryUseCase;
+    private final ShopDeliveryAreaAdjustmentManagementDetailQueryUseCase shopDeliveryAreaAdjustmentManagementDetailQueryUseCase;
+    private final ShopDeliveryAreaAdjustmentStatusChangeUseCase shopDeliveryAreaAdjustmentStatusChangeUseCase;
+    private final ShopDeliveryAreaAdjustmentRejectUseCase shopDeliveryAreaAdjustmentRejectUseCase;
 
     public ShopDeliveryAreaAdjustmentAdminApiController(
-        ShopDeliveryAreaAdjustmentManagementQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase,
-        ShopDeliveryAreaAdjustmentManagementCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase
+        ShopDeliveryAreaAdjustmentManagementListQueryUseCase shopDeliveryAreaAdjustmentManagementListQueryUseCase,
+        ShopDeliveryAreaAdjustmentManagementDetailQueryUseCase shopDeliveryAreaAdjustmentManagementDetailQueryUseCase,
+        ShopDeliveryAreaAdjustmentStatusChangeUseCase shopDeliveryAreaAdjustmentStatusChangeUseCase,
+        ShopDeliveryAreaAdjustmentRejectUseCase shopDeliveryAreaAdjustmentRejectUseCase
     ) {
-        this.shopDeliveryAreaAdjustmentQueryUseCase = shopDeliveryAreaAdjustmentQueryUseCase;
-        this.shopDeliveryAreaAdjustmentCommandUseCase = shopDeliveryAreaAdjustmentCommandUseCase;
+        this.shopDeliveryAreaAdjustmentManagementListQueryUseCase = shopDeliveryAreaAdjustmentManagementListQueryUseCase;
+        this.shopDeliveryAreaAdjustmentManagementDetailQueryUseCase = shopDeliveryAreaAdjustmentManagementDetailQueryUseCase;
+        this.shopDeliveryAreaAdjustmentStatusChangeUseCase = shopDeliveryAreaAdjustmentStatusChangeUseCase;
+        this.shopDeliveryAreaAdjustmentRejectUseCase = shopDeliveryAreaAdjustmentRejectUseCase;
     }
 
     @Operation(summary = "배달지역 조정 신청 목록 조회", description = "프랜차이즈 배달지역 조정 신청 목록을 상태·가게로 필터해 페이징 조회합니다.")
@@ -51,7 +59,7 @@ class ShopDeliveryAreaAdjustmentAdminApiController {
         @Valid @ModelAttribute ShopDeliveryAreaAdjustmentSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<ShopDeliveryAreaAdjustmentListItemResult> pageResult = shopDeliveryAreaAdjustmentQueryUseCase.getAdjustmentRequests(
+        PageResult<ShopDeliveryAreaAdjustmentListItemResult> pageResult = shopDeliveryAreaAdjustmentManagementListQueryUseCase.getAdjustmentRequests(
             search.status(), search.shopId(), pageRequest.page(), pageRequest.size()
         );
         PaginationResponse<ShopDeliveryAreaAdjustmentListItemResponse> pageResponse =
@@ -65,7 +73,7 @@ class ShopDeliveryAreaAdjustmentAdminApiController {
     @GetMapping("/v1/delivery-area-adjustments/{requestId}")
     public ResponseEntity<ApiResponse<ShopDeliveryAreaAdjustmentDetailResponse>> getAdjustmentRequest(@PathVariable Long requestId) {
         ShopDeliveryAreaAdjustmentDetailResponse response =
-            ShopDeliveryAreaAdjustmentDetailResponse.from(shopDeliveryAreaAdjustmentQueryUseCase.getAdjustmentRequest(requestId));
+            ShopDeliveryAreaAdjustmentDetailResponse.from(shopDeliveryAreaAdjustmentManagementDetailQueryUseCase.getAdjustmentRequest(requestId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -79,7 +87,7 @@ class ShopDeliveryAreaAdjustmentAdminApiController {
         @Valid @RequestBody ShopDeliveryAreaAdjustmentStatusChangeRequest request
     ) {
         ShopDeliveryAreaAdjustmentStatusChangeCommand command = request.toCommand(requestId);
-        shopDeliveryAreaAdjustmentCommandUseCase.changeStatus(command);
+        shopDeliveryAreaAdjustmentStatusChangeUseCase.changeStatus(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -90,7 +98,7 @@ class ShopDeliveryAreaAdjustmentAdminApiController {
         @Valid @RequestBody ShopDeliveryAreaAdjustmentRejectRequest request
     ) {
         ShopDeliveryAreaAdjustmentRejectCommand command = request.toCommand(requestId);
-        shopDeliveryAreaAdjustmentCommandUseCase.rejectAdjustment(command);
+        shopDeliveryAreaAdjustmentRejectUseCase.rejectAdjustment(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

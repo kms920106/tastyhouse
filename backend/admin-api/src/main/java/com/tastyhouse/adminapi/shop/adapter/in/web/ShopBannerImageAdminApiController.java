@@ -18,7 +18,7 @@ import com.tastyhouse.application.shop.port.in.ShopBannerImageCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBannerImageCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopBannerImageDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBannerImageDeleteUseCase;
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopBannerImageManagementQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopBannerImageSaveRequest;
 import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopBannerImageItemResponse;
@@ -30,22 +30,22 @@ class ShopBannerImageAdminApiController {
 
     private final ShopBannerImageCreateUseCase shopBannerImageCreateUseCase;
     private final ShopBannerImageDeleteUseCase shopBannerImageDeleteUseCase;
-    private final ShopManagementQueryUseCase shopQueryUseCase;
+    private final ShopBannerImageManagementQueryUseCase shopBannerImageManagementQueryUseCase;
 
     public ShopBannerImageAdminApiController(
         ShopBannerImageCreateUseCase shopBannerImageCreateUseCase,
         ShopBannerImageDeleteUseCase shopBannerImageDeleteUseCase,
-        ShopManagementQueryUseCase shopQueryUseCase
+        ShopBannerImageManagementQueryUseCase shopBannerImageManagementQueryUseCase
     ) {
         this.shopBannerImageCreateUseCase = shopBannerImageCreateUseCase;
         this.shopBannerImageDeleteUseCase = shopBannerImageDeleteUseCase;
-        this.shopQueryUseCase = shopQueryUseCase;
+        this.shopBannerImageManagementQueryUseCase = shopBannerImageManagementQueryUseCase;
     }
 
     @Operation(summary = "배너 이미지 목록 조회", description = "가게의 배너 이미지 목록을 조회합니다.")
     @GetMapping("/v1/{id}/banners")
     public ResponseEntity<ApiResponse<List<ShopBannerImageItemResponse>>> getBannerImages(@PathVariable Long id) {
-        List<ShopBannerImageItemResponse> response = shopQueryUseCase.getBannerImages(id).stream()
+        List<ShopBannerImageItemResponse> response = shopBannerImageManagementQueryUseCase.getBannerImages(id).stream()
             .map(ShopBannerImageItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

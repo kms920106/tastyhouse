@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tastyhouse.application.event.port.in.EventCommandUseCase;
 import com.tastyhouse.application.event.port.in.EventCreateCommand;
+import com.tastyhouse.application.event.port.in.EventCreateUseCase;
 import com.tastyhouse.application.event.port.in.EventDeleteCommand;
-import com.tastyhouse.application.event.port.in.EventManagementQueryUseCase;
+import com.tastyhouse.application.event.port.in.EventDeleteUseCase;
+import com.tastyhouse.application.event.port.in.EventManagementDetailQueryUseCase;
+import com.tastyhouse.application.event.port.in.EventManagementListQueryUseCase;
 import com.tastyhouse.application.event.port.in.EventUpdateCommand;
+import com.tastyhouse.application.event.port.in.EventUpdateUseCase;
 import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
@@ -37,12 +40,24 @@ import com.tastyhouse.adminapi.event.adapter.in.web.response.EventListItemRespon
 @RequestMapping("/api/events")
 class EventApiController {
 
-    private final EventCommandUseCase eventCommandUseCase;
-    private final EventManagementQueryUseCase eventQueryUseCase;
+    private final EventCreateUseCase eventCreateUseCase;
+    private final EventUpdateUseCase eventUpdateUseCase;
+    private final EventDeleteUseCase eventDeleteUseCase;
+    private final EventManagementListQueryUseCase eventManagementListQueryUseCase;
+    private final EventManagementDetailQueryUseCase eventManagementDetailQueryUseCase;
 
-    public EventApiController(EventCommandUseCase eventCommandUseCase, EventManagementQueryUseCase eventQueryUseCase) {
-        this.eventCommandUseCase = eventCommandUseCase;
-        this.eventQueryUseCase = eventQueryUseCase;
+    public EventApiController(
+        EventCreateUseCase eventCreateUseCase,
+        EventUpdateUseCase eventUpdateUseCase,
+        EventDeleteUseCase eventDeleteUseCase,
+        EventManagementListQueryUseCase eventManagementListQueryUseCase,
+        EventManagementDetailQueryUseCase eventManagementDetailQueryUseCase
+    ) {
+        this.eventCreateUseCase = eventCreateUseCase;
+        this.eventUpdateUseCase = eventUpdateUseCase;
+        this.eventDeleteUseCase = eventDeleteUseCase;
+        this.eventManagementListQueryUseCase = eventManagementListQueryUseCase;
+        this.eventManagementDetailQueryUseCase = eventManagementDetailQueryUseCase;
     }
 
     @Operation(summary = "이벤트 목록 조회", description = "이벤트 목록을 페이징 조회합니다. (삭제된 이벤트 제외) name은 부분 일치 검색, status 미지정 시 전체 상태 조회")
@@ -51,7 +66,7 @@ class EventApiController {
         @Valid @ModelAttribute EventSearchRequest search,
         @Valid @ModelAttribute PageRequest pageRequest
     ) {
-        PageResult<EventManagementListItemResult> pageResult = eventQueryUseCase.getEvents(search.name(), search.status(), pageRequest.page(), pageRequest.size());
+        PageResult<EventManagementListItemResult> pageResult = eventManagementListQueryUseCase.getEvents(search.name(), search.status(), pageRequest.page(), pageRequest.size());
         PaginationResponse<EventListItemResponse> pageResponse = PaginationResponse.from(pageResult.map(EventListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
     }
@@ -60,14 +75,14 @@ class EventApiController {
     @PostMapping("/v1")
     public ResponseEntity<ApiResponse<Long>> createEvent(@Valid @RequestBody EventCreateRequest request) {
         EventCreateCommand command = request.toCommand();
-        Long id = eventCommandUseCase.createEvent(command);
+        Long id = eventCreateUseCase.createEvent(command);
         return ResponseEntity.ok(ApiResponse.success(id));
     }
 
     @Operation(summary = "이벤트 상세 조회", description = "이벤트 상세를 조회합니다.")
     @GetMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<EventDetailResponse>> getEvent(@PathVariable Long id) {
-        EventDetailResponse response = EventDetailResponse.from(eventQueryUseCase.getEvent(id));
+        EventDetailResponse response = EventDetailResponse.from(eventManagementDetailQueryUseCase.getEvent(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -78,7 +93,7 @@ class EventApiController {
         @Valid @RequestBody EventUpdateRequest request
     ) {
         EventUpdateCommand command = request.toCommand(id);
-        eventCommandUseCase.updateEvent(command);
+        eventUpdateUseCase.updateEvent(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -86,7 +101,7 @@ class EventApiController {
     @DeleteMapping("/v1/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteEvent(@PathVariable Long id) {
         EventDeleteCommand command = EventDeleteCommand.of(id);
-        eventCommandUseCase.deleteEvent(command);
+        eventDeleteUseCase.deleteEvent(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

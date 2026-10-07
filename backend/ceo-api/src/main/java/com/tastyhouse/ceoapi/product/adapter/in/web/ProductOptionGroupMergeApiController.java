@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommand;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeCommandUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupMergePreviewQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeSuggestionListQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerMergeUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupMergeExclusionCreateRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupMergePreviewSearchRequest;
@@ -33,15 +35,21 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupM
 @RequestMapping("/api/products")
 class ProductOptionGroupMergeApiController {
 
-    private final ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryUseCase;
-    private final ProductOptionGroupMergeCommandUseCase productOptionGroupMergeCommandUseCase;
+    private final ProductOptionGroupMergeSuggestionListQueryUseCase productOptionGroupMergeSuggestionListQueryUseCase;
+    private final ProductOptionGroupMergePreviewQueryUseCase productOptionGroupMergePreviewQueryUseCase;
+    private final ProductOptionGroupOwnerMergeUseCase productOptionGroupOwnerMergeUseCase;
+    private final ProductOptionGroupMergeExclusionCreateUseCase productOptionGroupMergeExclusionCreateUseCase;
 
     public ProductOptionGroupMergeApiController(
-        ProductOptionGroupMergeQueryUseCase productOptionGroupMergeQueryUseCase,
-        ProductOptionGroupMergeCommandUseCase productOptionGroupMergeCommandUseCase
+        ProductOptionGroupMergeSuggestionListQueryUseCase productOptionGroupMergeSuggestionListQueryUseCase,
+        ProductOptionGroupMergePreviewQueryUseCase productOptionGroupMergePreviewQueryUseCase,
+        ProductOptionGroupOwnerMergeUseCase productOptionGroupOwnerMergeUseCase,
+        ProductOptionGroupMergeExclusionCreateUseCase productOptionGroupMergeExclusionCreateUseCase
     ) {
-        this.productOptionGroupMergeQueryUseCase = productOptionGroupMergeQueryUseCase;
-        this.productOptionGroupMergeCommandUseCase = productOptionGroupMergeCommandUseCase;
+        this.productOptionGroupMergeSuggestionListQueryUseCase = productOptionGroupMergeSuggestionListQueryUseCase;
+        this.productOptionGroupMergePreviewQueryUseCase = productOptionGroupMergePreviewQueryUseCase;
+        this.productOptionGroupOwnerMergeUseCase = productOptionGroupOwnerMergeUseCase;
+        this.productOptionGroupMergeExclusionCreateUseCase = productOptionGroupMergeExclusionCreateUseCase;
     }
 
     @Operation(summary = "옵션그룹 합치기 추천 목록",
@@ -53,7 +61,7 @@ class ProductOptionGroupMergeApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupMergeSuggestionSearchRequest request
     ) {
-        List<ProductOptionGroupMergeSuggestionResponse> response = productOptionGroupMergeQueryUseCase.getMergeSuggestions(userDetails.getCeoId(), request.shopId()).stream()
+        List<ProductOptionGroupMergeSuggestionResponse> response = productOptionGroupMergeSuggestionListQueryUseCase.getMergeSuggestions(userDetails.getCeoId(), request.shopId()).stream()
             .map(ProductOptionGroupMergeSuggestionResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -70,7 +78,7 @@ class ProductOptionGroupMergeApiController {
         @Valid @RequestBody ProductOptionGroupMergeExclusionCreateRequest request
     ) {
         ProductOptionGroupMergeExclusionCreateCommand command = request.toCommand(userDetails.getCeoId());
-        Long exclusionId = productOptionGroupMergeCommandUseCase.excludeMergeSuggestion(command);
+        Long exclusionId = productOptionGroupMergeExclusionCreateUseCase.excludeMergeSuggestion(command);
         return ResponseEntity.ok(ApiResponse.success(exclusionId));
     }
 
@@ -83,7 +91,7 @@ class ProductOptionGroupMergeApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupMergePreviewSearchRequest request
     ) {
-        ProductOptionGroupMergePreviewResponse response = ProductOptionGroupMergePreviewResponse.from(productOptionGroupMergeQueryUseCase.getMergePreview( userDetails.getCeoId(), request.shopId(), request.baseOptionGroupId(), request.optionGroupIds() ));
+        ProductOptionGroupMergePreviewResponse response = ProductOptionGroupMergePreviewResponse.from(productOptionGroupMergePreviewQueryUseCase.getMergePreview( userDetails.getCeoId(), request.shopId(), request.baseOptionGroupId(), request.optionGroupIds() ));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -98,7 +106,7 @@ class ProductOptionGroupMergeApiController {
         @Valid @RequestBody ProductOptionGroupMergeRequest request
     ) {
         ProductOptionGroupMergeCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long baseOptionGroupId = productOptionGroupMergeCommandUseCase.mergeProductOptionGroups(command);
+        Long baseOptionGroupId = productOptionGroupOwnerMergeUseCase.mergeProductOptionGroups(command);
         return ResponseEntity.ok(ApiResponse.success(baseOptionGroupId));
     }
 }

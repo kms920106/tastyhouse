@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.AdminUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopRequestCommentCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopRequestCommentManagementCreateCommand;
+import com.tastyhouse.application.shop.port.in.ShopRequestCommentManagementCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopRequestCommentQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.shop.adapter.in.web.request.ShopRequestCommentCreateRequest;
@@ -28,14 +28,11 @@ import com.tastyhouse.adminapi.shop.adapter.in.web.response.ShopRequestCommentRe
 class ShopRequestCommentApiController {
 
     private final ShopRequestCommentQueryUseCase shopRequestCommentQueryUseCase;
-    private final ShopRequestCommentCommandUseCase shopRequestCommentCommandUseCase;
+    private final ShopRequestCommentManagementCreateUseCase shopRequestCommentManagementCreateUseCase;
 
-    public ShopRequestCommentApiController(
-        ShopRequestCommentQueryUseCase shopRequestCommentQueryUseCase,
-        ShopRequestCommentCommandUseCase shopRequestCommentCommandUseCase
-    ) {
+    public ShopRequestCommentApiController(ShopRequestCommentQueryUseCase shopRequestCommentQueryUseCase, ShopRequestCommentManagementCreateUseCase shopRequestCommentManagementCreateUseCase) {
         this.shopRequestCommentQueryUseCase = shopRequestCommentQueryUseCase;
-        this.shopRequestCommentCommandUseCase = shopRequestCommentCommandUseCase;
+        this.shopRequestCommentManagementCreateUseCase = shopRequestCommentManagementCreateUseCase;
     }
 
     @Operation(
@@ -63,7 +60,7 @@ class ShopRequestCommentApiController {
         @Valid @RequestBody ShopRequestCommentCreateRequest request
     ) {
         ShopRequestCommentManagementCreateCommand command = request.toCommand(requestId, userDetails.getPrincipalId());
-        Long commentId = shopRequestCommentCommandUseCase.addComment(command);
+        Long commentId = shopRequestCommentManagementCreateUseCase.addComment(command);
         return ResponseEntity.ok(ApiResponse.success(commentId));
     }
 }

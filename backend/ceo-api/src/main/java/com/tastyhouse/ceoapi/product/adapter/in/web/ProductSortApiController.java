@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.product.port.in.ProductCategoryReorderCommand;
+import com.tastyhouse.application.product.port.in.ProductCategoryReorderUseCase;
 import com.tastyhouse.application.product.port.in.ProductRelocateCommand;
+import com.tastyhouse.application.product.port.in.ProductRelocateUseCase;
 import com.tastyhouse.application.product.port.in.ProductReorderCommand;
-import com.tastyhouse.application.product.port.in.ProductSortCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductReorderUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryOrderRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductCategoryRelocateRequest;
@@ -25,10 +27,18 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOrderRequest;
 @RequestMapping("/api/products")
 class ProductSortApiController {
 
-    private final ProductSortCommandUseCase productSortCommandUseCase;
+    private final ProductCategoryReorderUseCase productCategoryReorderUseCase;
+    private final ProductReorderUseCase productReorderUseCase;
+    private final ProductRelocateUseCase productRelocateUseCase;
 
-    public ProductSortApiController(ProductSortCommandUseCase productSortCommandUseCase) {
-        this.productSortCommandUseCase = productSortCommandUseCase;
+    public ProductSortApiController(
+        ProductCategoryReorderUseCase productCategoryReorderUseCase,
+        ProductReorderUseCase productReorderUseCase,
+        ProductRelocateUseCase productRelocateUseCase
+    ) {
+        this.productCategoryReorderUseCase = productCategoryReorderUseCase;
+        this.productReorderUseCase = productReorderUseCase;
+        this.productRelocateUseCase = productRelocateUseCase;
     }
 
     @Operation(summary = "메뉴그룹 순서 변경",
@@ -40,7 +50,7 @@ class ProductSortApiController {
         @Valid @RequestBody ProductCategoryOrderRequest request
     ) {
         ProductCategoryReorderCommand command = request.toCommand(userDetails.getCeoId());
-        productSortCommandUseCase.reorderProductCategories(command);
+        productCategoryReorderUseCase.reorderProductCategories(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -53,7 +63,7 @@ class ProductSortApiController {
         @Valid @RequestBody ProductOrderRequest request
     ) {
         ProductReorderCommand command = request.toCommand(userDetails.getCeoId());
-        productSortCommandUseCase.reorderProducts(command);
+        productReorderUseCase.reorderProducts(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -66,7 +76,7 @@ class ProductSortApiController {
         @Valid @RequestBody ProductCategoryRelocateRequest request
     ) {
         ProductRelocateCommand command = request.toCommand(userDetails.getCeoId());
-        productSortCommandUseCase.relocateProducts(command);
+        productRelocateUseCase.relocateProducts(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

@@ -13,9 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.event.port.in.EventAnnouncementCreateCommand;
+import com.tastyhouse.application.event.port.in.EventAnnouncementCreateUseCase;
 import com.tastyhouse.application.event.port.in.EventAnnouncementUpdateCommand;
-import com.tastyhouse.application.event.port.in.EventCommandUseCase;
-import com.tastyhouse.application.event.port.in.EventManagementQueryUseCase;
+import com.tastyhouse.application.event.port.in.EventAnnouncementUpdateUseCase;
+import com.tastyhouse.application.event.port.in.EventManagementAnnouncementQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.adminapi.event.adapter.in.web.request.EventAnnouncementCreateRequest;
 import com.tastyhouse.adminapi.event.adapter.in.web.request.EventAnnouncementUpdateRequest;
@@ -26,12 +27,18 @@ import com.tastyhouse.adminapi.event.adapter.in.web.response.EventAnnouncementRe
 @RequestMapping("/api/events")
 class EventAnnouncementAdminApiController {
 
-    private final EventCommandUseCase eventCommandUseCase;
-    private final EventManagementQueryUseCase eventQueryUseCase;
+    private final EventAnnouncementCreateUseCase eventAnnouncementCreateUseCase;
+    private final EventAnnouncementUpdateUseCase eventAnnouncementUpdateUseCase;
+    private final EventManagementAnnouncementQueryUseCase eventManagementAnnouncementQueryUseCase;
 
-    public EventAnnouncementAdminApiController(EventCommandUseCase eventCommandUseCase, EventManagementQueryUseCase eventQueryUseCase) {
-        this.eventCommandUseCase = eventCommandUseCase;
-        this.eventQueryUseCase = eventQueryUseCase;
+    public EventAnnouncementAdminApiController(
+        EventAnnouncementCreateUseCase eventAnnouncementCreateUseCase,
+        EventAnnouncementUpdateUseCase eventAnnouncementUpdateUseCase,
+        EventManagementAnnouncementQueryUseCase eventManagementAnnouncementQueryUseCase
+    ) {
+        this.eventAnnouncementCreateUseCase = eventAnnouncementCreateUseCase;
+        this.eventAnnouncementUpdateUseCase = eventAnnouncementUpdateUseCase;
+        this.eventManagementAnnouncementQueryUseCase = eventManagementAnnouncementQueryUseCase;
     }
 
     @Operation(summary = "당첨자 발표 공지 등록", description = "이벤트의 당첨자 발표 공지를 등록합니다. (이벤트당 1개)")
@@ -41,7 +48,7 @@ class EventAnnouncementAdminApiController {
         @Valid @RequestBody EventAnnouncementCreateRequest request
     ) {
         EventAnnouncementCreateCommand command = request.toCommand(id);
-        Long announcementId = eventCommandUseCase.createAnnouncement(command);
+        Long announcementId = eventAnnouncementCreateUseCase.createAnnouncement(command);
         return ResponseEntity.ok(ApiResponse.success(announcementId));
     }
 
@@ -52,14 +59,14 @@ class EventAnnouncementAdminApiController {
         @Valid @RequestBody EventAnnouncementUpdateRequest request
     ) {
         EventAnnouncementUpdateCommand command = request.toCommand(id);
-        eventCommandUseCase.updateAnnouncement(command);
+        eventAnnouncementUpdateUseCase.updateAnnouncement(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
     @Operation(summary = "당첨자 발표 공지 조회", description = "이벤트의 당첨자 발표 공지를 조회합니다.")
     @GetMapping("/v1/{id}/announcement")
     public ResponseEntity<ApiResponse<EventAnnouncementResponse>> getAnnouncement(@PathVariable Long id) {
-        EventAnnouncementResponse response = EventAnnouncementResponse.from(eventQueryUseCase.getAnnouncement(id));
+        EventAnnouncementResponse response = EventAnnouncementResponse.from(eventManagementAnnouncementQueryUseCase.getAnnouncement(id));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

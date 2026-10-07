@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentCreateCommand;
-import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentOwnerCommandUseCase;
+import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentOwnerCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaAdjustmentOwnerQueryUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopDeliveryAreaAdjustmentCreateRequest;
@@ -31,15 +31,15 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopDeliveryAreaAdjust
 @RequestMapping("/api/shops")
 class ShopDeliveryAreaAdjustmentApiController {
 
-    private final ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase;
-    private final ShopDeliveryAreaAdjustmentOwnerCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase;
+    private final ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentOwnerQueryUseCase;
+    private final ShopDeliveryAreaAdjustmentOwnerCreateUseCase shopDeliveryAreaAdjustmentOwnerCreateUseCase;
 
     public ShopDeliveryAreaAdjustmentApiController(
-        ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentQueryUseCase,
-        ShopDeliveryAreaAdjustmentOwnerCommandUseCase shopDeliveryAreaAdjustmentCommandUseCase
+        ShopDeliveryAreaAdjustmentOwnerQueryUseCase shopDeliveryAreaAdjustmentOwnerQueryUseCase,
+        ShopDeliveryAreaAdjustmentOwnerCreateUseCase shopDeliveryAreaAdjustmentOwnerCreateUseCase
     ) {
-        this.shopDeliveryAreaAdjustmentQueryUseCase = shopDeliveryAreaAdjustmentQueryUseCase;
-        this.shopDeliveryAreaAdjustmentCommandUseCase = shopDeliveryAreaAdjustmentCommandUseCase;
+        this.shopDeliveryAreaAdjustmentOwnerQueryUseCase = shopDeliveryAreaAdjustmentOwnerQueryUseCase;
+        this.shopDeliveryAreaAdjustmentOwnerCreateUseCase = shopDeliveryAreaAdjustmentOwnerCreateUseCase;
     }
 
     @Operation(summary = "내 가게 배달지역 조정 신청 이력 조회", description = "로그인한 점주가 소유한 가게의 배달지역 조정 신청 이력을 최근순으로 조회합니다.")
@@ -48,7 +48,7 @@ class ShopDeliveryAreaAdjustmentApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @PathVariable Long id
     ) {
-        List<ShopDeliveryAreaAdjustmentItemResponse> response = shopDeliveryAreaAdjustmentQueryUseCase.getAdjustmentRequests(userDetails.getCeoId(), id).stream()
+        List<ShopDeliveryAreaAdjustmentItemResponse> response = shopDeliveryAreaAdjustmentOwnerQueryUseCase.getAdjustmentRequests(userDetails.getCeoId(), id).stream()
             .map(ShopDeliveryAreaAdjustmentItemResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -67,7 +67,7 @@ class ShopDeliveryAreaAdjustmentApiController {
         @RequestParam("file") MultipartFile file
     ) {
         ShopDeliveryAreaAdjustmentCreateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        Long requestId = shopDeliveryAreaAdjustmentCommandUseCase.requestAdjustment(command, file);
+        Long requestId = shopDeliveryAreaAdjustmentOwnerCreateUseCase.requestAdjustment(command, file);
         return ResponseEntity.ok(ApiResponse.success(requestId));
     }
 }

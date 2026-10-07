@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
-import com.tastyhouse.application.shop.port.in.ShopOriginInfoCommandUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOriginInfoOwnerQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopOriginInfoUpdateCommand;
+import com.tastyhouse.application.shop.port.in.ShopOriginInfoUpdateUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.request.ShopOriginInfoUpdateRequest;
 import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse;
@@ -25,12 +25,15 @@ import com.tastyhouse.ceoapi.shop.adapter.in.web.response.ShopOriginInfoResponse
 @RequestMapping("/api/shops")
 class ShopOriginInfoApiController {
 
-    private final ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryUseCase;
-    private final ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase;
+    private final ShopOriginInfoOwnerQueryUseCase shopOriginInfoOwnerQueryUseCase;
+    private final ShopOriginInfoUpdateUseCase shopOriginInfoUpdateUseCase;
 
-    public ShopOriginInfoApiController(ShopOriginInfoOwnerQueryUseCase shopOriginInfoQueryUseCase, ShopOriginInfoCommandUseCase shopOriginInfoCommandUseCase) {
-        this.shopOriginInfoQueryUseCase = shopOriginInfoQueryUseCase;
-        this.shopOriginInfoCommandUseCase = shopOriginInfoCommandUseCase;
+    public ShopOriginInfoApiController(
+        ShopOriginInfoOwnerQueryUseCase shopOriginInfoOwnerQueryUseCase,
+        ShopOriginInfoUpdateUseCase shopOriginInfoUpdateUseCase
+    ) {
+        this.shopOriginInfoOwnerQueryUseCase = shopOriginInfoOwnerQueryUseCase;
+        this.shopOriginInfoUpdateUseCase = shopOriginInfoUpdateUseCase;
     }
 
     @Operation(summary = "내 가게 원산지 조회",
@@ -42,7 +45,7 @@ class ShopOriginInfoApiController {
         @PathVariable Long id
     ) {
         ShopOriginInfoResponse response =
-            shopOriginInfoQueryUseCase.getOriginInfo(userDetails.getCeoId(), id)
+            shopOriginInfoOwnerQueryUseCase.getOriginInfo(userDetails.getCeoId(), id)
                 .map(ShopOriginInfoResponse::from)
                 .orElseGet(ShopOriginInfoResponse::empty);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -58,7 +61,7 @@ class ShopOriginInfoApiController {
         @Valid @RequestBody ShopOriginInfoUpdateRequest request
     ) {
         ShopOriginInfoUpdateCommand command = request.toCommand(userDetails.getCeoId(), id);
-        shopOriginInfoCommandUseCase.updateOriginInfo(command);
+        shopOriginInfoUpdateUseCase.updateOriginInfo(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

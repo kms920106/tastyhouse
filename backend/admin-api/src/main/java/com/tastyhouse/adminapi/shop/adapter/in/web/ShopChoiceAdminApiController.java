@@ -21,9 +21,10 @@ import com.tastyhouse.application.shop.port.in.ShopChoiceCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopChoiceCreateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopChoiceDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopChoiceDeleteUseCase;
+import com.tastyhouse.application.shop.port.in.ShopChoiceDetailManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.in.ShopChoiceListManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.in.ShopChoiceUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopChoiceUpdateUseCase;
-import com.tastyhouse.application.shop.port.in.ShopManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.EditorChoiceResult;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.common.PageRequest;
@@ -41,24 +42,27 @@ class ShopChoiceAdminApiController {
     private final ShopChoiceCreateUseCase shopChoiceCreateUseCase;
     private final ShopChoiceUpdateUseCase shopChoiceUpdateUseCase;
     private final ShopChoiceDeleteUseCase shopChoiceDeleteUseCase;
-    private final ShopManagementQueryUseCase shopQueryUseCase;
+    private final ShopChoiceListManagementQueryUseCase shopChoiceListManagementQueryUseCase;
+    private final ShopChoiceDetailManagementQueryUseCase shopChoiceDetailManagementQueryUseCase;
 
     public ShopChoiceAdminApiController(
         ShopChoiceCreateUseCase shopChoiceCreateUseCase,
         ShopChoiceUpdateUseCase shopChoiceUpdateUseCase,
         ShopChoiceDeleteUseCase shopChoiceDeleteUseCase,
-        ShopManagementQueryUseCase shopQueryUseCase
+        ShopChoiceListManagementQueryUseCase shopChoiceListManagementQueryUseCase,
+        ShopChoiceDetailManagementQueryUseCase shopChoiceDetailManagementQueryUseCase
     ) {
         this.shopChoiceCreateUseCase = shopChoiceCreateUseCase;
         this.shopChoiceUpdateUseCase = shopChoiceUpdateUseCase;
         this.shopChoiceDeleteUseCase = shopChoiceDeleteUseCase;
-        this.shopQueryUseCase = shopQueryUseCase;
+        this.shopChoiceListManagementQueryUseCase = shopChoiceListManagementQueryUseCase;
+        this.shopChoiceDetailManagementQueryUseCase = shopChoiceDetailManagementQueryUseCase;
     }
 
     @Operation(summary = "테하 초이스 목록 조회", description = "테하 초이스 목록을 페이징하여 조회합니다.")
     @GetMapping("/v1/editor-choices")
     public ResponseEntity<ApiResponse<List<ShopChoiceListItemResponse>>> getShopChoices(@Valid @ModelAttribute PageRequest pageRequest) {
-        PageResult<EditorChoiceResult> pageResult = shopQueryUseCase.getShopChoices(pageRequest.page(), pageRequest.size());
+        PageResult<EditorChoiceResult> pageResult = shopChoiceListManagementQueryUseCase.getShopChoices(pageRequest.page(), pageRequest.size());
         PaginationResponse<ShopChoiceListItemResponse> pageResponse =
             PaginationResponse.from(pageResult.map(ShopChoiceListItemResponse::from));
         return ResponseEntity.ok(ApiResponse.success(pageResponse.content(), pageResponse.page(), pageResponse.size(), pageResponse.totalElements()));
@@ -75,7 +79,7 @@ class ShopChoiceAdminApiController {
     @Operation(summary = "테하 초이스 상세 조회", description = "테하 초이스 상세를 조회합니다.")
     @GetMapping("/v1/editor-choices/{choiceId}")
     public ResponseEntity<ApiResponse<ShopChoiceDetailResponse>> getShopChoice(@PathVariable Long choiceId) {
-        ShopChoiceDetailResponse response = ShopChoiceDetailResponse.from(shopQueryUseCase.getShopChoice(choiceId));
+        ShopChoiceDetailResponse response = ShopChoiceDetailResponse.from(shopChoiceDetailManagementQueryUseCase.getShopChoice(choiceId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

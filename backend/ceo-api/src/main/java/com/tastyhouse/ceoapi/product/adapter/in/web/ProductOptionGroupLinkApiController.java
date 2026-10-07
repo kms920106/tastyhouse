@@ -19,10 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.security.CeoUserDetails;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupLinkCommand;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupLinkCommandUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupLinkedProductListQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupLinkedProductsByShopQueryUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupOrderChangeCommand;
-import com.tastyhouse.application.product.port.in.ProductOptionGroupQueryUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupOrderChangeUseCase;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerLinkUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUnlinkCommand;
+import com.tastyhouse.application.product.port.in.ProductOptionGroupUnlinkUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupLinkRequest;
 import com.tastyhouse.ceoapi.product.adapter.in.web.request.ProductOptionGroupSortRequest;
@@ -34,15 +37,24 @@ import com.tastyhouse.ceoapi.product.adapter.in.web.response.ProductOptionGroupL
 @RequestMapping("/api/products")
 class ProductOptionGroupLinkApiController {
 
-    private final ProductOptionGroupQueryUseCase productOptionGroupQueryUseCase;
-    private final ProductOptionGroupLinkCommandUseCase productOptionGroupLinkCommandUseCase;
+    private final ProductOptionGroupLinkedProductListQueryUseCase productOptionGroupLinkedProductListQueryUseCase;
+    private final ProductOptionGroupLinkedProductsByShopQueryUseCase productOptionGroupLinkedProductsByShopQueryUseCase;
+    private final ProductOptionGroupOwnerLinkUseCase productOptionGroupOwnerLinkUseCase;
+    private final ProductOptionGroupUnlinkUseCase productOptionGroupUnlinkUseCase;
+    private final ProductOptionGroupOrderChangeUseCase productOptionGroupOrderChangeUseCase;
 
     public ProductOptionGroupLinkApiController(
-        ProductOptionGroupQueryUseCase productOptionGroupQueryUseCase,
-        ProductOptionGroupLinkCommandUseCase productOptionGroupLinkCommandUseCase
+        ProductOptionGroupLinkedProductListQueryUseCase productOptionGroupLinkedProductListQueryUseCase,
+        ProductOptionGroupLinkedProductsByShopQueryUseCase productOptionGroupLinkedProductsByShopQueryUseCase,
+        ProductOptionGroupOwnerLinkUseCase productOptionGroupOwnerLinkUseCase,
+        ProductOptionGroupUnlinkUseCase productOptionGroupUnlinkUseCase,
+        ProductOptionGroupOrderChangeUseCase productOptionGroupOrderChangeUseCase
     ) {
-        this.productOptionGroupQueryUseCase = productOptionGroupQueryUseCase;
-        this.productOptionGroupLinkCommandUseCase = productOptionGroupLinkCommandUseCase;
+        this.productOptionGroupLinkedProductListQueryUseCase = productOptionGroupLinkedProductListQueryUseCase;
+        this.productOptionGroupLinkedProductsByShopQueryUseCase = productOptionGroupLinkedProductsByShopQueryUseCase;
+        this.productOptionGroupOwnerLinkUseCase = productOptionGroupOwnerLinkUseCase;
+        this.productOptionGroupUnlinkUseCase = productOptionGroupUnlinkUseCase;
+        this.productOptionGroupOrderChangeUseCase = productOptionGroupOrderChangeUseCase;
     }
 
     @Operation(summary = "메뉴에 옵션그룹 연결",
@@ -56,7 +68,7 @@ class ProductOptionGroupLinkApiController {
         @Valid @RequestBody ProductOptionGroupLinkRequest request
     ) {
         ProductOptionGroupLinkCommand command = request.toCommand(userDetails.getCeoId(), id, optionGroupId);
-        productOptionGroupLinkCommandUseCase.linkOptionGroup(command);
+        productOptionGroupOwnerLinkUseCase.linkOptionGroup(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -72,7 +84,7 @@ class ProductOptionGroupLinkApiController {
         @Valid @ModelAttribute ProductOptionGroupLinkRequest request
     ) {
         ProductOptionGroupUnlinkCommand command = request.toUnlinkCommand(userDetails.getCeoId(), id, optionGroupId);
-        productOptionGroupLinkCommandUseCase.unlinkOptionGroup(command);
+        productOptionGroupUnlinkUseCase.unlinkOptionGroup(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -86,7 +98,7 @@ class ProductOptionGroupLinkApiController {
         @Valid @RequestBody ProductOptionGroupSortRequest request
     ) {
         ProductOptionGroupOrderChangeCommand command = request.toCommand(userDetails.getCeoId(), id);
-        productOptionGroupLinkCommandUseCase.changeOptionGroupOrder(command);
+        productOptionGroupOrderChangeUseCase.changeOptionGroupOrder(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -98,7 +110,7 @@ class ProductOptionGroupLinkApiController {
         @AuthenticationPrincipal CeoUserDetails userDetails,
         @Valid @ModelAttribute ProductOptionGroupLinkRequest request
     ) {
-        List<ProductOptionGroupLinkedProductsResponse> response = productOptionGroupQueryUseCase.getLinkedProductsByShop( userDetails.getCeoId(), request.shopId() ).stream()
+        List<ProductOptionGroupLinkedProductsResponse> response = productOptionGroupLinkedProductsByShopQueryUseCase.getLinkedProductsByShop( userDetails.getCeoId(), request.shopId() ).stream()
             .map(ProductOptionGroupLinkedProductsResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -112,7 +124,7 @@ class ProductOptionGroupLinkApiController {
         @PathVariable Long optionGroupId,
         @Valid @ModelAttribute ProductOptionGroupLinkRequest request
     ) {
-        List<ProductOptionGroupLinkedProductResponse> response = productOptionGroupQueryUseCase.getLinkedProducts( userDetails.getCeoId(), request.shopId(), optionGroupId ).stream()
+        List<ProductOptionGroupLinkedProductResponse> response = productOptionGroupLinkedProductListQueryUseCase.getLinkedProducts( userDetails.getCeoId(), request.shopId(), optionGroupId ).stream()
             .map(ProductOptionGroupLinkedProductResponse::from)
             .toList();
         return ResponseEntity.ok(ApiResponse.success(response));

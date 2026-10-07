@@ -10,9 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
-import com.tastyhouse.application.sms.port.in.SmsVerificationCommandUseCase;
 import com.tastyhouse.application.sms.port.in.SmsVerificationConfirmCommand;
+import com.tastyhouse.application.sms.port.in.SmsVerificationConfirmUseCase;
 import com.tastyhouse.application.sms.port.in.SmsVerificationSendCommand;
+import com.tastyhouse.application.sms.port.in.SmsVerificationSendUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.apicommon.ratelimit.RateLimit;
 import com.tastyhouse.apicommon.ratelimit.RateLimitKeyType;
@@ -25,14 +26,17 @@ import com.tastyhouse.webapi.sms.adapter.in.web.response.SmsVerificationTokenRes
 @Tag(name = "SMS Verification", description = "SMS(휴대폰번호) 인증 API")
 class SmsVerificationApiController {
 
-    private final SmsVerificationCommandUseCase smsVerificationCommandUseCase;
+    private final SmsVerificationSendUseCase smsVerificationSendUseCase;
+    private final SmsVerificationConfirmUseCase smsVerificationConfirmUseCase;
     private final MemberJwtTokenProvider jwtTokenProvider;
 
     public SmsVerificationApiController(
-        SmsVerificationCommandUseCase smsVerificationCommandUseCase,
+        SmsVerificationSendUseCase smsVerificationSendUseCase,
+        SmsVerificationConfirmUseCase smsVerificationConfirmUseCase,
         MemberJwtTokenProvider jwtTokenProvider
     ) {
-        this.smsVerificationCommandUseCase = smsVerificationCommandUseCase;
+        this.smsVerificationSendUseCase = smsVerificationSendUseCase;
+        this.smsVerificationConfirmUseCase = smsVerificationConfirmUseCase;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -46,7 +50,7 @@ class SmsVerificationApiController {
         @Valid @RequestBody SmsVerificationSendRequest request
     ) {
         SmsVerificationSendCommand command = request.toCommand();
-        smsVerificationCommandUseCase.sendVerificationCode(command);
+        smsVerificationSendUseCase.sendVerificationCode(command);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -60,7 +64,7 @@ class SmsVerificationApiController {
         @Valid @RequestBody SmsVerificationConfirmRequest request
     ) {
         SmsVerificationConfirmCommand command = request.toCommand();
-        String phoneNumber = smsVerificationCommandUseCase.confirmVerificationCode(command);
+        String phoneNumber = smsVerificationConfirmUseCase.confirmVerificationCode(command);
         String smsVerifyToken = jwtTokenProvider.createSmsVerifyToken(phoneNumber);
         return ResponseEntity.ok(ApiResponse.success(
             SmsVerificationTokenResponse.from(smsVerifyToken)
