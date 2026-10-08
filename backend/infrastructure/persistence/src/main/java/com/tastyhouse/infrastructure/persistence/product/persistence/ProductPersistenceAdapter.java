@@ -75,7 +75,7 @@ class ProductPersistenceAdapter implements ProductPersistencePort {
 
     @Override
     public long countVisibleByShopId(ShopId shopId) {
-        return queryFactory
+        Long count = queryFactory
             .select(productJpaEntity.id.countDistinct())
             .from(productJpaEntity, productShopLinkJpaEntity)
             .where(
@@ -85,11 +85,12 @@ class ProductPersistenceAdapter implements ProductPersistencePort {
                 productJpaEntity.deleted.isFalse()
             )
             .fetchOne();
+        return count == null ? 0L : count;
     }
 
     @Override
     public long countVisibleRepresentativeByShopId(ShopId shopId) {
-        return queryFactory
+        Long count = queryFactory
             .select(productJpaEntity.count())
             .from(productJpaEntity)
             .where(
@@ -99,11 +100,12 @@ class ProductPersistenceAdapter implements ProductPersistencePort {
                 productJpaEntity.deleted.isFalse()
             )
             .fetchOne();
+        return count == null ? 0L : count;
     }
 
     @Override
     public long countRepresentativeByShopId(ShopId shopId) {
-        return queryFactory
+        Long count = queryFactory
             .select(productJpaEntity.count())
             .from(productJpaEntity)
             .where(
@@ -112,6 +114,7 @@ class ProductPersistenceAdapter implements ProductPersistencePort {
                 productJpaEntity.deleted.isFalse()
             )
             .fetchOne();
+        return count == null ? 0L : count;
     }
 
     @Override
@@ -176,7 +179,7 @@ class ProductPersistenceAdapter implements ProductPersistencePort {
 
     @Override
     public long countByCategoryId(ProductCategoryId productCategoryId) {
-        return queryFactory
+        Long count = queryFactory
             .select(productJpaEntity.count())
             .from(productJpaEntity)
             .where(
@@ -184,6 +187,7 @@ class ProductPersistenceAdapter implements ProductPersistencePort {
                 productJpaEntity.deleted.isFalse()
             )
             .fetchOne();
+        return count == null ? 0L : count;
     }
 
     private BooleanExpression productCategoryIdEq(Long categoryId) {

@@ -7,6 +7,7 @@ import java.util.Set;
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -183,7 +184,7 @@ class LayerRulesTest {
         List<String> violations = repositories.stream()
             .filter(repository -> !repository.getMethods().isEmpty())
             .map(repository -> repository.getName() + " " + repository.getMethods().stream()
-                .map(method -> method.getName())
+                .map(JavaMethod::getName)
                 .sorted()
                 .toList())
             .sorted()
