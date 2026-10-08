@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
@@ -10,14 +11,19 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductOptionGroupLinkJpaEntity.productOptionGroupLinkJpaEntity;
+
 @Repository
 class ProductOptionGroupLinkPersistenceAdapter implements ProductOptionGroupLinkPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductOptionGroupLinkJpaRepository productOptionGroupLinkJpaRepository;
 
     public ProductOptionGroupLinkPersistenceAdapter(
+        JPAQueryFactory queryFactory,
         ProductOptionGroupLinkJpaRepository productOptionGroupLinkJpaRepository
     ) {
+        this.queryFactory = queryFactory;
         this.productOptionGroupLinkJpaRepository = productOptionGroupLinkJpaRepository;
     }
 
@@ -40,21 +46,35 @@ class ProductOptionGroupLinkPersistenceAdapter implements ProductOptionGroupLink
         ProductId productId,
         ProductOptionGroupId optionGroupId
     ) {
-        return productOptionGroupLinkJpaRepository
-            .findByProductIdAndOptionGroupId(productId.value(), optionGroupId.value())
-            .map(ProductOptionGroupLinkMapper::toDomain);
+        ProductOptionGroupLinkJpaEntity entity = queryFactory
+            .selectFrom(productOptionGroupLinkJpaEntity)
+            .where(
+                productOptionGroupLinkJpaEntity.productId.eq(productId.value()),
+                productOptionGroupLinkJpaEntity.optionGroupId.eq(optionGroupId.value())
+            )
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ProductOptionGroupLinkMapper::toDomain);
     }
 
     @Override
     public List<ProductOptionGroupLink> findAllByProductId(ProductId productId) {
-        return productOptionGroupLinkJpaRepository.findAllByProductIdOrderBySortAsc(productId.value()).stream()
+        return queryFactory
+            .selectFrom(productOptionGroupLinkJpaEntity)
+            .where(productOptionGroupLinkJpaEntity.productId.eq(productId.value()))
+            .orderBy(productOptionGroupLinkJpaEntity.sort.asc())
+            .fetch()
+            .stream()
             .map(ProductOptionGroupLinkMapper::toDomain)
             .toList();
     }
 
     @Override
     public List<ProductOptionGroupLink> findAllByOptionGroupId(ProductOptionGroupId optionGroupId) {
-        return productOptionGroupLinkJpaRepository.findAllByOptionGroupId(optionGroupId.value()).stream()
+        return queryFactory
+            .selectFrom(productOptionGroupLinkJpaEntity)
+            .where(productOptionGroupLinkJpaEntity.optionGroupId.eq(optionGroupId.value()))
+            .fetch()
+            .stream()
             .map(ProductOptionGroupLinkMapper::toDomain)
             .toList();
     }
@@ -64,8 +84,12 @@ class ProductOptionGroupLinkPersistenceAdapter implements ProductOptionGroupLink
         if (optionGroupIds.isEmpty()) {
             return List.of();
         }
-        return productOptionGroupLinkJpaRepository
-            .findAllByOptionGroupIdIn(optionGroupIds.stream().map(ProductOptionGroupId::value).toList())
+        return queryFactory
+            .selectFrom(productOptionGroupLinkJpaEntity)
+            .where(productOptionGroupLinkJpaEntity.optionGroupId.in(
+                optionGroupIds.stream().map(ProductOptionGroupId::value).toList()
+            ))
+            .fetch()
             .stream()
             .map(ProductOptionGroupLinkMapper::toDomain)
             .toList();
@@ -73,7 +97,14 @@ class ProductOptionGroupLinkPersistenceAdapter implements ProductOptionGroupLink
 
     @Override
     public boolean existsByProductIdAndOptionGroupId(ProductId productId, ProductOptionGroupId optionGroupId) {
-        return productOptionGroupLinkJpaRepository.existsByProductIdAndOptionGroupId(productId.value(), optionGroupId.value());
+        return queryFactory
+            .selectOne()
+            .from(productOptionGroupLinkJpaEntity)
+            .where(
+                productOptionGroupLinkJpaEntity.productId.eq(productId.value()),
+                productOptionGroupLinkJpaEntity.optionGroupId.eq(optionGroupId.value())
+            )
+            .fetchFirst() != null;
     }
 
     @Override

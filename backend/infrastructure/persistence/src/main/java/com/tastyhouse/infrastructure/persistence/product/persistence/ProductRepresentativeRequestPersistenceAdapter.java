@@ -3,6 +3,8 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductRepresentativeRequest;
@@ -12,14 +14,19 @@ import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductRepresentativeRequestJpaEntity.productRepresentativeRequestJpaEntity;
+
 @Repository
 class ProductRepresentativeRequestPersistenceAdapter implements ProductRepresentativeRequestPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductRepresentativeRequestJpaRepository productRepresentativeRequestJpaRepository;
 
     public ProductRepresentativeRequestPersistenceAdapter(
+        JPAQueryFactory queryFactory,
         ProductRepresentativeRequestJpaRepository productRepresentativeRequestJpaRepository
     ) {
+        this.queryFactory = queryFactory;
         this.productRepresentativeRequestJpaRepository = productRepresentativeRequestJpaRepository;
     }
 
@@ -47,20 +54,43 @@ class ProductRepresentativeRequestPersistenceAdapter implements ProductRepresent
 
     @Override
     public List<ProductRepresentativeRequest> findAllByProductId(ProductId productId) {
-        return productRepresentativeRequestJpaRepository.findAllByProductId(productId.value()).stream()
+        return queryFactory
+            .selectFrom(productRepresentativeRequestJpaEntity)
+            .where(productRepresentativeRequestJpaEntity.productId.eq(productId.value()))
+            .fetch()
+            .stream()
             .map(ProductRepresentativeRequestMapper::toDomain)
             .toList();
     }
 
     @Override
     public boolean existsByProductIdAndStatus(ProductId productId, ApprovalStatus status) {
-        return productRepresentativeRequestJpaRepository.existsByProductIdAndStatus(
-            productId.value(), status == null ? null : status.name());
+        return queryFactory
+            .selectOne()
+            .from(productRepresentativeRequestJpaEntity)
+            .where(
+                productRepresentativeRequestJpaEntity.productId.eq(productId.value()),
+                statusEq(status == null ? null : status.name())
+            )
+            .fetchFirst() != null;
     }
 
     @Override
     public long countByShopIdAndStatus(ShopId shopId, ApprovalStatus status) {
-        return productRepresentativeRequestJpaRepository.countByShopIdAndStatus(
-            shopId.value(), status == null ? null : status.name());
+        Long count = queryFactory
+            .select(productRepresentativeRequestJpaEntity.count())
+            .from(productRepresentativeRequestJpaEntity)
+            .where(
+                productRepresentativeRequestJpaEntity.shopId.eq(shopId.value()),
+                statusEq(status == null ? null : status.name())
+            )
+            .fetchOne();
+        return count == null ? 0L : count;
+    }
+
+    private BooleanExpression statusEq(String status) {
+        return status == null
+            ? productRepresentativeRequestJpaEntity.status.isNull()
+            : productRepresentativeRequestJpaEntity.status.eq(status);
     }
 }

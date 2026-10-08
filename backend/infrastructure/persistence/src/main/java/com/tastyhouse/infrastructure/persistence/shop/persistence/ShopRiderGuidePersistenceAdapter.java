@@ -2,6 +2,8 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 
 import java.util.Optional;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopRiderGuide;
@@ -9,24 +11,32 @@ import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopRiderGuideJpaEntity.shopRiderGuideJpaEntity;
+
 @Repository
 class ShopRiderGuidePersistenceAdapter implements ShopRiderGuidePersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopRiderGuideJpaRepository shopRiderGuideJpaRepository;
     private final ShopRiderGuideHistoryJpaRepository shopRiderGuideHistoryJpaRepository;
 
     public ShopRiderGuidePersistenceAdapter(
+        JPAQueryFactory queryFactory,
         ShopRiderGuideJpaRepository shopRiderGuideJpaRepository,
         ShopRiderGuideHistoryJpaRepository shopRiderGuideHistoryJpaRepository
     ) {
+        this.queryFactory = queryFactory;
         this.shopRiderGuideJpaRepository = shopRiderGuideJpaRepository;
         this.shopRiderGuideHistoryJpaRepository = shopRiderGuideHistoryJpaRepository;
     }
 
     @Override
     public Optional<ShopRiderGuide> findByShopId(ShopId shopId) {
-        return shopRiderGuideJpaRepository.findByShopId(shopId == null ? null : shopId.value())
-            .map(ShopRiderGuideMapper::toDomain);
+        ShopRiderGuideJpaEntity entity = queryFactory
+            .selectFrom(shopRiderGuideJpaEntity)
+            .where(shopIdEq(shopId == null ? null : shopId.value()))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ShopRiderGuideMapper::toDomain);
     }
 
     @Override
@@ -47,5 +57,9 @@ class ShopRiderGuidePersistenceAdapter implements ShopRiderGuidePersistencePort 
         ShopRiderGuideHistoryJpaEntity saved = shopRiderGuideHistoryJpaRepository
             .save(ShopRiderGuideHistoryMapper.toEntity(history));
         return ShopRiderGuideHistoryMapper.toDomain(saved);
+    }
+
+    private BooleanExpression shopIdEq(Long shopId) {
+        return shopId == null ? shopRiderGuideJpaEntity.shopId.isNull() : shopRiderGuideJpaEntity.shopId.eq(shopId);
     }
 }

@@ -3,6 +3,8 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductImageChangeRequest;
@@ -11,14 +13,19 @@ import com.tastyhouse.domain.product.vo.ProductImageChangeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductImageChangeRequestJpaEntity.productImageChangeRequestJpaEntity;
+
 @Repository
 class ProductImageChangeRequestPersistenceAdapter implements ProductImageChangeRequestPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductImageChangeRequestJpaRepository productImageChangeRequestJpaRepository;
 
     public ProductImageChangeRequestPersistenceAdapter(
+        JPAQueryFactory queryFactory,
         ProductImageChangeRequestJpaRepository productImageChangeRequestJpaRepository
     ) {
+        this.queryFactory = queryFactory;
         this.productImageChangeRequestJpaRepository = productImageChangeRequestJpaRepository;
     }
 
@@ -44,14 +51,30 @@ class ProductImageChangeRequestPersistenceAdapter implements ProductImageChangeR
 
     @Override
     public List<ProductImageChangeRequest> findAllByProductId(ProductId productId) {
-        return productImageChangeRequestJpaRepository.findAllByProductId(productId.value()).stream()
+        return queryFactory
+            .selectFrom(productImageChangeRequestJpaEntity)
+            .where(productImageChangeRequestJpaEntity.productId.eq(productId.value()))
+            .fetch()
+            .stream()
             .map(ProductImageChangeRequestMapper::toDomain)
             .toList();
     }
 
     @Override
     public boolean existsByProductIdAndStatus(ProductId productId, ApprovalStatus status) {
-        return productImageChangeRequestJpaRepository.existsByProductIdAndStatus(
-            productId.value(), status == null ? null : status.name());
+        return queryFactory
+            .selectOne()
+            .from(productImageChangeRequestJpaEntity)
+            .where(
+                productImageChangeRequestJpaEntity.productId.eq(productId.value()),
+                statusEq(status == null ? null : status.name())
+            )
+            .fetchFirst() != null;
+    }
+
+    private BooleanExpression statusEq(String status) {
+        return status == null
+            ? productImageChangeRequestJpaEntity.status.isNull()
+            : productImageChangeRequestJpaEntity.status.eq(status);
     }
 }

@@ -1582,6 +1582,22 @@ public class AdminPersistenceAdapter implements AdminPersistencePort {
 - **미사용 import는 컴파일을 막지 않아 놓치기 쉽습니다**: `./gradlew build`는 미사용 import만으로는 실패하지 않으므로(경고 수준), 빌드 성공을 "정리 완료"의 증거로 삼지 않습니다.
 - **적용 범위**: 이번 작업으로 새로 만든 파일뿐 아니라, **기존 로직을 고치며 함께 수정한 기존 파일**도 동일하게 적용합니다. 작업과 무관한 파일까지 찾아가 정리하는 전수 청소는 하지 않습니다 — 손댄 파일에 한정합니다.
 
+## JpaRepository 메서드 선언 금지 규칙 (조건 있는 조회는 QueryDSL 어댑터가 소유)
+
+**`infrastructure:persistence`의 `XxxJpaRepository`에는 메서드를 선언하지 않는다.** 파생 쿼리(`findByUsername`)·`@Query`·`@Modifying` 전부 금지이고, `JpaRepository<E, Long>`의 상속 메서드(`findById`·`save`·`saveAll`·`delete`·`deleteAll`·`existsById`·`findAll`)만 쓴다. 과거에는 57개 리포지토리가 116개 메서드를 선언해, 같은 조건(`deleted = false`, `shopId` 필터)이 "메서드 이름"과 "QueryDSL" 두 문법으로 갈라져 있었다.
+
+조건 있는 조회·삭제를 어디에 둘지는 그 조회의 쓰임으로 정한다.
+
+| 쓰임 | 위치 | 예 |
+|---|---|---|
+| 도메인 모델을 반환하거나, 명령 경로·도메인 서비스의 불변식 검증에 쓰인다 | 그 리포지토리를 쓰는 `XxxPersistenceAdapter`가 `JPAQueryFactory`로 | `AdminPersistenceAdapter#findByUsername`(인증 로드), `#existsByUsername`(`AdminCreateService` 중복검사) |
+| 조회 유스케이스가 원시값·투영을 돌려준다 | `..query..`의 `XxxQueryAdapter` + `port.out`의 `{Ctx}QueryPort` | `AdminQueryAdapter#existsByUsername`(아이디 중복확인 API) |
+
+- **QueryAdapter로 일원화하지 않는 이유**: `..query..`는 domain을 볼 수 없고(`queryShouldNotDependOnDomain`), persistence → query 의존은 금지이며(`persistenceShouldNotDependOnQuery`), CommandService는 QueryPort를 주입하지 못한다(`commandServicesShouldNotDependOnQueryPorts`). 그래서 같은 행을 읽는 메서드가 write 포트와 QueryPort에 하나씩 있을 수 있다(목적이 다르므로 허용 — [write 포트 잔류 판정 기준](#write-포트-잔류-판정-기준-domain-repository에-남길-조회의-경계)).
+- **변환 시 의미를 보존한다** — 파생 `Optional findBy`는 `fetchOne`(다건이면 예외로 같은 의미), `findFirst…`만 `fetchFirst`. 파생 `deleteBy…`는 bulk delete가 아니라 `fetch()` 후 `jpaRepository.deleteAll(rows)`(로드 후 `em.remove`). `@Modifying(flushAutomatically, clearAutomatically)`는 `entityManager.flush()` → `queryFactory.delete(..).execute()` → `entityManager.clear()`. `In(Collection)`은 빈 입력이면 쿼리 없이 빈 결과.
+- **대가**: 파생 쿼리는 부팅 때 검증됐지만 QueryDSL은 실행 시점에만 검증된다. 조건을 고치면 해당 엔드포인트를 한 번 호출해 확인한다.
+- **가드**: persistence `LayerRulesTest#jpaRepositoriesShouldNotDeclareMethods`(Spring Data `Repository`를 상속한 인터페이스의 선언 메서드 0개) + `#jpaRepositoriesExist`(≥123). 근거와 의미 보존 규칙 상세는 `infrastructure/persistence/AGENTS.md`의 `## 봉인·가드 목록`.
+
 ## QueryDSL 동적 where 조건 조립 규칙 (`BooleanBuilder` 대신 `BooleanExpression` varargs 헬퍼)
 
 `infrastructure:persistence`의 `*PersistenceAdapter.java`·`*QueryAdapter.java`에서 **동적 검색(필터가 null이면 조건 무시)을 하는 where 조건은 `BooleanBuilder` + `if`문이 아니라, `private BooleanExpression xxxEq(arg)` 헬퍼(arg가 null이면 null 반환) + `.where(가변인자)`로 조립합니다.** QueryDSL이 `.where(...)`에 전달된 null 인자를 자동으로 무시하는 것을 이용한 동적 쿼리 관용구입니다.

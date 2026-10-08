@@ -76,8 +76,6 @@ class LayerRulesTest {
         ArchRule rule = noClasses()
             .that(UseCaseServices.queries())
             .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.shop.service.ShopDeliveryTipViewQueryService")
-            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.admin.service.AdminUsernameExistsQueryService")
-            .and().doNotHaveFullyQualifiedName("com.tastyhouse.application.ceo.service.CeoOwnerUsernameExistsQueryService")
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.application..port.out.write..")
             .because("QueryService는 write 포트(도메인 타입 리포지토리)를 주입하지 않는다(CQRS 교차 주입 금지)");
 

@@ -251,6 +251,22 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 원문 주석은 챕터 05에서 제거되므로, 이 문서가 그 금지 지시의 유일한 소재지다.
 
+### `jpaRepositoriesShouldNotDeclareMethods` — JpaRepository에 메서드를 선언하지 않는다
+
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/architecture/LayerRulesTest.java`
+→ `jpaRepositoriesShouldNotDeclareMethods()` · `jpaRepositoriesExist()`
+
+Spring Data `Repository`를 상속한 인터페이스(`XxxJpaRepository` 123개)는 **자기 선언 메서드가 0개**여야 한다 — 파생 쿼리(`findByX`)·`@Query`·`@Modifying` 전부 금지다. 상속 메서드(`findById`·`save`·`saveAll`·`delete`·`deleteAll`·`existsById`·`findAll`)만 쓴다. 조건 있는 조회·삭제는 그 리포지토리를 쓰는 `XxxPersistenceAdapter`가 QueryDSL로 소유하고, 조회 유스케이스의 원시값·투영 조회는 `..query..`의 `XxxQueryAdapter`가 소유한다.
+
+- **근거**: 조회 로직이 "메서드 이름"과 "QueryDSL" 두 곳으로 갈라져 같은 조건(`deleted = false` 등)이 파일마다 다른 문법으로 쓰였다. 57개 리포지토리의 116개 메서드를 이관했다(작업 문서 `docs/tasks/jparepository-method-removal/`).
+- **변환 시 의미 보존 규칙** — 되돌리거나 "단순화"하지 않는다:
+  - 파생 `Optional findBy`는 `fetchOne`(2건 이상이면 예외 — 같은 의미), `findFirst…`만 `fetchFirst`.
+  - 파생 `deleteBy…`는 bulk delete가 아니라 `fetch()` 후 `jpaRepository.deleteAll(rows)` — Spring Data 파생 delete는 로드 후 `em.remove`였다.
+  - `@Modifying(flushAutomatically, clearAutomatically)` bulk delete는 `entityManager.flush()` → `queryFactory.delete(..).execute()` → `entityManager.clear()`로 플래그를 그대로 재현한다(위 "replace-all 선행 삭제" 항목).
+  - `In(Collection)`은 빈 입력이면 쿼리 없이 빈 결과를 돌려준다.
+- **대가**: 파생 쿼리는 부팅 때 Spring Data가 검증했지만 QueryDSL 쿼리는 실행 시점에만 검증된다. 조건을 바꿀 때는 해당 엔드포인트를 한 번 호출해 확인한다.
+- `jpaRepositoriesExist`(≥123)가 대상이 사라져 공허 통과하는 것을 막는다.
+
 ### `SEALED_PERSISTENCE_TO_QUERY` 3건 — read→write 단방향 위반 봉인
 
 **대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/architecture/LayerRulesTest.java`
@@ -760,12 +776,12 @@ admin 목록·상세는 삭제된 쿠폰을 제외하지만, **내 쿠폰 조회
 
 `FileStoragePort#getFileUrl`은 네트워크·SDK·DB 접근이 없는 순수 문자열 변환이라 행 단위로 반복 호출해도 비용이 사실상 없다. **캐싱은 값비싼 연산에 쓰는 수단이며, 여기 도입하면 baseUrl 설정 변경 시 무효화 책임만 새로 생긴다.**
 
-### `CeoQueryAdapter` — 인증·시드 조회를 이 DAO로 옮기지 않는다
+### `CeoQueryAdapter` — 인증 로드·생성 중복검사는 write 포트에 남는다
 
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/ceo/query/CeoQueryAdapter.java`
-→ 클래스 전체
+→ 클래스 전체 · `existsByUsername`
 
-`findByUsername`/`existsByUsername`은 **불변식 검증 경로**이므로 write 포트에 잔류한다. 표현 목적 조회가 아니다.
+~~`findByUsername`/`existsByUsername`은 **불변식 검증 경로**이므로 write 포트에 잔류한다. 여기로 옮기지 않는다.~~ **(번복됨 — JpaRepository 메서드 선언 금지)** 경로별로 갈렸다. 인증 로드(`findByUsername` — 도메인 모델 반환)와 `CeoCreateService`의 생성 중복검사(`existsByUsername` — CommandService는 QueryPort를 주입할 수 없다)는 write 포트 `CeoPersistencePort`에 남는다. 조회 유스케이스 `CeoOwnerUsernameExistsQueryService`(아이디 중복확인 API)는 표현 목적의 원시값 조회라 `CeoOwnerQueryPort#existsByUsername`으로 옮겼고, 이 DAO가 구현한다. admin도 같은 형태다(`AdminQueryPort` ← `admin/query/AdminQueryAdapter`).
 
 ### `CeoReplyPhraseQueryAdapter#findReplyPhrases` — 2차 정렬 키 `id`를 빼지 않는다
 
@@ -848,11 +864,11 @@ detached 인스턴스를 그대로 `save`(merge)하면 **`@CreatedDate(updatable
 
 삭제 전이를 저장하는 경로가 바로 이 자리이므로 **필터 없는 순수 PK 조회여야 한다.** 일반 로드용 필터 걸린 조회(`findById`)를 재사용하면 이미 삭제된 행을 다시 읽지 못해 **삭제가 영원히 실패하고 멱등 처리·상태 확인이 불가능해진다**(`RankPeriodPersistenceAdapter#delete` 선례).
 
-반대로 **일반 로드에서는 필터를 빼지 않는다** — `ProductJpaRepository`의 상속받은 `findById`에는 `deleted` 필터가 없으므로 일반 로드에는 `findByIdAndDeletedFalse`를 쓴다. 이 필터가 신규 주문·신규 메뉴평가 차단을 자동으로 성립시킨다.
+반대로 **일반 로드에서는 필터를 빼지 않는다** — `ProductJpaRepository`의 상속받은 `findById`에는 `deleted` 필터가 없으므로 일반 로드(`ProductPersistenceAdapter#findById`)는 QueryDSL로 `deleted.isFalse()`를 건다(과거 파생 쿼리 `findByIdAndDeletedFalse` — JpaRepository 메서드 선언 금지로 어댑터로 이관). 이 필터가 신규 주문·신규 메뉴평가 차단을 자동으로 성립시킨다.
 
 #### replace-all 선행 삭제를 derived `deleteBy...`로 되돌리지 않는다
 
-**대상**: `.../product/persistence/ProductAllergenJpaRepository.java` · `.../product/persistence/ProductExposureHourJpaRepository.java` · `.../shop/persistence/ShopDeliveryTipTierJpaRepository.java` · `.../shop/persistence/ShopDeliveryTipRegionJpaRepository.java` · `.../shop/persistence/ShopDeliveryTipHolidayJpaRepository.java` · `.../shop/persistence/ShopDeliveryAreaJpaRepository.java`
+**대상**: `.../product/persistence/ProductAllergenPersistenceAdapter.java` · `ProductExposureHour…`·`ShopDeliveryTip{Tier,Region,Holiday}…`·`ShopDeliveryArea…`의 선행 삭제를 수행하는 `XxxPersistenceAdapter` (과거 각 `XxxJpaRepository`의 `@Modifying(flushAutomatically, clearAutomatically)` 메서드 — JpaRepository 메서드 선언 금지로 어댑터의 `entityManager.flush()` → QueryDSL `delete().execute()` → `entityManager.clear()`로 이관. 의미 동일)
 
 derived 삭제는 영속성 컨텍스트에 delete action만 큐잉하는데, **Hibernate의 기본 flush 순서는 action을 타입별로 묶어 insert를 delete보다 먼저 실행한다.** 같은 키를 재사용하는 교체는 **항상 유니크 키 중복으로 실패한다**(`uk_product_allergen_product_type`·`uk_product_exposure_hour`·`uk_shop_delivery_tip_tier`·`uk_shop_delivery_tip_region`·`uk_shop_delivery_tip_holiday_shop_id`).
 
@@ -860,7 +876,7 @@ derived 삭제는 영속성 컨텍스트에 delete action만 큐잉하는데, **
 
 #### `findFirstBy~`를 `findBy~`로 바꾸지 않는다
 
-**대상**: `.../shop/persistence/ShopNoticeJpaRepository.java` → `findFirstByShopIdAndExposedIsTrueOrderByIdDesc`
+**대상**: `.../shop/persistence/ShopNoticePersistenceAdapter.java`의 노출 공지 조회 (과거 `ShopNoticeJpaRepository#findFirstByShopIdAndExposedIsTrueOrderByIdDesc` — 지금은 QueryDSL `orderBy(id.desc()).fetchFirst()`. `fetchOne`으로 바꾸지 않는다)
 
 노출 공지 1건 불변식은 도메인 서비스가 지킬 뿐 **DB 제약이 없다**(MySQL 부분 유니크 인덱스 미지원). `is_exposed = 1`이 2건 이상인 상태가 물리적으로 가능하며, 단건 시그니처는 그때 `IncorrectResultSizeDataAccessException`으로 **해당 가게의 공지 기능을 통째로 500으로 만든다.**
 
@@ -870,13 +886,13 @@ derived 삭제는 영속성 컨텍스트에 delete action만 큐잉하는데, **
 
 #### null 파라미터로 파생 쿼리를 합치지 않는다
 
-**대상**: `.../product/persistence/ProductJpaRepository.java` → `findAllByShopIdAndProductCategoryIdIsNullAndDeletedFalseOrderBySortAsc` · `.../product/persistence/ProductPersistenceAdapter.java` → `findAllByShopIdAndCategoryId`
+**대상**: `.../product/persistence/ProductPersistenceAdapter.java` → `findAllByShopIdAndCategoryId` (과거 파생 쿼리 `findAllByShopIdAndProductCategoryIdIsNullAndDeletedFalseOrderBySortAsc` — 지금은 QueryDSL `productCategoryId.isNull()` 분기)
 
-미분류 메뉴 조회를 `productCategoryId = null` 하나로 합치면 **null이 "조건 없음"으로 해석돼 가게의 모든 메뉴가 대상이 된다.**
+미분류 메뉴 조회를 `productCategoryId.eq(null)` 하나로 합치면 **null이 "조건 없음"으로 해석돼 가게의 모든 메뉴가 대상이 된다.**
 
 #### 메뉴판 판정을 `PRODUCT.shop_id`로 되돌리지 않는다
 
-**대상**: `.../product/persistence/ProductJpaRepository.java` → `countVisibleByShopLink` · `.../product/persistence/ProductPersistenceAdapter.java` · `.../product/persistence/ProductPriceJpaRepository.java`
+**대상**: `.../product/persistence/ProductPersistenceAdapter.java`(가게 메뉴판 노출 개수 — 과거 `ProductJpaRepository#countVisibleByShopLink` JPQL) · `.../product/persistence/ProductPricePersistenceAdapter.java`(가게별 가격 — 과거 `ProductPriceJpaRepository#findAllByShopId` JPQL). 둘 다 지금은 QueryDSL로 1:1 전사돼 있다
 
 메뉴-가게 N:M 도입 이후 **"이 가게 메뉴판에 무엇이 걸려 있는가"의 진실원은 `PRODUCT_SHOP_LINK`다.** `PRODUCT.shop_id`로 세면 다른 가게에서 불러온 메뉴가 빠지고, 반대로 이 가게 메뉴판에 없는 원본 메뉴가 잘못 포함된다. `distinct`도 조인 형태가 바뀌어도 개수가 부풀지 않게 하는 방어이므로 지우지 않는다.
 
@@ -2031,11 +2047,11 @@ admin 목록(`findAllCoupons`)과 web 내 쿠폰 목록(`findMemberCoupons`/`fin
 - 소비 모듈은 이 클래스가 아니라 계약인 `GeoRingsQueryPort`를 주입한다 — 읽기 경로 포트화로 api 모듈은 `com.tastyhouse.infrastructure..query..`에 의존하지 않는다.
 - **경계 미보유·도형 미설정은 정상 상태다** — 각각 빈 목록과 `null`을 돌려주며 예외로 다루지 않는다.
 
-#### `CeoQueryAdapter` — 인증·시드 조회는 write 포트에 잔류한다
+#### `CeoQueryAdapter` — 인증 로드·생성 중복검사는 write 포트에 남는다
 
 **대상**: `.../ceo/query/CeoQueryAdapter.java`
 
-인증·시드 멱등성에 쓰이는 단건 조회(`findByUsername`/`existsByUsername`)는 **불변식 검증 경로이므로 이 DAO가 아니라 write 포트에 잔류한다.** 표현 목적 조회가 아니므로 여기로 옮기지 않는다. 이 DAO가 갖는 것은 가게 배정용 Select 드롭다운을 채우는 전체 점주 목록뿐이다.
+~~인증·시드 멱등성에 쓰이는 단건 조회(`findByUsername`/`existsByUsername`)는 이 DAO가 아니라 write 포트에 잔류한다.~~ **(번복됨 — JpaRepository 메서드 선언 금지)** 이 DAO는 가게 배정용 전체 점주 목록(`CeoQueryPort`, admin 소비)과 아이디 중복확인(`CeoOwnerQueryPort#existsByUsername`, ceo 소비)을 갖는다. 인증 로드와 `CeoCreateService`의 중복검사는 write 포트에 남는다 — 도메인 모델을 반환하거나 CommandService가 쓰기 때문이다.
 
 #### `CeoReplyPhraseQueryAdapter` — 정렬 2차 키가 필요한 이유
 
@@ -2175,9 +2191,9 @@ derived 삭제는 또한 대상을 먼저 조회한 뒤 건별로 삭제하므�
 
 #### 소프트 삭제 필터는 조회 성격으로 갈린다
 
-→ `ProductJpaRepository#findByIdAndDeletedFalse` · `ProductPersistenceAdapter#findById` · `ProductPersistenceAdapter#findByIdIncludingDeleted`
+→ `ProductPersistenceAdapter#findById` · `ProductPersistenceAdapter#findByIdIncludingDeleted`
 
-`ProductJpaRepository`의 파생 쿼리 대부분에 `AndDeletedFalse`가 붙어 있다. **상속받은 `findById`에는 그 필터가 없으므로** 일반 로드에는 `findByIdAndDeletedFalse`를 쓰고, 삭제·저장 경로만 필터 없는 `findById`를 쓴다.
+`ProductPersistenceAdapter`의 QueryDSL 조회 대부분에 `deleted.isFalse()`가 붙어 있다(과거 `ProductJpaRepository` 파생 쿼리의 `AndDeletedFalse` — JpaRepository 메서드 선언 금지로 이관). **상속받은 `ProductJpaRepository#findById`에는 그 필터가 없으므로** 일반 로드는 필터 걸린 QueryDSL 조회를, 삭제·저장 경로만 필터 없는 `findById`를 쓴다.
 
 일반 로드(`ProductPersistenceAdapter#findById`)에 필터를 걸어 두면 **신규 주문·신규 메뉴평가 차단이 자동으로 성립**한다. 반면 삭제 자신은 필터 없는 순수 PK 조회(`findByIdIncludingDeleted`)로 대상을 읽어야 한다 — `findById`를 재사용하면 이미 삭제된 행을 다시 읽지 못해 **멱등 처리와 상태 확인이 불가능**해지고 삭제가 영원히 실패한다(`RankPeriodPersistenceAdapter#delete` 선례).
 
@@ -2185,13 +2201,13 @@ derived 삭제는 또한 대상을 먼저 조회한 뒤 건별로 삭제하므�
 
 #### null 파라미터를 "조건 없음"으로 해석시키지 않는다
 
-→ `ProductJpaRepository#findAllByShopIdAndProductCategoryIdIsNullAndDeletedFalseOrderBySortAsc` · `ProductPersistenceAdapter#findAllByShopIdAndCategoryId`
+→ `ProductPersistenceAdapter#findAllByShopIdAndCategoryId`
 
-미분류 메뉴 조회를 `productCategoryId = null`로 합치지 않고 **별도 파생 메서드로 가른다.** 하나로 합치면 null이 "조건 없음"으로 해석돼 가게의 모든 메뉴가 대상이 된다.
+미분류 메뉴 조회를 `productCategoryId = null`로 합치지 않고 **`isNull()` 조건으로 따로 가른다**(과거에는 별도 파생 메서드였다). 하나로 합치면 null이 "조건 없음"으로 해석돼 가게의 모든 메뉴가 대상이 된다.
 
 #### 단건 시그니처는 DB가 1건을 보장할 때만 쓴다
 
-→ `ShopNoticeJpaRepository#findFirstByShopIdAndExposedIsTrueOrderByIdDesc` · `ShopOrderNoticeJpaRepository#findByShopId` · `ReviewBlindRequestPersistenceAdapter#findApprovedByReviewId`
+→ `ShopNoticePersistenceAdapter`의 노출 공지 조회(`fetchFirst`) · `ShopOrderNoticePersistenceAdapter`의 가게별 조회(`fetchOne`, `shop_id` 유니크) · `ReviewBlindRequestPersistenceAdapter#findApprovedByReviewId` (앞의 둘은 과거 JpaRepository 파생 쿼리)
 
 **`findFirstBy~`를 `findBy~`로 바꾸지 않는다.** 노출 공지 1건 불변식은 도메인 서비스가 지키고 DB 제약이 없다(MySQL이 부분 유니크 인덱스를 지원하지 않는다). 따라서 `is_exposed = 1`이 2건 이상인 상태가 물리적으로 가능한데, 단건 시그니처는 그때 `IncorrectResultSizeDataAccessException`으로 **해당 가게의 공지 기능을 통째로 500으로 만든다.** 최신 1건을 결정적으로 고르면 다음 `expose` 호출이 나머지를 자연스럽게 정리한다.
 

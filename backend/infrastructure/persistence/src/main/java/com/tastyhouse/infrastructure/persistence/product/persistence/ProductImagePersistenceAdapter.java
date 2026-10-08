@@ -55,7 +55,12 @@ class ProductImagePersistenceAdapter implements ProductImagePersistencePort {
 
     @Override
     public List<ProductImage> findAllByProductId(ProductId productId) {
-        return productImageJpaRepository.findAllByProductIdOrderBySortAsc(productId.value()).stream()
+        return queryFactory
+            .selectFrom(productImageJpaEntity)
+            .where(productImageJpaEntity.productId.eq(productId.value()))
+            .orderBy(productImageJpaEntity.sort.asc())
+            .fetch()
+            .stream()
             .map(ProductImageMapper::toDomain)
             .toList();
     }

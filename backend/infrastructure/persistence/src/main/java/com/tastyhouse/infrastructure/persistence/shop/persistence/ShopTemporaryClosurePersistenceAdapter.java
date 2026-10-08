@@ -3,17 +3,22 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
 import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopTemporaryClosureJpaEntity.shopTemporaryClosureJpaEntity;
+
 @Repository
 class ShopTemporaryClosurePersistenceAdapter implements ShopTemporaryClosurePersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository;
 
-    public ShopTemporaryClosurePersistenceAdapter(ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository) {
+    public ShopTemporaryClosurePersistenceAdapter(JPAQueryFactory queryFactory, ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository) {
+        this.queryFactory = queryFactory;
         this.shopTemporaryClosureJpaRepository = shopTemporaryClosureJpaRepository;
     }
 
@@ -25,7 +30,10 @@ class ShopTemporaryClosurePersistenceAdapter implements ShopTemporaryClosurePers
 
     @Override
     public List<ShopTemporaryClosure> findByShopId(Long shopId) {
-        return shopTemporaryClosureJpaRepository.findByShopId(shopId)
+        return queryFactory
+            .selectFrom(shopTemporaryClosureJpaEntity)
+            .where(shopTemporaryClosureJpaEntity.shopId.eq(shopId))
+            .fetch()
             .stream()
             .map(ShopTemporaryClosureMapper::toDomain)
             .toList();

@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
@@ -21,10 +22,13 @@ import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
 import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopAmenityJpaEntity.shopAmenityJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopBreakTimeJpaEntity.shopBreakTimeJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopBusinessHourJpaEntity.shopBusinessHourJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopClosedDayJpaEntity.shopClosedDayJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopFoodTypeJpaEntity.shopFoodTypeJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopOrderMethodJpaEntity.shopOrderMethodJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopOwnerMessageHistoryJpaEntity.shopOwnerMessageHistoryJpaEntity;
 
 @Repository
 class ShopDetailPersistenceAdapter implements ShopDetailPersistencePort {
@@ -213,7 +217,14 @@ class ShopDetailPersistenceAdapter implements ShopDetailPersistencePort {
 
     @Override
     public void deleteAmenityByShopIdAndCategoryId(Long shopId, Long shopAmenityCategoryId) {
-        shopAmenityJpaRepository.deleteByShopIdAndShopAmenityCategoryId(shopId, shopAmenityCategoryId);
+        List<ShopAmenityJpaEntity> rows = queryFactory
+            .selectFrom(shopAmenityJpaEntity)
+            .where(
+                shopAmenityJpaEntity.shopId.eq(shopId),
+                shopAmenityJpaEntity.shopAmenityCategoryId.eq(shopAmenityCategoryId)
+            )
+            .fetch();
+        shopAmenityJpaRepository.deleteAll(rows);
     }
 
     @Override
@@ -230,7 +241,14 @@ class ShopDetailPersistenceAdapter implements ShopDetailPersistencePort {
 
     @Override
     public void deleteFoodTypeByShopIdAndCategoryId(Long shopId, Long shopFoodTypeCategoryId) {
-        shopFoodTypeJpaRepository.deleteByShopIdAndShopFoodTypeCategoryId(shopId, shopFoodTypeCategoryId);
+        List<ShopFoodTypeJpaEntity> rows = queryFactory
+            .selectFrom(shopFoodTypeJpaEntity)
+            .where(
+                shopFoodTypeJpaEntity.shopId.eq(shopId),
+                shopFoodTypeJpaEntity.shopFoodTypeCategoryId.eq(shopFoodTypeCategoryId)
+            )
+            .fetch();
+        shopFoodTypeJpaRepository.deleteAll(rows);
     }
 
     @Override
@@ -259,7 +277,14 @@ class ShopDetailPersistenceAdapter implements ShopDetailPersistencePort {
 
     @Override
     public void deleteOrderMethodByShopIdAndOrderMethod(Long shopId, OrderMethod orderMethod) {
-        shopOrderMethodJpaRepository.deleteByShopIdAndOrderMethod(shopId, orderMethod == null ? null : orderMethod.name());
+        List<ShopOrderMethodJpaEntity> rows = queryFactory
+            .selectFrom(shopOrderMethodJpaEntity)
+            .where(
+                shopOrderMethodJpaEntity.shopId.eq(shopId),
+                orderMethodEq(orderMethod)
+            )
+            .fetch();
+        shopOrderMethodJpaRepository.deleteAll(rows);
     }
 
     @Override
@@ -334,7 +359,17 @@ class ShopDetailPersistenceAdapter implements ShopDetailPersistencePort {
 
     @Override
     public Optional<ShopOwnerMessageHistory> findLatestOwnerMessage(Long shopId) {
-        return shopOwnerMessageHistoryJpaRepository.findFirstByShopIdOrderByIdDesc(shopId)
-            .map(ShopOwnerMessageHistoryMapper::toDomain);
+        ShopOwnerMessageHistoryJpaEntity entity = queryFactory
+            .selectFrom(shopOwnerMessageHistoryJpaEntity)
+            .where(shopOwnerMessageHistoryJpaEntity.shopId.eq(shopId))
+            .orderBy(shopOwnerMessageHistoryJpaEntity.id.desc())
+            .fetchFirst();
+        return Optional.ofNullable(entity).map(ShopOwnerMessageHistoryMapper::toDomain);
+    }
+
+    private BooleanExpression orderMethodEq(OrderMethod orderMethod) {
+        return orderMethod == null
+            ? shopOrderMethodJpaEntity.orderMethod.isNull()
+            : shopOrderMethodJpaEntity.orderMethod.eq(orderMethod.name());
     }
 }

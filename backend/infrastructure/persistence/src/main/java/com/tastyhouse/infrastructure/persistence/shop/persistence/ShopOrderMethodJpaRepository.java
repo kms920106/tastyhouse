@@ -5,6 +5,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 interface ShopOrderMethodJpaRepository extends JpaRepository<ShopOrderMethodJpaEntity, Long> {
-
-    void deleteByShopIdAndOrderMethod(Long shopId, String orderMethod);
 }

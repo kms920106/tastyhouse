@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -14,21 +15,31 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.reservation.port.out.write.ReservationSlotPersistencePort;
 import com.tastyhouse.application.shared.port.out.OptimisticLockConflictException;
 
+import static com.tastyhouse.infrastructure.persistence.reservation.persistence.QReservationSlotJpaEntity.reservationSlotJpaEntity;
+
 @Repository
 class ReservationSlotPersistenceAdapter implements ReservationSlotPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ReservationSlotJpaRepository slotJpaRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    public ReservationSlotPersistenceAdapter(ReservationSlotJpaRepository slotJpaRepository) {
+    public ReservationSlotPersistenceAdapter(JPAQueryFactory queryFactory, ReservationSlotJpaRepository slotJpaRepository) {
+        this.queryFactory = queryFactory;
         this.slotJpaRepository = slotJpaRepository;
     }
 
     @Override
     public Optional<ReservationSlot> findByShopAndDateAndTime(ShopId shopId, LocalDate date, LocalTime time) {
-        return slotJpaRepository.findByShopIdAndSlotDateAndSlotTime(shopId.value(), date, time)
+        return Optional.ofNullable(queryFactory.selectFrom(reservationSlotJpaEntity)
+            .where(
+                reservationSlotJpaEntity.shopId.eq(shopId.value()),
+                reservationSlotJpaEntity.slotDate.eq(date),
+                reservationSlotJpaEntity.slotTime.eq(time)
+            )
+            .fetchOne())
             .map(ReservationSlotMapper::toDomain);
     }
 

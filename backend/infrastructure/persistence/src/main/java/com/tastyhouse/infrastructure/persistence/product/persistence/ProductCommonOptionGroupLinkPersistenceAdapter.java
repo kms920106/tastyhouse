@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroupLink;
@@ -10,14 +11,19 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductCommonOptionGroupLinkJpaEntity.productCommonOptionGroupLinkJpaEntity;
+
 @Repository
 class ProductCommonOptionGroupLinkPersistenceAdapter implements ProductCommonOptionGroupLinkPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductCommonOptionGroupLinkJpaRepository productCommonOptionGroupLinkJpaRepository;
 
     public ProductCommonOptionGroupLinkPersistenceAdapter(
+        JPAQueryFactory queryFactory,
         ProductCommonOptionGroupLinkJpaRepository productCommonOptionGroupLinkJpaRepository
     ) {
+        this.queryFactory = queryFactory;
         this.productCommonOptionGroupLinkJpaRepository = productCommonOptionGroupLinkJpaRepository;
     }
 
@@ -40,21 +46,35 @@ class ProductCommonOptionGroupLinkPersistenceAdapter implements ProductCommonOpt
         ProductId productId,
         ProductOptionGroupId optionGroupId
     ) {
-        return productCommonOptionGroupLinkJpaRepository
-            .findByProductIdAndOptionGroupId(productId.value(), optionGroupId.value())
-            .map(ProductCommonOptionGroupLinkMapper::toDomain);
+        ProductCommonOptionGroupLinkJpaEntity entity = queryFactory
+            .selectFrom(productCommonOptionGroupLinkJpaEntity)
+            .where(
+                productCommonOptionGroupLinkJpaEntity.productId.eq(productId.value()),
+                productCommonOptionGroupLinkJpaEntity.optionGroupId.eq(optionGroupId.value())
+            )
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ProductCommonOptionGroupLinkMapper::toDomain);
     }
 
     @Override
     public List<ProductCommonOptionGroupLink> findAllByProductId(ProductId productId) {
-        return productCommonOptionGroupLinkJpaRepository.findAllByProductIdOrderBySortAsc(productId.value()).stream()
+        return queryFactory
+            .selectFrom(productCommonOptionGroupLinkJpaEntity)
+            .where(productCommonOptionGroupLinkJpaEntity.productId.eq(productId.value()))
+            .orderBy(productCommonOptionGroupLinkJpaEntity.sort.asc())
+            .fetch()
+            .stream()
             .map(ProductCommonOptionGroupLinkMapper::toDomain)
             .toList();
     }
 
     @Override
     public List<ProductCommonOptionGroupLink> findAllByOptionGroupId(ProductOptionGroupId optionGroupId) {
-        return productCommonOptionGroupLinkJpaRepository.findAllByOptionGroupId(optionGroupId.value()).stream()
+        return queryFactory
+            .selectFrom(productCommonOptionGroupLinkJpaEntity)
+            .where(productCommonOptionGroupLinkJpaEntity.optionGroupId.eq(optionGroupId.value()))
+            .fetch()
+            .stream()
             .map(ProductCommonOptionGroupLinkMapper::toDomain)
             .toList();
     }
@@ -64,8 +84,12 @@ class ProductCommonOptionGroupLinkPersistenceAdapter implements ProductCommonOpt
         if (optionGroupIds.isEmpty()) {
             return List.of();
         }
-        return productCommonOptionGroupLinkJpaRepository
-            .findAllByOptionGroupIdIn(optionGroupIds.stream().map(ProductOptionGroupId::value).toList())
+        return queryFactory
+            .selectFrom(productCommonOptionGroupLinkJpaEntity)
+            .where(productCommonOptionGroupLinkJpaEntity.optionGroupId.in(
+                optionGroupIds.stream().map(ProductOptionGroupId::value).toList()
+            ))
+            .fetch()
             .stream()
             .map(ProductCommonOptionGroupLinkMapper::toDomain)
             .toList();
@@ -73,7 +97,14 @@ class ProductCommonOptionGroupLinkPersistenceAdapter implements ProductCommonOpt
 
     @Override
     public boolean existsByProductIdAndOptionGroupId(ProductId productId, ProductOptionGroupId optionGroupId) {
-        return productCommonOptionGroupLinkJpaRepository.existsByProductIdAndOptionGroupId(productId.value(), optionGroupId.value());
+        return queryFactory
+            .selectOne()
+            .from(productCommonOptionGroupLinkJpaEntity)
+            .where(
+                productCommonOptionGroupLinkJpaEntity.productId.eq(productId.value()),
+                productCommonOptionGroupLinkJpaEntity.optionGroupId.eq(optionGroupId.value())
+            )
+            .fetchFirst() != null;
     }
 
     @Override

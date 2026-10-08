@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.region.model.AdminDong;
@@ -18,12 +19,16 @@ import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
 import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 
+import static com.tastyhouse.infrastructure.persistence.region.persistence.QAdminDongJpaEntity.adminDongJpaEntity;
+
 @Repository
 class AdminDongPersistenceAdapter implements AdminDongPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final AdminDongJpaRepository adminDongJpaRepository;
 
-    public AdminDongPersistenceAdapter(AdminDongJpaRepository adminDongJpaRepository) {
+    public AdminDongPersistenceAdapter(JPAQueryFactory queryFactory, AdminDongJpaRepository adminDongJpaRepository) {
+        this.queryFactory = queryFactory;
         this.adminDongJpaRepository = adminDongJpaRepository;
     }
 
@@ -90,24 +95,38 @@ class AdminDongPersistenceAdapter implements AdminDongPersistencePort {
 
     @Override
     public boolean existsById(AdminDongId adminDongId) {
-        return adminDongJpaRepository.existsByIdAndActiveIsTrue(adminDongId.value());
+        return queryFactory.selectOne()
+            .from(adminDongJpaEntity)
+            .where(
+                adminDongJpaEntity.id.eq(adminDongId.value()),
+                adminDongJpaEntity.active.isTrue()
+            )
+            .fetchFirst() != null;
     }
 
     @Override
     public Optional<AdminDong> findByDongNameMatch(String sidoName, String sigunguName, String dongName) {
-        return adminDongJpaRepository
-            .findBySidoNameAndSigunguNameAndDongNameAndActiveIsTrue(sidoName, sigunguName, dongName)
+        return Optional.ofNullable(queryFactory.selectFrom(adminDongJpaEntity)
+            .where(
+                adminDongJpaEntity.sidoName.eq(sidoName),
+                adminDongJpaEntity.sigunguName.eq(sigunguName),
+                adminDongJpaEntity.dongName.eq(dongName),
+                adminDongJpaEntity.active.isTrue()
+            )
+            .fetchOne())
             .map(AdminDongMapper::toDomain);
     }
 
     @Override
     public List<AdminDong> findAllWithinBoundingBox(GeoBoundingBox boundingBox) {
-        return adminDongJpaRepository.findAllWithinBoundingBox(
-            boundingBox.minLatitude(),
-            boundingBox.maxLatitude(),
-            boundingBox.minLongitude(),
-            boundingBox.maxLongitude()
-        ).stream().map(AdminDongMapper::toDomain).toList();
+        return queryFactory.selectFrom(adminDongJpaEntity)
+            .where(
+                adminDongJpaEntity.active.isTrue(),
+                adminDongJpaEntity.centerLatitude.between(boundingBox.minLatitude(), boundingBox.maxLatitude()),
+                adminDongJpaEntity.centerLongitude.between(boundingBox.minLongitude(), boundingBox.maxLongitude())
+            )
+            .fetch()
+            .stream().map(AdminDongMapper::toDomain).toList();
     }
 
     @Override
@@ -116,7 +135,13 @@ class AdminDongPersistenceAdapter implements AdminDongPersistencePort {
             return List.of();
         }
 
-        return adminDongJpaRepository.findByIdInAndActiveIsTrue(rawIds(adminDongIds)).stream()
+        return queryFactory.selectFrom(adminDongJpaEntity)
+            .where(
+                adminDongJpaEntity.id.in(rawIds(adminDongIds)),
+                adminDongJpaEntity.active.isTrue()
+            )
+            .fetch()
+            .stream()
             .map(AdminDongMapper::toDomain)
             .toList();
     }
@@ -127,7 +152,14 @@ class AdminDongPersistenceAdapter implements AdminDongPersistencePort {
             return Set.of();
         }
 
-        return adminDongJpaRepository.findExistingIds(rawIds(adminDongIds)).stream()
+        return queryFactory.select(adminDongJpaEntity.id)
+            .from(adminDongJpaEntity)
+            .where(
+                adminDongJpaEntity.active.isTrue(),
+                adminDongJpaEntity.id.in(rawIds(adminDongIds))
+            )
+            .fetch()
+            .stream()
             .map(AdminDongId::of)
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }

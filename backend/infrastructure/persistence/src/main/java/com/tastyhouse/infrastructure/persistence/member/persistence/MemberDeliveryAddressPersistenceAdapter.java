@@ -3,18 +3,23 @@ package com.tastyhouse.infrastructure.persistence.member.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.member.persistence.QMemberDeliveryAddressJpaEntity.memberDeliveryAddressJpaEntity;
+
 @Repository
 class MemberDeliveryAddressPersistenceAdapter implements MemberDeliveryAddressPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final MemberDeliveryAddressJpaRepository memberDeliveryAddressJpaRepository;
 
-    public MemberDeliveryAddressPersistenceAdapter(MemberDeliveryAddressJpaRepository memberDeliveryAddressJpaRepository) {
+    public MemberDeliveryAddressPersistenceAdapter(JPAQueryFactory queryFactory, MemberDeliveryAddressJpaRepository memberDeliveryAddressJpaRepository) {
+        this.queryFactory = queryFactory;
         this.memberDeliveryAddressJpaRepository = memberDeliveryAddressJpaRepository;
     }
 
@@ -25,7 +30,10 @@ class MemberDeliveryAddressPersistenceAdapter implements MemberDeliveryAddressPe
 
     @Override
     public List<MemberDeliveryAddress> findByMemberId(MemberId memberId) {
-        return memberDeliveryAddressJpaRepository.findByMemberIdOrderByIdAsc(memberId.value())
+        return queryFactory.selectFrom(memberDeliveryAddressJpaEntity)
+            .where(memberDeliveryAddressJpaEntity.memberId.eq(memberId.value()))
+            .orderBy(memberDeliveryAddressJpaEntity.id.asc())
+            .fetch()
             .stream()
             .map(MemberDeliveryAddressMapper::toDomain)
             .toList();
@@ -33,12 +41,21 @@ class MemberDeliveryAddressPersistenceAdapter implements MemberDeliveryAddressPe
 
     @Override
     public long countByMemberId(MemberId memberId) {
-        return memberDeliveryAddressJpaRepository.countByMemberId(memberId.value());
+        Long count = queryFactory.select(memberDeliveryAddressJpaEntity.count())
+            .from(memberDeliveryAddressJpaEntity)
+            .where(memberDeliveryAddressJpaEntity.memberId.eq(memberId.value()))
+            .fetchOne();
+        return count == null ? 0L : count;
     }
 
     @Override
     public Optional<MemberDeliveryAddress> findDefaultByMemberId(MemberId memberId) {
-        return memberDeliveryAddressJpaRepository.findByMemberIdAndDefaultAddressTrue(memberId.value())
+        return Optional.ofNullable(queryFactory.selectFrom(memberDeliveryAddressJpaEntity)
+            .where(
+                memberDeliveryAddressJpaEntity.memberId.eq(memberId.value()),
+                memberDeliveryAddressJpaEntity.defaultAddress.isTrue()
+            )
+            .fetchOne())
             .map(MemberDeliveryAddressMapper::toDomain);
     }
 

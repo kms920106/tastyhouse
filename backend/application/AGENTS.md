@@ -552,7 +552,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 **챕터 01 시점에 통합으로 의미가 달라져 손본 곳 두 군데는(carve-out FQN화, `applicationMustNotDependOnAdapters` 4패키지 확대) 챕터 03 이후에도 그대로 유효하다** — carve-out 대상 클래스와 api 패키지 이름 자체는 이번 평탄화로 바뀌지 않았다.
 
-- `queryServicesShouldNotDependOnWritePorts`의 carve-out은 simple name이 아니라 **FQN**이다. 당시 `ShopQueryService`가 web·admin·ceo에 각각 있어 simple name으로 두면 의도한 1개가 아니라 3개 전부가 면제됐기 때문이다. 확정 carve-out 3건(web `ShopDeliveryTipViewQueryService`(유스케이스 분리 전 `ShopQueryService`) 도메인 계산 입력 / admin `AdminUsernameExistsQueryService`(유스케이스 분리 전 `AdminQueryService`)·ceo `CeoOwnerUsernameExistsQueryService`(유스케이스 분리 전 `CeoOwnerQueryService`, 챕터 02 개명 전 `CeoQueryService`) 인증 조회)은 이관 대상이 아니며, **이 목록에 새 항목을 추가하지 않는다.**
+- `queryServicesShouldNotDependOnWritePorts`의 carve-out은 simple name이 아니라 **FQN**이다. 당시 `ShopQueryService`가 web·admin·ceo에 각각 있어 simple name으로 두면 의도한 1개가 아니라 3개 전부가 면제됐기 때문이다. 확정 carve-out은 web `ShopDeliveryTipViewQueryService`(유스케이스 분리 전 `ShopQueryService`, 도메인 계산 입력) **1건**이며, **이 목록에 새 항목을 추가하지 않는다.** ~~admin `AdminUsernameExistsQueryService`·ceo `CeoOwnerUsernameExistsQueryService` 인증 조회도 이관 대상이 아닌 carve-out이었다~~ **(번복됨 — JpaRepository 메서드 선언 금지)** 두 서비스는 `AdminQueryPort`·`CeoOwnerQueryPort`로 옮겨 carve-out에서 빠졌다.
 - `applicationMustNotDependOnAdapters`의 금지 대상은 **4개 api 패키지 전부**다. 어느 앱의 서비스든 어느 api 모듈도 역참조할 수 없다.
 
 **분리해 둔 이유가 있는 곳도 둘이다.**
@@ -819,12 +819,14 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 ### `queryServicesShouldNotDependOnWritePorts` carve-out 3건 — 목록에 새 항목을 추가하지 않는다
 
+> **갱신 (JpaRepository 메서드 선언 금지) — carve-out은 이제 1건(`ShopDeliveryTipViewQueryService`)이다.** 제목의 "3건"은 앵커 호환을 위해 그대로 둔다. admin·ceo 아이디 중복확인 서비스는 원시값을 돌려주는 조회 유스케이스라 write 포트가 아니라 QueryPort(`AdminQueryPort`·`CeoOwnerQueryPort`, 구현은 `..query..`의 QueryAdapter)로 옮겼다. 같은 `existsByUsername`을 `AdminCreateService`·`CeoCreateService`(CommandService)가 생성 중복검사에 쓰므로 write 포트 메서드는 남는다 — 같은 행을 읽는 메서드가 두 포트에 있는 것은 목적이 달라 허용된다.
+
 **대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`
 → `queryServicesShouldNotDependOnWritePorts()`
 
 조회 유스케이스 서비스(`UseCaseServices.queries()` — 구현 포트명이 `QueryUseCase`로 끝나는 서비스. 유스케이스 분리 전에는 이름 접미어 `*QueryService`로 골랐다)는 write 포트(03a 이후 `..port.out.write..`, 과거 domain `..repository..`)를 주입하지 않는다 — 조회 트랜잭션(`readOnly = true`)에서 쓰기 경로가 열리는 것을 구조적으로 막는다.
 
-**carve-out 3건은 각 앱에서 그대로 승계한 확정 판정이며, 이관 대상이 아니다.**
+~~**carve-out 3건은 각 앱에서 그대로 승계한 확정 판정이며, 이관 대상이 아니다.**~~ **(번복됨 — 위 갱신)** 아래 표의 admin·ceo 2행은 이력이다.
 
 | FQN | 근거 |
 |---|---|

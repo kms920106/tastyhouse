@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductPrice;
@@ -11,12 +12,21 @@ import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductJpaEntity.productJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductPriceJpaEntity.productPriceJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductShopLinkJpaEntity.productShopLinkJpaEntity;
+
 @Repository
 class ProductPricePersistenceAdapter implements ProductPricePersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductPriceJpaRepository productPriceJpaRepository;
 
-    public ProductPricePersistenceAdapter(ProductPriceJpaRepository productPriceJpaRepository) {
+    public ProductPricePersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        ProductPriceJpaRepository productPriceJpaRepository
+    ) {
+        this.queryFactory = queryFactory;
         this.productPriceJpaRepository = productPriceJpaRepository;
     }
 
@@ -43,14 +53,30 @@ class ProductPricePersistenceAdapter implements ProductPricePersistencePort {
 
     @Override
     public List<ProductPrice> findAllByProductId(ProductId productId) {
-        return productPriceJpaRepository.findAllByProductIdOrderBySortAsc(productId.value()).stream()
+        return queryFactory
+            .selectFrom(productPriceJpaEntity)
+            .where(productPriceJpaEntity.productId.eq(productId.value()))
+            .orderBy(productPriceJpaEntity.sort.asc())
+            .fetch()
+            .stream()
             .map(ProductPriceMapper::toDomain)
             .toList();
     }
 
     @Override
     public List<ProductPrice> findAllByShopId(ShopId shopId) {
-        return productPriceJpaRepository.findAllByShopId(shopId.value()).stream()
+        return queryFactory
+            .select(productPriceJpaEntity)
+            .from(productPriceJpaEntity, productJpaEntity, productShopLinkJpaEntity)
+            .where(
+                productPriceJpaEntity.productId.eq(productJpaEntity.id),
+                productShopLinkJpaEntity.productId.eq(productJpaEntity.id),
+                productShopLinkJpaEntity.shopId.eq(shopId.value()),
+                productJpaEntity.deleted.isFalse()
+            )
+            .orderBy(productShopLinkJpaEntity.sort.asc(), productPriceJpaEntity.sort.asc())
+            .fetch()
+            .stream()
             .map(ProductPriceMapper::toDomain)
             .toList();
     }

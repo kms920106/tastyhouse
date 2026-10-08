@@ -3,28 +3,37 @@ package com.tastyhouse.infrastructure.persistence.holiday.persistence;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
 import com.tastyhouse.application.holiday.port.out.write.PublicHolidayPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.holiday.persistence.QPublicHolidayJpaEntity.publicHolidayJpaEntity;
+
 @Repository
 class PublicHolidayPersistenceAdapter implements PublicHolidayPersistencePort {
 
-    private final PublicHolidayJpaRepository publicHolidayJpaRepository;
+    private final JPAQueryFactory queryFactory;
 
-    public PublicHolidayPersistenceAdapter(PublicHolidayJpaRepository publicHolidayJpaRepository) {
-        this.publicHolidayJpaRepository = publicHolidayJpaRepository;
+    public PublicHolidayPersistenceAdapter(JPAQueryFactory queryFactory) {
+        this.queryFactory = queryFactory;
     }
 
     @Override
     public boolean existsByHolidayDate(LocalDate holidayDate) {
-        return publicHolidayJpaRepository.existsByHolidayDate(holidayDate);
+        return queryFactory.selectOne()
+            .from(publicHolidayJpaEntity)
+            .where(publicHolidayJpaEntity.holidayDate.eq(holidayDate))
+            .fetchFirst() != null;
     }
 
     @Override
     public List<PublicHoliday> findAllByHolidayDateBetween(LocalDate from, LocalDate to) {
-        return publicHolidayJpaRepository.findAllByHolidayDateBetween(from, to).stream()
+        return queryFactory.selectFrom(publicHolidayJpaEntity)
+            .where(publicHolidayJpaEntity.holidayDate.between(from, to))
+            .fetch()
+            .stream()
             .map(PublicHolidayMapper::toDomain)
             .toList();
     }

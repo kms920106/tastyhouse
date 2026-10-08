@@ -1,14 +1,8 @@
 package com.tastyhouse.infrastructure.persistence.member.persistence;
 
-import java.util.Optional;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
 interface MemberSocialAccountJpaRepository extends JpaRepository<MemberSocialAccountJpaEntity, Long> {
-
-    Optional<MemberSocialAccountJpaEntity> findByProviderAndProviderId(String provider, String providerId);
-
-    boolean existsByProviderAndProviderId(String provider, String providerId);
 }

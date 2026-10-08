@@ -3,17 +3,22 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
 import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopPhoneNumberJpaEntity.shopPhoneNumberJpaEntity;
+
 @Repository
 class ShopPhoneNumberPersistenceAdapter implements ShopPhoneNumberPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopPhoneNumberJpaRepository shopPhoneNumberJpaRepository;
 
-    public ShopPhoneNumberPersistenceAdapter(ShopPhoneNumberJpaRepository shopPhoneNumberJpaRepository) {
+    public ShopPhoneNumberPersistenceAdapter(JPAQueryFactory queryFactory, ShopPhoneNumberJpaRepository shopPhoneNumberJpaRepository) {
+        this.queryFactory = queryFactory;
         this.shopPhoneNumberJpaRepository = shopPhoneNumberJpaRepository;
     }
 
@@ -32,7 +37,11 @@ class ShopPhoneNumberPersistenceAdapter implements ShopPhoneNumberPersistencePor
 
     @Override
     public List<ShopPhoneNumber> findByShopId(Long shopId) {
-        return shopPhoneNumberJpaRepository.findByShopId(shopId).stream()
+        return queryFactory
+            .selectFrom(shopPhoneNumberJpaEntity)
+            .where(shopPhoneNumberJpaEntity.shopId.eq(shopId))
+            .fetch()
+            .stream()
             .map(ShopPhoneNumberMapper::toDomain)
             .toList();
     }

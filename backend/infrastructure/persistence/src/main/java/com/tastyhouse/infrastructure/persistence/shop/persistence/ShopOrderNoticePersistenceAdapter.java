@@ -2,18 +2,23 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopOrderNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticePersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopOrderNoticeJpaEntity.shopOrderNoticeJpaEntity;
+
 @Repository
 class ShopOrderNoticePersistenceAdapter implements ShopOrderNoticePersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopOrderNoticeJpaRepository shopOrderNoticeJpaRepository;
 
-    public ShopOrderNoticePersistenceAdapter(ShopOrderNoticeJpaRepository shopOrderNoticeJpaRepository) {
+    public ShopOrderNoticePersistenceAdapter(JPAQueryFactory queryFactory, ShopOrderNoticeJpaRepository shopOrderNoticeJpaRepository) {
+        this.queryFactory = queryFactory;
         this.shopOrderNoticeJpaRepository = shopOrderNoticeJpaRepository;
     }
 
@@ -34,7 +39,10 @@ class ShopOrderNoticePersistenceAdapter implements ShopOrderNoticePersistencePor
 
     @Override
     public Optional<ShopOrderNotice> findByShopId(ShopId shopId) {
-        return shopOrderNoticeJpaRepository.findByShopId(shopId.value())
-            .map(ShopOrderNoticeMapper::toDomain);
+        ShopOrderNoticeJpaEntity entity = queryFactory
+            .selectFrom(shopOrderNoticeJpaEntity)
+            .where(shopOrderNoticeJpaEntity.shopId.eq(shopId.value()))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ShopOrderNoticeMapper::toDomain);
     }
 }

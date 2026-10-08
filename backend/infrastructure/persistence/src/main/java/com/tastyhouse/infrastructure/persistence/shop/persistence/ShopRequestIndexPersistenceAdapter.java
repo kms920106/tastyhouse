@@ -2,18 +2,27 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 
 import java.util.Optional;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopRequestIndexJpaEntity.shopRequestIndexJpaEntity;
+
 @Repository
 class ShopRequestIndexPersistenceAdapter implements ShopRequestIndexPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopRequestIndexJpaRepository shopRequestIndexJpaRepository;
 
-    public ShopRequestIndexPersistenceAdapter(ShopRequestIndexJpaRepository shopRequestIndexJpaRepository) {
+    public ShopRequestIndexPersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        ShopRequestIndexJpaRepository shopRequestIndexJpaRepository
+    ) {
+        this.queryFactory = queryFactory;
         this.shopRequestIndexJpaRepository = shopRequestIndexJpaRepository;
     }
 
@@ -39,10 +48,25 @@ class ShopRequestIndexPersistenceAdapter implements ShopRequestIndexPersistenceP
 
     @Override
     public Optional<ShopRequestIndex> findByRequestTypeAndSourceRequestId(ShopRequestType requestType, Long sourceRequestId) {
-        return shopRequestIndexJpaRepository.findByRequestTypeAndSourceRequestId(
-            requestType == null ? null : requestType.name(),
-            sourceRequestId
-        )
-            .map(ShopRequestIndexMapper::toDomain);
+        ShopRequestIndexJpaEntity entity = queryFactory
+            .selectFrom(shopRequestIndexJpaEntity)
+            .where(
+                requestTypeEq(requestType == null ? null : requestType.name()),
+                sourceRequestIdEq(sourceRequestId)
+            )
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ShopRequestIndexMapper::toDomain);
+    }
+
+    private BooleanExpression requestTypeEq(String requestType) {
+        return requestType == null
+            ? shopRequestIndexJpaEntity.requestType.isNull()
+            : shopRequestIndexJpaEntity.requestType.eq(requestType);
+    }
+
+    private BooleanExpression sourceRequestIdEq(Long sourceRequestId) {
+        return sourceRequestId == null
+            ? shopRequestIndexJpaEntity.sourceRequestId.isNull()
+            : shopRequestIndexJpaEntity.sourceRequestId.eq(sourceRequestId);
     }
 }

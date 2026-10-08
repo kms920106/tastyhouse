@@ -2,24 +2,31 @@ package com.tastyhouse.infrastructure.persistence.review.persistence;
 
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.review.model.ShopReviewDisplaySetting;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.review.persistence.QShopReviewDisplaySettingJpaEntity.shopReviewDisplaySettingJpaEntity;
+
 @Repository
 class ShopReviewDisplaySettingPersistenceAdapter implements ShopReviewDisplaySettingPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopReviewDisplaySettingJpaRepository shopReviewDisplaySettingJpaRepository;
 
-    public ShopReviewDisplaySettingPersistenceAdapter(ShopReviewDisplaySettingJpaRepository shopReviewDisplaySettingJpaRepository) {
+    public ShopReviewDisplaySettingPersistenceAdapter(JPAQueryFactory queryFactory, ShopReviewDisplaySettingJpaRepository shopReviewDisplaySettingJpaRepository) {
+        this.queryFactory = queryFactory;
         this.shopReviewDisplaySettingJpaRepository = shopReviewDisplaySettingJpaRepository;
     }
 
     @Override
     public Optional<ShopReviewDisplaySetting> findByShopId(ShopId shopId) {
-        return shopReviewDisplaySettingJpaRepository.findByShopId(shopId.value())
+        return Optional.ofNullable(queryFactory.selectFrom(shopReviewDisplaySettingJpaEntity)
+            .where(shopReviewDisplaySettingJpaEntity.shopId.eq(shopId.value()))
+            .fetchOne())
             .map(ShopReviewDisplaySettingMapper::toDomain);
     }
 

@@ -2,18 +2,31 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 
 import java.util.List;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductExposureHour;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductExposureHourJpaEntity.productExposureHourJpaEntity;
+
 @Repository
 class ProductExposureHourPersistenceAdapter implements ProductExposureHourPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductExposureHourJpaRepository productExposureHourJpaRepository;
 
-    public ProductExposureHourPersistenceAdapter(ProductExposureHourJpaRepository productExposureHourJpaRepository) {
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public ProductExposureHourPersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        ProductExposureHourJpaRepository productExposureHourJpaRepository
+    ) {
+        this.queryFactory = queryFactory;
         this.productExposureHourJpaRepository = productExposureHourJpaRepository;
     }
 
@@ -32,13 +45,22 @@ class ProductExposureHourPersistenceAdapter implements ProductExposureHourPersis
 
     @Override
     public List<ProductExposureHour> findAllByProductId(ProductId productId) {
-        return productExposureHourJpaRepository.findAllByProductId(productId.value()).stream()
+        return queryFactory
+            .selectFrom(productExposureHourJpaEntity)
+            .where(productExposureHourJpaEntity.productId.eq(productId.value()))
+            .fetch()
+            .stream()
             .map(ProductExposureHourMapper::toDomain)
             .toList();
     }
 
     @Override
     public void deleteAllByProductId(ProductId productId) {
-        productExposureHourJpaRepository.deleteAllByProductId(productId.value());
+        entityManager.flush();
+        queryFactory
+            .delete(productExposureHourJpaEntity)
+            .where(productExposureHourJpaEntity.productId.eq(productId.value()))
+            .execute();
+        entityManager.clear();
     }
 }

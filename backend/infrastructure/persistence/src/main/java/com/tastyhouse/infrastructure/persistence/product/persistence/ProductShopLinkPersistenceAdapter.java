@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductShopLink;
@@ -10,12 +11,19 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductShopLinkJpaEntity.productShopLinkJpaEntity;
+
 @Repository
 class ProductShopLinkPersistenceAdapter implements ProductShopLinkPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductShopLinkJpaRepository productShopLinkJpaRepository;
 
-    public ProductShopLinkPersistenceAdapter(ProductShopLinkJpaRepository productShopLinkJpaRepository) {
+    public ProductShopLinkPersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        ProductShopLinkJpaRepository productShopLinkJpaRepository
+    ) {
+        this.queryFactory = queryFactory;
         this.productShopLinkJpaRepository = productShopLinkJpaRepository;
     }
 
@@ -36,32 +44,59 @@ class ProductShopLinkPersistenceAdapter implements ProductShopLinkPersistencePor
 
     @Override
     public Optional<ProductShopLink> findByProductIdAndShopId(ProductId productId, ShopId shopId) {
-        return productShopLinkJpaRepository.findByProductIdAndShopId(productId.value(), shopId.value())
-            .map(ProductShopLinkMapper::toDomain);
+        ProductShopLinkJpaEntity entity = queryFactory
+            .selectFrom(productShopLinkJpaEntity)
+            .where(
+                productShopLinkJpaEntity.productId.eq(productId.value()),
+                productShopLinkJpaEntity.shopId.eq(shopId.value())
+            )
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ProductShopLinkMapper::toDomain);
     }
 
     @Override
     public List<ProductShopLink> findAllByProductId(ProductId productId) {
-        return productShopLinkJpaRepository.findAllByProductId(productId.value()).stream()
+        return queryFactory
+            .selectFrom(productShopLinkJpaEntity)
+            .where(productShopLinkJpaEntity.productId.eq(productId.value()))
+            .fetch()
+            .stream()
             .map(ProductShopLinkMapper::toDomain)
             .toList();
     }
 
     @Override
     public List<ProductShopLink> findAllByShopId(ShopId shopId) {
-        return productShopLinkJpaRepository.findAllByShopIdOrderBySortAsc(shopId.value()).stream()
+        return queryFactory
+            .selectFrom(productShopLinkJpaEntity)
+            .where(productShopLinkJpaEntity.shopId.eq(shopId.value()))
+            .orderBy(productShopLinkJpaEntity.sort.asc())
+            .fetch()
+            .stream()
             .map(ProductShopLinkMapper::toDomain)
             .toList();
     }
 
     @Override
     public boolean existsByProductIdAndShopId(ProductId productId, ShopId shopId) {
-        return productShopLinkJpaRepository.existsByProductIdAndShopId(productId.value(), shopId.value());
+        return queryFactory
+            .selectOne()
+            .from(productShopLinkJpaEntity)
+            .where(
+                productShopLinkJpaEntity.productId.eq(productId.value()),
+                productShopLinkJpaEntity.shopId.eq(shopId.value())
+            )
+            .fetchFirst() != null;
     }
 
     @Override
     public long countByProductId(ProductId productId) {
-        return productShopLinkJpaRepository.countByProductId(productId.value());
+        Long count = queryFactory
+            .select(productShopLinkJpaEntity.count())
+            .from(productShopLinkJpaEntity)
+            .where(productShopLinkJpaEntity.productId.eq(productId.value()))
+            .fetchOne();
+        return count == null ? 0L : count;
     }
 
     @Override

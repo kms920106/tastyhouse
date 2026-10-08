@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductCommonOption;
@@ -11,12 +12,19 @@ import com.tastyhouse.domain.product.vo.ProductCommonOptionId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.application.product.port.out.write.ProductCommonOptionPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductCommonOptionJpaEntity.productCommonOptionJpaEntity;
+
 @Repository
 class ProductCommonOptionPersistenceAdapter implements ProductCommonOptionPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductCommonOptionJpaRepository productCommonOptionJpaRepository;
 
-    public ProductCommonOptionPersistenceAdapter(ProductCommonOptionJpaRepository productCommonOptionJpaRepository) {
+    public ProductCommonOptionPersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        ProductCommonOptionJpaRepository productCommonOptionJpaRepository
+    ) {
+        this.queryFactory = queryFactory;
         this.productCommonOptionJpaRepository = productCommonOptionJpaRepository;
     }
 
@@ -44,7 +52,10 @@ class ProductCommonOptionPersistenceAdapter implements ProductCommonOptionPersis
         if (ids.isEmpty()) {
             return List.of();
         }
-        return productCommonOptionJpaRepository.findAllByIdIn(ids.stream().map(ProductCommonOptionId::value).toList())
+        return queryFactory
+            .selectFrom(productCommonOptionJpaEntity)
+            .where(productCommonOptionJpaEntity.id.in(ids.stream().map(ProductCommonOptionId::value).toList()))
+            .fetch()
             .stream()
             .map(ProductCommonOptionMapper::toDomain)
             .toList();
@@ -52,15 +63,26 @@ class ProductCommonOptionPersistenceAdapter implements ProductCommonOptionPersis
 
     @Override
     public List<ProductCommonOption> findAllByOptionGroupId(ProductOptionGroupId optionGroupId) {
-        return productCommonOptionJpaRepository.findAllByOptionGroupId(optionGroupId.value()).stream()
+        return queryFactory
+            .selectFrom(productCommonOptionJpaEntity)
+            .where(productCommonOptionJpaEntity.optionGroupId.eq(optionGroupId.value()))
+            .fetch()
+            .stream()
             .map(ProductCommonOptionMapper::toDomain)
             .toList();
     }
 
     @Override
     public List<ProductCommonOption> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
-        return productCommonOptionJpaRepository
-            .findAllBySoldOutTrueAndSoldOutUntilIsNotNullAndSoldOutUntilLessThanEqual(baseTime).stream()
+        return queryFactory
+            .selectFrom(productCommonOptionJpaEntity)
+            .where(
+                productCommonOptionJpaEntity.soldOut.isTrue(),
+                productCommonOptionJpaEntity.soldOutUntil.isNotNull(),
+                productCommonOptionJpaEntity.soldOutUntil.loe(baseTime)
+            )
+            .fetch()
+            .stream()
             .map(ProductCommonOptionMapper::toDomain)
             .toList();
     }

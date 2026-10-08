@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.Product;
@@ -12,18 +14,27 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductJpaEntity.productJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductShopLinkJpaEntity.productShopLinkJpaEntity;
+
 @Repository
 class ProductPersistenceAdapter implements ProductPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductJpaRepository productJpaRepository;
 
-    public ProductPersistenceAdapter(ProductJpaRepository productJpaRepository) {
+    public ProductPersistenceAdapter(JPAQueryFactory queryFactory, ProductJpaRepository productJpaRepository) {
+        this.queryFactory = queryFactory;
         this.productJpaRepository = productJpaRepository;
     }
 
     @Override
     public Optional<Product> findById(ProductId id) {
-        return productJpaRepository.findByIdAndDeletedFalse(id.value()).map(ProductMapper::toDomain);
+        ProductJpaEntity entity = queryFactory
+            .selectFrom(productJpaEntity)
+            .where(productJpaEntity.id.eq(id.value()), productJpaEntity.deleted.isFalse())
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ProductMapper::toDomain);
     }
 
     @Override
@@ -49,8 +60,14 @@ class ProductPersistenceAdapter implements ProductPersistencePort {
         if (ids.isEmpty()) {
             return List.of();
         }
-        return productJpaRepository.findAllByShopIdAndIdInAndDeletedFalse(
-                shopId.value(), ids.stream().map(ProductId::value).toList())
+        return queryFactory
+            .selectFrom(productJpaEntity)
+            .where(
+                productJpaEntity.shopId.eq(shopId.value()),
+                productJpaEntity.id.in(ids.stream().map(ProductId::value).toList()),
+                productJpaEntity.deleted.isFalse()
+            )
+            .fetch()
             .stream()
             .map(ProductMapper::toDomain)
             .toList();
@@ -58,24 +75,56 @@ class ProductPersistenceAdapter implements ProductPersistencePort {
 
     @Override
     public long countVisibleByShopId(ShopId shopId) {
-        return productJpaRepository.countVisibleByShopLink(shopId.value());
+        return queryFactory
+            .select(productJpaEntity.id.countDistinct())
+            .from(productJpaEntity, productShopLinkJpaEntity)
+            .where(
+                productShopLinkJpaEntity.productId.eq(productJpaEntity.id),
+                productShopLinkJpaEntity.shopId.eq(shopId.value()),
+                productJpaEntity.visible.isTrue(),
+                productJpaEntity.deleted.isFalse()
+            )
+            .fetchOne();
     }
 
     @Override
     public long countVisibleRepresentativeByShopId(ShopId shopId) {
-        return productJpaRepository
-            .countByShopIdAndVisibleTrueAndRepresentativeTrueAndDeletedFalse(shopId.value());
+        return queryFactory
+            .select(productJpaEntity.count())
+            .from(productJpaEntity)
+            .where(
+                productJpaEntity.shopId.eq(shopId.value()),
+                productJpaEntity.visible.isTrue(),
+                productJpaEntity.representative.isTrue(),
+                productJpaEntity.deleted.isFalse()
+            )
+            .fetchOne();
     }
 
     @Override
     public long countRepresentativeByShopId(ShopId shopId) {
-        return productJpaRepository.countByShopIdAndRepresentativeTrueAndDeletedFalse(shopId.value());
+        return queryFactory
+            .select(productJpaEntity.count())
+            .from(productJpaEntity)
+            .where(
+                productJpaEntity.shopId.eq(shopId.value()),
+                productJpaEntity.representative.isTrue(),
+                productJpaEntity.deleted.isFalse()
+            )
+            .fetchOne();
     }
 
     @Override
     public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
-        return productJpaRepository
-            .findAllBySoldOutTrueAndSoldOutUntilIsNotNullAndSoldOutUntilLessThanEqualAndDeletedFalse(baseTime)
+        return queryFactory
+            .selectFrom(productJpaEntity)
+            .where(
+                productJpaEntity.soldOut.isTrue(),
+                productJpaEntity.soldOutUntil.isNotNull(),
+                productJpaEntity.soldOutUntil.loe(baseTime),
+                productJpaEntity.deleted.isFalse()
+            )
+            .fetch()
             .stream()
             .map(ProductMapper::toDomain)
             .toList();
@@ -83,28 +132,63 @@ class ProductPersistenceAdapter implements ProductPersistencePort {
 
     @Override
     public boolean existsByShopIdAndName(ShopId shopId, String name) {
-        return productJpaRepository.existsByShopIdAndNameAndDeletedFalse(shopId.value(), name);
+        return queryFactory
+            .selectOne()
+            .from(productJpaEntity)
+            .where(
+                productJpaEntity.shopId.eq(shopId.value()),
+                productJpaEntity.name.eq(name),
+                productJpaEntity.deleted.isFalse()
+            )
+            .fetchFirst() != null;
     }
 
     @Override
     public boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
-        return productJpaRepository.existsByShopIdAndNameAndIdNotAndDeletedFalse(
-            shopId.value(), name, excludedId.value());
+        return queryFactory
+            .selectOne()
+            .from(productJpaEntity)
+            .where(
+                productJpaEntity.shopId.eq(shopId.value()),
+                productJpaEntity.name.eq(name),
+                productJpaEntity.id.ne(excludedId.value()),
+                productJpaEntity.deleted.isFalse()
+            )
+            .fetchFirst() != null;
     }
 
     @Override
     public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
         Long categoryId = productCategoryId == null ? null : productCategoryId.value();
-        List<ProductJpaEntity> entities = categoryId == null
-            ? productJpaRepository
-                .findAllByShopIdAndProductCategoryIdIsNullAndDeletedFalseOrderBySortAsc(shopId.value())
-            : productJpaRepository.findAllByShopIdAndProductCategoryIdAndDeletedFalseOrderBySortAsc(
-                shopId.value(), categoryId);
-        return entities.stream().map(ProductMapper::toDomain).toList();
+        return queryFactory
+            .selectFrom(productJpaEntity)
+            .where(
+                productJpaEntity.shopId.eq(shopId.value()),
+                productCategoryIdEq(categoryId),
+                productJpaEntity.deleted.isFalse()
+            )
+            .orderBy(productJpaEntity.sort.asc())
+            .fetch()
+            .stream()
+            .map(ProductMapper::toDomain)
+            .toList();
     }
 
     @Override
     public long countByCategoryId(ProductCategoryId productCategoryId) {
-        return productJpaRepository.countByProductCategoryIdAndDeletedFalse(productCategoryId.value());
+        return queryFactory
+            .select(productJpaEntity.count())
+            .from(productJpaEntity)
+            .where(
+                productJpaEntity.productCategoryId.eq(productCategoryId.value()),
+                productJpaEntity.deleted.isFalse()
+            )
+            .fetchOne();
+    }
+
+    private BooleanExpression productCategoryIdEq(Long categoryId) {
+        return categoryId == null
+            ? productJpaEntity.productCategoryId.isNull()
+            : productJpaEntity.productCategoryId.eq(categoryId);
     }
 }

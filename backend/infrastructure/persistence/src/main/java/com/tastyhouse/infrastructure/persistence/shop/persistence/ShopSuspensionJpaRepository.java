@@ -1,12 +1,8 @@
 package com.tastyhouse.infrastructure.persistence.shop.persistence;
 
-import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
 interface ShopSuspensionJpaRepository extends JpaRepository<ShopSuspensionJpaEntity, Long> {
-
-    List<ShopSuspensionJpaEntity> findByShopId(Long shopId);
 }

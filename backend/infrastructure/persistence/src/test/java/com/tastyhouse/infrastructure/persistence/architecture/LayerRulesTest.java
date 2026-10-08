@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.persistence.architecture;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 import com.tngtech.archunit.base.DescribedPredicate;
@@ -176,6 +177,31 @@ class LayerRulesTest {
     );
 
     @Test
+    void jpaRepositoriesShouldNotDeclareMethods() {
+        List<JavaClass> repositories = jpaRepositories();
+
+        List<String> violations = repositories.stream()
+            .filter(repository -> !repository.getMethods().isEmpty())
+            .map(repository -> repository.getName() + " " + repository.getMethods().stream()
+                .map(method -> method.getName())
+                .sorted()
+                .toList())
+            .sorted()
+            .toList();
+
+        assertThat(violations)
+            .as("JpaRepository는 상속 메서드만 쓴다 — 조건 있는 조회·삭제는 XxxPersistenceAdapter의 QueryDSL이 소유한다")
+            .isEmpty();
+    }
+
+    @Test
+    void jpaRepositoriesExist() {
+        assertThat(jpaRepositories())
+            .as("jpaRepositoriesShouldNotDeclareMethods가 공허하게 통과하지 않는다")
+            .hasSizeGreaterThanOrEqualTo(123);
+    }
+
+    @Test
     void topLevelClassesShouldNotBePublic() {
         ArchRule rule = classes()
             .that().areTopLevelClasses()
@@ -202,6 +228,13 @@ class LayerRulesTest {
         return DescribedPredicate.describe(
             "infra 자체 소유 읽기 계약",
             javaClass -> INFRA_OWNED_QUERY_PORTS.contains(javaClass.getName()));
+    }
+
+    private List<JavaClass> jpaRepositories() {
+        return classes.stream()
+            .filter(JavaClass::isInterface)
+            .filter(javaClass -> javaClass.isAssignableTo("org.springframework.data.repository.Repository"))
+            .toList();
     }
 
     private static DescribedPredicate<JavaClass> sealed() {

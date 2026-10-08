@@ -2,23 +2,32 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopOriginInfo;
 import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopOriginInfoJpaEntity.shopOriginInfoJpaEntity;
+
 @Repository
 class ShopOriginInfoPersistenceAdapter implements ShopOriginInfoPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopOriginInfoJpaRepository shopOriginInfoJpaRepository;
 
-    public ShopOriginInfoPersistenceAdapter(ShopOriginInfoJpaRepository shopOriginInfoJpaRepository) {
+    public ShopOriginInfoPersistenceAdapter(JPAQueryFactory queryFactory, ShopOriginInfoJpaRepository shopOriginInfoJpaRepository) {
+        this.queryFactory = queryFactory;
         this.shopOriginInfoJpaRepository = shopOriginInfoJpaRepository;
     }
 
     @Override
     public Optional<ShopOriginInfo> findByShopId(Long shopId) {
-        return shopOriginInfoJpaRepository.findByShopId(shopId).map(ShopOriginInfoMapper::toDomain);
+        ShopOriginInfoJpaEntity entity = queryFactory
+            .selectFrom(shopOriginInfoJpaEntity)
+            .where(shopOriginInfoJpaEntity.shopId.eq(shopId))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ShopOriginInfoMapper::toDomain);
     }
 
     @Override

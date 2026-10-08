@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
@@ -10,12 +11,19 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryAreaAdjustmentRequestJpaEntity.shopDeliveryAreaAdjustmentRequestJpaEntity;
+
 @Repository
 class ShopDeliveryAreaAdjustmentRequestPersistenceAdapter implements ShopDeliveryAreaAdjustmentRequestPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopDeliveryAreaAdjustmentRequestJpaRepository shopDeliveryAreaAdjustmentRequestJpaRepository;
 
-    public ShopDeliveryAreaAdjustmentRequestPersistenceAdapter(ShopDeliveryAreaAdjustmentRequestJpaRepository shopDeliveryAreaAdjustmentRequestJpaRepository) {
+    public ShopDeliveryAreaAdjustmentRequestPersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        ShopDeliveryAreaAdjustmentRequestJpaRepository shopDeliveryAreaAdjustmentRequestJpaRepository
+    ) {
+        this.queryFactory = queryFactory;
         this.shopDeliveryAreaAdjustmentRequestJpaRepository = shopDeliveryAreaAdjustmentRequestJpaRepository;
     }
 
@@ -27,7 +35,20 @@ class ShopDeliveryAreaAdjustmentRequestPersistenceAdapter implements ShopDeliver
 
     @Override
     public boolean existsByShopIdAndStatusIn(ShopId shopId, List<DeliveryAreaAdjustmentStatus> statuses) {
-        return shopDeliveryAreaAdjustmentRequestJpaRepository.existsByShopIdAndStatusIn(shopId.value(), statuses.stream().map(DeliveryAreaAdjustmentStatus::name).toList());
+        if (statuses.isEmpty()) {
+            return false;
+        }
+        Integer found = queryFactory
+            .selectOne()
+            .from(shopDeliveryAreaAdjustmentRequestJpaEntity)
+            .where(
+                shopDeliveryAreaAdjustmentRequestJpaEntity.shopId.eq(shopId.value()),
+                shopDeliveryAreaAdjustmentRequestJpaEntity.status.in(
+                    statuses.stream().map(DeliveryAreaAdjustmentStatus::name).toList()
+                )
+            )
+            .fetchFirst();
+        return found != null;
     }
 
     @Override

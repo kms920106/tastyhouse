@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.StorePriceVerification;
@@ -12,16 +13,22 @@ import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.StorePriceVerificationPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QStorePriceVerificationItemJpaEntity.storePriceVerificationItemJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QStorePriceVerificationJpaEntity.storePriceVerificationJpaEntity;
+
 @Repository
 class StorePriceVerificationPersistenceAdapter implements StorePriceVerificationPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final StorePriceVerificationJpaRepository storePriceVerificationJpaRepository;
     private final StorePriceVerificationItemJpaRepository storePriceVerificationItemJpaRepository;
 
     public StorePriceVerificationPersistenceAdapter(
+        JPAQueryFactory queryFactory,
         StorePriceVerificationJpaRepository storePriceVerificationJpaRepository,
         StorePriceVerificationItemJpaRepository storePriceVerificationItemJpaRepository
     ) {
+        this.queryFactory = queryFactory;
         this.storePriceVerificationJpaRepository = storePriceVerificationJpaRepository;
         this.storePriceVerificationItemJpaRepository = storePriceVerificationItemJpaRepository;
     }
@@ -50,8 +57,12 @@ class StorePriceVerificationPersistenceAdapter implements StorePriceVerification
 
     @Override
     public Optional<StorePriceVerification> findLatestByShopId(ShopId shopId) {
-        return storePriceVerificationJpaRepository.findFirstByShopIdOrderByIdDesc(shopId.value())
-            .map(StorePriceVerificationMapper::toDomain);
+        StorePriceVerificationJpaEntity entity = queryFactory
+            .selectFrom(storePriceVerificationJpaEntity)
+            .where(storePriceVerificationJpaEntity.shopId.eq(shopId.value()))
+            .orderBy(storePriceVerificationJpaEntity.id.desc())
+            .fetchFirst();
+        return Optional.ofNullable(entity).map(StorePriceVerificationMapper::toDomain);
     }
 
     @Override
@@ -59,8 +70,16 @@ class StorePriceVerificationPersistenceAdapter implements StorePriceVerification
         if (statuses == null || statuses.isEmpty()) {
             return false;
         }
-        return storePriceVerificationJpaRepository.existsByShopIdAndStatusIn(
-            shopId.value(), statuses.stream().map(StorePriceVerificationStatus::name).toList());
+        return queryFactory
+            .selectOne()
+            .from(storePriceVerificationJpaEntity)
+            .where(
+                storePriceVerificationJpaEntity.shopId.eq(shopId.value()),
+                storePriceVerificationJpaEntity.status.in(
+                    statuses.stream().map(StorePriceVerificationStatus::name).toList()
+                )
+            )
+            .fetchFirst() != null;
     }
 
     @Override
@@ -70,8 +89,12 @@ class StorePriceVerificationPersistenceAdapter implements StorePriceVerification
 
     @Override
     public List<StorePriceVerificationItem> findAllItemsByVerificationId(StorePriceVerificationId verificationId) {
-        return storePriceVerificationItemJpaRepository
-            .findAllByVerificationIdOrderByIdAsc(verificationId.value()).stream()
+        return queryFactory
+            .selectFrom(storePriceVerificationItemJpaEntity)
+            .where(storePriceVerificationItemJpaEntity.verificationId.eq(verificationId.value()))
+            .orderBy(storePriceVerificationItemJpaEntity.id.asc())
+            .fetch()
+            .stream()
             .map(StorePriceVerificationItemMapper::toDomain)
             .toList();
     }

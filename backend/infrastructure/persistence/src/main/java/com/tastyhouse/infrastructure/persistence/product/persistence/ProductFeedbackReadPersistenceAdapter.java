@@ -2,20 +2,26 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductFeedbackRead;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductFeedbackReadJpaEntity.productFeedbackReadJpaEntity;
+
 @Repository
 class ProductFeedbackReadPersistenceAdapter implements ProductFeedbackReadPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductFeedbackReadJpaRepository productFeedbackReadJpaRepository;
 
     public ProductFeedbackReadPersistenceAdapter(
+        JPAQueryFactory queryFactory,
         ProductFeedbackReadJpaRepository productFeedbackReadJpaRepository
     ) {
+        this.queryFactory = queryFactory;
         this.productFeedbackReadJpaRepository = productFeedbackReadJpaRepository;
     }
 
@@ -37,7 +43,10 @@ class ProductFeedbackReadPersistenceAdapter implements ProductFeedbackReadPersis
 
     @Override
     public Optional<ProductFeedbackRead> findByShopId(ShopId shopId) {
-        return productFeedbackReadJpaRepository.findByShopId(shopId.value())
-            .map(ProductFeedbackReadMapper::toDomain);
+        ProductFeedbackReadJpaEntity entity = queryFactory
+            .selectFrom(productFeedbackReadJpaEntity)
+            .where(productFeedbackReadJpaEntity.shopId.eq(shopId.value()))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ProductFeedbackReadMapper::toDomain);
     }
 }

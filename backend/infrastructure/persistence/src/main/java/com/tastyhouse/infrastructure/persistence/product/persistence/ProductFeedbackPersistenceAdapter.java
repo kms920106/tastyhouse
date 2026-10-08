@@ -2,6 +2,8 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 
 import java.time.LocalDateTime;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.vo.MemberId;
@@ -11,12 +13,19 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.write.ProductFeedbackPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductFeedbackJpaEntity.productFeedbackJpaEntity;
+
 @Repository
 class ProductFeedbackPersistenceAdapter implements ProductFeedbackPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductFeedbackJpaRepository productFeedbackJpaRepository;
 
-    public ProductFeedbackPersistenceAdapter(ProductFeedbackJpaRepository productFeedbackJpaRepository) {
+    public ProductFeedbackPersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        ProductFeedbackJpaRepository productFeedbackJpaRepository
+    ) {
+        this.queryFactory = queryFactory;
         this.productFeedbackJpaRepository = productFeedbackJpaRepository;
     }
 
@@ -34,13 +43,33 @@ class ProductFeedbackPersistenceAdapter implements ProductFeedbackPersistencePor
         ProductFeedbackType feedbackType,
         LocalDateTime since
     ) {
-        return productFeedbackJpaRepository.existsByMemberIdAndProductIdAndFeedbackTypeAndCreatedAtAfter(
-            memberId.value(), productId.value(), feedbackType == null ? null : feedbackType.name(), since
-        );
+        return queryFactory
+            .selectOne()
+            .from(productFeedbackJpaEntity)
+            .where(
+                productFeedbackJpaEntity.memberId.eq(memberId.value()),
+                productFeedbackJpaEntity.productId.eq(productId.value()),
+                feedbackTypeEq(feedbackType == null ? null : feedbackType.name()),
+                productFeedbackJpaEntity.createdAt.after(since)
+            )
+            .fetchFirst() != null;
     }
 
     @Override
     public boolean existsByShopIdAndCreatedAtAfter(ShopId shopId, LocalDateTime since) {
-        return productFeedbackJpaRepository.existsByShopIdAndCreatedAtAfter(shopId.value(), since);
+        return queryFactory
+            .selectOne()
+            .from(productFeedbackJpaEntity)
+            .where(
+                productFeedbackJpaEntity.shopId.eq(shopId.value()),
+                productFeedbackJpaEntity.createdAt.after(since)
+            )
+            .fetchFirst() != null;
+    }
+
+    private BooleanExpression feedbackTypeEq(String feedbackType) {
+        return feedbackType == null
+            ? productFeedbackJpaEntity.feedbackType.isNull()
+            : productFeedbackJpaEntity.feedbackType.eq(feedbackType);
     }
 }

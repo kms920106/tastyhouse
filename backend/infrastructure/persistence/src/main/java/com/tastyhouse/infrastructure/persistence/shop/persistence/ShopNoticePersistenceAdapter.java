@@ -2,18 +2,23 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopNoticeJpaEntity.shopNoticeJpaEntity;
+
 @Repository
 class ShopNoticePersistenceAdapter implements ShopNoticePersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopNoticeJpaRepository shopNoticeJpaRepository;
 
-    public ShopNoticePersistenceAdapter(ShopNoticeJpaRepository shopNoticeJpaRepository) {
+    public ShopNoticePersistenceAdapter(JPAQueryFactory queryFactory, ShopNoticeJpaRepository shopNoticeJpaRepository) {
+        this.queryFactory = queryFactory;
         this.shopNoticeJpaRepository = shopNoticeJpaRepository;
     }
 
@@ -37,8 +42,15 @@ class ShopNoticePersistenceAdapter implements ShopNoticePersistencePort {
 
     @Override
     public Optional<ShopNotice> findExposedByShopId(ShopId shopId) {
-        return shopNoticeJpaRepository.findFirstByShopIdAndExposedIsTrueOrderByIdDesc(shopId.value())
-            .map(ShopNoticeMapper::toDomain);
+        ShopNoticeJpaEntity entity = queryFactory
+            .selectFrom(shopNoticeJpaEntity)
+            .where(
+                shopNoticeJpaEntity.shopId.eq(shopId.value()),
+                shopNoticeJpaEntity.exposed.isTrue()
+            )
+            .orderBy(shopNoticeJpaEntity.id.desc())
+            .fetchFirst();
+        return Optional.ofNullable(entity).map(ShopNoticeMapper::toDomain);
     }
 
     @Override

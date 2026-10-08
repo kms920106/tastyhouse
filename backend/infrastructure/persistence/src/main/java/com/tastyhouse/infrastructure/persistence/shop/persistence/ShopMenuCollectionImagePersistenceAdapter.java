@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
@@ -10,14 +11,19 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImagePersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopMenuCollectionImageJpaEntity.shopMenuCollectionImageJpaEntity;
+
 @Repository
 class ShopMenuCollectionImagePersistenceAdapter implements ShopMenuCollectionImagePersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopMenuCollectionImageJpaRepository shopMenuCollectionImageJpaRepository;
 
     public ShopMenuCollectionImagePersistenceAdapter(
+        JPAQueryFactory queryFactory,
         ShopMenuCollectionImageJpaRepository shopMenuCollectionImageJpaRepository
     ) {
+        this.queryFactory = queryFactory;
         this.shopMenuCollectionImageJpaRepository = shopMenuCollectionImageJpaRepository;
     }
 
@@ -43,7 +49,12 @@ class ShopMenuCollectionImagePersistenceAdapter implements ShopMenuCollectionIma
 
     @Override
     public List<ShopMenuCollectionImage> findAllByShopId(ShopId shopId) {
-        return shopMenuCollectionImageJpaRepository.findAllByShopIdOrderBySortAsc(shopId.value()).stream()
+        return queryFactory
+            .selectFrom(shopMenuCollectionImageJpaEntity)
+            .where(shopMenuCollectionImageJpaEntity.shopId.eq(shopId.value()))
+            .orderBy(shopMenuCollectionImageJpaEntity.sort.asc())
+            .fetch()
+            .stream()
             .map(ShopMenuCollectionImageMapper::toDomain)
             .toList();
     }

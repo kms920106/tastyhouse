@@ -4,20 +4,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.admin.port.in.AdminUsernameExistsQueryUseCase;
-import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
+import com.tastyhouse.application.admin.port.out.AdminQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class AdminUsernameExistsQueryService implements AdminUsernameExistsQueryUseCase {
 
-    private final AdminPersistencePort adminPersistencePort;
+    private final AdminQueryPort adminQueryPort;
 
-    public AdminUsernameExistsQueryService(AdminPersistencePort adminPersistencePort) {
-        this.adminPersistencePort = adminPersistencePort;
+    public AdminUsernameExistsQueryService(AdminQueryPort adminQueryPort) {
+        this.adminQueryPort = adminQueryPort;
     }
 
     @Override
     public boolean existsByUsername(String username) {
-        return adminPersistencePort.existsByUsername(username);
+        return adminQueryPort.existsByUsername(username);
     }
 }

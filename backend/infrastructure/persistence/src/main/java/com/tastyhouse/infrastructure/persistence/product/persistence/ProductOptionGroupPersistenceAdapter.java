@@ -3,18 +3,26 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductOptionGroupJpaEntity.productOptionGroupJpaEntity;
+
 @Repository
 class ProductOptionGroupPersistenceAdapter implements ProductOptionGroupPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ProductOptionGroupJpaRepository productOptionGroupJpaRepository;
 
-    public ProductOptionGroupPersistenceAdapter(ProductOptionGroupJpaRepository productOptionGroupJpaRepository) {
+    public ProductOptionGroupPersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        ProductOptionGroupJpaRepository productOptionGroupJpaRepository
+    ) {
+        this.queryFactory = queryFactory;
         this.productOptionGroupJpaRepository = productOptionGroupJpaRepository;
     }
 
@@ -42,7 +50,10 @@ class ProductOptionGroupPersistenceAdapter implements ProductOptionGroupPersiste
         if (ids.isEmpty()) {
             return List.of();
         }
-        return productOptionGroupJpaRepository.findAllByIdIn(ids.stream().map(ProductOptionGroupId::value).toList())
+        return queryFactory
+            .selectFrom(productOptionGroupJpaEntity)
+            .where(productOptionGroupJpaEntity.id.in(ids.stream().map(ProductOptionGroupId::value).toList()))
+            .fetch()
             .stream()
             .map(ProductOptionGroupMapper::toDomain)
             .toList();

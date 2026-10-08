@@ -2,17 +2,22 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopContentBoard;
 import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopContentBoardJpaEntity.shopContentBoardJpaEntity;
+
 @Repository
 class ShopContentBoardPersistenceAdapter implements ShopContentBoardPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopContentBoardJpaRepository shopContentBoardJpaRepository;
 
-    public ShopContentBoardPersistenceAdapter(ShopContentBoardJpaRepository shopContentBoardJpaRepository) {
+    public ShopContentBoardPersistenceAdapter(JPAQueryFactory queryFactory, ShopContentBoardJpaRepository shopContentBoardJpaRepository) {
+        this.queryFactory = queryFactory;
         this.shopContentBoardJpaRepository = shopContentBoardJpaRepository;
     }
 
@@ -41,6 +46,11 @@ class ShopContentBoardPersistenceAdapter implements ShopContentBoardPersistenceP
 
     @Override
     public long countByShopId(Long shopId) {
-        return shopContentBoardJpaRepository.countByShopId(shopId);
+        Long count = queryFactory
+            .select(shopContentBoardJpaEntity.count())
+            .from(shopContentBoardJpaEntity)
+            .where(shopContentBoardJpaEntity.shopId.eq(shopId))
+            .fetchOne();
+        return count == null ? 0L : count;
     }
 }

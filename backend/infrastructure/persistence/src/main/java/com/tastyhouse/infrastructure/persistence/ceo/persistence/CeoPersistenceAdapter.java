@@ -2,18 +2,23 @@ package com.tastyhouse.infrastructure.persistence.ceo.persistence;
 
 import java.util.Optional;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.ceo.persistence.QCeoJpaEntity.ceoJpaEntity;
+
 @Repository
 class CeoPersistenceAdapter implements CeoPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final CeoJpaRepository ceoJpaRepository;
 
-    public CeoPersistenceAdapter(CeoJpaRepository ceoJpaRepository) {
+    public CeoPersistenceAdapter(JPAQueryFactory queryFactory, CeoJpaRepository ceoJpaRepository) {
+        this.queryFactory = queryFactory;
         this.ceoJpaRepository = ceoJpaRepository;
     }
 
@@ -24,12 +29,20 @@ class CeoPersistenceAdapter implements CeoPersistencePort {
 
     @Override
     public Optional<Ceo> findByUsername(String username) {
-        return ceoJpaRepository.findByUsername(username).map(CeoMapper::toDomain);
+        return Optional.ofNullable(queryFactory
+                .selectFrom(ceoJpaEntity)
+                .where(ceoJpaEntity.username.eq(username))
+                .fetchOne())
+            .map(CeoMapper::toDomain);
     }
 
     @Override
     public boolean existsByUsername(String username) {
-        return ceoJpaRepository.existsByUsername(username);
+        return queryFactory
+            .selectOne()
+            .from(ceoJpaEntity)
+            .where(ceoJpaEntity.username.eq(username))
+            .fetchFirst() != null;
     }
 
     @Override

@@ -28,7 +28,11 @@ class PopularKeywordPersistenceAdapter implements PopularKeywordPersistencePort 
 
     @Override
     public List<PopularKeyword> findActiveOrderByRank() {
-        return jpaRepository.findByVisibleTrueOrderByRankAsc().stream()
+        return queryFactory.selectFrom(popularKeywordJpaEntity)
+            .where(popularKeywordJpaEntity.visible.isTrue())
+            .orderBy(popularKeywordJpaEntity.rank.asc())
+            .fetch()
+            .stream()
             .map(PopularKeywordMapper::toDomain)
             .toList();
     }

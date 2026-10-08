@@ -6,6 +6,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,22 +22,34 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryTipHolidayJpaEntity.shopDeliveryTipHolidayJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryTipRegionJpaEntity.shopDeliveryTipRegionJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryTipScheduleJpaEntity.shopDeliveryTipScheduleJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryTipSettingJpaEntity.shopDeliveryTipSettingJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryTipTierJpaEntity.shopDeliveryTipTierJpaEntity;
+
 @Repository
 class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePort, ShopDeliveryTipRegionLookupPort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopDeliveryTipSettingJpaRepository shopDeliveryTipSettingJpaRepository;
     private final ShopDeliveryTipTierJpaRepository shopDeliveryTipTierJpaRepository;
     private final ShopDeliveryTipRegionJpaRepository shopDeliveryTipRegionJpaRepository;
     private final ShopDeliveryTipScheduleJpaRepository shopDeliveryTipScheduleJpaRepository;
     private final ShopDeliveryTipHolidayJpaRepository shopDeliveryTipHolidayJpaRepository;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public ShopDeliveryTipPersistenceAdapter(
+        JPAQueryFactory queryFactory,
         ShopDeliveryTipSettingJpaRepository shopDeliveryTipSettingJpaRepository,
         ShopDeliveryTipTierJpaRepository shopDeliveryTipTierJpaRepository,
         ShopDeliveryTipRegionJpaRepository shopDeliveryTipRegionJpaRepository,
         ShopDeliveryTipScheduleJpaRepository shopDeliveryTipScheduleJpaRepository,
         ShopDeliveryTipHolidayJpaRepository shopDeliveryTipHolidayJpaRepository
     ) {
+        this.queryFactory = queryFactory;
         this.shopDeliveryTipSettingJpaRepository = shopDeliveryTipSettingJpaRepository;
         this.shopDeliveryTipTierJpaRepository = shopDeliveryTipTierJpaRepository;
         this.shopDeliveryTipRegionJpaRepository = shopDeliveryTipRegionJpaRepository;
@@ -44,8 +59,11 @@ class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePor
 
     @Override
     public Optional<ShopDeliveryTipSetting> findSettingByShopId(ShopId shopId) {
-        return shopDeliveryTipSettingJpaRepository.findByShopId(shopId.value())
-            .map(ShopDeliveryTipMapper::toDomain);
+        ShopDeliveryTipSettingJpaEntity entity = queryFactory
+            .selectFrom(shopDeliveryTipSettingJpaEntity)
+            .where(shopDeliveryTipSettingJpaEntity.shopId.eq(shopId.value()))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ShopDeliveryTipMapper::toDomain);
     }
 
     @Override
@@ -64,7 +82,12 @@ class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePor
 
     @Override
     public List<ShopDeliveryTipTier> findTiersByShopId(ShopId shopId) {
-        return shopDeliveryTipTierJpaRepository.findByShopIdOrderByTierOrderAsc(shopId.value()).stream()
+        return queryFactory
+            .selectFrom(shopDeliveryTipTierJpaEntity)
+            .where(shopDeliveryTipTierJpaEntity.shopId.eq(shopId.value()))
+            .orderBy(shopDeliveryTipTierJpaEntity.tierOrder.asc())
+            .fetch()
+            .stream()
             .map(ShopDeliveryTipMapper::toDomain)
             .toList();
     }
@@ -82,19 +105,33 @@ class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePor
     @Override
     @Transactional
     public void deleteTiersByShopId(ShopId shopId) {
-        shopDeliveryTipTierJpaRepository.deleteByShopId(shopId.value());
+        entityManager.flush();
+        queryFactory
+            .delete(shopDeliveryTipTierJpaEntity)
+            .where(shopDeliveryTipTierJpaEntity.shopId.eq(shopId.value()))
+            .execute();
+        entityManager.clear();
     }
 
     @Override
     public List<ShopDeliveryTipRegion> findRegionTipsByShopId(ShopId shopId) {
-        return shopDeliveryTipRegionJpaRepository.findByShopId(shopId.value()).stream()
+        return queryFactory
+            .selectFrom(shopDeliveryTipRegionJpaEntity)
+            .where(shopDeliveryTipRegionJpaEntity.shopId.eq(shopId.value()))
+            .fetch()
+            .stream()
             .map(ShopDeliveryTipMapper::toDomain)
             .toList();
     }
 
     @Override
     public long countRegionTipsByShopId(ShopId shopId) {
-        return shopDeliveryTipRegionJpaRepository.countByShopId(shopId.value());
+        Long count = queryFactory
+            .select(shopDeliveryTipRegionJpaEntity.count())
+            .from(shopDeliveryTipRegionJpaEntity)
+            .where(shopDeliveryTipRegionJpaEntity.shopId.eq(shopId.value()))
+            .fetchOne();
+        return count == null ? 0L : count;
     }
 
     @Override
@@ -110,12 +147,21 @@ class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePor
     @Override
     @Transactional
     public void deleteRegionTipsByShopId(ShopId shopId) {
-        shopDeliveryTipRegionJpaRepository.deleteByShopId(shopId.value());
+        entityManager.flush();
+        queryFactory
+            .delete(shopDeliveryTipRegionJpaEntity)
+            .where(shopDeliveryTipRegionJpaEntity.shopId.eq(shopId.value()))
+            .execute();
+        entityManager.clear();
     }
 
     @Override
     public List<ShopDeliveryTipSchedule> findScheduleTipsByShopId(ShopId shopId) {
-        return shopDeliveryTipScheduleJpaRepository.findByShopId(shopId.value()).stream()
+        return queryFactory
+            .selectFrom(shopDeliveryTipScheduleJpaEntity)
+            .where(shopDeliveryTipScheduleJpaEntity.shopId.eq(shopId.value()))
+            .fetch()
+            .stream()
             .map(ShopDeliveryTipMapper::toDomain)
             .toList();
     }
@@ -133,13 +179,20 @@ class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePor
     @Override
     @Transactional
     public void deleteScheduleTipsByShopId(ShopId shopId) {
-        shopDeliveryTipScheduleJpaRepository.deleteByShopId(shopId.value());
+        List<ShopDeliveryTipScheduleJpaEntity> rows = queryFactory
+            .selectFrom(shopDeliveryTipScheduleJpaEntity)
+            .where(shopDeliveryTipScheduleJpaEntity.shopId.eq(shopId.value()))
+            .fetch();
+        shopDeliveryTipScheduleJpaRepository.deleteAll(rows);
     }
 
     @Override
     public Optional<ShopDeliveryTipHoliday> findHolidayTipByShopId(ShopId shopId) {
-        return shopDeliveryTipHolidayJpaRepository.findByShopId(shopId.value())
-            .map(ShopDeliveryTipMapper::toDomain);
+        ShopDeliveryTipHolidayJpaEntity entity = queryFactory
+            .selectFrom(shopDeliveryTipHolidayJpaEntity)
+            .where(shopDeliveryTipHolidayJpaEntity.shopId.eq(shopId.value()))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ShopDeliveryTipMapper::toDomain);
     }
 
     @Override
@@ -159,17 +212,34 @@ class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePor
     @Override
     @Transactional
     public void deleteHolidayTipByShopId(ShopId shopId) {
-        shopDeliveryTipHolidayJpaRepository.deleteByShopId(shopId.value());
+        entityManager.flush();
+        queryFactory
+            .delete(shopDeliveryTipHolidayJpaEntity)
+            .where(shopDeliveryTipHolidayJpaEntity.shopId.eq(shopId.value()))
+            .execute();
+        entityManager.clear();
     }
 
     @Override
     public boolean existsRegionTipByShopIdAndAdminDongId(ShopId shopId, AdminDongId adminDongId) {
-        return shopDeliveryTipRegionJpaRepository.existsByShopIdAndAdminDongId(shopId.value(), adminDongId.value());
+        Integer found = queryFactory
+            .selectOne()
+            .from(shopDeliveryTipRegionJpaEntity)
+            .where(
+                shopDeliveryTipRegionJpaEntity.shopId.eq(shopId.value()),
+                shopDeliveryTipRegionJpaEntity.adminDongId.eq(adminDongId.value())
+            )
+            .fetchFirst();
+        return found != null;
     }
 
     @Override
     public Set<AdminDongId> findRegionTipAdminDongIds(ShopId shopId) {
-        return shopDeliveryTipRegionJpaRepository.findByShopId(shopId.value()).stream()
+        return queryFactory
+            .selectFrom(shopDeliveryTipRegionJpaEntity)
+            .where(shopDeliveryTipRegionJpaEntity.shopId.eq(shopId.value()))
+            .fetch()
+            .stream()
             .map(ShopDeliveryTipRegionJpaEntity::getAdminDongId)
             .map(AdminDongId::of)
             .collect(Collectors.toCollection(LinkedHashSet::new));

@@ -6,6 +6,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.region.vo.AdminDongId;
@@ -14,18 +18,33 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
 
+import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryAreaJpaEntity.shopDeliveryAreaJpaEntity;
+
 @Repository
 class ShopDeliveryAreaPersistenceAdapter implements ShopDeliveryAreaPersistencePort {
 
+    private final JPAQueryFactory queryFactory;
     private final ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository;
 
-    public ShopDeliveryAreaPersistenceAdapter(ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository) {
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    public ShopDeliveryAreaPersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository
+    ) {
+        this.queryFactory = queryFactory;
         this.shopDeliveryAreaJpaRepository = shopDeliveryAreaJpaRepository;
     }
 
     @Override
     public List<ShopDeliveryArea> findByShopId(ShopId shopId) {
-        return shopDeliveryAreaJpaRepository.findByShopIdOrderByIdAsc(shopId.value()).stream()
+        return queryFactory
+            .selectFrom(shopDeliveryAreaJpaEntity)
+            .where(shopDeliveryAreaJpaEntity.shopId.eq(shopId.value()))
+            .orderBy(shopDeliveryAreaJpaEntity.id.asc())
+            .fetch()
+            .stream()
             .map(ShopDeliveryAreaMapper::toDomain)
             .toList();
     }
@@ -38,12 +57,25 @@ class ShopDeliveryAreaPersistenceAdapter implements ShopDeliveryAreaPersistenceP
 
     @Override
     public boolean existsByShopIdAndAdminDongId(ShopId shopId, AdminDongId adminDongId) {
-        return shopDeliveryAreaJpaRepository.existsByShopIdAndAdminDongId(shopId.value(), adminDongId.value());
+        Integer found = queryFactory
+            .selectOne()
+            .from(shopDeliveryAreaJpaEntity)
+            .where(
+                shopDeliveryAreaJpaEntity.shopId.eq(shopId.value()),
+                shopDeliveryAreaJpaEntity.adminDongId.eq(adminDongId.value())
+            )
+            .fetchFirst();
+        return found != null;
     }
 
     @Override
     public long countByShopId(ShopId shopId) {
-        return shopDeliveryAreaJpaRepository.countByShopId(shopId.value());
+        Long count = queryFactory
+            .select(shopDeliveryAreaJpaEntity.count())
+            .from(shopDeliveryAreaJpaEntity)
+            .where(shopDeliveryAreaJpaEntity.shopId.eq(shopId.value()))
+            .fetchOne();
+        return count == null ? 0L : count;
     }
 
     @Override
@@ -65,19 +97,44 @@ class ShopDeliveryAreaPersistenceAdapter implements ShopDeliveryAreaPersistenceP
 
     @Override
     public List<ShopDeliveryArea> findByShopIdAndSource(ShopId shopId, DeliveryAreaSource source) {
-        return shopDeliveryAreaJpaRepository.findByShopIdAndSource(shopId.value(), source == null ? null : source.name()).stream()
+        return queryFactory
+            .selectFrom(shopDeliveryAreaJpaEntity)
+            .where(
+                shopDeliveryAreaJpaEntity.shopId.eq(shopId.value()),
+                sourceEq(source)
+            )
+            .fetch()
+            .stream()
             .map(ShopDeliveryAreaMapper::toDomain)
             .toList();
     }
 
     @Override
     public void deleteByShopIdAndSource(ShopId shopId, DeliveryAreaSource source) {
-        shopDeliveryAreaJpaRepository.deleteByShopIdAndSource(shopId.value(), source == null ? null : source.name());
+        entityManager.flush();
+        if (source == null) {
+            entityManager.clear();
+            return;
+        }
+        queryFactory
+            .delete(shopDeliveryAreaJpaEntity)
+            .where(
+                shopDeliveryAreaJpaEntity.shopId.eq(shopId.value()),
+                shopDeliveryAreaJpaEntity.source.eq(source.name())
+            )
+            .execute();
+        entityManager.clear();
     }
 
     @Override
     public Set<AdminDongId> findAdminDongIdsByShopId(ShopId shopId) {
-        return shopDeliveryAreaJpaRepository.findAdminDongIdsByShopId(shopId.value()).stream()
+        return queryFactory
+            .select(shopDeliveryAreaJpaEntity.adminDongId)
+            .from(shopDeliveryAreaJpaEntity)
+            .where(shopDeliveryAreaJpaEntity.shopId.eq(shopId.value()))
+            .orderBy(shopDeliveryAreaJpaEntity.id.asc())
+            .fetch()
+            .stream()
             .map(AdminDongId::of)
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -85,5 +142,11 @@ class ShopDeliveryAreaPersistenceAdapter implements ShopDeliveryAreaPersistenceP
     @Override
     public void deleteById(Long deliveryAreaId) {
         shopDeliveryAreaJpaRepository.deleteById(deliveryAreaId);
+    }
+
+    private BooleanExpression sourceEq(DeliveryAreaSource source) {
+        return source == null
+            ? shopDeliveryAreaJpaEntity.source.isNull()
+            : shopDeliveryAreaJpaEntity.source.eq(source.name());
     }
 }
