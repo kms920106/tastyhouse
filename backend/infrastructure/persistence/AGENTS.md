@@ -107,6 +107,18 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 
 - **도메인당 DAO 1개, 소비자별 메서드 분리**: admin용/web용/ceo용 메서드를 한 DAO에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다(`findAllNotices`=비노출 포함 전체 / `findVisibleNotices`=노출분만). 대형 도메인(`shop` 등, 대략 400줄 초과)만 용도별 DAO 분리를 허용한다.
 - **DAO 1개 : 포트 N개 (챕터 04)**: 계약 쪽은 DAO와 달리 **소비 앱별로 갈린다**. 한 DAO의 public 표면에 여러 앱의 조회가 섞여 있으면 [소비자별 분할 규칙](../../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 포트를 쪼개고 **DAO가 그것을 전부 `implements`** 한다(예: `ShopQueryAdapter implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort`). **DAO 본문은 이 분할로 바뀌지 않는다** — 늘어나는 것은 `implements` 목록뿐이고, `@Override` 개수는 분할 전후가 같아야 한다.
+- **유스케이스 1:1 분리는 read 어댑터에 적용하지 않는다 (유스케이스 분리 후 확정)**: 인바운드는 "포트 하나 = 연산 하나 = 서비스 하나"로 나뉘었지만(`../../application/AGENTS.md`의 "유스케이스 서비스 1:1 규칙 4종" 절), 이 1:1 분리를 `*QueryAdapter`와 아웃바운드 `port.out` 포트로 확장하지 않는다. 어댑터 1개가 포트 N개를 구현하는 위 형태가 그대로 정본이다(예: `infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/product/query/ProductQueryAdapter.java`의 `ProductQueryAdapter`가 포트 4개를 구현).
+
+  | 항목 | 인바운드 (`port.in` UseCase · 서비스) | 아웃바운드 (`port.out` · `*QueryAdapter`) |
+  |---|---|---|
+  | 무엇인가 | 애플리케이션이 외부에 약속하는 **기능 목록** | 애플리케이션이 자기에게 필요한 만큼 선언하는 **요구 계약** + 그 뒤에 숨은 구현 세부 |
+  | 크기 기준 | 연산 1개 (트랜잭션 경계도 유스케이스 단위) | 포트는 **쓰는 쪽 기준(ISP)**, 어댑터는 **응집도**(함께 바뀌는 쿼리 묶음) |
+  | 1:1로 쪼갤 때 얻는 것 | 트랜잭션 속성·주입 의존이 연산별로 분리됨 | **없음** — 어댑터는 무상태 `@Repository`이고 트랜잭션은 서비스가 연다. 의존 방향·포트 계약도 그대로다 |
+  | 1:1로 쪼갤 때 드는 비용 | — | public 조회 메서드 267개(2026-10-08 실측, 생성자 제외)가 어댑터 267개가 되고, 공유 술어·서브쿼리 `Q*` 별칭·SQL 상수(예: `ProductQueryAdapter`의 `exposedNow`·`soldQuantityOf`·`MERGE_CANDIDATE_SQL`)를 다시 모을 헬퍼 클래스가 필요해 응집도가 떨어진다 |
+
+  - **분할은 허용이지 의무가 아니다.** 위 "대략 400줄 초과" 기준을 크게 넘는 어댑터(2026-10-08 실측: `ProductQueryAdapter` 2,016줄 · `ReviewQueryAdapter` 943줄 · `ShopQueryAdapter` 777줄)는 "함께 바뀌는 쿼리 묶음" 단위로 나눌 수 있다. 공유 술어는 같은 패키지의 package-private 클래스로 뽑는다. 메서드 1개 단위로는 나누지 않는다.
+  - **아웃바운드 포트를 나눌 때도 쓰는 쪽 기준이다.** 메서드별로 실제 호출하는 서비스를 실측한 뒤, 서비스가 일부만 쓰는 두꺼운 포트만 나눈다. 함께 쓰이는 조회 묶음은 포트 하나로 둔다. 연산 1개 = 포트 1개까지 내려가지 않는다.
+  - **강제하는 가드를 두지 않는다.** 어댑터 1:1이나 줄 수 상한을 ArchUnit으로 강제하지 않는다. 응집도는 기계로 판정하기 어렵기 때문이다. `LayerRulesTest#queryAdaptersShouldImplementQueryPorts`는 계속 "포트 1개 이상 구현"만 검사한다.
 - **포트에 없는 public 메서드도 있을 수 있다**: application 소비자가 없고 infra 내부에서만 쓰는 조회는 포트에 선언하지 않는다. `MemberReviewCountQueryPort`와 같은 취지이며, `LayerRulesTest#queryAdaptersShouldImplementQueryPorts`는 DAO가 포트를 하나라도 구현하면 통과하므로 이 형태를 막지 않는다. 과거 사례였던 `ShopQueryAdapter#findShopName`은 유일한 소비처 `ReviewOwnerReplyEventListener`가 `application`으로 이동하면서 `ShopBasicInfoQueryPort`에 선언됐다(DAO는 `@Override`만 추가).
 - **Result 접미어는 `Result`로 통일하고 `Dto`는 쓰지 않는다**. admin 전용 Result가 비-admin 형제와 같은 패키지에 공존해 충돌하면 `Management` 한정어를 부여한다(`NoticeManagementListItemResult` vs `NoticeListItemResult`). 필드 셋이 다른 admin/web Result는 통합하지 않는다(과잉 노출 방지). 타입명에 역할 마커 `Admin`은 붙이지 않는다.
 - **write 포트 잔류 판정**: "이 조회가 없으면 불변식 검증이나 상태 전이가 불가능한가?" — 그렇다면 write 포트에 남기고(`findById`/`existsByX`/락 획득용 조회), 화면 조립용이면 이 DAO로 보낸다.

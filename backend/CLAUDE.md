@@ -544,7 +544,7 @@ reference 구현: `order` 도메인의 `OrderQueryService#findOrderDetailById`(�
 
 ## 아웃바운드 포트·어댑터 네이밍 규칙 (`PersistencePort` ↔ `PersistenceAdapter`, `QueryPort` ↔ `QueryAdapter`)
 
-**아웃바운드 포트와 그 구현은 1:1 대칭 이름을 씁니다.** 헥사고날 원칙에 따라 포트는 **목적**(영속·조회)으로, 어댑터는 **역할**로 이름을 짓습니다.
+**아웃바운드 포트와 그 구현은 1:1 대칭 이름을 씁니다.** 헥사고날 원칙에 따라 포트는 **목적**(영속·조회)으로, 어댑터는 **역할**로 이름을 짓습니다. 여기서 1:1은 **이름 짝**(`QueryPort` ↔ `QueryAdapter`) 규칙이지 개수 규칙이 아닙니다. 어댑터 1개가 포트 N개를 구현할 수 있습니다(`infrastructure/persistence/AGENTS.md`의 [`<ctx>/query/` 절](infrastructure/persistence/AGENTS.md#ctxquery--read-어댑터-cqrs-query-측-개정됨--읽기-경로-포트화) "DAO 1개 : 포트 N개" 항목).
 
 전환 전 이름(`XxxRepository`·`XxxRepositoryImpl`·`XxxQueryDao`)은 이 대칭을 표현하지 못했습니다. `Impl`과 `Dao`는 이 클래스가 어떤 포트를 구현하는지 말하지 않고, 인바운드(`adapter/in/web`)나 읽기 포트(`XxxQueryPort`)와 어휘가 갈렸습니다. 그래서 전 도메인을 일괄 전환했습니다.
 
@@ -1948,6 +1948,7 @@ reference 구현: `infrastructure-module/src/test/.../architecture/LayerRulesTes
 >
 > - **도메인 서비스는 명사형, 유스케이스 서비스는 동사형이다** — `PaymentConfirmationService`(도메인) vs `PaymentConfirmService`(유스케이스).
 > - **오버로드는 이름으로 나눈다** — `getPayment(memberId, id)`/`getPayment(id)` → `PaymentDetailQueryUseCase`/`PaymentDetailByIdQueryUseCase`.
+> - **유스케이스 1:1 분리(포트당 연산 1개·서비스 1개)는 인바운드(`port.in` UseCase·서비스)에만 적용한다** — 아웃바운드 `port.out`과 persistence `*QueryAdapter`는 대상이 아니다. 포트는 쓰는 쪽 기준(ISP)으로, 어댑터는 응집도로 크기를 정한다. 근거는 `infrastructure/persistence/AGENTS.md`의 [`<ctx>/query/` 절](infrastructure/persistence/AGENTS.md#ctxquery--read-어댑터-cqrs-query-측-개정됨--읽기-경로-포트화) "유스케이스 1:1 분리는 read 어댑터에 적용하지 않는다" 항목에 있다.
 > - reference: `backend/web-application/src/main/java/com/tastyhouse/application/payment/service/` 10개 서비스와 `backend/web-api/src/main/java/com/tastyhouse/webapi/payment/adapter/in/web/PaymentApiController.java`.
 >
 > **이 절의 나머지 본문(아래)은 도메인당 서비스 한 쌍 시절의 기록이다.** "`{도메인}CommandService`/`{도메인}QueryService`"는 "명령 유스케이스 서비스 / 조회 유스케이스 서비스"로, "`{도메인}CommandUseCase`/`{도메인}QueryUseCase`"는 연산별 포트로 읽는다. 트랜잭션 속성·교차 주입 금지·명령은 식별자만 반환 같은 규칙 자체는 그대로 유효하다. 1:1 규칙의 근거는 `backend/application/AGENTS.md`의 "유스케이스 서비스 1:1 규칙 4종" 항목에 있다.

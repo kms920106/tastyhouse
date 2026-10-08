@@ -815,6 +815,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 - **`allowEmptyShould`를 쓰지 않고, 위반은 손으로 모아 한 번에 보고한다**(`assertThat(violations).isEmpty()`).
 - **반증**: 네 규칙 모두 위반 probe(포트 2개를 구현하는 임시 클래스, 추상 메서드 2개짜리 포트, 포트와 이름이 다른 서비스, public 메서드 2개짜리 서비스)로 실패를 확인하고 probe를 지웠다.
 - **이 규칙이 생긴 김에 함께 바뀐 이름**: ceo 도메인 서비스 `ShopRequestCancelService`(요청 유형별 취소 분기)를 `ShopRequestCancellationService`로 개명했다(`backend/ceo-application/src/main/java/com/tastyhouse/application/shop/service/ShopRequestCancellationService.java`, 테스트 `ShopRequestCancellationServiceTest`). 유스케이스 `cancelRequest`의 서비스 이름이 `ShopRequestCancelService`가 되어 완전히 같은 이름이 생기기 때문이다 — **도메인 서비스는 명사형, 유스케이스 서비스는 동사형**으로 구분한다. `ServiceContextBoundaryTest.SEALED_VIOLATIONS`의 해당 FQN도 함께 바뀌었고 항목 수는 그대로다.
+- **적용 범위 — 인바운드에만**: 유스케이스 1:1 분리(포트당 연산 1개·서비스 1개)는 `port.in` UseCase와 그 구현 서비스에만 적용한다. 네 규칙이 판정하는 것도 `port.in`뿐이다. 아웃바운드 `port.out` 포트와 persistence `*QueryAdapter`는 대상이 아니다 — 포트는 쓰는 쪽 기준(ISP)으로, 어댑터는 응집도로 크기를 정하고, 어댑터 1개가 포트 N개를 구현하는 형태를 유지한다. 근거는 `../infrastructure/persistence/AGENTS.md`의 [`<ctx>/query/` 절](../infrastructure/persistence/AGENTS.md#ctxquery--read-어댑터-cqrs-query-측-개정됨--읽기-경로-포트화) "유스케이스 1:1 분리는 read 어댑터에 적용하지 않는다" 항목에 있다.
 
 ### `queryServicesShouldNotDependOnWritePorts` carve-out 3건 — 목록에 새 항목을 추가하지 않는다
 
