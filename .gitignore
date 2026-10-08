@@ -28,3 +28,7 @@ docs/tasks/*
 
 # 개별 TODO 파일은 커밋하지 않음
 TODO.md
+
+# 프로젝트 리뷰 문서는 커밋하지 않음
+REVIEW-BACKEND.md
+REVIEW-FRONTEND.md
