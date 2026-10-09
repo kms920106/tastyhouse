@@ -111,7 +111,7 @@ class LayerRulesTest {
     @Test
     void loadPortsShouldOnlyQuery() {
         List<String> violations = writePortMethods("LoadPort").stream()
-            .filter(method -> !startsWithAny(method.getName(), LOAD_PREFIXES))
+            .filter(method -> startsWithNone(method.getName(), LOAD_PREFIXES))
             .map(JavaMethod::getFullName)
             .sorted()
             .toList();
@@ -125,7 +125,7 @@ class LayerRulesTest {
     @Test
     void savePortsShouldOnlyMutate() {
         List<String> violations = writePortMethods("SavePort").stream()
-            .filter(method -> !startsWithAny(method.getName(), SAVE_PREFIXES))
+            .filter(method -> startsWithNone(method.getName(), SAVE_PREFIXES))
             .map(JavaMethod::getFullName)
             .sorted()
             .toList();
@@ -144,8 +144,8 @@ class LayerRulesTest {
             .toList();
     }
 
-    private static boolean startsWithAny(String name, List<String> prefixes) {
-        return prefixes.stream().anyMatch(name::startsWith);
+    private static boolean startsWithNone(String name, List<String> prefixes) {
+        return prefixes.stream().noneMatch(name::startsWith);
     }
 
     @Test
