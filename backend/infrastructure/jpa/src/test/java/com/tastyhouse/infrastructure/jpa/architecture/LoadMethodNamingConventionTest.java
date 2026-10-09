@@ -21,7 +21,7 @@ class LoadMethodNamingConventionTest {
         Path.of("src/main/java/com/tastyhouse/infrastructure/jpa");
 
     private static final Pattern PUBLIC_METHOD =
-        Pattern.compile("^    public [^\\n(=]+? (\\w+)\\([^)]*\\)[^{;]*\\{", Pattern.MULTILINE);
+        Pattern.compile("^ {4}public [^\\n(=]+? (\\w+)\\([^)]*\\)[^{;]*\\{", Pattern.MULTILINE);
 
     private static final Pattern IMPLICIT_FILTER =
         Pattern.compile("\\b\\w+JpaEntity\\.(?:deleted\\.(?:isFalse\\(\\)|eq\\(false\\))|active\\.(?:isTrue\\(\\)|eq\\(true\\)))");
