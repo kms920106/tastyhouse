@@ -17,7 +17,3 @@ persistence:
   banner:
     write:
       provider: ${BANNER_WRITE_PROVIDER:jpa}
-
-logging:
-  level:
-    p6spy: INFO

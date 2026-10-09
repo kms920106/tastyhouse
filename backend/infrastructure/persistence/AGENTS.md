@@ -17,7 +17,7 @@ DB 영속 계층을 **한 벌로 묶어 앱에 노출하는 조립 모듈(스타
 |---|---|---|
 | 자바 코드 | JPA 엔티티·어댑터·조회 DAO·가드 테스트 전부 | **없음** (테스트·ArchUnit도 없음) |
 | `build.gradle` 의존 | `:domain`·`:application`·`spring-boot-starter-data-jpa`·QueryDSL·`mysql-connector-j` | **`runtimeOnly project(':infrastructure:jpa')` + `runtimeOnly 'com.mysql:mysql-connector-j'` 두 줄** |
-| `application-infrastructure.yml` | datasource + `spring.jpa.*` + provider 키 + 로그 레벨 한 벌 | datasource·`spring.sql.init`·provider 키·p6spy 로그 + `application-jpa.yml` import (`spring.jpa.*`는 jpa 모듈로) |
+| `application-infrastructure.yml` | datasource + `spring.jpa.*` + provider 키 + 로그 레벨 한 벌 | datasource·`spring.sql.init`·provider 키 + `application-jpa.yml` import (`spring.jpa.*`는 jpa 모듈로) |
 | 자바 패키지 | `com.tastyhouse.infrastructure.persistence..` | 없음 — 코드가 `com.tastyhouse.infrastructure.jpa..`로 갔다 |
 | 앱 4개(web·admin·ceo·batch) | `runtimeOnly project(':infrastructure:persistence')` + `classpath:application-infrastructure.yml` import | **불변** — 동작도 불변 |
 
@@ -43,7 +43,6 @@ backend/infrastructure/persistence/
 | `spring.datasource.driver-class-name` | `com.mysql.cj.jdbc.Driver` | MySQL 드라이버 |
 | `spring.sql.init.mode` | `always` | 기동 시 SQL 초기화 스크립트 실행 |
 | `persistence.banner.write.provider` | `${BANNER_WRITE_PROVIDER:jpa}` | banner 쓰기 구현 선택(`jpa`·`mybatis`) |
-| `logging.level.p6spy` | `INFO` | SQL 로그 |
 
 ## 왜 드라이버·datasource·provider 키를 여기 두나
 

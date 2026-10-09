@@ -11,7 +11,7 @@
 > |---|---|---|
 > | JPA 코드 위치 | `infrastructure:persistence` / `com.tastyhouse.infrastructure.persistence..` | `infrastructure:jpa` / `com.tastyhouse.infrastructure.jpa..` (하위 `<ctx>/persistence`·`<ctx>/query`·`config`·`shared.*` 불변) |
 > | `infrastructure:persistence` | driven 어댑터(JPA 코드 전부) | 조립 모듈 — jpa + MySQL 드라이버를 `runtimeOnly`로 묶음 |
-> | 설정 yml | `application-infrastructure.yml` 한 벌 | `application-infrastructure.yml`(persistence: datasource·`spring.sql.init`·`persistence.banner.write.provider`·p6spy, `application-jpa.yml` import) + `application-jpa.yml`(jpa: `spring.jpa.*`·hibernate 로그) |
+> | 설정 yml | `application-infrastructure.yml` 한 벌 | `application-infrastructure.yml`(persistence: datasource·`spring.sql.init`·`persistence.banner.write.provider`, `application-jpa.yml` import) + `application-jpa.yml`(jpa: `spring.jpa.*`·hibernate 로그) |
 > | 동작 | — | 변경 없음 |
 >
 > 아래 본문에서 **엔티티·어댑터·조회 DAO·`LayerRulesTest` 등 JPA 코드의 소재로 `infrastructure:persistence`(또는 경로 `infrastructure/persistence/`)를 가리키는 서술은 `infrastructure:jpa`로 읽는다.** 이번에 직접 고친 곳은 현행 규칙이 바뀐 지점(모듈 지도·패키지 규칙·인벤토리·가드 경로·링크)뿐이고, 과거 시점 서술(챕터 기록, `~~취소선~~`, 접근 제어자 854개 수행 기록 등)은 그대로 두었다. 상세는 `infrastructure/jpa/AGENTS.md`·`infrastructure/jpa/AGENTS.md`.

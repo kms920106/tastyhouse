@@ -9,7 +9,7 @@
 > | Gradle 좌표 / 디렉터리 | `:infrastructure:persistence` / `backend/infrastructure/persistence/` | **`:infrastructure:jpa` / `backend/infrastructure/jpa/`** |
 > | 자바 패키지 루트 | `com.tastyhouse.infrastructure.persistence..` | **`com.tastyhouse.infrastructure.jpa..`** — 하위 `<ctx>/persistence`·`<ctx>/query`·`config`·`shared.*` 구조는 불변 |
 > | 진입 설정 클래스 | `InfrastructurePersistenceConfig` | **`JpaModuleConfig`**(애노테이션·package-private 동일) |
-> | 설정 yml | `application-infrastructure.yml` 한 벌(datasource + `spring.jpa.*` + provider 키) | **`application-jpa.yml`**(이 모듈 — `spring.jpa.*`·hibernate 로그 레벨) + `application-infrastructure.yml`(persistence 조립 모듈 — datasource·`spring.sql.init`·provider 키·p6spy 로그, `application-jpa.yml`을 import) |
+> | 설정 yml | `application-infrastructure.yml` 한 벌(datasource + `spring.jpa.*` + provider 키) | **`application-jpa.yml`**(이 모듈 — `spring.jpa.*`·hibernate 로그 레벨) + `application-infrastructure.yml`(persistence 조립 모듈 — datasource·`spring.sql.init`·provider 키, `application-jpa.yml`을 import) |
 > | MySQL 드라이버 | 이 모듈 `runtimeOnly` | **persistence 조립 모듈**이 소유(JPA·MyBatis 공용) |
 > | 앱 4개 의존 | `runtimeOnly ':infrastructure:persistence'` | **불변** — persistence가 이 모듈을 `runtimeOnly`로 묶는다 |
 >
@@ -270,7 +270,7 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 > | 파일 | 소유 모듈 | 키 |
 > |---|---|---|
 > | `application-jpa.yml` | **이 모듈** (`backend/infrastructure/jpa/src/main/resources/`) | `spring.jpa.hibernate.ddl-auto: validate`·`spring.jpa.hibernate.naming.physical-strategy`·`spring.jpa.properties.hibernate.format_sql`/`show_sql`·`spring.jpa.open-in-view: false`·`logging.level.org.hibernate.SQL`/`org.hibernate.orm.jdbc.bind` |
-> | `application-infrastructure.yml` | 조립 모듈 `infrastructure:persistence` (`backend/infrastructure/persistence/src/main/resources/`) | `spring.config.import: classpath:application-jpa.yml`·`spring.datasource.*`(URL·계정·`com.mysql.cj.jdbc.Driver`)·`spring.sql.init.mode`·`persistence.banner.write.provider`·`logging.level.p6spy` |
+> | `application-infrastructure.yml` | 조립 모듈 `infrastructure:persistence` (`backend/infrastructure/persistence/src/main/resources/`) | `spring.config.import: classpath:application-jpa.yml`·`spring.datasource.*`(URL·계정·`com.mysql.cj.jdbc.Driver`)·`spring.sql.init.mode`·`persistence.banner.write.provider` |
 >
 > 나눈 기준: JPA를 쓸 때만 의미 있는 키는 JPA 구현 모듈이, JPA·MyBatis가 함께 쓰는 DB 접속(datasource·드라이버)과 구현 선택 스위치는 조립 모듈이 갖는다. 아래 문단은 분리 전 서술이며 "이 모듈의 `application-infrastructure.yml`"은 지금 persistence 조립 모듈의 파일로 읽는다.
 

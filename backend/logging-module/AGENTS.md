@@ -52,7 +52,7 @@ dependencies {
 
 - **소유 항목**: 콘솔 로그 패턴(`requestId` MDC 포함), `root: INFO`, `com.tastyhouse.logging: ${API_BODY_LOG_LEVEL:DEBUG}`, p6spy 로그 포맷(`decorator.datasource.p6spy.log-format: "%(sql)"`).
 - **spy.properties 폐지**: 과거 `appender=Slf4JLogger`/`logMessageFormat=CustomLineFormat`/`customLogMessageFormat=%(sql)` 4줄을 `p6spy-spring-boot-starter`의 `decorator.datasource.p6spy.log-format` 프로퍼티로 흡수했다(appender는 starter 기본값이 Slf4JLogger라 생략, dateformat은 `%(sql)` 포맷에서 미사용). 동작은 동일하다.
-- **로딩 방법**: 실행 모듈 `application.yml`의 `spring.config.import`에 `classpath:application-logging.yml`을 추가한다(현재 web/admin/ceo-api 적용). `application-infrastructure.yml`(`p6spy`)과 그것이 import하는 `application-jpa.yml`(`org.hibernate.SQL`·`org.hibernate.orm.jdbc.bind`)도 `logging.level`을 갖지만 키가 서로 달라 병합되므로 import 순서와 무관하다.
+- **로딩 방법**: 실행 모듈 `application.yml`의 `spring.config.import`에 `classpath:application-logging.yml`을 추가한다(현재 web/admin/ceo-api 적용). `application-infrastructure.yml`이 import하는 `application-jpa.yml`(`org.hibernate.SQL`·`org.hibernate.orm.jdbc.bind`)도 `logging.level`을 갖지만 키가 서로 달라 병합되므로 import 순서와 무관하다. `p6spy` 로거(SQL 로그)는 별도 레벨 없이 `root: INFO`를 상속한다(persistence의 `logging.level.p6spy: INFO`는 root와 같은 값이라 삭제했다).
 - **batch-module은 대상 아님**: batch는 HTTP 요청이 없어 requestId 패턴·p6spy가 불필요하므로 `application-logging.yml`을 import하지 않고 자체 `logging:` 블록을 유지한다. 다만 `logging-module`을 의존하면 아래 p6spy `api` 노출이 전이되므로, `batch-module/build.gradle`은 `implementation(project(':logging-module')) { exclude ... p6spy-spring-boot-starter }`로 전이를 차단해 기존(SQL 로그 없음) 동작을 보존한다.
 
 ## Dependencies
