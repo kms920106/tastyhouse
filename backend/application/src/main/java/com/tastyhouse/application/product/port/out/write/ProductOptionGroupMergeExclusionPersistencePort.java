@@ -1,6 +1,5 @@
 package com.tastyhouse.application.product.port.out.write;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeExclusion;
@@ -14,6 +13,4 @@ public interface ProductOptionGroupMergeExclusionPersistencePort {
         ShopId shopId,
         String groupSignature
     );
-
-    List<ProductOptionGroupMergeExclusion> findAllByShopId(ShopId shopId);
 }

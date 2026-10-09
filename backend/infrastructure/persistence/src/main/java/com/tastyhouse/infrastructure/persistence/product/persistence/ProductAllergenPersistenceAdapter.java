@@ -30,20 +30,6 @@ class ProductAllergenPersistenceAdapter implements ProductAllergenPersistencePor
     }
 
     @Override
-    public List<ProductAllergen> findAllByProductId(ProductId productId) {
-        if (productId == null) {
-            return List.of();
-        }
-        return queryFactory
-            .selectFrom(productAllergenJpaEntity)
-            .where(productAllergenJpaEntity.productId.eq(productId.value()))
-            .fetch()
-            .stream()
-            .map(ProductAllergenMapper::toDomain)
-            .toList();
-    }
-
-    @Override
     public List<ProductAllergen> saveAll(List<ProductAllergen> productAllergens) {
         List<ProductAllergenJpaEntity> entities = productAllergens.stream()
             .map(ProductAllergenMapper::toEntity)

@@ -321,7 +321,6 @@ class MemberDeliveryAddressServiceTest {
             return Optional.ofNullable(store.get(addressId));
         }
 
-        @Override
         public List<MemberDeliveryAddress> findByMemberId(MemberId memberId) {
             List<MemberDeliveryAddress> found = new ArrayList<>();
             for (MemberDeliveryAddress address : store.values()) {

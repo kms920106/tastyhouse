@@ -41,6 +41,10 @@ public interface ProductOwnerQueryPort {
 
     Optional<ProductExposurePeriodResult> findExposurePeriod(Long productId);
 
+    List<ProductExposureHourResult> findExposureHours(Long productId);
+
+    List<ProductOwnerPriceView> findPrices(Long productId);
+
     Optional<ProductNutritionResult> findNutrition(Long productId);
 
     List<String> findAllergenTypes(Long productId);

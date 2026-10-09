@@ -56,16 +56,6 @@ class StorePriceVerificationPersistenceAdapter implements StorePriceVerification
     }
 
     @Override
-    public Optional<StorePriceVerification> findLatestByShopId(ShopId shopId) {
-        StorePriceVerificationJpaEntity entity = queryFactory
-            .selectFrom(storePriceVerificationJpaEntity)
-            .where(storePriceVerificationJpaEntity.shopId.eq(shopId.value()))
-            .orderBy(storePriceVerificationJpaEntity.id.desc())
-            .fetchFirst();
-        return Optional.ofNullable(entity).map(StorePriceVerificationMapper::toDomain);
-    }
-
-    @Override
     public boolean existsByShopIdAndStatusIn(ShopId shopId, List<StorePriceVerificationStatus> statuses) {
         if (statuses == null || statuses.isEmpty()) {
             return false;

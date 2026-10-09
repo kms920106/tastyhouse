@@ -137,7 +137,7 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
 | `QueryResultRecordVisibilityTest` | Result record가 package-private인 것 | `Projections.constructor`가 `Class<?>`를 받아 리플렉션으로 찾는다 |
 | `ProjectionConstructorMatchingTest` | select 절 인자 개수 ≠ 생성자 파라미터 개수 | 가변인자 `Expression<?>...`라 개수가 어긋나도 통과한다 |
 
-**`public` record 강제의 근거는 실제 장애다.** `ShopRiderGuidePickupPresenceResult`가 "DAO 내부에서만 쓰는 중간 투영이니 노출을 좁힌다"는 의도로 package-private으로 선언되어, admin "라이더 안내 검수" 목록 조회(`GET /api/shops/v1/rider-guides`)가 **전부 500**으로 실패했다. 같은 패키지의 다른 Result record 30여 개는 모두 `public`이라 이 한 건만 어긋난 상태였고, 빌드·리뷰 어디에서도 걸리지 않아 브라우저 검증 단계에서야 발견됐다. 실패 형태는 아래와 같다.
+**`public` record 강제의 근거는 실제 장애다.** `ShopRiderGuidePickupPresenceResult`가 "DAO 내부에서만 쓰는 중간 투영이니 노출을 좁힌다"는 의도로 package-private으로 선언되어, admin "라이더 안내 검수" 목록 조회(`GET /api/shops/v1/rider-guides`)가 **전부 500**으로 실패했다. 같은 패키지의 다른 Result record 30여 개는 모두 `public`이라 이 한 건만 어긋난 상태였고, 빌드·리뷰 어디에서도 걸리지 않아 브라우저 검증 단계에서야 발견됐다. 실패 형태는 아래와 같다(당시 예외 메시지 원문이라 패키지 루트 통일 전 패키지명이 그대로 남아 있다).
 
 ```
 com.querydsl.core.types.ExpressionException: No constructor found for class

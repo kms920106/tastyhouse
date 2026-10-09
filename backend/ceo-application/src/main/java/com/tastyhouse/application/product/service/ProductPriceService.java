@@ -43,11 +43,6 @@ public class ProductPriceService {
         this.storePriceVerificationPort = storePriceVerificationPort;
     }
 
-    public List<ProductPrice> findPrices(ShopId shopId, ProductId productId) {
-        loadOwnedProduct(shopId, productId);
-        return productPricePersistencePort.findAllByProductId(productId);
-    }
-
     public void replacePrices(
         ShopId shopId,
         ProductId productId,

@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.persistence.ceo.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -31,18 +30,6 @@ class CeoReplyPhrasePersistenceAdapter implements CeoReplyPhrasePersistencePort 
     public Optional<CeoReplyPhrase> findById(CeoReplyPhraseId ceoReplyPhraseId) {
         return ceoReplyPhraseJpaRepository.findById(ceoReplyPhraseId.value())
             .map(CeoReplyPhraseMapper::toDomain);
-    }
-
-    @Override
-    public List<CeoReplyPhrase> findAllByCeoId(CeoId ceoId) {
-        return queryFactory
-            .selectFrom(ceoReplyPhraseJpaEntity)
-            .where(ceoReplyPhraseJpaEntity.ceoId.eq(ceoId.value()))
-            .orderBy(ceoReplyPhraseJpaEntity.sort.asc(), ceoReplyPhraseJpaEntity.id.asc())
-            .fetch()
-            .stream()
-            .map(CeoReplyPhraseMapper::toDomain)
-            .toList();
     }
 
     @Override

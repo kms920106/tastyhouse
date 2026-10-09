@@ -44,7 +44,6 @@ class CeoReplyPhraseServiceTest {
             return Optional.ofNullable(phrases.get(ceoReplyPhraseId.value()));
         }
 
-        @Override
         public List<CeoReplyPhrase> findAllByCeoId(CeoId ceoId) {
             return phrases.values().stream()
                 .filter(phrase -> phrase.getCeoId().equals(ceoId))

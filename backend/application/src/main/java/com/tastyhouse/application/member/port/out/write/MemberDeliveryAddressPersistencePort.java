@@ -1,6 +1,5 @@
 package com.tastyhouse.application.member.port.out.write;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
@@ -9,8 +8,6 @@ import com.tastyhouse.domain.member.vo.MemberId;
 public interface MemberDeliveryAddressPersistencePort {
 
     Optional<MemberDeliveryAddress> findById(Long addressId);
-
-    List<MemberDeliveryAddress> findByMemberId(MemberId memberId);
 
     long countByMemberId(MemberId memberId);
 

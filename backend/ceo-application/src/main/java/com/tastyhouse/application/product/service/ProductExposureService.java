@@ -82,10 +82,6 @@ public class ProductExposureService {
         ));
     }
 
-    public List<ProductExposureHour> findHours(ProductId productId) {
-        return productExposureHourPersistencePort.findAllByProductId(productId);
-    }
-
     private void validateDayTypes(List<ProductExposureHour> hours) {
         if (hours == null || hours.isEmpty()) {
             return;

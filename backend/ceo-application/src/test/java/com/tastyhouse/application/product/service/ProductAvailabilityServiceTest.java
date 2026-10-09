@@ -650,36 +650,6 @@ class ProductAvailabilityServiceTest {
         }
 
         @Override
-        public List<ProductCommonOptionGroupLink> findAllByOptionGroupId(ProductOptionGroupId optionGroupId) {
-            return links.stream()
-                .filter(link -> link.getOptionGroupId().equals(optionGroupId))
-                .toList();
-        }
-
-        @Override
-        public List<ProductCommonOptionGroupLink> findAllByProductId(ProductId productId) {
-            return links.stream()
-                .filter(link -> link.getProductId().equals(productId))
-                .toList();
-        }
-
-        @Override
-        public Optional<ProductCommonOptionGroupLink> findByProductIdAndOptionGroupId(
-            ProductId productId,
-            ProductOptionGroupId optionGroupId
-        ) {
-            return links.stream()
-                .filter(link -> link.getProductId().equals(productId)
-                    && link.getOptionGroupId().equals(optionGroupId))
-                .findFirst();
-        }
-
-        @Override
-        public boolean existsByProductIdAndOptionGroupId(ProductId productId, ProductOptionGroupId optionGroupId) {
-            return findByProductIdAndOptionGroupId(productId, optionGroupId).isPresent();
-        }
-
-        @Override
         public ProductCommonOptionGroupLink save(ProductCommonOptionGroupLink link) {
             return link;
         }

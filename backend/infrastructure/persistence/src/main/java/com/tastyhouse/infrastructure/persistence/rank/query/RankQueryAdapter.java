@@ -109,6 +109,21 @@ class RankQueryAdapter implements RankQueryPort, RankManagementQueryPort {
     }
 
     @Override
+    public Optional<Integer> findLatestReviewCount(Long memberId, String rankType) {
+        Integer result = queryFactory
+            .select(memberReviewRankJpaEntity.reviewCount)
+            .from(memberReviewRankJpaEntity)
+            .where(
+                memberReviewRankJpaEntity.memberId.eq(memberId),
+                memberReviewRankJpaEntity.rankType.eq(rankType)
+            )
+            .orderBy(memberReviewRankJpaEntity.baseDate.desc())
+            .fetchFirst();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
     public List<RankPeriodResult> findAllPeriods() {
         return queryFactory
             .select(rankPeriodProjection())

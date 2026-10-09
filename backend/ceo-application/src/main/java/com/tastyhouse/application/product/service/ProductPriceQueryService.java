@@ -5,24 +5,25 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductPriceQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductOwnerPriceView;
+import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
 class ProductPriceQueryService implements ProductPriceQueryUseCase {
 
-    private final ProductPriceService productPriceService;
+    private final ProductOwnerQueryPort productOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductPriceQueryService(
-        ProductPriceService productPriceService,
+        ProductOwnerQueryPort productOwnerQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productPriceService = productPriceService;
+        this.productOwnerQueryPort = productOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -30,16 +31,14 @@ class ProductPriceQueryService implements ProductPriceQueryUseCase {
     public List<ProductOwnerPriceView> getPrices(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return productPriceService.findPrices(ShopId.of(shopId), ProductId.of(productId)).stream()
-            .map(price -> new ProductOwnerPriceView(
-                price.getId(),
-                price.getPriceName(),
-                price.getDeliveryPrice(),
-                price.getStorePrice(),
-                price.getPickupPrice(),
-                price.getSort()
-            ))
-            .toList();
+        boolean ownedProduct = productOwnerQueryPort.findExposurePeriod(productId)
+            .map(period -> period.shopId().equals(shopId))
+            .orElse(false);
+        if (!ownedProduct) {
+            throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        return productOwnerQueryPort.findPrices(productId);
     }
 
 }

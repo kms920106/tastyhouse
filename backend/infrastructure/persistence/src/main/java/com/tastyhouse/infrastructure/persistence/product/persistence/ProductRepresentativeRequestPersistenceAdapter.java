@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.persistence.product.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -50,17 +49,6 @@ class ProductRepresentativeRequestPersistenceAdapter implements ProductRepresent
     public Optional<ProductRepresentativeRequest> findById(ProductRepresentativeRequestId id) {
         return productRepresentativeRequestJpaRepository.findById(id.value())
             .map(ProductRepresentativeRequestMapper::toDomain);
-    }
-
-    @Override
-    public List<ProductRepresentativeRequest> findAllByProductId(ProductId productId) {
-        return queryFactory
-            .selectFrom(productRepresentativeRequestJpaEntity)
-            .where(productRepresentativeRequestJpaEntity.productId.eq(productId.value()))
-            .fetch()
-            .stream()
-            .map(ProductRepresentativeRequestMapper::toDomain)
-            .toList();
     }
 
     @Override

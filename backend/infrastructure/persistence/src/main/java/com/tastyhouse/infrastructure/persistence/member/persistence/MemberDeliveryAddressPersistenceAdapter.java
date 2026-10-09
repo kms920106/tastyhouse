@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.persistence.member.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -26,17 +25,6 @@ class MemberDeliveryAddressPersistenceAdapter implements MemberDeliveryAddressPe
     @Override
     public Optional<MemberDeliveryAddress> findById(Long addressId) {
         return memberDeliveryAddressJpaRepository.findById(addressId).map(MemberDeliveryAddressMapper::toDomain);
-    }
-
-    @Override
-    public List<MemberDeliveryAddress> findByMemberId(MemberId memberId) {
-        return queryFactory.selectFrom(memberDeliveryAddressJpaEntity)
-            .where(memberDeliveryAddressJpaEntity.memberId.eq(memberId.value()))
-            .orderBy(memberDeliveryAddressJpaEntity.id.asc())
-            .fetch()
-            .stream()
-            .map(MemberDeliveryAddressMapper::toDomain)
-            .toList();
     }
 
     @Override

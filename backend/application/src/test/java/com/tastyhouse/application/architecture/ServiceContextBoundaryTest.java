@@ -40,7 +40,6 @@ class ServiceContextBoundaryTest {
         "com.tastyhouse.application.auth.service.kakao.KakaoSocialLoginService",
         "com.tastyhouse.application.auth.service.naver.NaverSocialLoginService",
         "com.tastyhouse.application.member.service.MemberAuthService",
-        "com.tastyhouse.application.member.service.MemberGradeService",
         "com.tastyhouse.application.member.service.MemberReviewService",
         "com.tastyhouse.application.member.service.MemberShopService",
         "com.tastyhouse.application.payment.service.PaymentCancellationExecutor",

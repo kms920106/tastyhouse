@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.persistence.product.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -47,17 +46,6 @@ class ProductVegetarianRequestPersistenceAdapter implements ProductVegetarianReq
     public Optional<ProductVegetarianRequest> findById(ProductVegetarianRequestId id) {
         return productVegetarianRequestJpaRepository.findById(id.value())
             .map(ProductVegetarianRequestMapper::toDomain);
-    }
-
-    @Override
-    public List<ProductVegetarianRequest> findAllByProductId(ProductId productId) {
-        return queryFactory
-            .selectFrom(productVegetarianRequestJpaEntity)
-            .where(productVegetarianRequestJpaEntity.productId.eq(productId.value()))
-            .fetch()
-            .stream()
-            .map(ProductVegetarianRequestMapper::toDomain)
-            .toList();
     }
 
     @Override

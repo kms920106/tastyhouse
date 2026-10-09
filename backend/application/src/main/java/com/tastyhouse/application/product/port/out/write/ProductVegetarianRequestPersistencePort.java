@@ -1,6 +1,5 @@
 package com.tastyhouse.application.product.port.out.write;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.domain.product.model.ProductVegetarianRequest;
@@ -13,8 +12,6 @@ public interface ProductVegetarianRequestPersistencePort {
     ProductVegetarianRequest save(ProductVegetarianRequest request);
 
     Optional<ProductVegetarianRequest> findById(ProductVegetarianRequestId id);
-
-    List<ProductVegetarianRequest> findAllByProductId(ProductId productId);
 
     boolean existsByProductIdAndStatus(ProductId productId, ApprovalStatus status);
 }

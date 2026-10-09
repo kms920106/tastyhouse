@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.product.port.out.StorePriceVerificationItemResult;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationListItemResult;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationOwnerLatestResult;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationOwnerQueryPort;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationQueryPort;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -24,7 +26,7 @@ import static com.tastyhouse.infrastructure.persistence.product.persistence.QSto
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopJpaEntity.shopJpaEntity;
 
 @Repository
-class StorePriceVerificationQueryAdapter implements StorePriceVerificationQueryPort {
+class StorePriceVerificationQueryAdapter implements StorePriceVerificationQueryPort, StorePriceVerificationOwnerQueryPort {
 
     private final JPAQueryFactory queryFactory;
     private final FileUrlResolver fileUrlResolver;
@@ -32,6 +34,21 @@ class StorePriceVerificationQueryAdapter implements StorePriceVerificationQueryP
     public StorePriceVerificationQueryAdapter(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
         this.queryFactory = queryFactory;
         this.fileUrlResolver = fileUrlResolver;
+    }
+
+    @Override
+    public Optional<StorePriceVerificationOwnerLatestResult> findLatestByShopId(Long shopId) {
+        StorePriceVerificationOwnerLatestResult result = queryFactory
+            .select(Projections.constructor(StorePriceVerificationOwnerLatestResult.class,
+                storePriceVerificationJpaEntity.id,
+                storePriceVerificationJpaEntity.status,
+                storePriceVerificationJpaEntity.rejectReason
+            ))
+            .from(storePriceVerificationJpaEntity)
+            .where(storePriceVerificationJpaEntity.shopId.eq(shopId))
+            .orderBy(storePriceVerificationJpaEntity.id.desc())
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     @Override

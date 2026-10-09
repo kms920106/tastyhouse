@@ -13,4 +13,6 @@ public interface RankQueryPort {
     List<MemberRankResult> findMemberRanks(String rankType, LocalDate baseDate, int limit);
 
     Optional<MemberRankResult> findMemberRank(Long memberId, String rankType, LocalDate baseDate);
+
+    Optional<Integer> findLatestReviewCount(Long memberId, String rankType);
 }

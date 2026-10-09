@@ -7,8 +7,6 @@ import com.tastyhouse.domain.product.vo.ProductId;
 
 public interface ProductAllergenPersistencePort {
 
-    List<ProductAllergen> findAllByProductId(ProductId productId);
-
     List<ProductAllergen> saveAll(List<ProductAllergen> productAllergens);
 
     void deleteAllByProductId(ProductId productId);

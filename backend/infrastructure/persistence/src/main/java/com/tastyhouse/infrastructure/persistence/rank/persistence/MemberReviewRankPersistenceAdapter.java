@@ -2,13 +2,11 @@ package com.tastyhouse.infrastructure.persistence.rank.persistence;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.application.rank.port.out.write.MemberReviewRankPersistencePort;
@@ -30,19 +28,6 @@ class MemberReviewRankPersistenceAdapter implements MemberReviewRankPersistenceP
         this.queryFactory = queryFactory;
         this.memberReviewRankJpaRepository = memberReviewRankJpaRepository;
         this.entityManager = entityManager;
-    }
-
-    @Override
-    public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(MemberId memberId, RankType rankType) {
-        MemberReviewRankJpaEntity entity = queryFactory
-            .selectFrom(memberReviewRankJpaEntity)
-            .where(
-                memberReviewRankJpaEntity.memberId.eq(memberId.value()),
-                memberReviewRankJpaEntity.rankType.eq(rankType.name())
-            )
-            .orderBy(memberReviewRankJpaEntity.baseDate.desc())
-            .fetchFirst();
-        return Optional.ofNullable(entity).map(MemberReviewRankMapper::toDomain);
     }
 
     @Override

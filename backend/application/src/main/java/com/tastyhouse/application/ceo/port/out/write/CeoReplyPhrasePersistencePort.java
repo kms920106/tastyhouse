@@ -1,6 +1,5 @@
 package com.tastyhouse.application.ceo.port.out.write;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
@@ -10,8 +9,6 @@ import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
 public interface CeoReplyPhrasePersistencePort {
 
     Optional<CeoReplyPhrase> findById(CeoReplyPhraseId ceoReplyPhraseId);
-
-    List<CeoReplyPhrase> findAllByCeoId(CeoId ceoId);
 
     long countByCeoId(CeoId ceoId);
 

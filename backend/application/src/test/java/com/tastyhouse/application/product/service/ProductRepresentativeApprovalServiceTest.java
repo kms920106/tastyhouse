@@ -383,11 +383,6 @@ class ProductRepresentativeApprovalServiceTest {
         }
 
         @Override
-        public List<ProductRepresentativeRequest> findAllByProductId(ProductId productId) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public boolean existsByProductIdAndStatus(ProductId productId, ApprovalStatus status) {
             return byId.values().stream()
                 .anyMatch(request -> request.getProductId().equals(productId)

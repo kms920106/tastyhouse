@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.persistence.product.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -47,16 +46,5 @@ class ProductOptionGroupMergeExclusionPersistenceAdapter
             )
             .fetchOne();
         return Optional.ofNullable(entity).map(ProductOptionGroupMergeExclusionMapper::toDomain);
-    }
-
-    @Override
-    public List<ProductOptionGroupMergeExclusion> findAllByShopId(ShopId shopId) {
-        return queryFactory
-            .selectFrom(productOptionGroupMergeExclusionJpaEntity)
-            .where(productOptionGroupMergeExclusionJpaEntity.shopId.eq(shopId.value()))
-            .fetch()
-            .stream()
-            .map(ProductOptionGroupMergeExclusionMapper::toDomain)
-            .toList();
     }
 }

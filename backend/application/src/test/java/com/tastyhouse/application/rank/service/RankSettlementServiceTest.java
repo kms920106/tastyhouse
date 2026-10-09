@@ -5,12 +5,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.application.rank.port.out.MemberReviewCount;
@@ -174,11 +172,6 @@ class RankSettlementServiceTest {
         private List<MemberReviewRank> saved = List.of();
         private RankType deletedRankType;
         private LocalDate deletedBaseDate;
-
-        @Override
-        public Optional<MemberReviewRank> findLatestByMemberIdAndRankType(MemberId memberId, RankType rankType) {
-            return Optional.empty();
-        }
 
         @Override
         public void saveAll(List<MemberReviewRank> ranks) {

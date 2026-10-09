@@ -8,11 +8,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.product.model.ProductExposureHour;
 import com.tastyhouse.domain.product.model.ProductExposureResult;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.application.product.port.in.ProductExposureQueryUseCase;
+import com.tastyhouse.application.product.port.out.ProductExposureHourResult;
 import com.tastyhouse.application.product.port.out.ProductExposurePeriodResult;
 import com.tastyhouse.application.product.port.out.ProductExposureViewResult;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
@@ -63,16 +63,16 @@ class ProductExposureQueryService implements ProductExposureQueryUseCase {
             publicHolidayCalendar.isPublicHoliday(today.minusDays(1))
         );
 
-        List<ProductExposureHour> hours = productExposureService.findHours(targetProductId);
+        List<ProductExposureHourResult> hours = productOwnerQueryPort.findExposureHours(productId);
 
         return new ProductExposureViewResult(
             period.startDate(),
             period.endDate(),
             hours.stream()
                 .map(hour -> new ProductExposureViewResult.Hour(
-                    hour.getDayType().name(),
-                    hour.getStartTime(),
-                    hour.getEndTime()
+                    hour.dayType(),
+                    hour.startTime(),
+                    hour.endTime()
                 ))
                 .toList(),
             result.exposed(),

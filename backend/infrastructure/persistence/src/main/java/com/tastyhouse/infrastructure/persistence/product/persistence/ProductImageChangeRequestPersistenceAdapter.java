@@ -1,6 +1,5 @@
 package com.tastyhouse.infrastructure.persistence.product.persistence;
 
-import java.util.List;
 import java.util.Optional;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -47,17 +46,6 @@ class ProductImageChangeRequestPersistenceAdapter implements ProductImageChangeR
     public Optional<ProductImageChangeRequest> findById(ProductImageChangeRequestId id) {
         return productImageChangeRequestJpaRepository.findById(id.value())
             .map(ProductImageChangeRequestMapper::toDomain);
-    }
-
-    @Override
-    public List<ProductImageChangeRequest> findAllByProductId(ProductId productId) {
-        return queryFactory
-            .selectFrom(productImageChangeRequestJpaEntity)
-            .where(productImageChangeRequestJpaEntity.productId.eq(productId.value()))
-            .fetch()
-            .stream()
-            .map(ProductImageChangeRequestMapper::toDomain)
-            .toList();
     }
 
     @Override

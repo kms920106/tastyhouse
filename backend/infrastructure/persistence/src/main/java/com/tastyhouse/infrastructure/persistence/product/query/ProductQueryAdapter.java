@@ -41,6 +41,7 @@ import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
 import com.tastyhouse.application.product.port.out.ProductCategoryManagementResult;
 import com.tastyhouse.application.product.port.out.ProductCategoryResult;
 import com.tastyhouse.application.product.port.out.ProductDetailResult;
+import com.tastyhouse.application.product.port.out.ProductExposureHourResult;
 import com.tastyhouse.application.product.port.out.ProductExposurePeriodResult;
 import com.tastyhouse.application.product.port.out.ProductExposureWindow;
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
@@ -56,6 +57,7 @@ import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementR
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeCandidateResult;
 import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOptionsResult;
+import com.tastyhouse.application.product.port.out.ProductOwnerPriceView;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.product.port.out.ProductPriceResult;
 import com.tastyhouse.application.product.port.out.ProductQueryPort;
@@ -80,6 +82,7 @@ import static com.tastyhouse.infrastructure.persistence.product.persistence.QPro
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductCommonOptionGroupJpaEntity.productCommonOptionGroupJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductCommonOptionGroupLinkJpaEntity.productCommonOptionGroupLinkJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductCommonOptionJpaEntity.productCommonOptionJpaEntity;
+import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductExposureHourJpaEntity.productExposureHourJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductImageChangeRequestJpaEntity.productImageChangeRequestJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductJpaEntity.productJpaEntity;
@@ -1626,6 +1629,36 @@ class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQueryPort, 
             .where(productJpaEntity.id.eq(productId), notDeleted())
             .fetchFirst();
         return Optional.ofNullable(result);
+    }
+
+    @Override
+    public List<ProductExposureHourResult> findExposureHours(Long productId) {
+        return queryFactory
+            .select(Projections.constructor(ProductExposureHourResult.class,
+                productExposureHourJpaEntity.dayType,
+                productExposureHourJpaEntity.startTime,
+                productExposureHourJpaEntity.endTime
+            ))
+            .from(productExposureHourJpaEntity)
+            .where(productExposureHourJpaEntity.productId.eq(productId))
+            .fetch();
+    }
+
+    @Override
+    public List<ProductOwnerPriceView> findPrices(Long productId) {
+        return queryFactory
+            .select(Projections.constructor(ProductOwnerPriceView.class,
+                productPriceJpaEntity.id,
+                productPriceJpaEntity.priceName,
+                productPriceJpaEntity.deliveryPrice,
+                productPriceJpaEntity.storePrice,
+                productPriceJpaEntity.pickupPrice,
+                productPriceJpaEntity.sort
+            ))
+            .from(productPriceJpaEntity)
+            .where(productPriceJpaEntity.productId.eq(productId))
+            .orderBy(productPriceJpaEntity.sort.asc())
+            .fetch();
     }
 
     private com.querydsl.jpa.JPQLQuery<ProductImageChangeRequestResult> imageChangeRequestProjection() {

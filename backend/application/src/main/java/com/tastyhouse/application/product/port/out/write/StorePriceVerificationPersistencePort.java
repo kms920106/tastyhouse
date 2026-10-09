@@ -15,8 +15,6 @@ public interface StorePriceVerificationPersistencePort {
 
     Optional<StorePriceVerification> findById(StorePriceVerificationId id);
 
-    Optional<StorePriceVerification> findLatestByShopId(ShopId shopId);
-
     boolean existsByShopIdAndStatusIn(ShopId shopId, List<StorePriceVerificationStatus> statuses);
 
     void saveItem(StorePriceVerificationItem item);

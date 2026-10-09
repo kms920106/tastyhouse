@@ -445,12 +445,5 @@ class ProductOptionGroupMergeServiceTest {
             histories.add(history);
             return history;
         }
-
-        @Override
-        public List<ProductOptionGroupMergeHistory> findAllByShopId(ShopId shopId) {
-            return histories.stream()
-                .filter(history -> history.getShopId().equals(shopId))
-                .toList();
-        }
     }
 }
