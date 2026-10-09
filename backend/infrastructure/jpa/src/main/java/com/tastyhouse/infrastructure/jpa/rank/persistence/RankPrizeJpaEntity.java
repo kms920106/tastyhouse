@@ -1,0 +1,113 @@
+package com.tastyhouse.infrastructure.jpa.rank.persistence;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
+import com.tastyhouse.infrastructure.jpa.shared.persistence.BaseEntity;
+
+@Entity
+@Table(
+    name = "RANK_PRIZE",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_rank_prize_rank", columnNames = {"rank_id", "prize_rank"})
+    },
+    indexes = {
+        @Index(name = "idx_rank_prize", columnList = "rank_id, prize_rank")
+    }
+)
+class RankPrizeJpaEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "rank_id", nullable = false)
+    private Long rankId;
+
+    @Column(name = "prize_rank", nullable = false)
+    private Integer prizeRank;
+
+    @Column(name = "name", nullable = false, length = 200)
+    private String name;
+
+    @Column(name = "brand", nullable = false, length = 100)
+    private String brand;
+
+    @Column(name = "image_file_id")
+    private Long imageFileId;
+
+    @Column(name = "is_deleted", nullable = false)
+    private boolean deleted;
+
+    protected RankPrizeJpaEntity() {
+    }
+
+    private RankPrizeJpaEntity(
+        Long rankId,
+        Integer prizeRank,
+        String name,
+        String brand,
+        Long imageFileId,
+        boolean deleted
+    ) {
+        this.rankId = rankId;
+        this.prizeRank = prizeRank;
+        this.name = name;
+        this.brand = brand;
+        this.imageFileId = imageFileId;
+        this.deleted = deleted;
+    }
+
+    static RankPrizeJpaEntity create(
+        Long rankId,
+        Integer prizeRank,
+        String name,
+        String brand,
+        Long imageFileId,
+        boolean deleted
+    ) {
+        return new RankPrizeJpaEntity(rankId, prizeRank, name, brand, imageFileId, deleted);
+    }
+
+    void applyChanges(Integer prizeRank, String name, String brand, Long imageFileId, boolean deleted) {
+        this.prizeRank = prizeRank;
+        this.name = name;
+        this.brand = brand;
+        this.imageFileId = imageFileId;
+        this.deleted = deleted;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Long getRankId() {
+        return this.rankId;
+    }
+
+    public Integer getPrizeRank() {
+        return this.prizeRank;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public String getBrand() {
+        return this.brand;
+    }
+
+    public Long getImageFileId() {
+        return this.imageFileId;
+    }
+
+    public boolean isDeleted() {
+        return this.deleted;
+    }
+}

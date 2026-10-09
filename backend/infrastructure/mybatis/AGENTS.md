@@ -2,7 +2,7 @@
 
 # infrastructure:mybatis
 
-**MyBatis로 구현한 영속 어댑터를 담는 모듈(`java-library`).** 지금은 banner 쓰기 포트 `BannerLoadPort`·`BannerSavePort`의 MyBatis 구현 하나만 있다. 같은 포트를 `infrastructure:persistence`의 JPA 구현도 갖고 있으며, 속성 `persistence.banner.write.provider`로 둘 중 하나만 빈으로 등록된다(기본 `jpa`).
+**MyBatis로 구현한 영속 어댑터를 담는 모듈(`java-library`).** 지금은 banner 쓰기 포트 `BannerLoadPort`·`BannerSavePort`의 MyBatis 구현 하나만 있다. 같은 포트를 `infrastructure:jpa`의 JPA 구현(jpa 모듈 분리 전에는 `infrastructure:persistence`)도 갖고 있으며, 속성 `persistence.banner.write.provider`로 둘 중 하나만 빈으로 등록된다(기본 `jpa`).
 
 ## 용어 풀이
 
@@ -19,7 +19,7 @@
 2. **JPA로 언제든 되돌릴 수 있게 하기 위해서다.** 코드를 지우지 않고 설정값 하나로 전환한다.
 3. **MyBatis를 필요한 앱에만 싣기 위해서다.** 처음 파일럿에서는 MyBatis가 `infrastructure:persistence` 안에 있어 4앱 전부에서 MyBatis 자동 설정이 켜졌다. 모듈을 나누면서 이 모듈을 의존하는 admin-api에서만 켜진다(backend/CLAUDE.md "클래스패스 존재 = 활성화").
 
-참고한 구조: board-project(헥사고날 멀티모듈 예제 프로젝트)의 `adapter-out-persistence-jpa`·`-mybatis` 분리. 다른 점은 board-project가 포트마다 한 기술만 구현(JPA=쓰기, MyBatis=조회)하는 반면, 여기서는 **같은 포트를 두 모듈이 모두 구현**하고 속성으로 고른다는 것이다. `infrastructure:persistence`에 어댑터 100여 개가 함께 있어 admin-api가 그 모듈을 뺄 수 없기 때문이다.
+참고한 구조: board-project(헥사고날 멀티모듈 예제 프로젝트)의 `adapter-out-persistence-jpa`·`-mybatis` 분리. 다른 점은 board-project가 포트마다 한 기술만 구현(JPA=쓰기, MyBatis=조회)하는 반면, 여기서는 **같은 포트를 두 모듈이 모두 구현**하고 속성으로 고른다는 것이다. JPA 모듈 `infrastructure:jpa`(jpa 모듈 분리 전 `infrastructure:persistence`)에 어댑터 100여 개가 함께 있어 admin-api가 그 모듈을 뺄 수 없기 때문이다.
 
 ## 패키지 구조
 
@@ -38,7 +38,7 @@ src/main/resources/
 ```
 
 - 루트 패키지는 `com.tastyhouse.infrastructure.mybatis`다(backend/CLAUDE.md "infrastructure 패키지 규칙").
-- 지금은 쓰기만 있어 컨텍스트 아래를 `persistence`/`query`로 나누지 않는다. 조회 어댑터를 추가하면 persistence 모듈처럼 `{ctx}.{persistence|query}`로 나눈다.
+- 지금은 쓰기만 있어 컨텍스트 아래를 `persistence`/`query`로 나누지 않는다. 조회 어댑터를 추가하면 jpa 모듈처럼 `{ctx}.{persistence|query}`로 나눈다.
 - 이름: 이 저장소에서 `XxxMapper`는 도메인 변환기다. 그래서 MyBatis SQL 인터페이스는 `XxxMyBatisMapper`, 변환기는 `XxxRowMapper`로 짓는다. 같은 포트를 JPA 구현과 함께 가지므로 어댑터는 `XxxMyBatisPersistenceAdapter`다(backend/CLAUDE.md "아웃바운드 포트·어댑터 네이밍 규칙"의 예외).
 
 ## 전환 방법
@@ -53,7 +53,7 @@ MyBatis 구현은 이 모듈을 의존하는 앱에서만 쓸 수 있다. 지금
 
 ## JPA 구현과의 비교 (banner 쓰기)
 
-| 항목 | JPA (`infrastructure:persistence`) | MyBatis (이 모듈) |
+| 항목 | JPA (`infrastructure:jpa`) | MyBatis (이 모듈) |
 |---|---|---|
 | 클래스 | `BannerJpaPersistenceAdapter` + `BannerJpaMapper` + `BannerJpaRepository` + `BannerJpaEntity` | `BannerMyBatisPersistenceAdapter` + `BannerRowMapper` + `BannerMyBatisMapper` + `BannerRow`/`BannerWriteRow` + XML |
 | `findById` | QueryDSL `selectFrom … where id = ? and deleted = false` | XML `selectActiveById`(같은 조건) |
@@ -80,7 +80,8 @@ MyBatis 구현은 이 모듈을 의존하는 앱에서만 쓸 수 있다. 지금
 
 ### External
 - `org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3` (implementation — Spring Boot 3.2.x 호환 라인)
-- MySQL 드라이버는 이 모듈이 선언하지 않는다 — 함께 실리는 `infrastructure:persistence`가 싣는다.
+- MySQL 드라이버는 이 모듈이 선언하지 않는다 — 조립 모듈 `infrastructure:persistence`가 `runtimeOnly`로 싣는다(JPA·MyBatis 공용 드라이버라 어느 한 구현 모듈이 아니라 조립 모듈이 소유한다. `../persistence/AGENTS.md`). admin-api가 persistence를 의존하므로 이 모듈과 함께 실린다.
+- datasource(`spring.datasource.*`)와 provider 키 `persistence.banner.write.provider`도 같은 조립 모듈의 `application-infrastructure.yml`이 소유한다. 이 모듈의 `application-mybatis.yml`은 MyBatis 자체 설정만 갖는다.
 
 ## 봉인·가드 목록
 
@@ -90,10 +91,10 @@ MyBatis 구현은 이 모듈을 의존하는 앱에서만 쓸 수 있다. 지금
 
 **대상**: `backend/infrastructure/mybatis/src/test/java/com/tastyhouse/infrastructure/mybatis/banner/BannerMyBatisProviderConditionTest.java` · `backend/infrastructure/mybatis/src/main/java/com/tastyhouse/infrastructure/mybatis/banner/BannerMyBatisPersistenceAdapter.java` → 클래스의 `@ConditionalOnProperty`
 
-원문 취지: `mybatis`면 등록, 속성 없음·`jpa`·알 수 없는 값이면 미등록. persistence 모듈의 `BannerJpaProviderConditionTest`와 짝이다. **이 클래스에 `matchIfMissing = true`를 붙이지 않는다** — 속성이 없을 때 JPA 구현과 함께 2개가 등록돼 admin-api가 `NoUniqueBeanDefinitionException`으로 기동하지 못한다.
+원문 취지: `mybatis`면 등록, 속성 없음·`jpa`·알 수 없는 값이면 미등록. jpa 모듈의 `BannerJpaProviderConditionTest`(`backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/banner/persistence/`)와 짝이다. **이 클래스에 `matchIfMissing = true`를 붙이지 않는다** — 속성이 없을 때 JPA 구현과 함께 2개가 등록돼 admin-api가 `NoUniqueBeanDefinitionException`으로 기동하지 못한다.
 
 ### `architecture/PackageRootTest` · `architecture/LayerRulesTest`
 
 **대상**: `backend/infrastructure/mybatis/src/test/java/com/tastyhouse/infrastructure/mybatis/architecture/PackageRootTest.java` → `shouldResideInModuleRootPackage` · `topLevelClassesShouldNotBePublic`, 같은 패키지 `LayerRulesTest.java` → `shouldNotDependOnApiModules` · `shouldNotDependOnOtherPersistenceAdapters`
 
-원문 취지: 모든 클래스는 `com.tastyhouse.infrastructure.mybatis..`에 있고 최상위 클래스는 public이 아니다. application은 `..port.out..`만 참조하고, `com.tastyhouse.infrastructure.persistence..`를 의존하지 않는다(영속 어댑터 모듈끼리는 서로 모른다). `shouldNotDependOnOtherPersistenceAdapters`는 이 모듈의 클래스패스에 persistence가 없어 지금은 위반이 컴파일조차 안 되지만, 의존이 추가되는 회귀를 막는 방어선이라 지우지 않는다.
+원문 취지: 모든 클래스는 `com.tastyhouse.infrastructure.mybatis..`에 있고 최상위 클래스는 public이 아니다. application은 `..port.out..`만 참조하고, `com.tastyhouse.infrastructure.jpa..`(jpa 모듈 분리 전 `com.tastyhouse.infrastructure.persistence..`)를 의존하지 않는다(영속 어댑터 모듈끼리는 서로 모른다). `shouldNotDependOnOtherPersistenceAdapters`는 이 모듈의 클래스패스에 jpa 모듈이 없어 지금은 위반이 컴파일조차 안 되지만, 의존이 추가되는 회귀를 막는 방어선이라 지우지 않는다.

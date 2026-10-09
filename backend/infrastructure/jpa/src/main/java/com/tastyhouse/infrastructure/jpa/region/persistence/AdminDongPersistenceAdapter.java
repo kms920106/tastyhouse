@@ -1,0 +1,172 @@
+package com.tastyhouse.infrastructure.jpa.region.persistence;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.domain.region.model.AdminDong;
+import com.tastyhouse.domain.region.vo.AdminDongId;
+import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
+import com.tastyhouse.application.region.port.out.write.AdminDongSavePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
+
+import static com.tastyhouse.infrastructure.jpa.region.persistence.QAdminDongJpaEntity.adminDongJpaEntity;
+
+@Repository
+class AdminDongPersistenceAdapter implements AdminDongLoadPort, AdminDongSavePort {
+
+    private final JPAQueryFactory queryFactory;
+    private final AdminDongJpaRepository adminDongJpaRepository;
+
+    public AdminDongPersistenceAdapter(JPAQueryFactory queryFactory, AdminDongJpaRepository adminDongJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.adminDongJpaRepository = adminDongJpaRepository;
+    }
+
+    private static final int SAVE_BATCH_SIZE = 500;
+
+    @Override
+    public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
+        if (adminDongs.isEmpty()) {
+            throw new IllegalArgumentException("행정동 마스터를 빈 목록으로 동기화할 수 없습니다.");
+        }
+
+        Map<String, AdminDongJpaEntity> existingByCode = adminDongJpaRepository.findAll().stream()
+            .collect(Collectors.toMap(AdminDongJpaEntity::getCode, entity -> entity, (a, b) -> a));
+
+        List<AdminDongJpaEntity> inserts = new ArrayList<>();
+        Set<String> sourceCodes = new HashSet<>();
+        int updated = 0;
+
+        for (AdminDong adminDong : adminDongs) {
+            sourceCodes.add(adminDong.getCode());
+
+            AdminDongJpaEntity existing = existingByCode.get(adminDong.getCode());
+            if (existing == null) {
+                inserts.add(AdminDongMapper.toEntity(adminDong));
+                continue;
+            }
+            AdminDongMapper.applyChanges(existing, adminDong);
+            updated++;
+        }
+
+        int deactivated = deactivateMissing(existingByCode, sourceCodes);
+        saveInChunks(inserts);
+        adminDongJpaRepository.flush();
+
+        return AdminDongSyncResult.of(inserts.size(), updated, deactivated);
+    }
+
+    private int deactivateMissing(Map<String, AdminDongJpaEntity> existingByCode, Set<String> sourceCodes) {
+        int deactivated = 0;
+        for (Map.Entry<String, AdminDongJpaEntity> entry : existingByCode.entrySet()) {
+            AdminDongJpaEntity entity = entry.getValue();
+            if (sourceCodes.contains(entry.getKey()) || !entity.isActive()) {
+                continue;
+            }
+            entity.deactivate();
+            deactivated++;
+        }
+        return deactivated;
+    }
+
+    private void saveInChunks(List<AdminDongJpaEntity> entities) {
+        for (int start = 0; start < entities.size(); start += SAVE_BATCH_SIZE) {
+            int end = Math.min(start + SAVE_BATCH_SIZE, entities.size());
+            adminDongJpaRepository.saveAll(entities.subList(start, end));
+            adminDongJpaRepository.flush();
+        }
+    }
+
+    @Override
+    public Optional<AdminDong> findById(AdminDongId adminDongId) {
+        return adminDongJpaRepository.findById(adminDongId.value())
+            .map(AdminDongMapper::toDomain);
+    }
+
+    @Override
+    public boolean existsById(AdminDongId adminDongId) {
+        return queryFactory.selectOne()
+            .from(adminDongJpaEntity)
+            .where(
+                adminDongJpaEntity.id.eq(adminDongId.value()),
+                adminDongJpaEntity.active.isTrue()
+            )
+            .fetchFirst() != null;
+    }
+
+    @Override
+    public Optional<AdminDong> findByDongNameMatch(String sidoName, String sigunguName, String dongName) {
+        AdminDongJpaEntity entity = queryFactory
+            .selectFrom(adminDongJpaEntity)
+            .where(
+                adminDongJpaEntity.sidoName.eq(sidoName),
+                adminDongJpaEntity.sigunguName.eq(sigunguName),
+                adminDongJpaEntity.dongName.eq(dongName),
+                adminDongJpaEntity.active.isTrue()
+            )
+            .fetchOne();
+        return Optional.ofNullable(entity).map(AdminDongMapper::toDomain);
+    }
+
+    @Override
+    public List<AdminDong> findAllWithinBoundingBox(GeoBoundingBox boundingBox) {
+        return queryFactory.selectFrom(adminDongJpaEntity)
+            .where(
+                adminDongJpaEntity.active.isTrue(),
+                adminDongJpaEntity.centerLatitude.between(boundingBox.minLatitude(), boundingBox.maxLatitude()),
+                adminDongJpaEntity.centerLongitude.between(boundingBox.minLongitude(), boundingBox.maxLongitude())
+            )
+            .fetch()
+            .stream().map(AdminDongMapper::toDomain).toList();
+    }
+
+    @Override
+    public List<AdminDong> findAllByIds(Collection<AdminDongId> adminDongIds) {
+        if (adminDongIds.isEmpty()) {
+            return List.of();
+        }
+
+        return queryFactory.selectFrom(adminDongJpaEntity)
+            .where(
+                adminDongJpaEntity.id.in(rawIds(adminDongIds)),
+                adminDongJpaEntity.active.isTrue()
+            )
+            .fetch()
+            .stream()
+            .map(AdminDongMapper::toDomain)
+            .toList();
+    }
+
+    @Override
+    public Set<AdminDongId> filterExistingIds(Collection<AdminDongId> adminDongIds) {
+        if (adminDongIds.isEmpty()) {
+            return Set.of();
+        }
+
+        return queryFactory.select(adminDongJpaEntity.id)
+            .from(adminDongJpaEntity)
+            .where(
+                adminDongJpaEntity.active.isTrue(),
+                adminDongJpaEntity.id.in(rawIds(adminDongIds))
+            )
+            .fetch()
+            .stream()
+            .map(AdminDongId::of)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static List<Long> rawIds(Collection<AdminDongId> adminDongIds) {
+        return adminDongIds.stream().map(AdminDongId::value).toList();
+    }
+}

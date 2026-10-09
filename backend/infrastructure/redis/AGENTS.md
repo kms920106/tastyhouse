@@ -62,9 +62,9 @@ com.tastyhouse.infrastructure.redis/
 
 **`domain`에 의존하지 않는다.** rate limiting은 domain에 대응 개념이 없는 순수 인프라 관심사라서 `RateLimitException`도 도메인 에러코드에 결합하지 않는다. HTTP 응답 조립은 각 api 모듈의 `GlobalExceptionHandler`가 `com.tastyhouse.apicommon.exception.ApiErrorCode#RATE_LIMIT_EXCEEDED`로 직접 수행한다(과거 단일 `ErrorCode.RATE_LIMIT_EXCEEDED`·`ErrorContracts#rateLimit` — 에러코드 모듈 분할로 대체).
 
-이것이 `infrastructure:persistence`와의 결정적 차이다 — persistence는 domain 포트의 어댑터라 `domain`을 `api`로 노출하지만, redis는 domain 포트가 없는 기술이라 domain을 아예 모른다.
+이것이 `infrastructure:jpa`(jpa 모듈 분리 전 `infrastructure:persistence`)와의 결정적 차이다 — jpa는 domain 포트의 어댑터라 `domain`을 `api`로 노출하지만, redis는 domain 포트가 없는 기술이라 domain을 아예 모른다.
 
-- `security-core` (implementation) — 챕터 01 신설 간선. `token` 패키지가 구현하는 토큰 저장소 포트 6종(`RefreshTokenRepository` 등)과 `ratelimit` 패키지가 구현하는 `RateLimitCounterPort`(`com.tastyhouse.security.ratelimit`)의 소유 모듈. 어댑터 → 계약 방향이며, `infrastructure:persistence`가 읽기 포트 소유 모듈(`application`)을 의존하는 선례와 동형이다. **이 모듈의 유일한 내부 의존이다.**
+- `security-core` (implementation) — 챕터 01 신설 간선. `token` 패키지가 구현하는 토큰 저장소 포트 6종(`RefreshTokenRepository` 등)과 `ratelimit` 패키지가 구현하는 `RateLimitCounterPort`(`com.tastyhouse.security.ratelimit`)의 소유 모듈. 어댑터 → 계약 방향이며, `infrastructure:jpa`가 읽기 포트 소유 모듈(`application`)을 의존하는 선례와 동형이다. **이 모듈의 유일한 내부 의존이다.**
 
 ### External
 - `spring-boot-starter-data-redis` (**api**) — `StringRedisTemplate`·`RedisConnectionFactory`. `api`로 두는 이유는 이제 소비 모듈의 시그니처 노출이 아니라 **이 모듈의 어댑터가 그 타입을 쓰기 때문**이다. 챕터 01로 앱과 `security-core`의 compileClasspath에서 Redis 타입이 사라졌고, `runtimeOnly project(':infrastructure:redis')`가 4앱 중 3앱의 **유일한** Redis 선언이 됐다(batch는 선언 자체가 없다)

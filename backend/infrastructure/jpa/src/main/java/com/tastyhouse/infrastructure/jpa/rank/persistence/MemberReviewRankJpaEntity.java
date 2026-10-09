@@ -1,0 +1,112 @@
+package com.tastyhouse.infrastructure.jpa.rank.persistence;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
+import com.tastyhouse.infrastructure.jpa.shared.persistence.BaseEntity;
+
+@Entity
+@Table(
+    name = "MEMBER_REVIEW_RANK",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_member_rank",
+            columnNames = {"member_id", "rank_type", "base_date"}
+        )
+    },
+    indexes = {
+        @Index(name = "idx_rank_query", columnList = "rank_type, base_date, rank_no"),
+        @Index(name = "idx_member_rank", columnList = "member_id, rank_type")
+    }
+)
+class MemberReviewRankJpaEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "member_id", nullable = false)
+    private Long memberId;
+
+    @Column(name = "review_count", nullable = false)
+    private Integer reviewCount;
+
+    @Column(name = "rank_no", nullable = false)
+    private Integer rankNo;
+
+    @Column(name = "rank_type", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+    private String rankType;
+
+    @Column(name = "base_date", nullable = false)
+    private LocalDate baseDate;
+
+    @Column(name = "last_review_at")
+    private LocalDateTime lastReviewAt;
+
+    protected MemberReviewRankJpaEntity() {
+    }
+
+    private MemberReviewRankJpaEntity(
+        Long memberId,
+        Integer reviewCount,
+        Integer rankNo,
+        String rankType,
+        LocalDate baseDate,
+        LocalDateTime lastReviewAt
+    ) {
+        this.memberId = memberId;
+        this.reviewCount = reviewCount;
+        this.rankNo = rankNo;
+        this.rankType = rankType;
+        this.baseDate = baseDate;
+        this.lastReviewAt = lastReviewAt;
+    }
+
+    static MemberReviewRankJpaEntity create(
+        Long memberId,
+        Integer reviewCount,
+        Integer rankNo,
+        String rankType,
+        LocalDate baseDate,
+        LocalDateTime lastReviewAt
+    ) {
+        return new MemberReviewRankJpaEntity(memberId, reviewCount, rankNo, rankType, baseDate, lastReviewAt);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Long getMemberId() {
+        return this.memberId;
+    }
+
+    public Integer getReviewCount() {
+        return this.reviewCount;
+    }
+
+    public Integer getRankNo() {
+        return this.rankNo;
+    }
+
+    public String getRankType() {
+        return this.rankType;
+    }
+
+    public LocalDate getBaseDate() {
+        return this.baseDate;
+    }
+
+    public LocalDateTime getLastReviewAt() {
+        return this.lastReviewAt;
+    }
+}

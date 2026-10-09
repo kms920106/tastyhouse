@@ -1,0 +1,57 @@
+package com.tastyhouse.infrastructure.jpa.member.persistence;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import com.tastyhouse.infrastructure.jpa.shared.persistence.BaseEntity;
+
+@Entity
+@Table(name = "MEMBER_WITHDRAWAL")
+class MemberWithdrawalJpaEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "member_id", nullable = false)
+    private Long memberId;
+
+    @Column(name = "reason", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
+    private String reason;
+
+    @Column(name = "reason_detail", length = 500)
+    private String reasonDetail;
+
+    protected MemberWithdrawalJpaEntity() {
+    }
+
+    private MemberWithdrawalJpaEntity(Long memberId, String reason, String reasonDetail) {
+        this.memberId = memberId;
+        this.reason = reason;
+        this.reasonDetail = reasonDetail;
+    }
+
+    static MemberWithdrawalJpaEntity create(Long memberId, String reason, String reasonDetail) {
+        return new MemberWithdrawalJpaEntity(memberId, reason, reasonDetail);
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Long getMemberId() {
+        return this.memberId;
+    }
+
+    public String getReason() {
+        return this.reason;
+    }
+
+    public String getReasonDetail() {
+        return this.reasonDetail;
+    }
+}

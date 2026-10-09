@@ -1,0 +1,122 @@
+package com.tastyhouse.infrastructure.jpa.notification.persistence;
+
+import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import com.tastyhouse.infrastructure.jpa.shared.persistence.BaseEntity;
+
+@Entity
+@Table(name = "NOTIFICATION")
+class NotificationJpaEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "member_id", nullable = false)
+    private Long memberId;
+
+    @Column(name = "type", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
+    private String type;
+
+    @Column(name = "title", nullable = false, length = 100)
+    private String title;
+
+    @Column(name = "body", nullable = false, length = 500)
+    private String body;
+
+    @Column(name = "target_type", length = 30, columnDefinition = "VARCHAR(30)")
+    private String targetType;
+
+    @Column(name = "target_id")
+    private Long targetId;
+
+    @Column(name = "is_read", nullable = false)
+    private boolean read;
+
+    @Column(name = "read_at")
+    private LocalDateTime readAt;
+
+    protected NotificationJpaEntity() {
+    }
+
+    private NotificationJpaEntity(
+        Long memberId,
+        String type,
+        String title,
+        String body,
+        String targetType,
+        Long targetId,
+        boolean read,
+        LocalDateTime readAt
+    ) {
+        this.memberId = memberId;
+        this.type = type;
+        this.title = title;
+        this.body = body;
+        this.targetType = targetType;
+        this.targetId = targetId;
+        this.read = read;
+        this.readAt = readAt;
+    }
+
+    static NotificationJpaEntity create(
+        Long memberId,
+        String type,
+        String title,
+        String body,
+        String targetType,
+        Long targetId,
+        boolean read,
+        LocalDateTime readAt
+    ) {
+        return new NotificationJpaEntity(memberId, type, title, body, targetType, targetId, read, readAt);
+    }
+
+    void applyChanges(boolean read, LocalDateTime readAt) {
+        this.read = read;
+        this.readAt = readAt;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Long getMemberId() {
+        return this.memberId;
+    }
+
+    public String getType() {
+        return this.type;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public String getBody() {
+        return this.body;
+    }
+
+    public String getTargetType() {
+        return this.targetType;
+    }
+
+    public Long getTargetId() {
+        return this.targetId;
+    }
+
+    public boolean isRead() {
+        return this.read;
+    }
+
+    public LocalDateTime getReadAt() {
+        return this.readAt;
+    }
+}

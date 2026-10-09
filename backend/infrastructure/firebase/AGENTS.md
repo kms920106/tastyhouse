@@ -60,7 +60,7 @@ file:
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - **빈 배선 (챕터 03 → imports 제거로 개정)**: 이 모듈은 클래스패스에 실리기만 하면 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로(~~`FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록~~), 앱은 스타터 의존 선언(`runtimeOnly project(':infrastructure:file-storage')`)만 하면 되고 `@Import`도, 이 모듈의 직접 선언도 필요 없다 — "배선을 빠뜨려 조용히 무시된다"는 실패 양식 자체가 없다. 다만 `file.provider` 조건은 여전히 살아 있으므로, 의존은 있는데 `file.provider`가 `firebase`도 다른 등록된 구현의 값도 아니면 **기동 시** `FileStoragePort` 빈 부재로 실패한다(주입하는 쪽은 persistence의 `FileDomainConfig`).
-- **파일 URL 조립은 이 모듈이 아니라 읽기 경로가 담당한다** — `FirebaseFileStorage#getFileUrl`(`FileStoragePort#getFileUrl` 구현, Firebase 경로 인코딩 + `?alt=media`)을 호출하는 것은 `infrastructure:persistence`의 `FileUrlResolver`다. `store`는 상대 경로(예: `2025/02/16/uuid.jpg`)를 반환하고 DB에는 URL이 아니라 그 경로를 저장하므로, `base-url`이 바뀌어도 저장값은 유효하다.
+- **파일 URL 조립은 이 모듈이 아니라 읽기 경로가 담당한다** — `FirebaseFileStorage#getFileUrl`(`FileStoragePort#getFileUrl` 구현, Firebase 경로 인코딩 + `?alt=media`)을 호출하는 것은 `infrastructure:jpa`(jpa 모듈 분리 전 `infrastructure:persistence`)의 `FileUrlResolver`다. `store`는 상대 경로(예: `2025/02/16/uuid.jpg`)를 반환하고 DB에는 URL이 아니라 그 경로를 저장하므로, `base-url`이 바뀌어도 저장값은 유효하다.
 
 ## 봉인·가드 목록
 

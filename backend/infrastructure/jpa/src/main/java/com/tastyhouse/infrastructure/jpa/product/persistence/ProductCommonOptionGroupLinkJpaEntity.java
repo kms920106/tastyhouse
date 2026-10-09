@@ -1,0 +1,61 @@
+package com.tastyhouse.infrastructure.jpa.product.persistence;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import com.tastyhouse.infrastructure.jpa.shared.persistence.BaseEntity;
+
+@Entity
+@Table(name = "PRODUCT_COMMON_OPTION_GROUP_LINK")
+class ProductCommonOptionGroupLinkJpaEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
+
+    @Column(name = "option_group_id", nullable = false)
+    private Long optionGroupId;
+
+    @Column(name = "sort", nullable = false)
+    private Integer sort;
+
+    protected ProductCommonOptionGroupLinkJpaEntity() {
+    }
+
+    private ProductCommonOptionGroupLinkJpaEntity(Long productId, Long optionGroupId, Integer sort) {
+        this.productId = productId;
+        this.optionGroupId = optionGroupId;
+        this.sort = sort;
+    }
+
+    static ProductCommonOptionGroupLinkJpaEntity create(Long productId, Long optionGroupId, Integer sort) {
+        return new ProductCommonOptionGroupLinkJpaEntity(productId, optionGroupId, sort);
+    }
+
+    void applyChanges(Integer sort) {
+        this.sort = sort;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public Long getProductId() {
+        return this.productId;
+    }
+
+    public Long getOptionGroupId() {
+        return this.optionGroupId;
+    }
+
+    public Integer getSort() {
+        return this.sort;
+    }
+}

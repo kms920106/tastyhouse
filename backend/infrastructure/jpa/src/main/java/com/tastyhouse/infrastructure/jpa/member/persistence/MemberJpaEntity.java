@@ -1,0 +1,211 @@
+package com.tastyhouse.infrastructure.jpa.member.persistence;
+
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import com.tastyhouse.infrastructure.jpa.shared.persistence.BaseEntity;
+import com.tastyhouse.infrastructure.jpa.shared.persistence.PhoneNumberEmbeddable;
+
+@Entity
+@Table(name = "MEMBER")
+class MemberJpaEntity extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "username", nullable = false, unique = true, length = 50)
+    private String username;
+
+    @Column(name = "password")
+    private String password;
+
+    @Column(name = "nickname", nullable = false, length = 50)
+    private String nickname;
+
+    @Column(name = "full_name", nullable = false, length = 100)
+    private String fullName;
+
+    @Column(name = "birth_date", nullable = false)
+    private Integer birthDate;
+
+    @Column(name = "gender", nullable = false, length = 10, columnDefinition = "VARCHAR(10)")
+    private String gender;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "phone_number", nullable = false, length = 11))
+    private PhoneNumberEmbeddable phoneNumber;
+
+    @Column(name = "member_grade", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+    private String memberGrade;
+
+    @Column(name = "profile_image_file_id")
+    private Long profileImageFileId;
+
+    @Column(name = "status_message", length = 200)
+    private String statusMessage;
+
+    @Column(name = "push_notification_enabled", nullable = false)
+    private boolean pushNotificationEnabled;
+
+    @Column(name = "marketing_info_enabled", nullable = false)
+    private boolean marketingInfoEnabled;
+
+    @Column(name = "event_info_enabled", nullable = false)
+    private boolean eventInfoEnabled;
+
+    @Column(name = "member_status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
+    private String memberStatus;
+
+    protected MemberJpaEntity() {
+    }
+
+    private MemberJpaEntity(
+        String username,
+        String password,
+        String nickname,
+        String fullName,
+        Integer birthDate,
+        String gender,
+        PhoneNumberEmbeddable phoneNumber,
+        String memberGrade,
+        Long profileImageFileId,
+        String statusMessage,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
+        String memberStatus
+    ) {
+        this.username = username;
+        this.password = password;
+        this.nickname = nickname;
+        this.fullName = fullName;
+        this.birthDate = birthDate;
+        this.gender = gender;
+        this.phoneNumber = phoneNumber;
+        this.memberGrade = memberGrade;
+        this.profileImageFileId = profileImageFileId;
+        this.statusMessage = statusMessage;
+        this.pushNotificationEnabled = pushNotificationEnabled;
+        this.marketingInfoEnabled = marketingInfoEnabled;
+        this.eventInfoEnabled = eventInfoEnabled;
+        this.memberStatus = memberStatus;
+    }
+
+    static MemberJpaEntity create(
+        String username,
+        String password,
+        String nickname,
+        String fullName,
+        Integer birthDate,
+        String gender,
+        PhoneNumberEmbeddable phoneNumber,
+        String memberGrade,
+        Long profileImageFileId,
+        String statusMessage,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
+        String memberStatus
+    ) {
+        return new MemberJpaEntity(
+            username, password, nickname, fullName, birthDate, gender, phoneNumber,
+            memberGrade, profileImageFileId, statusMessage,
+            pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, memberStatus
+        );
+    }
+
+    void applyChanges(
+        String password,
+        String nickname,
+        String fullName,
+        Integer birthDate,
+        String gender,
+        PhoneNumberEmbeddable phoneNumber,
+        Long profileImageFileId,
+        String statusMessage,
+        boolean pushNotificationEnabled,
+        boolean marketingInfoEnabled,
+        boolean eventInfoEnabled,
+        String memberStatus
+    ) {
+        this.password = password;
+        this.nickname = nickname;
+        this.fullName = fullName;
+        this.birthDate = birthDate;
+        this.gender = gender;
+        this.phoneNumber = phoneNumber;
+        this.profileImageFileId = profileImageFileId;
+        this.statusMessage = statusMessage;
+        this.pushNotificationEnabled = pushNotificationEnabled;
+        this.marketingInfoEnabled = marketingInfoEnabled;
+        this.eventInfoEnabled = eventInfoEnabled;
+        this.memberStatus = memberStatus;
+    }
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public String getNickname() {
+        return this.nickname;
+    }
+
+    public String getFullName() {
+        return this.fullName;
+    }
+
+    public Integer getBirthDate() {
+        return this.birthDate;
+    }
+
+    public String getGender() {
+        return this.gender;
+    }
+
+    public PhoneNumberEmbeddable getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public String getMemberGrade() {
+        return this.memberGrade;
+    }
+
+    public Long getProfileImageFileId() {
+        return this.profileImageFileId;
+    }
+
+    public String getStatusMessage() {
+        return this.statusMessage;
+    }
+
+    public boolean isPushNotificationEnabled() {
+        return this.pushNotificationEnabled;
+    }
+
+    public boolean isMarketingInfoEnabled() {
+        return this.marketingInfoEnabled;
+    }
+
+    public boolean isEventInfoEnabled() {
+        return this.eventInfoEnabled;
+    }
+
+    public String getMemberStatus() {
+        return this.memberStatus;
+    }
+}

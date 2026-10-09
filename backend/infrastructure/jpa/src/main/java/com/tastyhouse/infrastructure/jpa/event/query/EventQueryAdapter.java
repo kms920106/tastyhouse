@@ -1,0 +1,216 @@
+package com.tastyhouse.infrastructure.jpa.event.query;
+
+import java.util.List;
+import java.util.Optional;
+
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
+
+import com.tastyhouse.application.event.port.out.EventAnnouncementResult;
+import com.tastyhouse.application.event.port.out.EventDetailResult;
+import com.tastyhouse.application.event.port.out.EventListItemResult;
+import com.tastyhouse.application.event.port.out.EventManagementDetailResult;
+import com.tastyhouse.application.event.port.out.EventManagementListItemResult;
+import com.tastyhouse.application.event.port.out.EventManagementQueryPort;
+import com.tastyhouse.application.event.port.out.EventQueryPort;
+import com.tastyhouse.application.event.port.out.EventSearchCondition;
+import com.tastyhouse.application.event.port.out.EventWinnerResult;
+import com.tastyhouse.application.shared.port.out.page.PageQuery;
+import com.tastyhouse.application.shared.port.out.page.PageResult;
+import com.tastyhouse.infrastructure.jpa.file.persistence.QUploadedFileJpaEntity;
+import com.tastyhouse.infrastructure.jpa.file.query.FileUrlResolver;
+
+import static com.tastyhouse.infrastructure.jpa.event.persistence.QEventAnnouncementJpaEntity.eventAnnouncementJpaEntity;
+import static com.tastyhouse.infrastructure.jpa.event.persistence.QEventJpaEntity.eventJpaEntity;
+import static com.tastyhouse.infrastructure.jpa.event.persistence.QEventWinnerJpaEntity.eventWinnerJpaEntity;
+import static com.tastyhouse.infrastructure.jpa.file.persistence.QUploadedFileJpaEntity.uploadedFileJpaEntity;
+
+@Repository
+class EventQueryAdapter implements EventQueryPort, EventManagementQueryPort {
+
+    private final JPAQueryFactory queryFactory;
+    private final FileUrlResolver fileUrlResolver;
+
+    public EventQueryAdapter(JPAQueryFactory queryFactory, FileUrlResolver fileUrlResolver) {
+        this.queryFactory = queryFactory;
+        this.fileUrlResolver = fileUrlResolver;
+    }
+
+    @Override
+    public PageResult<EventListItemResult> findEventListItemsByStatus(String status, PageQuery pageQuery) {
+        List<EventListItemResult> content = queryFactory
+            .select(Projections.constructor(EventListItemResult.class,
+                eventJpaEntity.id,
+                eventJpaEntity.name,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
+                eventJpaEntity.startAt,
+                eventJpaEntity.endAt
+            ))
+            .from(eventJpaEntity)
+            .leftJoin(uploadedFileJpaEntity).on(eventJpaEntity.thumbnailImageFileId.eq(uploadedFileJpaEntity.id))
+            .where(eventJpaEntity.status.eq(status))
+            .orderBy(eventJpaEntity.startAt.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        Long total = queryFactory
+            .select(eventJpaEntity.count())
+            .from(eventJpaEntity)
+            .where(eventJpaEntity.status.eq(status))
+            .fetchOne();
+
+        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
+    public Optional<EventDetailResult> findEventBannerById(Long eventId) {
+        EventDetailResult result = queryFactory
+            .select(Projections.constructor(EventDetailResult.class,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath)
+            ))
+            .from(eventJpaEntity)
+            .leftJoin(uploadedFileJpaEntity).on(eventJpaEntity.bannerImageFileId.eq(uploadedFileJpaEntity.id))
+            .where(eventJpaEntity.id.eq(eventId))
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public PageResult<EventManagementListItemResult> findAllEvents(EventSearchCondition condition, PageQuery pageQuery) {
+        Long total = queryFactory
+            .select(eventJpaEntity.id.count())
+            .from(eventJpaEntity)
+            .where(
+                eventJpaEntity.deleted.isFalse(),
+                nameContains(condition.name()),
+                statusEq(condition.status())
+            )
+            .fetchOne();
+
+        List<EventManagementListItemResult> content = queryFactory
+            .select(Projections.constructor(EventManagementListItemResult.class,
+                eventJpaEntity.id,
+                eventJpaEntity.name,
+                eventJpaEntity.status.stringValue(),
+                eventJpaEntity.thumbnailImageFileId,
+                uploadedFileJpaEntity.originalFilename,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
+                eventJpaEntity.startAt,
+                eventJpaEntity.endAt
+            ))
+            .from(eventJpaEntity)
+            .leftJoin(uploadedFileJpaEntity).on(uploadedFileJpaEntity.id.eq(eventJpaEntity.thumbnailImageFileId))
+            .where(
+                eventJpaEntity.deleted.isFalse(),
+                nameContains(condition.name()),
+                statusEq(condition.status())
+            )
+            .orderBy(eventJpaEntity.id.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    @Override
+    public Optional<EventManagementDetailResult> findEventDetailById(Long eventId) {
+        QUploadedFileJpaEntity thumbnailFile = new QUploadedFileJpaEntity("thumbnailFile");
+        QUploadedFileJpaEntity bannerFile = new QUploadedFileJpaEntity("bannerFile");
+
+        EventManagementDetailResult detail = queryFactory
+            .select(Projections.constructor(EventManagementDetailResult.class,
+                eventJpaEntity.id,
+                eventJpaEntity.name,
+                eventJpaEntity.description,
+                eventJpaEntity.subtitle,
+                eventJpaEntity.thumbnailImageFileId,
+                thumbnailFile.originalFilename,
+                fileUrlResolver.urlOf(thumbnailFile.filePath),
+                eventJpaEntity.bannerImageFileId,
+                bannerFile.originalFilename,
+                fileUrlResolver.urlOf(bannerFile.filePath),
+                eventJpaEntity.contentHtml,
+                eventJpaEntity.status.stringValue(),
+                eventJpaEntity.startAt,
+                eventJpaEntity.endAt,
+                eventJpaEntity.createdAt,
+                eventJpaEntity.updatedAt
+            ))
+            .from(eventJpaEntity)
+            .leftJoin(thumbnailFile).on(thumbnailFile.id.eq(eventJpaEntity.thumbnailImageFileId))
+            .leftJoin(bannerFile).on(bannerFile.id.eq(eventJpaEntity.bannerImageFileId))
+            .where(eventJpaEntity.id.eq(eventId), eventJpaEntity.deleted.isFalse())
+            .fetchOne();
+
+        return Optional.ofNullable(detail);
+    }
+
+    @Override
+    public List<EventWinnerResult> findWinnersByEventId(Long eventId) {
+        return queryFactory
+            .select(Projections.constructor(EventWinnerResult.class,
+                eventWinnerJpaEntity.id,
+                eventWinnerJpaEntity.eventId,
+                eventWinnerJpaEntity.rankNo,
+                eventWinnerJpaEntity.winnerName,
+                eventWinnerJpaEntity.phoneNumber.value,
+                eventWinnerJpaEntity.announcedAt
+            ))
+            .from(eventWinnerJpaEntity)
+            .where(eventWinnerJpaEntity.eventId.eq(eventId), eventWinnerJpaEntity.deleted.isFalse())
+            .orderBy(eventWinnerJpaEntity.rankNo.asc())
+            .fetch();
+    }
+
+    @Override
+    public Optional<EventAnnouncementResult> findAnnouncementByEventId(Long eventId) {
+        EventAnnouncementResult result = selectAnnouncement()
+            .where(eventAnnouncementJpaEntity.eventId.eq(eventId))
+            .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    @Override
+    public PageResult<EventAnnouncementResult> findAnnouncements(PageQuery pageQuery) {
+        List<EventAnnouncementResult> content = selectAnnouncement()
+            .orderBy(eventAnnouncementJpaEntity.announcedAt.desc())
+            .offset((long) pageQuery.page() * pageQuery.size())
+            .limit(pageQuery.size())
+            .fetch();
+
+        Long total = queryFactory
+            .select(eventAnnouncementJpaEntity.count())
+            .from(eventAnnouncementJpaEntity)
+            .fetchOne();
+
+        return PageResult.of(content, total != null ? total : 0L, pageQuery.page(), pageQuery.size());
+    }
+
+    private JPAQuery<EventAnnouncementResult> selectAnnouncement() {
+        return queryFactory
+            .select(Projections.constructor(EventAnnouncementResult.class,
+                eventAnnouncementJpaEntity.id,
+                eventAnnouncementJpaEntity.eventId,
+                eventAnnouncementJpaEntity.name,
+                eventAnnouncementJpaEntity.content,
+                eventAnnouncementJpaEntity.announcedAt
+            ))
+            .from(eventAnnouncementJpaEntity);
+    }
+
+    private BooleanExpression nameContains(String name) {
+        return StringUtils.hasText(name) ? eventJpaEntity.name.containsIgnoreCase(name) : null;
+    }
+
+    private BooleanExpression statusEq(String status) {
+        return status != null ? eventJpaEntity.status.eq(status) : null;
+    }
+}

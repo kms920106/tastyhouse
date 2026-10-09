@@ -1,0 +1,61 @@
+package com.tastyhouse.infrastructure.jpa.member.follow.persistence;
+
+import java.util.Optional;
+
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.stereotype.Repository;
+
+import com.tastyhouse.domain.member.follow.model.MemberFollow;
+import com.tastyhouse.domain.member.vo.MemberId;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowLoadPort;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowSavePort;
+
+import static com.tastyhouse.infrastructure.jpa.member.follow.persistence.QMemberFollowJpaEntity.memberFollowJpaEntity;
+
+@Repository
+class MemberFollowPersistenceAdapter implements MemberFollowLoadPort, MemberFollowSavePort {
+
+    private final JPAQueryFactory queryFactory;
+    private final MemberFollowJpaRepository memberFollowJpaRepository;
+
+    public MemberFollowPersistenceAdapter(JPAQueryFactory queryFactory, MemberFollowJpaRepository memberFollowJpaRepository) {
+        this.queryFactory = queryFactory;
+        this.memberFollowJpaRepository = memberFollowJpaRepository;
+    }
+
+    @Override
+    public Optional<MemberFollow> findByFollowerIdAndFollowingId(MemberId followerId, MemberId followingId) {
+        MemberFollowJpaEntity entity = queryFactory
+            .selectFrom(memberFollowJpaEntity)
+            .where(
+                memberFollowJpaEntity.followerId.eq(followerId.value()),
+                memberFollowJpaEntity.followingId.eq(followingId.value())
+            )
+            .fetchOne();
+
+        return Optional.ofNullable(entity).map(MemberFollowMapper::toDomain);
+    }
+
+    @Override
+    public boolean existsByFollowerIdAndFollowingId(MemberId followerId, MemberId followingId) {
+        return queryFactory
+            .selectOne()
+            .from(memberFollowJpaEntity)
+            .where(
+                memberFollowJpaEntity.followerId.eq(followerId.value()),
+                memberFollowJpaEntity.followingId.eq(followingId.value())
+            )
+            .fetchFirst() != null;
+    }
+
+    @Override
+    public MemberFollow save(MemberFollow memberFollow) {
+        MemberFollowJpaEntity saved = memberFollowJpaRepository.save(MemberFollowMapper.toEntity(memberFollow));
+        return MemberFollowMapper.toDomain(saved);
+    }
+
+    @Override
+    public void delete(MemberFollow memberFollow) {
+        memberFollowJpaRepository.deleteById(memberFollow.getId());
+    }
+}
