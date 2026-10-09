@@ -7,7 +7,8 @@ import com.tastyhouse.domain.notice.model.Notice;
 import com.tastyhouse.domain.notice.vo.NoticeId;
 import com.tastyhouse.application.notice.port.in.NoticeUpdateCommand;
 import com.tastyhouse.application.notice.port.in.NoticeUpdateUseCase;
-import com.tastyhouse.application.notice.port.out.write.NoticePersistencePort;
+import com.tastyhouse.application.notice.port.out.write.NoticeLoadPort;
+import com.tastyhouse.application.notice.port.out.write.NoticeSavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,10 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class NoticeUpdateService implements NoticeUpdateUseCase {
 
-    private final NoticePersistencePort noticePersistencePort;
+    private final NoticeLoadPort noticeLoadPort;
+    private final NoticeSavePort noticeSavePort;
 
-    public NoticeUpdateService(NoticePersistencePort noticePersistencePort) {
-        this.noticePersistencePort = noticePersistencePort;
+    public NoticeUpdateService(NoticeLoadPort noticeLoadPort, NoticeSavePort noticeSavePort) {
+        this.noticeLoadPort = noticeLoadPort;
+        this.noticeSavePort = noticeSavePort;
     }
 
     @Override
@@ -27,11 +30,11 @@ class NoticeUpdateService implements NoticeUpdateUseCase {
         Notice notice = findNoticeOrThrow(noticeId);
 
         notice.update(command.title(), command.content(), command.visible());
-        noticePersistencePort.save(notice);
+        noticeSavePort.save(notice);
     }
 
     private Notice findNoticeOrThrow(NoticeId noticeId) {
-        return noticePersistencePort.findById(noticeId)
+        return noticeLoadPort.findById(noticeId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.NOTICE_NOT_FOUND));
     }
 }

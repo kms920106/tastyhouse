@@ -3,10 +3,10 @@ package com.tastyhouse.infrastructure.persistence.product.persistence;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeHistory;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistorySavePort;
 
 @Repository
-class ProductOptionGroupMergeHistoryPersistenceAdapter implements ProductOptionGroupMergeHistoryPersistencePort {
+class ProductOptionGroupMergeHistoryPersistenceAdapter implements ProductOptionGroupMergeHistorySavePort {
 
     private final ProductOptionGroupMergeHistoryJpaRepository jpaRepository;
 

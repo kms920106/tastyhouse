@@ -13,7 +13,7 @@ import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.application.rank.port.out.MemberReviewCount;
 import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankPersistencePort;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankSavePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +29,7 @@ class RankSettlementServiceTest {
             MemberReviewCount.of(22L, 20L, LocalDateTime.of(2026, 7, 21, 10, 0)),
             MemberReviewCount.of(33L, 10L, LocalDateTime.of(2026, 7, 22, 10, 0))
         ));
-        MemberReviewRankPersistencePortStub repository = new MemberReviewRankPersistencePortStub();
+        MemberReviewRankSavePortStub repository = new MemberReviewRankSavePortStub();
         RankSettlementService service = new RankSettlementService(repository, port);
 
         int settled = service.settle(RankType.ALL, BASE_DATE, 10);
@@ -52,7 +52,7 @@ class RankSettlementServiceTest {
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(List.of(
             MemberReviewCount.of(11L, 5L, LocalDateTime.of(2026, 7, 20, 10, 0))
         ));
-        MemberReviewRankPersistencePortStub repository = new MemberReviewRankPersistencePortStub();
+        MemberReviewRankSavePortStub repository = new MemberReviewRankSavePortStub();
         RankSettlementService service = new RankSettlementService(repository, port);
 
         service.settle(RankType.WEEKLY, BASE_DATE, 10);
@@ -70,7 +70,7 @@ class RankSettlementServiceTest {
             counts.add(MemberReviewCount.of(i, 100L - i, LocalDateTime.of(2026, 7, 20, 10, 0)));
         }
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(counts);
-        MemberReviewRankPersistencePortStub repository = new MemberReviewRankPersistencePortStub();
+        MemberReviewRankSavePortStub repository = new MemberReviewRankSavePortStub();
         RankSettlementService service = new RankSettlementService(repository, port);
 
         int settled = service.settle(RankType.MONTHLY, BASE_DATE, 3);
@@ -85,7 +85,7 @@ class RankSettlementServiceTest {
     @DisplayName("집계할 리뷰가 없으면 기존 랭킹만 지우고 빈 목록을 적재한다")
     void settle_withNoReviews_clearsOnly() {
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(List.of());
-        MemberReviewRankPersistencePortStub repository = new MemberReviewRankPersistencePortStub();
+        MemberReviewRankSavePortStub repository = new MemberReviewRankSavePortStub();
         RankSettlementService service = new RankSettlementService(repository, port);
 
         int settled = service.settle(RankType.ALL, BASE_DATE, 10);
@@ -99,7 +99,7 @@ class RankSettlementServiceTest {
     @DisplayName("ALL 타입은 서비스 개시 이전부터 기준일 끝까지를 집계 기간으로 쓴다")
     void settle_allType_usesAllTimePeriod() {
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(List.of());
-        RankSettlementService service = new RankSettlementService(new MemberReviewRankPersistencePortStub(), port);
+        RankSettlementService service = new RankSettlementService(new MemberReviewRankSavePortStub(), port);
 
         service.settle(RankType.ALL, BASE_DATE, 10);
 
@@ -111,7 +111,7 @@ class RankSettlementServiceTest {
     @DisplayName("MONTHLY 타입은 기준일이 속한 달의 1일부터 말일까지를 집계 기간으로 쓴다")
     void settle_monthlyType_usesCalendarMonthPeriod() {
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(List.of());
-        RankSettlementService service = new RankSettlementService(new MemberReviewRankPersistencePortStub(), port);
+        RankSettlementService service = new RankSettlementService(new MemberReviewRankSavePortStub(), port);
 
         service.settle(RankType.MONTHLY, BASE_DATE, 10);
 
@@ -123,7 +123,7 @@ class RankSettlementServiceTest {
     @DisplayName("WEEKLY 타입은 기준일이 속한 주의 월요일부터 일요일까지를 집계 기간으로 쓴다")
     void settle_weeklyType_usesMondayToSundayPeriod() {
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(List.of());
-        RankSettlementService service = new RankSettlementService(new MemberReviewRankPersistencePortStub(), port);
+        RankSettlementService service = new RankSettlementService(new MemberReviewRankSavePortStub(), port);
 
         service.settle(RankType.WEEKLY, BASE_DATE, 10);
 
@@ -137,7 +137,7 @@ class RankSettlementServiceTest {
         MemberReviewCountPortStub port = new MemberReviewCountPortStub(List.of(
             MemberReviewCount.of(11L, 5L, LocalDateTime.of(2026, 7, 20, 10, 0))
         ));
-        MemberReviewRankPersistencePortStub repository = new MemberReviewRankPersistencePortStub();
+        MemberReviewRankSavePortStub repository = new MemberReviewRankSavePortStub();
         RankSettlementService service = new RankSettlementService(repository, port);
 
         int settled = service.settleAll(BASE_DATE);
@@ -165,7 +165,7 @@ class RankSettlementServiceTest {
         }
     }
 
-    private static final class MemberReviewRankPersistencePortStub implements MemberReviewRankPersistencePort {
+    private static final class MemberReviewRankSavePortStub implements MemberReviewRankSavePort {
 
         private final List<String> callOrder = new ArrayList<>();
         private final List<RankType> deletedRankTypes = new ArrayList<>();

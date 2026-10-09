@@ -13,20 +13,24 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUnhideCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUnhideUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeSavePort;
 
 @Service
 @Transactional
 class ShopNoticeUnhideService implements ShopNoticeUnhideUseCase {
 
-    private final ShopNoticePersistencePort shopNoticePersistencePort;
+    private final ShopNoticeLoadPort shopNoticeLoadPort;
+    private final ShopNoticeSavePort shopNoticeSavePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopNoticeUnhideService(
-        ShopNoticePersistencePort shopNoticePersistencePort,
+        ShopNoticeLoadPort shopNoticeLoadPort,
+        ShopNoticeSavePort shopNoticeSavePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopNoticePersistencePort = shopNoticePersistencePort;
+        this.shopNoticeLoadPort = shopNoticeLoadPort;
+        this.shopNoticeSavePort = shopNoticeSavePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -40,7 +44,7 @@ class ShopNoticeUnhideService implements ShopNoticeUnhideUseCase {
         }
 
         notice.unhide();
-        shopNoticePersistencePort.save(notice);
+        shopNoticeSavePort.save(notice);
 
         shopChangeHistoryRecorder.record(
             notice.getShopId(),
@@ -53,7 +57,7 @@ class ShopNoticeUnhideService implements ShopNoticeUnhideUseCase {
     }
 
     private ShopNotice loadNotice(Long noticeId) {
-        return shopNoticePersistencePort.findById(noticeId)
+        return shopNoticeLoadPort.findById(noticeId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOTICE_NOT_FOUND));
     }
 }

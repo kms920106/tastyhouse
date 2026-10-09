@@ -4,8 +4,9 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.follow.port.out.write.MemberFollowPersistencePort;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowLoadPort;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowSavePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
@@ -13,15 +14,18 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 @Service
 public class MemberFollowService {
 
-    private final MemberFollowPersistencePort memberFollowPersistencePort;
-    private final MemberPersistencePort memberPersistencePort;
+    private final MemberFollowLoadPort memberFollowLoadPort;
+    private final MemberFollowSavePort memberFollowSavePort;
+    private final MemberLoadPort memberLoadPort;
 
     public MemberFollowService(
-        MemberFollowPersistencePort memberFollowPersistencePort,
-        MemberPersistencePort memberPersistencePort
+        MemberFollowLoadPort memberFollowLoadPort,
+        MemberFollowSavePort memberFollowSavePort,
+        MemberLoadPort memberLoadPort
     ) {
-        this.memberFollowPersistencePort = memberFollowPersistencePort;
-        this.memberPersistencePort = memberPersistencePort;
+        this.memberFollowLoadPort = memberFollowLoadPort;
+        this.memberFollowSavePort = memberFollowSavePort;
+        this.memberLoadPort = memberLoadPort;
     }
 
     public Long follow(MemberId followerId, MemberId followingId) {
@@ -29,29 +33,29 @@ public class MemberFollowService {
             throw new ApplicationException(WebErrorCode.FOLLOW_SELF_NOT_ALLOWED);
         }
 
-        if (memberPersistencePort.findById(followingId).isEmpty()) {
+        if (memberLoadPort.findById(followingId).isEmpty()) {
             throw new ResourceNotFoundException(WebErrorCode.FOLLOW_TARGET_NOT_FOUND);
         }
 
-        if (memberFollowPersistencePort.existsByFollowerIdAndFollowingId(followerId, followingId)) {
+        if (memberFollowLoadPort.existsByFollowerIdAndFollowingId(followerId, followingId)) {
             throw new ApplicationException(WebErrorCode.FOLLOW_ALREADY_EXISTS);
         }
 
-        MemberFollow saved = memberFollowPersistencePort.save(MemberFollow.of(followerId, followingId));
+        MemberFollow saved = memberFollowSavePort.save(MemberFollow.of(followerId, followingId));
         return saved.getId();
     }
 
     public void unfollow(MemberId followerId, MemberId followingId) {
-        MemberFollow memberFollow = memberFollowPersistencePort.findByFollowerIdAndFollowingId(followerId, followingId)
+        MemberFollow memberFollow = memberFollowLoadPort.findByFollowerIdAndFollowingId(followerId, followingId)
             .orElseThrow(() -> new ApplicationException(WebErrorCode.FOLLOW_NOT_FOUND));
 
-        memberFollowPersistencePort.delete(memberFollow);
+        memberFollowSavePort.delete(memberFollow);
     }
 
     public void removeFollower(MemberId memberId, MemberId followerId) {
-        MemberFollow memberFollow = memberFollowPersistencePort.findByFollowerIdAndFollowingId(followerId, memberId)
+        MemberFollow memberFollow = memberFollowLoadPort.findByFollowerIdAndFollowingId(followerId, memberId)
             .orElseThrow(() -> new ApplicationException(WebErrorCode.FOLLOW_NOT_FOUND));
 
-        memberFollowPersistencePort.delete(memberFollow);
+        memberFollowSavePort.delete(memberFollow);
     }
 }

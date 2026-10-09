@@ -8,20 +8,20 @@ import com.tastyhouse.domain.rank.model.RankPrize;
 import com.tastyhouse.domain.rank.vo.RankPrizeId;
 import com.tastyhouse.application.rank.port.in.RankPrizeUpdateCommand;
 import com.tastyhouse.application.rank.port.in.RankPrizeUpdateUseCase;
-import com.tastyhouse.application.rank.port.out.write.RankPrizePersistencePort;
+import com.tastyhouse.application.rank.port.out.write.RankPrizeSavePort;
 
 @Service
 @Transactional
 class RankPrizeUpdateService implements RankPrizeUpdateUseCase {
 
-    private final RankPrizePersistencePort rankPrizePersistencePort;
+    private final RankPrizeSavePort rankPrizeSavePort;
     private final RankPrizeManagementReader rankPrizeManagementReader;
 
     public RankPrizeUpdateService(
-        RankPrizePersistencePort rankPrizePersistencePort,
+        RankPrizeSavePort rankPrizeSavePort,
         RankPrizeManagementReader rankPrizeManagementReader
     ) {
-        this.rankPrizePersistencePort = rankPrizePersistencePort;
+        this.rankPrizeSavePort = rankPrizeSavePort;
         this.rankPrizeManagementReader = rankPrizeManagementReader;
     }
 
@@ -33,6 +33,6 @@ class RankPrizeUpdateService implements RankPrizeUpdateUseCase {
         UploadedFileId uploadedFileId = imageFileId == null ? null : UploadedFileId.of(imageFileId);
 
         prize.update(command.prizeRank(), command.name(), command.brand(), uploadedFileId);
-        rankPrizePersistencePort.save(prize);
+        rankPrizeSavePort.save(prize);
     }
 }

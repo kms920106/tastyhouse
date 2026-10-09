@@ -10,14 +10,15 @@ import com.tastyhouse.domain.product.model.ProductPrice;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductJpaEntity.productJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductPriceJpaEntity.productPriceJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductShopLinkJpaEntity.productShopLinkJpaEntity;
 
 @Repository
-class ProductPricePersistenceAdapter implements ProductPricePersistencePort {
+class ProductPricePersistenceAdapter implements ProductPriceLoadPort, ProductPriceSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductPriceJpaRepository productPriceJpaRepository;

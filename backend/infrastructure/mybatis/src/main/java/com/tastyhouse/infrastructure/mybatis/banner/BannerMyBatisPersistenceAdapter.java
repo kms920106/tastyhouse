@@ -8,11 +8,12 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.banner.model.Banner;
 import com.tastyhouse.domain.banner.vo.BannerId;
-import com.tastyhouse.application.banner.port.out.write.BannerPersistencePort;
+import com.tastyhouse.application.banner.port.out.write.BannerLoadPort;
+import com.tastyhouse.application.banner.port.out.write.BannerSavePort;
 
 @Repository
 @ConditionalOnProperty(name = "persistence.banner.write.provider", havingValue = "mybatis")
-class BannerMyBatisPersistenceAdapter implements BannerPersistencePort {
+class BannerMyBatisPersistenceAdapter implements BannerLoadPort, BannerSavePort {
 
     private final BannerMyBatisMapper bannerMyBatisMapper;
 

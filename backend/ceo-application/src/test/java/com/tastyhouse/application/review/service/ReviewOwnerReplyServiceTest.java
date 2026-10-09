@@ -20,12 +20,13 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.review.vo.ReviewOwnerReplyId;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplySavePort;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordLoadPort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.testsupport.review.service.FakeDomainEventPublisher;
-import com.tastyhouse.testsupport.review.service.FakeReviewPersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -41,7 +42,7 @@ class ReviewOwnerReplyServiceTest {
     private static final LocalDate REVIEW_CREATED_DATE = LocalDate.of(2026, 6, 1);
     private static final LocalDate DEADLINE = REVIEW_CREATED_DATE.plusDays(ReviewOwnerReply.REPLY_PERIOD_DAYS);
 
-    private FakeReviewOwnerReplyPersistencePort reviewOwnerReplyPersistencePort;
+    private FakeReviewOwnerReplyPersistence reviewOwnerReplyPersistence;
     private FakeDomainEventPublisher domainEventPublisher;
     private ReviewOwnerReplyService reviewOwnerReplyService;
 
@@ -49,18 +50,19 @@ class ReviewOwnerReplyServiceTest {
 
     @BeforeEach
     void setUp() {
-        FakeReviewPersistencePort reviewPersistencePort = new FakeReviewPersistencePort();
-        reviewOwnerReplyPersistencePort = new FakeReviewOwnerReplyPersistencePort();
+        FakeReviewPersistence reviewPersistence = new FakeReviewPersistence();
+        reviewOwnerReplyPersistence = new FakeReviewOwnerReplyPersistence();
         domainEventPublisher = new FakeDomainEventPublisher();
         reviewOwnerReplyService = new ReviewOwnerReplyService(
-            reviewOwnerReplyPersistencePort,
-            reviewPersistencePort,
-            new ProhibitedWordValidator(new FakeProhibitedWordPersistencePort()),
+            reviewOwnerReplyPersistence,
+            reviewOwnerReplyPersistence,
+            reviewPersistence,
+            new ProhibitedWordValidator(new FakeProhibitedWordLoadPort()),
             domainEventPublisher
         );
 
         reviewId = 100L;
-        reviewPersistencePort.save(Review.reconstitute(
+        reviewPersistence.save(Review.reconstitute(
             reviewId,
             ShopId.of(SHOP_ID),
             null,
@@ -113,7 +115,7 @@ class ReviewOwnerReplyServiceTest {
 
         assertThatCode(() -> reviewOwnerReplyService.modify(SHOP_ID, reviewId, "오타를 고쳤습니다."))
             .doesNotThrowAnyException();
-        assertThat(reviewOwnerReplyPersistencePort.findByReviewId(ReviewId.of(reviewId)))
+        assertThat(reviewOwnerReplyPersistence.findByReviewId(ReviewId.of(reviewId)))
             .get()
             .extracting(ReviewOwnerReply::getContent)
             .isEqualTo("오타를 고쳤습니다.");
@@ -126,7 +128,7 @@ class ReviewOwnerReplyServiceTest {
 
         assertThatCode(() -> reviewOwnerReplyService.remove(SHOP_ID, reviewId))
             .doesNotThrowAnyException();
-        assertThat(reviewOwnerReplyPersistencePort.findByReviewId(ReviewId.of(reviewId))).isEmpty();
+        assertThat(reviewOwnerReplyPersistence.findByReviewId(ReviewId.of(reviewId))).isEmpty();
     }
 
     @Test
@@ -158,7 +160,7 @@ class ReviewOwnerReplyServiceTest {
             .isEqualTo(CeoErrorCode.REVIEW_OWNER_REPLY_PERIOD_EXPIRED);
     }
 
-    private static class FakeReviewOwnerReplyPersistencePort implements ReviewOwnerReplyPersistencePort {
+    private static class FakeReviewOwnerReplyPersistence implements ReviewOwnerReplyLoadPort, ReviewOwnerReplySavePort {
 
         private final Map<Long, ReviewOwnerReply> replies = new HashMap<>();
         private long sequence = 0L;
@@ -206,7 +208,7 @@ class ReviewOwnerReplyServiceTest {
         }
     }
 
-    private static class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+    private static class FakeProhibitedWordLoadPort implements ProhibitedWordLoadPort {
 
         @Override
         public List<ProhibitedWord> findAll() {

@@ -16,8 +16,9 @@ import com.tastyhouse.domain.product.model.ProductOptionGroupLink;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
@@ -25,42 +26,45 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 @Service
 public class ProductOptionGroupLinkService {
 
-    private final ProductOptionGroupLinkPersistencePort linkPersistencePort;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductOptionGroupLinkLoadPort linkLoadPort;
+    private final ProductOptionGroupLinkSavePort linkSavePort;
+    private final ProductLoadPort productLoadPort;
 
     public ProductOptionGroupLinkService(
-        ProductOptionGroupLinkPersistencePort linkPersistencePort,
-        ProductPersistencePort productPersistencePort
+        ProductOptionGroupLinkLoadPort linkLoadPort,
+        ProductOptionGroupLinkSavePort linkSavePort,
+        ProductLoadPort productLoadPort
     ) {
-        this.linkPersistencePort = linkPersistencePort;
-        this.productPersistencePort = productPersistencePort;
+        this.linkLoadPort = linkLoadPort;
+        this.linkSavePort = linkSavePort;
+        this.productLoadPort = productLoadPort;
     }
 
     public void link(ProductId productId, ProductOptionGroupId optionGroupId) {
-        if (linkPersistencePort.existsByProductIdAndOptionGroupId(productId, optionGroupId)) {
+        if (linkLoadPort.existsByProductIdAndOptionGroupId(productId, optionGroupId)) {
             return;
         }
         validateSameShop(productId, optionGroupId);
 
-        int nextSort = linkPersistencePort.findAllByProductId(productId).size();
-        linkPersistencePort.save(ProductOptionGroupLink.of(productId, optionGroupId, nextSort));
+        int nextSort = linkLoadPort.findAllByProductId(productId).size();
+        linkSavePort.save(ProductOptionGroupLink.of(productId, optionGroupId, nextSort));
     }
 
     public void unlink(ProductId productId, ProductOptionGroupId optionGroupId) {
-        ProductOptionGroupLink link = linkPersistencePort
+        ProductOptionGroupLink link = linkLoadPort
             .findByProductIdAndOptionGroupId(productId, optionGroupId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
 
-        if (linkPersistencePort.findAllByOptionGroupId(optionGroupId).size() <= 1) {
+        if (linkLoadPort.findAllByOptionGroupId(optionGroupId).size() <= 1) {
             throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_LAST_LINK_CANNOT_UNLINK);
         }
 
-        linkPersistencePort.delete(link);
+        linkSavePort.delete(link);
         renumber(productId);
     }
 
     public void reorder(ProductId productId, List<ProductOptionGroupId> orderedGroupIds) {
-        List<ProductOptionGroupLink> current = linkPersistencePort.findAllByProductId(productId);
+        List<ProductOptionGroupLink> current = linkLoadPort.findAllByProductId(productId);
         Map<Long, ProductOptionGroupLink> byGroupId = current.stream()
             .collect(Collectors.toMap(link -> link.getOptionGroupId().value(), Function.identity()));
 
@@ -72,7 +76,7 @@ public class ProductOptionGroupLinkService {
         for (int index = 0; index < requested.size(); index++) {
             ProductOptionGroupLink link = byGroupId.get(requested.get(index));
             link.changeSort(index);
-            linkPersistencePort.save(link);
+            linkSavePort.save(link);
         }
     }
 
@@ -84,7 +88,7 @@ public class ProductOptionGroupLinkService {
         Set<Long> affectedProductIds = new LinkedHashSet<>();
 
         for (ProductId productId : productIds) {
-            ProductOptionGroupLink link = linkPersistencePort
+            ProductOptionGroupLink link = linkLoadPort
                 .findByProductIdAndOptionGroupId(productId, fromOptionGroupId)
                 .orElse(null);
             if (link == null) {
@@ -93,10 +97,10 @@ public class ProductOptionGroupLinkService {
             affectedProductIds.add(productId.value());
 
             Integer preservedSort = link.getSort();
-            linkPersistencePort.delete(link);
+            linkSavePort.delete(link);
 
-            if (!linkPersistencePort.existsByProductIdAndOptionGroupId(productId, toOptionGroupId)) {
-                linkPersistencePort.save(ProductOptionGroupLink.of(productId, toOptionGroupId, preservedSort));
+            if (!linkLoadPort.existsByProductIdAndOptionGroupId(productId, toOptionGroupId)) {
+                linkSavePort.save(ProductOptionGroupLink.of(productId, toOptionGroupId, preservedSort));
             }
         }
 
@@ -104,9 +108,9 @@ public class ProductOptionGroupLinkService {
     }
 
     public ShopId findOwningShopId(ProductOptionGroupId optionGroupId) {
-        return linkPersistencePort.findAllByOptionGroupId(optionGroupId).stream()
+        return linkLoadPort.findAllByOptionGroupId(optionGroupId).stream()
             .map(ProductOptionGroupLink::getProductId)
-            .map(productPersistencePort::findById)
+            .map(productLoadPort::findById)
             .filter(java.util.Optional::isPresent)
             .map(java.util.Optional::get)
             .map(Product::getShopId)
@@ -115,7 +119,7 @@ public class ProductOptionGroupLinkService {
     }
 
     private void validateSameShop(ProductId productId, ProductOptionGroupId optionGroupId) {
-        Product product = productPersistencePort.findById(productId)
+        Product product = productLoadPort.findById(productId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
 
         ShopId owner = findOwningShopId(optionGroupId);
@@ -125,11 +129,11 @@ public class ProductOptionGroupLinkService {
     }
 
     private void renumber(ProductId productId) {
-        List<ProductOptionGroupLink> remaining = linkPersistencePort.findAllByProductId(productId);
+        List<ProductOptionGroupLink> remaining = linkLoadPort.findAllByProductId(productId);
         for (int index = 0; index < remaining.size(); index++) {
             ProductOptionGroupLink link = remaining.get(index);
             link.changeSort(index);
-            linkPersistencePort.save(link);
+            linkSavePort.save(link);
         }
     }
 

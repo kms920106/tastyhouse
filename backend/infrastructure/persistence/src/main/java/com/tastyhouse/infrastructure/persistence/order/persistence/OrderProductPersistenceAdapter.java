@@ -6,10 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.order.model.OrderProduct;
 import com.tastyhouse.domain.order.vo.OrderProductId;
-import com.tastyhouse.application.order.port.out.write.OrderProductPersistencePort;
+import com.tastyhouse.application.order.port.out.write.OrderProductLoadPort;
+import com.tastyhouse.application.order.port.out.write.OrderProductSavePort;
 
 @Repository
-class OrderProductPersistenceAdapter implements OrderProductPersistencePort {
+class OrderProductPersistenceAdapter implements OrderProductLoadPort, OrderProductSavePort {
 
     private final OrderProductJpaRepository orderProductJpaRepository;
 

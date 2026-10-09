@@ -3,10 +3,10 @@ package com.tastyhouse.infrastructure.persistence.payment.persistence;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.payment.model.TossPaymentRecord;
-import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordPersistencePort;
+import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordSavePort;
 
 @Repository
-class TossPaymentRecordPersistenceAdapter implements TossPaymentRecordPersistencePort {
+class TossPaymentRecordPersistenceAdapter implements TossPaymentRecordSavePort {
 
     private final TossPaymentRecordJpaRepository tossPaymentRecordJpaRepository;
 

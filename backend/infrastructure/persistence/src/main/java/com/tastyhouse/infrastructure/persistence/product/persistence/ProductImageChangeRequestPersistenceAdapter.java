@@ -10,12 +10,13 @@ import com.tastyhouse.domain.product.model.ProductImageChangeRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductImageChangeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductImageChangeRequestJpaEntity.productImageChangeRequestJpaEntity;
 
 @Repository
-class ProductImageChangeRequestPersistenceAdapter implements ProductImageChangeRequestPersistencePort {
+class ProductImageChangeRequestPersistenceAdapter implements ProductImageChangeRequestLoadPort, ProductImageChangeRequestSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductImageChangeRequestJpaRepository productImageChangeRequestJpaRepository;

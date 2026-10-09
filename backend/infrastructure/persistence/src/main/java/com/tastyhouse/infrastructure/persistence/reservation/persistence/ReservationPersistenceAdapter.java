@@ -12,12 +12,13 @@ import com.tastyhouse.domain.reservation.model.Reservation;
 import com.tastyhouse.domain.reservation.model.ReservationStatus;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.reservation.port.out.write.ReservationPersistencePort;
+import com.tastyhouse.application.reservation.port.out.write.ReservationLoadPort;
+import com.tastyhouse.application.reservation.port.out.write.ReservationSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.reservation.persistence.QReservationJpaEntity.reservationJpaEntity;
 
 @Repository
-class ReservationPersistenceAdapter implements ReservationPersistencePort {
+class ReservationPersistenceAdapter implements ReservationLoadPort, ReservationSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReservationJpaRepository reservationJpaRepository;

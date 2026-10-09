@@ -12,12 +12,12 @@ import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupOwnerCreateUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -30,21 +30,21 @@ class ProductOptionGroupOwnerCreateService implements ProductOptionGroupOwnerCre
     private static final Integer NEXT_SORT_APPENDS_TO_TAIL = null;
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductPersistencePort productPersistencePort;
-    private final ShopPersistencePort shopPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ShopLoadPort shopLoadPort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionGroupOwnerCreateService(
         ProductRegistrationService productRegistrationService,
-        ProductPersistencePort productPersistencePort,
-        ShopPersistencePort shopPersistencePort,
+        ProductLoadPort productLoadPort,
+        ShopLoadPort shopLoadPort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productRegistrationService = productRegistrationService;
-        this.productPersistencePort = productPersistencePort;
-        this.shopPersistencePort = shopPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.shopLoadPort = shopLoadPort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -93,12 +93,12 @@ class ProductOptionGroupOwnerCreateService implements ProductOptionGroupOwnerCre
     }
 
     private Shop loadShop(Long shopId) {
-        return shopPersistencePort.findById(ShopId.of(shopId))
+        return shopLoadPort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 
     private Product loadOwnedProduct(Long shopId, Long productId) {
-        Product product = productPersistencePort.findById(ProductId.of(productId))
+        Product product = productLoadPort.findById(ProductId.of(productId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);

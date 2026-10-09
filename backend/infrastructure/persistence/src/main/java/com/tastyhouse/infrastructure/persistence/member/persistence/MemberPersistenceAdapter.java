@@ -10,12 +10,13 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.domain.member.model.MemberStatus;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.member.persistence.QMemberJpaEntity.memberJpaEntity;
 
 @Repository
-class MemberPersistenceAdapter implements MemberPersistencePort {
+class MemberPersistenceAdapter implements MemberLoadPort, MemberSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final MemberJpaRepository memberJpaRepository;

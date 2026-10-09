@@ -9,12 +9,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.product.model.ProductImage;
 import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductImageLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductImageSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductImageJpaEntity.productImageJpaEntity;
 
 @Repository
-class ProductImagePersistenceAdapter implements ProductImagePersistencePort {
+class ProductImagePersistenceAdapter implements ProductImageLoadPort, ProductImageSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductImageJpaRepository productImageJpaRepository;

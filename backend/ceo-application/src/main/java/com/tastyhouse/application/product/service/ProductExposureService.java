@@ -17,8 +17,10 @@ import com.tastyhouse.domain.product.model.ProductExposureHour;
 import com.tastyhouse.domain.product.model.ProductExposureResult;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
-import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
@@ -29,17 +31,23 @@ public class ProductExposureService {
     private static final Set<DayType> GROUP_DAY_TYPES =
         Set.of(DayType.DAILY, DayType.WEEKDAY, DayType.WEEKEND, DayType.HOLIDAY);
 
-    private final ProductPersistencePort productPersistencePort;
-    private final ProductExposureHourPersistencePort productExposureHourPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductSavePort productSavePort;
+    private final ProductExposureHourLoadPort productExposureHourLoadPort;
+    private final ProductExposureHourSavePort productExposureHourSavePort;
     private final ProductExposureCalculator productExposureCalculator;
 
     public ProductExposureService(
-        ProductPersistencePort productPersistencePort,
-        ProductExposureHourPersistencePort productExposureHourPersistencePort,
+        ProductLoadPort productLoadPort,
+        ProductSavePort productSavePort,
+        ProductExposureHourLoadPort productExposureHourLoadPort,
+        ProductExposureHourSavePort productExposureHourSavePort,
         ProductExposureCalculator productExposureCalculator
     ) {
-        this.productPersistencePort = productPersistencePort;
-        this.productExposureHourPersistencePort = productExposureHourPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productSavePort = productSavePort;
+        this.productExposureHourLoadPort = productExposureHourLoadPort;
+        this.productExposureHourSavePort = productExposureHourSavePort;
         this.productExposureCalculator = productExposureCalculator;
     }
 
@@ -53,19 +61,19 @@ public class ProductExposureService {
         validateDayTypes(hours);
 
         product.changeExposurePeriod(startDate, endDate);
-        productPersistencePort.save(product);
+        productSavePort.save(product);
 
-        productExposureHourPersistencePort.deleteAllByProductId(productId);
+        productExposureHourSavePort.deleteAllByProductId(productId);
         if (hours != null && !hours.isEmpty()) {
-            productExposureHourPersistencePort.saveAll(hours);
+            productExposureHourSavePort.saveAll(hours);
         }
     }
 
     public void clearSchedule(ProductId productId) {
         Product product = loadProduct(productId);
         product.changeExposurePeriod(null, null);
-        productPersistencePort.save(product);
-        productExposureHourPersistencePort.deleteAllByProductId(productId);
+        productSavePort.save(product);
+        productExposureHourSavePort.deleteAllByProductId(productId);
     }
 
     public ProductExposureResult evaluate(ProductId productId, LocalDateTime now, boolean publicHoliday,
@@ -75,7 +83,7 @@ public class ProductExposureService {
             product.isVisible(),
             product.getExposureStartDate(),
             product.getExposureEndDate(),
-            productExposureHourPersistencePort.findAllByProductId(productId),
+            productExposureHourLoadPort.findAllByProductId(productId),
             now,
             publicHoliday,
             previousDayPublicHoliday
@@ -104,7 +112,7 @@ public class ProductExposureService {
     }
 
     private Product loadProduct(ProductId productId) {
-        return productPersistencePort.findById(productId)
+        return productLoadPort.findById(productId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 }

@@ -6,12 +6,12 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopNoticeImage;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeImagePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopNoticeImageJpaEntity.shopNoticeImageJpaEntity;
 
 @Repository
-class ShopNoticeImagePersistenceAdapter implements ShopNoticeImagePersistencePort {
+class ShopNoticeImagePersistenceAdapter implements ShopNoticeImageSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopNoticeImageJpaRepository shopNoticeImageJpaRepository;

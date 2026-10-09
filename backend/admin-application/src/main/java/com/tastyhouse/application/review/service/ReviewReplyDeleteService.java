@@ -6,7 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.review.vo.ReviewReplyId;
 import com.tastyhouse.application.review.port.in.ReviewReplyDeleteCommand;
 import com.tastyhouse.application.review.port.in.ReviewReplyDeleteUseCase;
-import com.tastyhouse.application.review.port.out.write.ReviewReplyPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewReplyLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewReplySavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -14,19 +15,21 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class ReviewReplyDeleteService implements ReviewReplyDeleteUseCase {
 
-    private final ReviewReplyPersistencePort reviewReplyPersistencePort;
+    private final ReviewReplyLoadPort reviewReplyLoadPort;
+    private final ReviewReplySavePort reviewReplySavePort;
 
-    public ReviewReplyDeleteService(ReviewReplyPersistencePort reviewReplyPersistencePort) {
-        this.reviewReplyPersistencePort = reviewReplyPersistencePort;
+    public ReviewReplyDeleteService(ReviewReplyLoadPort reviewReplyLoadPort, ReviewReplySavePort reviewReplySavePort) {
+        this.reviewReplyLoadPort = reviewReplyLoadPort;
+        this.reviewReplySavePort = reviewReplySavePort;
     }
 
     @Override
     public void deleteReply(ReviewReplyDeleteCommand command) {
         Long replyId = command.replyId();
         ReviewReplyId reviewReplyId = ReviewReplyId.of(replyId);
-        reviewReplyPersistencePort.findById(reviewReplyId)
+        reviewReplyLoadPort.findById(reviewReplyId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.REVIEW_REPLY_NOT_FOUND));
 
-        reviewReplyPersistencePort.deleteById(reviewReplyId);
+        reviewReplySavePort.deleteById(reviewReplyId);
     }
 }

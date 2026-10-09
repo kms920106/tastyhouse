@@ -25,14 +25,16 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistorySavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.testsupport.product.service.FakeProductOptionGroupLinkPersistencePort;
-import com.tastyhouse.testsupport.product.service.StubProductPersistencePort;
+import com.tastyhouse.testsupport.product.service.FakeProductOptionGroupLinkPersistence;
+import com.tastyhouse.testsupport.product.service.StubProductPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -287,22 +289,25 @@ class ProductOptionGroupMergeServiceTest {
 
     private static final class Fixture {
 
-        private final FakeProductOptionGroupLinkPersistencePort links = new FakeProductOptionGroupLinkPersistencePort();
+        private final FakeProductOptionGroupLinkPersistence links = new FakeProductOptionGroupLinkPersistence();
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final Map<Long, ProductOptionGroup> groups = new LinkedHashMap<>();
-        private final FakeProductOptionPersistencePort options = new FakeProductOptionPersistencePort();
+        private final FakeProductOptionPersistence options = new FakeProductOptionPersistence();
         private final List<ProductOptionGroupMergeHistory> histories = new ArrayList<>();
         private final ProductOptionGroupMergeService service;
 
         private Fixture() {
             ProductOptionGroupLinkService linkService =
-                new ProductOptionGroupLinkService(links, new StubProductPersistencePort(products));
+                new ProductOptionGroupLinkService(links, links, new StubProductPersistence(products));
+            StubOptionGroupPersistence stubOptionGroupPersistence = new StubOptionGroupPersistence(groups);
             this.service = new ProductOptionGroupMergeService(
-                new StubOptionGroupPersistencePort(groups),
+                stubOptionGroupPersistence,
+                stubOptionGroupPersistence,
+                options,
                 options,
                 links,
                 linkService,
-                new RecordingMergeHistoryPersistencePort(histories)
+                new RecordingMergeHistorySavePort(histories)
             );
         }
 
@@ -352,7 +357,7 @@ class ProductOptionGroupMergeServiceTest {
         }
     }
 
-    private static final class FakeProductOptionPersistencePort implements ProductOptionPersistencePort {
+    private static final class FakeProductOptionPersistence implements ProductOptionLoadPort, ProductOptionSavePort {
 
         private final Map<Long, ProductOption> options = new LinkedHashMap<>();
         private final AtomicLong sequence = new AtomicLong(1000L);
@@ -403,11 +408,11 @@ class ProductOptionGroupMergeServiceTest {
         }
     }
 
-    private static final class StubOptionGroupPersistencePort implements ProductOptionGroupPersistencePort {
+    private static final class StubOptionGroupPersistence implements ProductOptionGroupLoadPort, ProductOptionGroupSavePort {
 
         private final Map<Long, ProductOptionGroup> groups;
 
-        private StubOptionGroupPersistencePort(Map<Long, ProductOptionGroup> groups) {
+        private StubOptionGroupPersistence(Map<Long, ProductOptionGroup> groups) {
             this.groups = groups;
         }
 
@@ -431,12 +436,12 @@ class ProductOptionGroupMergeServiceTest {
         }
     }
 
-    private static final class RecordingMergeHistoryPersistencePort
-        implements ProductOptionGroupMergeHistoryPersistencePort {
+    private static final class RecordingMergeHistorySavePort
+        implements ProductOptionGroupMergeHistorySavePort {
 
         private final List<ProductOptionGroupMergeHistory> histories;
 
-        private RecordingMergeHistoryPersistencePort(List<ProductOptionGroupMergeHistory> histories) {
+        private RecordingMergeHistorySavePort(List<ProductOptionGroupMergeHistory> histories) {
             this.histories = histories;
         }
 

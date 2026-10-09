@@ -6,12 +6,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.Tag;
-import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.TagLoadPort;
+import com.tastyhouse.application.shop.port.out.write.TagSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QTagJpaEntity.tagJpaEntity;
 
 @Repository
-class TagPersistenceAdapter implements TagPersistencePort {
+class TagPersistenceAdapter implements TagLoadPort, TagSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final TagJpaRepository tagJpaRepository;

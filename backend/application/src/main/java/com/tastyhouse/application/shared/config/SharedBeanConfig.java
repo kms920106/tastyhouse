@@ -22,8 +22,8 @@ import com.tastyhouse.domain.shop.model.ShopOperatingStatusCalculator;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.event.SpringDomainEventPublisher;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipRangePolicy;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
-import com.tastyhouse.application.shop.service.CachingProhibitedWordPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordLoadPort;
+import com.tastyhouse.application.shop.service.CachingProhibitedWordLoadPort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 
 @Configuration(proxyBeanMethods = false)
@@ -87,7 +87,7 @@ class SharedBeanConfig {
     }
 
     @Bean
-    public ProhibitedWordValidator prohibitedWordValidator(ProhibitedWordPersistencePort prohibitedWordPersistencePort) {
-        return new ProhibitedWordValidator(new CachingProhibitedWordPersistencePort(prohibitedWordPersistencePort));
+    public ProhibitedWordValidator prohibitedWordValidator(ProhibitedWordLoadPort prohibitedWordLoadPort) {
+        return new ProhibitedWordValidator(new CachingProhibitedWordLoadPort(prohibitedWordLoadPort));
     }
 }

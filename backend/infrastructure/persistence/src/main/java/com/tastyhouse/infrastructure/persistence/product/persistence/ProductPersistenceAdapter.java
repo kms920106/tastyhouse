@@ -12,13 +12,14 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductJpaEntity.productJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductShopLinkJpaEntity.productShopLinkJpaEntity;
 
 @Repository
-class ProductPersistenceAdapter implements ProductPersistencePort {
+class ProductPersistenceAdapter implements ProductLoadPort, ProductSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductJpaRepository productJpaRepository;

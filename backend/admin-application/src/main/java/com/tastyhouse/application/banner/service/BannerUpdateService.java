@@ -9,7 +9,8 @@ import com.tastyhouse.domain.banner.vo.BannerId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.banner.port.in.BannerUpdateCommand;
 import com.tastyhouse.application.banner.port.in.BannerUpdateUseCase;
-import com.tastyhouse.application.banner.port.out.write.BannerPersistencePort;
+import com.tastyhouse.application.banner.port.out.write.BannerLoadPort;
+import com.tastyhouse.application.banner.port.out.write.BannerSavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -17,10 +18,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class BannerUpdateService implements BannerUpdateUseCase {
 
-    private final BannerPersistencePort bannerPersistencePort;
+    private final BannerLoadPort bannerLoadPort;
+    private final BannerSavePort bannerSavePort;
 
-    public BannerUpdateService(BannerPersistencePort bannerPersistencePort) {
-        this.bannerPersistencePort = bannerPersistencePort;
+    public BannerUpdateService(BannerLoadPort bannerLoadPort, BannerSavePort bannerSavePort) {
+        this.bannerLoadPort = bannerLoadPort;
+        this.bannerSavePort = bannerSavePort;
     }
 
     @Override
@@ -38,11 +41,11 @@ class BannerUpdateService implements BannerUpdateUseCase {
             command.sort(),
             command.visible()
         );
-        bannerPersistencePort.save(banner);
+        bannerSavePort.save(banner);
     }
 
     private Banner findBannerOrThrow(BannerId bannerId) {
-        return bannerPersistencePort.findById(bannerId)
+        return bannerLoadPort.findById(bannerId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.BANNER_NOT_FOUND));
     }
 }

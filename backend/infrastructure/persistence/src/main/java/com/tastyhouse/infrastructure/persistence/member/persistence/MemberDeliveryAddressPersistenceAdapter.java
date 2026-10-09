@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.member.persistence.QMemberDeliveryAddressJpaEntity.memberDeliveryAddressJpaEntity;
 
 @Repository
-class MemberDeliveryAddressPersistenceAdapter implements MemberDeliveryAddressPersistencePort {
+class MemberDeliveryAddressPersistenceAdapter implements MemberDeliveryAddressLoadPort, MemberDeliveryAddressSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final MemberDeliveryAddressJpaRepository memberDeliveryAddressJpaRepository;

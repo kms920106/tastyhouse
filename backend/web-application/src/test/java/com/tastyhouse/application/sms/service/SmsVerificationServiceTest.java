@@ -17,7 +17,8 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.sms.port.out.SmsSendFailure;
 import com.tastyhouse.application.sms.port.out.SmsSendResult;
 import com.tastyhouse.application.sms.port.out.SmsSender;
-import com.tastyhouse.application.sms.port.out.write.SmsVerificationPersistencePort;
+import com.tastyhouse.application.sms.port.out.write.SmsVerificationLoadPort;
+import com.tastyhouse.application.sms.port.out.write.SmsVerificationSavePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -28,8 +29,8 @@ class SmsVerificationServiceTest {
     @DisplayName("issue는 인증코드를 저장하고 그 코드를 담은 SMS를 발송한다")
     void issue_sendsSmsWithGeneratedCode() {
         RecordingSmsSender smsSender = new RecordingSmsSender();
-        FakeSmsVerificationPersistencePort repository = new FakeSmsVerificationPersistencePort();
-        SmsVerificationService service = new SmsVerificationService(repository, smsSender, event -> {
+        FakeSmsVerificationPersistence repository = new FakeSmsVerificationPersistence();
+        SmsVerificationService service = new SmsVerificationService(repository, repository, smsSender, event -> {
         });
 
         SmsVerification issued = service.issue("01012345678");
@@ -43,8 +44,8 @@ class SmsVerificationServiceTest {
     @Test
     @DisplayName("issue는 저장 전에 같은 번호의 기존 미완료 인증을 먼저 만료시킨다")
     void issue_expiresPreviousPendingBeforeSaving() {
-        FakeSmsVerificationPersistencePort repository = new FakeSmsVerificationPersistencePort();
-        SmsVerificationService service = new SmsVerificationService(repository, new RecordingSmsSender(), event -> {
+        FakeSmsVerificationPersistence repository = new FakeSmsVerificationPersistence();
+        SmsVerificationService service = new SmsVerificationService(repository, repository, new RecordingSmsSender(), event -> {
         });
 
         service.issue("01012345678");
@@ -55,11 +56,11 @@ class SmsVerificationServiceTest {
     @Test
     @DisplayName("issue는 발송이 실패하면 예외를 전파한다 — 호출자 트랜잭션이 롤백되어 유령 인증코드가 남지 않는다")
     void issue_propagatesSenderFailure() {
-        FakeSmsVerificationPersistencePort repository = new FakeSmsVerificationPersistencePort();
+        FakeSmsVerificationPersistence repository = new FakeSmsVerificationPersistence();
         SmsSender failingSender = (to, content) -> {
             throw new IllegalStateException("SMS 발송 실패");
         };
-        SmsVerificationService service = new SmsVerificationService(repository, failingSender, event -> {
+        SmsVerificationService service = new SmsVerificationService(repository, repository, failingSender, event -> {
         });
 
         assertThatThrownBy(() -> service.issue("01012345678"))
@@ -76,8 +77,10 @@ class SmsVerificationServiceTest {
     @DisplayName("issue는 발송 실패 종류를 기존과 같은 SMS ErrorCode로 번역한다")
     void issue_translatesFailureKindToErrorCode(SmsSendFailure failure, WebErrorCode expected) {
         SmsSender failingSender = (to, content) -> SmsSendResult.failed(failure);
+        FakeSmsVerificationPersistence fakeSmsVerificationPersistence = new FakeSmsVerificationPersistence();
         SmsVerificationService service = new SmsVerificationService(
-            new FakeSmsVerificationPersistencePort(), failingSender, event -> {
+            fakeSmsVerificationPersistence,
+            fakeSmsVerificationPersistence, failingSender, event -> {
         });
 
         assertThatThrownBy(() -> service.issue("01012345678"))
@@ -91,8 +94,10 @@ class SmsVerificationServiceTest {
     void issue_preservesFailureCause() {
         IllegalStateException cause = new IllegalStateException("API 5xx");
         SmsSender failingSender = (to, content) -> SmsSendResult.failed(SmsSendFailure.API_ERROR, cause);
+        FakeSmsVerificationPersistence fakeSmsVerificationPersistence = new FakeSmsVerificationPersistence();
         SmsVerificationService service = new SmsVerificationService(
-            new FakeSmsVerificationPersistencePort(), failingSender, event -> {
+            fakeSmsVerificationPersistence,
+            fakeSmsVerificationPersistence, failingSender, event -> {
         });
 
         assertThatThrownBy(() -> service.issue("01012345678"))
@@ -104,8 +109,10 @@ class SmsVerificationServiceTest {
     @Test
     @DisplayName("confirm은 발급된 인증이 없으면 예외를 던진다")
     void confirm_withoutPendingVerification_throws() {
+        FakeSmsVerificationPersistence fakeSmsVerificationPersistence = new FakeSmsVerificationPersistence();
         SmsVerificationService service = new SmsVerificationService(
-            new FakeSmsVerificationPersistencePort(), new RecordingSmsSender(), event -> {
+            fakeSmsVerificationPersistence,
+            fakeSmsVerificationPersistence, new RecordingSmsSender(), event -> {
         });
 
         assertThatThrownBy(() -> service.confirm("01012345678", "123456"))
@@ -116,11 +123,11 @@ class SmsVerificationServiceTest {
     @Test
     @DisplayName("confirm은 검증 성공 시 상태 전이를 저장하고 이벤트를 발행한다")
     void confirm_savesTransitionAndPublishesEvent() {
-        FakeSmsVerificationPersistencePort repository = new FakeSmsVerificationPersistencePort();
+        FakeSmsVerificationPersistence repository = new FakeSmsVerificationPersistence();
         RecordingSmsSender smsSender = new RecordingSmsSender();
         List<Object> published = new ArrayList<>();
         DomainEventPublisher publisher = published::add;
-        SmsVerificationService service = new SmsVerificationService(repository, smsSender, publisher);
+        SmsVerificationService service = new SmsVerificationService(repository, repository, smsSender, publisher);
 
         SmsVerification issued = service.issue("01012345678");
         repository.pending = issued;
@@ -149,7 +156,7 @@ class SmsVerificationServiceTest {
         }
     }
 
-    private static final class FakeSmsVerificationPersistencePort implements SmsVerificationPersistencePort {
+    private static final class FakeSmsVerificationPersistence implements SmsVerificationLoadPort, SmsVerificationSavePort {
 
         private final List<SmsVerification> saved = new ArrayList<>();
         private final List<String> callOrder = new ArrayList<>();

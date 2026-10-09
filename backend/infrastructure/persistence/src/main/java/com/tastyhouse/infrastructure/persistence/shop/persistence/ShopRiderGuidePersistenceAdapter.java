@@ -9,12 +9,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.shop.model.ShopRiderGuide;
 import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopRiderGuideJpaEntity.shopRiderGuideJpaEntity;
 
 @Repository
-class ShopRiderGuidePersistenceAdapter implements ShopRiderGuidePersistencePort {
+class ShopRiderGuidePersistenceAdapter implements ShopRiderGuideLoadPort, ShopRiderGuideSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopRiderGuideJpaRepository shopRiderGuideJpaRepository;

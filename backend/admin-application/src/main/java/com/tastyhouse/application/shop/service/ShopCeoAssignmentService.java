@@ -5,27 +5,31 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoadPort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 
 @Service
 public class ShopCeoAssignmentService {
 
-    private final ShopPersistencePort shopPersistencePort;
-    private final CeoPersistencePort ceoPersistencePort;
+    private final ShopLoadPort shopLoadPort;
+    private final ShopSavePort shopSavePort;
+    private final CeoLoadPort ceoLoadPort;
     private final ShopCeoAssignmentRecorder shopCeoAssignmentRecorder;
 
     public ShopCeoAssignmentService(
-        ShopPersistencePort shopPersistencePort,
-        CeoPersistencePort ceoPersistencePort,
+        ShopLoadPort shopLoadPort,
+        ShopSavePort shopSavePort,
+        CeoLoadPort ceoLoadPort,
         ShopCeoAssignmentRecorder shopCeoAssignmentRecorder
     ) {
-        this.shopPersistencePort = shopPersistencePort;
-        this.ceoPersistencePort = ceoPersistencePort;
+        this.shopLoadPort = shopLoadPort;
+        this.shopSavePort = shopSavePort;
+        this.ceoLoadPort = ceoLoadPort;
         this.shopCeoAssignmentRecorder = shopCeoAssignmentRecorder;
     }
 
@@ -39,7 +43,7 @@ public class ShopCeoAssignmentService {
         }
 
         shop.assignCeo(ceoId);
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
 
         if (currentCeoId != null) {
             shopCeoAssignmentRecorder.recordRevoke(shopId, currentCeoId, actorAdminId);
@@ -56,18 +60,18 @@ public class ShopCeoAssignmentService {
         }
 
         shop.assignCeo(null);
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
 
         shopCeoAssignmentRecorder.recordRevoke(shopId, currentCeoId, actorAdminId);
     }
 
     private Shop loadShop(ShopId shopId) {
-        return shopPersistencePort.findById(shopId)
+        return shopLoadPort.findById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 
     private void validateCeoExists(CeoId ceoId) {
-        if (ceoPersistencePort.findById(ceoId).isEmpty()) {
+        if (ceoLoadPort.findById(ceoId).isEmpty()) {
             throw new ResourceNotFoundException(AdminErrorCode.CEO_NOT_FOUND);
         }
     }

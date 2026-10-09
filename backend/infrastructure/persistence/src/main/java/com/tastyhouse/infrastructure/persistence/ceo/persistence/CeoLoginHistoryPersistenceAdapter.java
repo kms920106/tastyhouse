@@ -3,10 +3,10 @@ package com.tastyhouse.infrastructure.persistence.ceo.persistence;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
-import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryPersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistorySavePort;
 
 @Repository
-class CeoLoginHistoryPersistenceAdapter implements CeoLoginHistoryPersistencePort {
+class CeoLoginHistoryPersistenceAdapter implements CeoLoginHistorySavePort {
 
     private final CeoLoginHistoryJpaRepository ceoLoginHistoryJpaRepository;
 

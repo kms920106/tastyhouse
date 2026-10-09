@@ -10,16 +10,19 @@ import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeAssignCommand;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeAssignUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 
 @Service
 @Transactional
 class ShopFoodTypeAssignService implements ShopFoodTypeAssignUseCase {
 
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopDetailLoadPort shopDetailLoadPort;
+    private final ShopDetailSavePort shopDetailSavePort;
 
-    public ShopFoodTypeAssignService(ShopDetailPersistencePort shopDetailPersistencePort) {
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+    public ShopFoodTypeAssignService(ShopDetailLoadPort shopDetailLoadPort, ShopDetailSavePort shopDetailSavePort) {
+        this.shopDetailLoadPort = shopDetailLoadPort;
+        this.shopDetailSavePort = shopDetailSavePort;
     }
 
     @Override
@@ -27,9 +30,9 @@ class ShopFoodTypeAssignService implements ShopFoodTypeAssignUseCase {
         Long id = command.shopId();
         Long foodTypeCategoryId = command.foodTypeCategoryId();
 
-        shopDetailPersistencePort.findFoodTypeCategoryById(foodTypeCategoryId)
+        shopDetailLoadPort.findFoodTypeCategoryById(foodTypeCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
-        ShopFoodType foodType = shopDetailPersistencePort.saveFoodType(ShopFoodType.of(ShopId.of(id), ShopFoodTypeCategoryId.of(foodTypeCategoryId)));
+        ShopFoodType foodType = shopDetailSavePort.saveFoodType(ShopFoodType.of(ShopId.of(id), ShopFoodTypeCategoryId.of(foodTypeCategoryId)));
         return foodType.getId();
     }
 }

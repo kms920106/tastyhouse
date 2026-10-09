@@ -7,7 +7,8 @@ import com.tastyhouse.domain.event.model.EventAnnouncement;
 import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.application.event.port.in.EventAnnouncementUpdateCommand;
 import com.tastyhouse.application.event.port.in.EventAnnouncementUpdateUseCase;
-import com.tastyhouse.application.event.port.out.write.EventAnnouncementPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventAnnouncementLoadPort;
+import com.tastyhouse.application.event.port.out.write.EventAnnouncementSavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,19 +16,21 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class EventAnnouncementUpdateService implements EventAnnouncementUpdateUseCase {
 
-    private final EventAnnouncementPersistencePort eventAnnouncementPersistencePort;
+    private final EventAnnouncementLoadPort eventAnnouncementLoadPort;
+    private final EventAnnouncementSavePort eventAnnouncementSavePort;
 
-    public EventAnnouncementUpdateService(EventAnnouncementPersistencePort eventAnnouncementPersistencePort) {
-        this.eventAnnouncementPersistencePort = eventAnnouncementPersistencePort;
+    public EventAnnouncementUpdateService(EventAnnouncementLoadPort eventAnnouncementLoadPort, EventAnnouncementSavePort eventAnnouncementSavePort) {
+        this.eventAnnouncementLoadPort = eventAnnouncementLoadPort;
+        this.eventAnnouncementSavePort = eventAnnouncementSavePort;
     }
 
     @Override
     public void updateAnnouncement(EventAnnouncementUpdateCommand command) {
         EventId eventId = EventId.of(command.eventId());
-        EventAnnouncement announcement = eventAnnouncementPersistencePort.findByEventId(eventId)
+        EventAnnouncement announcement = eventAnnouncementLoadPort.findByEventId(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.EVENT_ANNOUNCEMENT_NOT_FOUND));
 
         announcement.update(command.name(), command.content(), command.announcedAt());
-        eventAnnouncementPersistencePort.save(announcement);
+        eventAnnouncementSavePort.save(announcement);
     }
 }

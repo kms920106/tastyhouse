@@ -11,8 +11,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductImageDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductImageDeleteUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductImageLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductImageSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -21,17 +22,20 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 class ProductImageDeleteService implements ProductImageDeleteUseCase {
 
-    private final ProductPersistencePort productPersistencePort;
-    private final ProductImagePersistencePort productImagePersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductImageLoadPort productImageLoadPort;
+    private final ProductImageSavePort productImageSavePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductImageDeleteService(
-        ProductPersistencePort productPersistencePort,
-        ProductImagePersistencePort productImagePersistencePort,
+        ProductLoadPort productLoadPort,
+        ProductImageLoadPort productImageLoadPort,
+        ProductImageSavePort productImageSavePort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productPersistencePort = productPersistencePort;
-        this.productImagePersistencePort = productImagePersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productImageLoadPort = productImageLoadPort;
+        this.productImageSavePort = productImageSavePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -43,17 +47,17 @@ class ProductImageDeleteService implements ProductImageDeleteUseCase {
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ProductImage image = productImagePersistencePort.findById(imageId)
+        ProductImage image = productImageLoadPort.findById(imageId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_IMAGE_NOT_FOUND));
         if (notOwnedBy(shopId, image.getProductId())) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_IMAGE_NOT_FOUND);
         }
 
-        productImagePersistencePort.delete(image);
+        productImageSavePort.delete(image);
     }
 
     private boolean notOwnedBy(Long shopId, ProductId productId) {
-        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(ShopId.of(shopId), List.of(productId));
+        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(ShopId.of(shopId), List.of(productId));
         return found.isEmpty();
     }
 }

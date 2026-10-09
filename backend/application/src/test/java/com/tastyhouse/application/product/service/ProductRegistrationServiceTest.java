@@ -25,15 +25,22 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductBbqPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductBbqLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductBbqSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCategorySavePort;
+import com.tastyhouse.application.product.port.out.write.ProductImageLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductImageSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.testsupport.product.service.FakeProductShopLinkPersistencePort;
+import com.tastyhouse.testsupport.product.service.FakeProductShopLinkPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -55,7 +62,7 @@ class ProductRegistrationServiceTest {
         );
 
         assertThat(created.getName()).isEqualTo("황금올리브치킨");
-        assertThat(fixture.productPersistencePort.saved).hasSize(1);
+        assertThat(fixture.productPersistence.saved).hasSize(1);
     }
 
     @Test
@@ -68,8 +75,8 @@ class ProductRegistrationServiceTest {
             25000, 20000, null, false, 2, false, true, 1
         );
 
-        assertThat(fixture.productPersistencePort.saved).hasSize(1);
-        assertThat(fixture.productPersistencePort.saved.getFirst().getName()).isEqualTo("변경된 이름");
+        assertThat(fixture.productPersistence.saved).hasSize(1);
+        assertThat(fixture.productPersistence.saved.getFirst().getName()).isEqualTo("변경된 이름");
     }
 
     @Test
@@ -79,8 +86,8 @@ class ProductRegistrationServiceTest {
 
         fixture.service.markSoldOut(ProductId.of(PRODUCT_ID));
 
-        assertThat(fixture.productPersistencePort.saved).hasSize(1);
-        assertThat(fixture.productPersistencePort.saved.getFirst().isSoldOut()).isTrue();
+        assertThat(fixture.productPersistence.saved).hasSize(1);
+        assertThat(fixture.productPersistence.saved.getFirst().isSoldOut()).isTrue();
     }
 
     @Test
@@ -90,8 +97,8 @@ class ProductRegistrationServiceTest {
 
         fixture.service.deactivateProduct(ProductId.of(PRODUCT_ID));
 
-        assertThat(fixture.productPersistencePort.saved).hasSize(1);
-        assertThat(fixture.productPersistencePort.saved.getFirst().isVisible()).isFalse();
+        assertThat(fixture.productPersistence.saved).hasSize(1);
+        assertThat(fixture.productPersistence.saved.getFirst().isVisible()).isFalse();
     }
 
     @Test
@@ -109,12 +116,12 @@ class ProductRegistrationServiceTest {
     @DisplayName("BBQ 옵션 동기화 완료를 표시한 뒤 명시적으로 저장한다")
     void markBbqOptionsSynced_savesExplicitly() {
         Fixture fixture = new Fixture(product());
-        fixture.bbqPersistencePort.stored = ProductBbq.reconstitute(5L, ProductId.of(PRODUCT_ID), BbqMenuId.of(100L), BbqCategoryId.of(200L), false);
+        fixture.bbqPersistence.stored = ProductBbq.reconstitute(5L, ProductId.of(PRODUCT_ID), BbqMenuId.of(100L), BbqCategoryId.of(200L), false);
 
         fixture.service.markBbqOptionsSynced(ProductId.of(PRODUCT_ID));
 
-        assertThat(fixture.bbqPersistencePort.saved).hasSize(1);
-        assertThat(fixture.bbqPersistencePort.saved.getFirst().isOptionsSynced()).isTrue();
+        assertThat(fixture.bbqPersistence.saved).hasSize(1);
+        assertThat(fixture.bbqPersistence.saved.getFirst().isOptionsSynced()).isTrue();
     }
 
     @Test
@@ -140,11 +147,11 @@ class ProductRegistrationServiceTest {
         fixture.service.saveProductOption(ProductOptionGroupId.of(11L), "순살", 2000, 0, false, true, null, null);
         fixture.service.saveProductBbq(ProductId.of(PRODUCT_ID), BbqMenuId.of(100L), BbqCategoryId.of(200L), false);
 
-        assertThat(fixture.categoryPersistencePort.saved).hasSize(1);
-        assertThat(fixture.imagePersistencePort.saved).hasSize(1);
-        assertThat(fixture.optionGroupPersistencePort.saved).hasSize(1);
-        assertThat(fixture.optionPersistencePort.saved).hasSize(1);
-        assertThat(fixture.bbqPersistencePort.saved).hasSize(1);
+        assertThat(fixture.categoryPersistence.saved).hasSize(1);
+        assertThat(fixture.imagePersistence.saved).hasSize(1);
+        assertThat(fixture.optionGroupPersistence.saved).hasSize(1);
+        assertThat(fixture.optionPersistence.saved).hasSize(1);
+        assertThat(fixture.bbqPersistence.saved).hasSize(1);
     }
 
     private Product product() {
@@ -157,37 +164,40 @@ class ProductRegistrationServiceTest {
 
     private static final class Fixture {
 
-        private final ProductPersistencePortStub productPersistencePort;
-        private final ProductCategoryPersistencePortStub categoryPersistencePort = new ProductCategoryPersistencePortStub();
-        private final ProductOptionGroupPersistencePortStub optionGroupPersistencePort = new ProductOptionGroupPersistencePortStub();
-        private final ProductOptionPersistencePortStub optionPersistencePort = new ProductOptionPersistencePortStub();
-        private final ProductImagePersistencePortStub imagePersistencePort = new ProductImagePersistencePortStub();
-        private final ProductBbqPersistencePortStub bbqPersistencePort = new ProductBbqPersistencePortStub();
+        private final ProductPersistenceStub productPersistence;
+        private final ProductCategoryPersistenceStub categoryPersistence = new ProductCategoryPersistenceStub();
+        private final ProductOptionGroupPersistenceStub optionGroupPersistence = new ProductOptionGroupPersistenceStub();
+        private final ProductOptionPersistenceStub optionPersistence = new ProductOptionPersistenceStub();
+        private final ProductImagePersistenceStub imagePersistence = new ProductImagePersistenceStub();
+        private final ProductBbqPersistenceStub bbqPersistence = new ProductBbqPersistenceStub();
         private final ProductRegistrationService service;
 
         private Fixture(Product existing) {
-            this.productPersistencePort = new ProductPersistencePortStub(existing);
-            ProductOptionGroupLinkPersistencePortStub optionGroupLinkPersistencePort = new ProductOptionGroupLinkPersistencePortStub();
+            this.productPersistence = new ProductPersistenceStub(existing);
+            ProductOptionGroupLinkPersistenceStub optionGroupLinkPersistence = new ProductOptionGroupLinkPersistenceStub();
 
             this.service = new ProductRegistrationService(
-                productPersistencePort,
-                categoryPersistencePort,
-                optionGroupPersistencePort,
-                optionPersistencePort,
-                imagePersistencePort,
-                bbqPersistencePort,
-                optionGroupLinkPersistencePort,
-                new FakeProductShopLinkPersistencePort()
+                productPersistence,
+                productPersistence,
+                categoryPersistence,
+                optionGroupPersistence,
+                optionPersistence,
+                imagePersistence,
+                bbqPersistence,
+                bbqPersistence,
+                optionGroupLinkPersistence,
+                optionGroupLinkPersistence,
+                new FakeProductShopLinkPersistence()
             );
         }
     }
 
-    private static final class ProductPersistencePortStub implements ProductPersistencePort {
+    private static final class ProductPersistenceStub implements ProductLoadPort, ProductSavePort {
 
         private final Product existing;
         private final List<Product> saved = new ArrayList<>();
 
-        private ProductPersistencePortStub(Product existing) {
+        private ProductPersistenceStub(Product existing) {
             this.existing = existing;
         }
 
@@ -284,7 +294,7 @@ class ProductRegistrationServiceTest {
         }
     }
 
-    private static final class ProductCategoryPersistencePortStub implements ProductCategoryPersistencePort {
+    private static final class ProductCategoryPersistenceStub implements ProductCategoryLoadPort, ProductCategorySavePort {
 
         private final List<ProductCategory> saved = new ArrayList<>();
 
@@ -315,7 +325,7 @@ class ProductRegistrationServiceTest {
         }
     }
 
-    private static final class ProductOptionGroupPersistencePortStub implements ProductOptionGroupPersistencePort {
+    private static final class ProductOptionGroupPersistenceStub implements ProductOptionGroupLoadPort, ProductOptionGroupSavePort {
 
         private final List<ProductOptionGroup> saved = new ArrayList<>();
 
@@ -351,7 +361,7 @@ class ProductRegistrationServiceTest {
         }
     }
 
-    private static final class ProductOptionPersistencePortStub implements ProductOptionPersistencePort {
+    private static final class ProductOptionPersistenceStub implements ProductOptionLoadPort, ProductOptionSavePort {
 
         private final List<ProductOption> saved = new ArrayList<>();
 
@@ -382,7 +392,7 @@ class ProductRegistrationServiceTest {
         }
     }
 
-    private static final class ProductImagePersistencePortStub implements ProductImagePersistencePort {
+    private static final class ProductImagePersistenceStub implements ProductImageLoadPort, ProductImageSavePort {
 
         private final List<ProductImage> saved = new ArrayList<>();
 
@@ -415,7 +425,7 @@ class ProductRegistrationServiceTest {
         }
     }
 
-    private static final class ProductBbqPersistencePortStub implements ProductBbqPersistencePort {
+    private static final class ProductBbqPersistenceStub implements ProductBbqLoadPort, ProductBbqSavePort {
 
         private final List<ProductBbq> saved = new ArrayList<>();
         private ProductBbq stored;
@@ -432,7 +442,7 @@ class ProductRegistrationServiceTest {
         }
     }
 
-    private static final class ProductOptionGroupLinkPersistencePortStub implements ProductOptionGroupLinkPersistencePort {
+    private static final class ProductOptionGroupLinkPersistenceStub implements ProductOptionGroupLinkLoadPort, ProductOptionGroupLinkSavePort {
 
         private final List<ProductOptionGroupLink> saved = new ArrayList<>();
 

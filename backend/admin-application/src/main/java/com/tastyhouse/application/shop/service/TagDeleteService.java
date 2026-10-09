@@ -5,22 +5,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.TagDeleteCommand;
 import com.tastyhouse.application.shop.port.in.TagDeleteUseCase;
-import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.TagSavePort;
 
 @Service
 @Transactional
 class TagDeleteService implements TagDeleteUseCase {
 
-    private final TagPersistencePort tagPersistencePort;
+    private final TagSavePort tagSavePort;
 
-    public TagDeleteService(TagPersistencePort tagPersistencePort) {
-        this.tagPersistencePort = tagPersistencePort;
+    public TagDeleteService(TagSavePort tagSavePort) {
+        this.tagSavePort = tagSavePort;
     }
 
     @Override
     public void deleteTag(TagDeleteCommand command) {
         Long id = command.tagId();
 
-        tagPersistencePort.deleteById(id);
+        tagSavePort.deleteById(id);
     }
 }

@@ -9,16 +9,19 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryUpdateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 
 @Service
 @Transactional
 class ShopAmenityCategoryUpdateService implements ShopAmenityCategoryUpdateUseCase {
 
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopDetailLoadPort shopDetailLoadPort;
+    private final ShopDetailSavePort shopDetailSavePort;
 
-    public ShopAmenityCategoryUpdateService(ShopDetailPersistencePort shopDetailPersistencePort) {
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+    public ShopAmenityCategoryUpdateService(ShopDetailLoadPort shopDetailLoadPort, ShopDetailSavePort shopDetailSavePort) {
+        this.shopDetailLoadPort = shopDetailLoadPort;
+        this.shopDetailSavePort = shopDetailSavePort;
     }
 
     @Override
@@ -30,7 +33,7 @@ class ShopAmenityCategoryUpdateService implements ShopAmenityCategoryUpdateUseCa
         Integer sort = command.sort();
         Boolean visible = command.visible();
 
-        ShopAmenityCategory amenityCategory = shopDetailPersistencePort.findAmenityCategoryById(categoryId)
+        ShopAmenityCategory amenityCategory = shopDetailLoadPort.findAmenityCategoryById(categoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
         amenityCategory.update(
             displayName,
@@ -39,6 +42,6 @@ class ShopAmenityCategoryUpdateService implements ShopAmenityCategoryUpdateUseCa
             sort,
             visible
         );
-        shopDetailPersistencePort.saveAmenityCategory(amenityCategory);
+        shopDetailSavePort.saveAmenityCategory(amenityCategory);
     }
 }

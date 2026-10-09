@@ -9,12 +9,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
-import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImagePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopMenuCollectionImageJpaEntity.shopMenuCollectionImageJpaEntity;
 
 @Repository
-class ShopMenuCollectionImagePersistenceAdapter implements ShopMenuCollectionImagePersistencePort {
+class ShopMenuCollectionImagePersistenceAdapter implements ShopMenuCollectionImageLoadPort, ShopMenuCollectionImageSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopMenuCollectionImageJpaRepository shopMenuCollectionImageJpaRepository;

@@ -11,21 +11,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.member.model.Member;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final MemberPersistencePort memberPersistencePort;
+    private final MemberLoadPort memberLoadPort;
 
-    public CustomUserDetailsService(MemberPersistencePort memberPersistencePort) {
-        this.memberPersistencePort = memberPersistencePort;
+    public CustomUserDetailsService(MemberLoadPort memberLoadPort) {
+        this.memberLoadPort = memberLoadPort;
     }
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Member member = memberPersistencePort.findByUsername(username)
+        Member member = memberLoadPort.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
         GrantedAuthority authority = new SimpleGrantedAuthority("ROLE_USER");

@@ -8,7 +8,8 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateUseCase;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -18,14 +19,17 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 @Transactional
 class MemberPasswordUpdateService implements MemberPasswordUpdateUseCase {
 
-    private final MemberPersistencePort memberPersistencePort;
+    private final MemberLoadPort memberLoadPort;
+    private final MemberSavePort memberSavePort;
     private final PasswordEncoder passwordEncoder;
 
     public MemberPasswordUpdateService(
-        MemberPersistencePort memberPersistencePort,
+        MemberLoadPort memberLoadPort,
+        MemberSavePort memberSavePort,
         PasswordEncoder passwordEncoder
     ) {
-        this.memberPersistencePort = memberPersistencePort;
+        this.memberLoadPort = memberLoadPort;
+        this.memberSavePort = memberSavePort;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -44,11 +48,11 @@ class MemberPasswordUpdateService implements MemberPasswordUpdateUseCase {
         }
 
         member.updatePassword(passwordEncoder.encode(newPassword));
-        memberPersistencePort.save(member);
+        memberSavePort.save(member);
     }
 
     private Member loadMember(Long memberId) {
-        return memberPersistencePort.findById(MemberId.of(memberId))
+        return memberLoadPort.findById(MemberId.of(memberId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
     }
 }

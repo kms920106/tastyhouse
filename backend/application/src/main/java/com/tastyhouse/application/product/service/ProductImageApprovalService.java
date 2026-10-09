@@ -13,64 +13,72 @@ import com.tastyhouse.domain.product.model.ProductImageChangeRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductImageChangeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductImageChangeRequestSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductImageLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductImageSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
 public class ProductImageApprovalService {
 
-    private final ProductImageChangeRequestPersistencePort requestPersistencePort;
-    private final ProductImagePersistencePort productImagePersistencePort;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductImageChangeRequestLoadPort requestLoadPort;
+    private final ProductImageChangeRequestSavePort requestSavePort;
+    private final ProductImageLoadPort productImageLoadPort;
+    private final ProductImageSavePort productImageSavePort;
+    private final ProductLoadPort productLoadPort;
 
     public ProductImageApprovalService(
-        ProductImageChangeRequestPersistencePort requestPersistencePort,
-        ProductImagePersistencePort productImagePersistencePort,
-        ProductPersistencePort productPersistencePort
+        ProductImageChangeRequestLoadPort requestLoadPort,
+        ProductImageChangeRequestSavePort requestSavePort,
+        ProductImageLoadPort productImageLoadPort,
+        ProductImageSavePort productImageSavePort,
+        ProductLoadPort productLoadPort
     ) {
-        this.requestPersistencePort = requestPersistencePort;
-        this.productImagePersistencePort = productImagePersistencePort;
-        this.productPersistencePort = productPersistencePort;
+        this.requestLoadPort = requestLoadPort;
+        this.requestSavePort = requestSavePort;
+        this.productImageLoadPort = productImageLoadPort;
+        this.productImageSavePort = productImageSavePort;
+        this.productLoadPort = productLoadPort;
     }
 
     public Long requestImageChange(ProductId productId, UploadedFileId imageFileId) {
         requireProductExists(productId);
-        if (requestPersistencePort.existsByProductIdAndStatus(productId, ApprovalStatus.PENDING)) {
+        if (requestLoadPort.existsByProductIdAndStatus(productId, ApprovalStatus.PENDING)) {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_IMAGE_CHANGE_REQUEST_ALREADY_PENDING);
         }
 
         ProductImageChangeRequest saved =
-            requestPersistencePort.save(ProductImageChangeRequest.of(productId, imageFileId));
+            requestSavePort.save(ProductImageChangeRequest.of(productId, imageFileId));
         return saved.getId();
     }
 
     public void approve(ProductImageChangeRequestId requestId) {
         ProductImageChangeRequest request = loadRequest(requestId);
         request.approve();
-        requestPersistencePort.save(request);
+        requestSavePort.save(request);
 
-        int nextSort = productImagePersistencePort.findAllByProductId(request.getProductId()).size();
-        productImagePersistencePort.save(
+        int nextSort = productImageLoadPort.findAllByProductId(request.getProductId()).size();
+        productImageSavePort.save(
             ProductImage.of(request.getProductId(), request.getImageFileId(), nextSort, true));
     }
 
     public void reject(ProductImageChangeRequestId requestId, String rejectReason) {
         ProductImageChangeRequest request = loadRequest(requestId);
         request.reject(rejectReason);
-        requestPersistencePort.save(request);
+        requestSavePort.save(request);
     }
 
     public void cancel(ProductImageChangeRequestId requestId) {
         ProductImageChangeRequest request = loadRequest(requestId);
         request.cancel();
-        requestPersistencePort.save(request);
+        requestSavePort.save(request);
     }
 
     public void reorderImages(ProductId productId, List<Long> orderedImageIds) {
-        List<ProductImage> current = productImagePersistencePort.findAllByProductId(productId);
+        List<ProductImage> current = productImageLoadPort.findAllByProductId(productId);
         Set<Long> currentIds = current.stream().map(ProductImage::getId).collect(Collectors.toSet());
         List<Long> requested = orderedImageIds == null ? List.of()
             : orderedImageIds.stream().filter(Objects::nonNull).distinct().toList();
@@ -85,7 +93,7 @@ public class ProductImageApprovalService {
                 .filter(candidate -> candidate.getId().equals(imageId))
                 .findFirst()
                 .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_IMAGE_NOT_FOUND));
-            productImagePersistencePort.save(rebuildWithSort(image, index));
+            productImageSavePort.save(rebuildWithSort(image, index));
         }
     }
 
@@ -100,12 +108,12 @@ public class ProductImageApprovalService {
     }
 
     private ProductImageChangeRequest loadRequest(ProductImageChangeRequestId requestId) {
-        return requestPersistencePort.findById(requestId)
+        return requestLoadPort.findById(requestId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_IMAGE_CHANGE_REQUEST_NOT_FOUND));
     }
 
     private void requireProductExists(ProductId productId) {
-        if (productPersistencePort.findById(productId).isEmpty()) {
+        if (productLoadPort.findById(productId).isEmpty()) {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
     }

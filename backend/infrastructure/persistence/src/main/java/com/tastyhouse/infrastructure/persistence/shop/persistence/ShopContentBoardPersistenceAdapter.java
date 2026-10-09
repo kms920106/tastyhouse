@@ -6,12 +6,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopContentBoard;
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopContentBoardJpaEntity.shopContentBoardJpaEntity;
 
 @Repository
-class ShopContentBoardPersistenceAdapter implements ShopContentBoardPersistencePort {
+class ShopContentBoardPersistenceAdapter implements ShopContentBoardLoadPort, ShopContentBoardSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopContentBoardJpaRepository shopContentBoardJpaRepository;

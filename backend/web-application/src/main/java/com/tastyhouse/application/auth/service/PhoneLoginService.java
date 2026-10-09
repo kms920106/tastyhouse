@@ -11,7 +11,7 @@ import com.tastyhouse.application.auth.port.out.MemberJwtResult;
 import com.tastyhouse.application.auth.port.out.PhoneLoginResult;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
@@ -19,16 +19,16 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 public class PhoneLoginService {
 
     private final MemberJwtTokenProvider jwtTokenProvider;
-    private final MemberPersistencePort memberPersistencePort;
+    private final MemberLoadPort memberLoadPort;
     private final MemberTokenService tokenService;
 
     public PhoneLoginService(
         MemberJwtTokenProvider jwtTokenProvider,
-        MemberPersistencePort memberPersistencePort,
+        MemberLoadPort memberLoadPort,
         MemberTokenService tokenService
     ) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.memberPersistencePort = memberPersistencePort;
+        this.memberLoadPort = memberLoadPort;
         this.tokenService = tokenService;
     }
 
@@ -40,7 +40,7 @@ public class PhoneLoginService {
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
 
-        Optional<Member> memberOpt = memberPersistencePort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> memberOpt = memberLoadPort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (memberOpt.isPresent()) {
             MemberJwtResult jwt = tokenService.issue(memberOpt.get(), false);

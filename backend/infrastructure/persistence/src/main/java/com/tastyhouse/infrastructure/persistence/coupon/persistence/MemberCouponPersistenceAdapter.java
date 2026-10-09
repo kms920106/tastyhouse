@@ -9,12 +9,13 @@ import com.tastyhouse.domain.coupon.model.MemberCoupon;
 import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.coupon.port.out.write.MemberCouponPersistencePort;
+import com.tastyhouse.application.coupon.port.out.write.MemberCouponLoadPort;
+import com.tastyhouse.application.coupon.port.out.write.MemberCouponSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.coupon.persistence.QMemberCouponJpaEntity.memberCouponJpaEntity;
 
 @Repository
-class MemberCouponPersistenceAdapter implements MemberCouponPersistencePort {
+class MemberCouponPersistenceAdapter implements MemberCouponLoadPort, MemberCouponSavePort {
 
     private final MemberCouponJpaRepository memberCouponJpaRepository;
     private final JPAQueryFactory queryFactory;

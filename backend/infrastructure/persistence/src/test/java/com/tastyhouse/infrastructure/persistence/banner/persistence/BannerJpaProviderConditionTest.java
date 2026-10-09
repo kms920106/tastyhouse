@@ -7,6 +7,9 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import com.tastyhouse.application.banner.port.out.write.BannerLoadPort;
+import com.tastyhouse.application.banner.port.out.write.BannerSavePort;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -32,6 +35,16 @@ class BannerJpaProviderConditionTest {
             .run(context -> assertThat(context).doesNotHaveBean(BannerJpaPersistenceAdapter.class));
         runner.withPropertyValues("persistence.banner.write.provider=foo")
             .run(context -> assertThat(context).doesNotHaveBean(BannerJpaPersistenceAdapter.class));
+    }
+
+    @Test
+    @DisplayName("등록된 구현 하나가 BannerLoadPort와 BannerSavePort 둘 다로 주입된다")
+    void sameBeanServesBothPorts() {
+        runner.run(context -> {
+            assertThat(context).hasSingleBean(BannerLoadPort.class).hasSingleBean(BannerSavePort.class);
+            assertThat(context.getBean(BannerLoadPort.class)).isSameAs(context.getBean(BannerSavePort.class));
+            assertThat(context.getBean(BannerLoadPort.class)).isInstanceOf(BannerJpaPersistenceAdapter.class);
+        });
     }
 
     @Configuration(proxyBeanMethods = false)

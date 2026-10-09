@@ -2,11 +2,11 @@
 
 # infrastructure:mybatis
 
-**MyBatis로 구현한 영속 어댑터를 담는 모듈(`java-library`).** 지금은 banner 쓰기 포트 `BannerPersistencePort`의 MyBatis 구현 하나만 있다. 같은 포트를 `infrastructure:persistence`의 JPA 구현도 갖고 있으며, 속성 `persistence.banner.write.provider`로 둘 중 하나만 빈으로 등록된다(기본 `jpa`).
+**MyBatis로 구현한 영속 어댑터를 담는 모듈(`java-library`).** 지금은 banner 쓰기 포트 `BannerLoadPort`·`BannerSavePort`의 MyBatis 구현 하나만 있다. 같은 포트를 `infrastructure:persistence`의 JPA 구현도 갖고 있으며, 속성 `persistence.banner.write.provider`로 둘 중 하나만 빈으로 등록된다(기본 `jpa`).
 
 ## 용어 풀이
 
-- **포트**: application 모듈의 인터페이스. 서비스는 이것만 안다 — 예: `application/.../banner/port/out/write/BannerPersistencePort`(`findById`, `save`).
+- **포트**: application 모듈의 인터페이스. 서비스는 이것만 안다 — 예: `application/.../banner/port/out/write/{BannerLoadPort,BannerSavePort}`(`findById`, `save`).
 - **어댑터**: 포트를 실제 기술로 구현한 클래스. 이 모듈의 `BannerMyBatisPersistenceAdapter`가 MyBatis로 구현한다.
 - **JPA(ORM)**: 자바 객체(엔티티)를 테이블에 자동으로 대응시킨다. SQL을 직접 쓰지 않고, 엔티티 값을 바꾸면 트랜잭션 끝에 UPDATE가 나간다(변경 감지).
 - **MyBatis(SQL 매퍼)**: SQL을 XML에 직접 쓰고, 결과 행을 자바 객체로 옮긴다. 무엇이 실행되는지 SQL 그대로 보인다.
@@ -27,7 +27,7 @@
 com.tastyhouse.infrastructure.mybatis/
 ├── MyBatisModuleConfig.java              @MapperScan(basePackageClasses = MyBatisModuleConfig.class, annotationClass = Mapper.class)
 └── banner/
-    ├── BannerMyBatisPersistenceAdapter   BannerPersistencePort 구현 — provider=mybatis일 때만 등록
+    ├── BannerMyBatisPersistenceAdapter   BannerLoadPort·BannerSavePort 구현 — provider=mybatis일 때만 등록
     ├── BannerMyBatisMapper               MyBatis SQL 인터페이스(@Mapper)
     ├── BannerRow                         조회 행(record, XML <constructor>의 이름 기반 매핑)
     ├── BannerWriteRow                    쓰기 행(INSERT 생성 키를 setId로 돌려받는다)
@@ -47,7 +47,7 @@ src/main/resources/
 |---|---|
 | MyBatis로 바꾸기 | admin-api를 `BANNER_WRITE_PROVIDER=mybatis`로 기동(또는 `--persistence.banner.write.provider=mybatis`) |
 | JPA로 되돌리기 | 환경변수를 지우거나 `jpa`로 — 기본값이 jpa다 |
-| 잘못된 값(`foo`) | 구현이 0개 → admin-api가 `BannerPersistencePort` 빈 없음으로 **기동 실패**(의도된 동작) |
+| 잘못된 값(`foo`) | 구현이 0개 → admin-api가 `BannerLoadPort`·`BannerSavePort` 빈 없음으로 **기동 실패**(의도된 동작) |
 
 MyBatis 구현은 이 모듈을 의존하는 앱에서만 쓸 수 있다. 지금은 admin-api뿐이다(`admin-api/build.gradle`의 `runtimeOnly project(':infrastructure:mybatis')` + `application.yml`의 `classpath:application-mybatis.yml`).
 
@@ -76,7 +76,7 @@ MyBatis 구현은 이 모듈을 의존하는 앱에서만 쓸 수 있다. 지금
 
 ### Internal
 - `domain` (implementation) — 도메인 모델 `Banner`·VO
-- `application` (implementation) — 구현할 포트 `BannerPersistencePort`(`..port.out..`만 참조)
+- `application` (implementation) — 구현할 포트 `BannerLoadPort`·`BannerSavePort`(`..port.out..`만 참조)
 
 ### External
 - `org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3` (implementation — Spring Boot 3.2.x 호환 라인)

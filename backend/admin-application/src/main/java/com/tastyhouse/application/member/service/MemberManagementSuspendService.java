@@ -7,7 +7,8 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.in.MemberManagementSuspendUseCase;
 import com.tastyhouse.application.member.port.in.MemberSuspendCommand;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,10 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class MemberManagementSuspendService implements MemberManagementSuspendUseCase {
 
-    private final MemberPersistencePort memberPersistencePort;
+    private final MemberLoadPort memberLoadPort;
+    private final MemberSavePort memberSavePort;
 
-    public MemberManagementSuspendService(MemberPersistencePort memberPersistencePort) {
-        this.memberPersistencePort = memberPersistencePort;
+    public MemberManagementSuspendService(MemberLoadPort memberLoadPort, MemberSavePort memberSavePort) {
+        this.memberLoadPort = memberLoadPort;
+        this.memberSavePort = memberSavePort;
     }
 
     @Override
@@ -26,11 +29,11 @@ class MemberManagementSuspendService implements MemberManagementSuspendUseCase {
         MemberId memberId = MemberId.of(command.memberId());
         Member member = loadMember(memberId);
         member.suspend();
-        memberPersistencePort.save(member);
+        memberSavePort.save(member);
     }
 
     private Member loadMember(MemberId memberId) {
-        return memberPersistencePort.findById(memberId)
+        return memberLoadPort.findById(memberId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
     }
 }

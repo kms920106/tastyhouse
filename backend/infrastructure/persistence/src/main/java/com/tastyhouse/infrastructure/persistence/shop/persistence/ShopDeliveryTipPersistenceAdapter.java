@@ -18,8 +18,9 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipSchedule;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipSetting;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryTipHolidayJpaEntity.shopDeliveryTipHolidayJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryTipRegionJpaEntity.shopDeliveryTipRegionJpaEntity;
@@ -28,7 +29,7 @@ import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDe
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryTipTierJpaEntity.shopDeliveryTipTierJpaEntity;
 
 @Repository
-class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePort, ShopDeliveryTipRegionLookupPort {
+class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipLoadPort, ShopDeliveryTipSavePort, ShopDeliveryTipRegionLoadPort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopDeliveryTipSettingJpaRepository shopDeliveryTipSettingJpaRepository;

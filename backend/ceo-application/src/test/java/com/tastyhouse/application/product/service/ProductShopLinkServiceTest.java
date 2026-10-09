@@ -17,9 +17,9 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.testsupport.product.service.FakeProductShopLinkPersistencePort;
-import com.tastyhouse.testsupport.product.service.FakeShopLinkProductCategoryPersistencePort;
-import com.tastyhouse.testsupport.product.service.FakeShopLinkProductPersistencePort;
+import com.tastyhouse.testsupport.product.service.FakeProductShopLinkPersistence;
+import com.tastyhouse.testsupport.product.service.FakeShopLinkProductCategoryPersistence;
+import com.tastyhouse.testsupport.product.service.FakeShopLinkProductPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -36,25 +36,25 @@ class ProductShopLinkServiceTest {
     private static final Long FOREIGN_CATEGORY = 900L;
     private static final Set<Long> OWNED = Set.of(OWNER_SHOP.value(), OTHER_OWNED_SHOP.value());
 
-    private FakeShopLinkProductPersistencePort productPersistencePort;
-    private FakeProductShopLinkPersistencePort linkPersistencePort;
+    private FakeShopLinkProductPersistence productPersistence;
+    private FakeProductShopLinkPersistence linkPersistence;
     private ProductShopLinkService service;
 
     @BeforeEach
     void setUp() {
-        productPersistencePort = new FakeShopLinkProductPersistencePort();
-        linkPersistencePort = new FakeProductShopLinkPersistencePort();
-        FakeShopLinkProductCategoryPersistencePort categoryPersistencePort = new FakeShopLinkProductCategoryPersistencePort();
-        service = new ProductShopLinkService(productPersistencePort, linkPersistencePort, categoryPersistencePort);
+        productPersistence = new FakeShopLinkProductPersistence();
+        linkPersistence = new FakeProductShopLinkPersistence();
+        FakeShopLinkProductCategoryPersistence categoryPersistence = new FakeShopLinkProductCategoryPersistence();
+        service = new ProductShopLinkService(productPersistence, linkPersistence, linkPersistence, categoryPersistence);
 
-        productPersistencePort.given(visibleProduct());
+        productPersistence.given(visibleProduct());
 
-        productPersistencePort.givenVisibleCount(OWNER_SHOP, 5L);
-        productPersistencePort.givenVisibleCount(OTHER_OWNED_SHOP, 5L);
+        productPersistence.givenVisibleCount(OWNER_SHOP, 5L);
+        productPersistence.givenVisibleCount(OTHER_OWNED_SHOP, 5L);
 
-        categoryPersistencePort.given(OWNER_CATEGORY, OWNER_SHOP);
-        categoryPersistencePort.given(OTHER_CATEGORY, OTHER_OWNED_SHOP);
-        categoryPersistencePort.given(FOREIGN_CATEGORY, FOREIGN_SHOP);
+        categoryPersistence.given(OWNER_CATEGORY, OWNER_SHOP);
+        categoryPersistence.given(OTHER_CATEGORY, OTHER_OWNED_SHOP);
+        categoryPersistence.given(FOREIGN_CATEGORY, FOREIGN_SHOP);
     }
 
     private static Product visibleProduct() {
@@ -120,7 +120,7 @@ class ProductShopLinkServiceTest {
                 OWNED
             );
 
-            assertThat(linkPersistencePort.findAllByProductId(PRODUCT_ID))
+            assertThat(linkPersistence.findAllByProductId(PRODUCT_ID))
                 .extracting(link -> link.getShopId().value())
                 .containsExactlyInAnyOrder(OWNER_SHOP.value(), OTHER_OWNED_SHOP.value());
         }
@@ -128,12 +128,12 @@ class ProductShopLinkServiceTest {
         @Test
         @DisplayName("목록에 없는 가게는 연결 해제된다")
         void removesMissingLink() {
-            linkPersistencePort.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
-            linkPersistencePort.given(PRODUCT_ID, OTHER_OWNED_SHOP, ProductCategoryId.of(OTHER_CATEGORY), 0);
+            linkPersistence.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
+            linkPersistence.given(PRODUCT_ID, OTHER_OWNED_SHOP, ProductCategoryId.of(OTHER_CATEGORY), 0);
 
             service.replaceLinks(PRODUCT_ID, List.of(spec(OWNER_SHOP, OWNER_CATEGORY)), OWNED);
 
-            assertThat(linkPersistencePort.findAllByProductId(PRODUCT_ID))
+            assertThat(linkPersistence.findAllByProductId(PRODUCT_ID))
                 .extracting(link -> link.getShopId().value())
                 .containsExactly(OWNER_SHOP.value());
         }
@@ -141,7 +141,7 @@ class ProductShopLinkServiceTest {
         @Test
         @DisplayName("기존 연결의 표시 순서는 유지된다 — 다른 가게의 변경이 그 메뉴판 배열을 흔들면 안 된다")
         void keepsExistingSort() {
-            linkPersistencePort.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 7);
+            linkPersistence.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 7);
 
             service.replaceLinks(
                 PRODUCT_ID,
@@ -149,16 +149,16 @@ class ProductShopLinkServiceTest {
                 OWNED
             );
 
-            ProductShopLink kept = linkPersistencePort.findByProductIdAndShopId(PRODUCT_ID, OWNER_SHOP).orElseThrow();
+            ProductShopLink kept = linkPersistence.findByProductIdAndShopId(PRODUCT_ID, OWNER_SHOP).orElseThrow();
             assertThat(kept.getSort()).isEqualTo(7);
         }
 
         @Test
         @DisplayName("해제로 그 가게 메뉴판의 노출 메뉴가 0개가 되면 거절한다")
         void lastVisibleInShop_cannotUnlink() {
-            linkPersistencePort.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
-            linkPersistencePort.given(PRODUCT_ID, OTHER_OWNED_SHOP, ProductCategoryId.of(OTHER_CATEGORY), 0);
-            productPersistencePort.givenVisibleCount(OTHER_OWNED_SHOP, 1L);
+            linkPersistence.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
+            linkPersistence.given(PRODUCT_ID, OTHER_OWNED_SHOP, ProductCategoryId.of(OTHER_CATEGORY), 0);
+            productPersistence.givenVisibleCount(OTHER_OWNED_SHOP, 1L);
 
             assertThatThrownBy(() -> service.replaceLinks(
                 PRODUCT_ID, List.of(spec(OWNER_SHOP, OWNER_CATEGORY)), OWNED
@@ -175,7 +175,7 @@ class ProductShopLinkServiceTest {
         @Test
         @DisplayName("이미 연결된 가게는 거절한다 — 조용히 통과시키면 메뉴그룹이 이전 값 그대로여서 결과가 어긋난다")
         void alreadyLinked_rejected() {
-            linkPersistencePort.given(PRODUCT_ID, OTHER_OWNED_SHOP, ProductCategoryId.of(OTHER_CATEGORY), 0);
+            linkPersistence.given(PRODUCT_ID, OTHER_OWNED_SHOP, ProductCategoryId.of(OTHER_CATEGORY), 0);
 
             assertThatThrownBy(() -> service.linkToShop(PRODUCT_ID, OTHER_OWNED_SHOP, OTHER_CATEGORY))
                 .isInstanceOf(BusinessException.class)
@@ -185,19 +185,19 @@ class ProductShopLinkServiceTest {
         @Test
         @DisplayName("새 연결은 대상 가게 메뉴판 끝 순서로 붙는다")
         void appendsToEndOfTargetShop() {
-            linkPersistencePort.given(ProductId.of(2L), OTHER_OWNED_SHOP, ProductCategoryId.of(OTHER_CATEGORY), 3);
+            linkPersistence.given(ProductId.of(2L), OTHER_OWNED_SHOP, ProductCategoryId.of(OTHER_CATEGORY), 3);
 
             service.linkToShop(PRODUCT_ID, OTHER_OWNED_SHOP, OTHER_CATEGORY);
 
             ProductShopLink created =
-                linkPersistencePort.findByProductIdAndShopId(PRODUCT_ID, OTHER_OWNED_SHOP).orElseThrow();
+                linkPersistence.findByProductIdAndShopId(PRODUCT_ID, OTHER_OWNED_SHOP).orElseThrow();
             assertThat(created.getSort()).isEqualTo(4);
         }
 
         @Test
         @DisplayName("마지막 연결은 해제할 수 없다")
         void lastLink_cannotUnlink() {
-            linkPersistencePort.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
+            linkPersistence.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
 
             assertThatThrownBy(() -> service.unlinkFromShop(PRODUCT_ID, OWNER_SHOP))
                 .isInstanceOf(BusinessException.class)
@@ -207,12 +207,12 @@ class ProductShopLinkServiceTest {
         @Test
         @DisplayName("연결이 2개 이상이면 제외할 수 있고 메뉴 자체는 남는다")
         void unlinksWhenMultipleLinks() {
-            linkPersistencePort.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
-            linkPersistencePort.given(PRODUCT_ID, OTHER_OWNED_SHOP, ProductCategoryId.of(OTHER_CATEGORY), 0);
+            linkPersistence.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
+            linkPersistence.given(PRODUCT_ID, OTHER_OWNED_SHOP, ProductCategoryId.of(OTHER_CATEGORY), 0);
 
             service.unlinkFromShop(PRODUCT_ID, OTHER_OWNED_SHOP);
 
-            assertThat(linkPersistencePort.findAllByProductId(PRODUCT_ID))
+            assertThat(linkPersistence.findAllByProductId(PRODUCT_ID))
                 .extracting(link -> link.getShopId().value())
                 .containsExactly(OWNER_SHOP.value());
         }
@@ -220,7 +220,7 @@ class ProductShopLinkServiceTest {
         @Test
         @DisplayName("연결되지 않은 가게에서 제외하면 404다")
         void notLinked_notFound() {
-            linkPersistencePort.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
+            linkPersistence.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
 
             assertThatThrownBy(() -> service.unlinkFromShop(PRODUCT_ID, OTHER_OWNED_SHOP))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -234,7 +234,7 @@ class ProductShopLinkServiceTest {
 
         @BeforeEach
         void givenOwnerLinkCreatedAtRegistration() {
-            linkPersistencePort.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
+            linkPersistence.given(PRODUCT_ID, OWNER_SHOP, ProductCategoryId.of(OWNER_CATEGORY), 0);
         }
 
         @Test
@@ -242,7 +242,7 @@ class ProductShopLinkServiceTest {
         void emptyLinks_keepsOwnerLinkOnly() {
             service.createInitialLinks(PRODUCT_ID, List.of(), OWNED);
 
-            assertThat(linkPersistencePort.findAllByProductId(PRODUCT_ID))
+            assertThat(linkPersistence.findAllByProductId(PRODUCT_ID))
                 .singleElement()
                 .satisfies(link -> assertThat(link.getShopId()).isEqualTo(OWNER_SHOP));
         }
@@ -253,7 +253,7 @@ class ProductShopLinkServiceTest {
             assertThatCode(() -> service.createInitialLinks(PRODUCT_ID, null, OWNED))
                 .doesNotThrowAnyException();
 
-            assertThat(linkPersistencePort.findAllByProductId(PRODUCT_ID)).hasSize(1);
+            assertThat(linkPersistence.findAllByProductId(PRODUCT_ID)).hasSize(1);
         }
 
         @Test
@@ -265,7 +265,7 @@ class ProductShopLinkServiceTest {
                 OWNED
             );
 
-            assertThat(linkPersistencePort.findAllByProductId(PRODUCT_ID))
+            assertThat(linkPersistence.findAllByProductId(PRODUCT_ID))
                 .extracting(link -> link.getShopId().value())
                 .containsExactlyInAnyOrder(OWNER_SHOP.value(), OTHER_OWNED_SHOP.value());
         }

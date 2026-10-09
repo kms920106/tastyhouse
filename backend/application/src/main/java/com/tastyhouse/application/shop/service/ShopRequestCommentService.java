@@ -4,19 +4,19 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.shop.model.ShopRequestComment;
 import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthor;
-import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentSavePort;
 
 @Service
 public class ShopRequestCommentService {
 
-    private final ShopRequestCommentPersistencePort shopRequestCommentPersistencePort;
+    private final ShopRequestCommentSavePort shopRequestCommentSavePort;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 
     public ShopRequestCommentService(
-        ShopRequestCommentPersistencePort shopRequestCommentPersistencePort,
+        ShopRequestCommentSavePort shopRequestCommentSavePort,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
-        this.shopRequestCommentPersistencePort = shopRequestCommentPersistencePort;
+        this.shopRequestCommentSavePort = shopRequestCommentSavePort;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
     }
 
@@ -31,7 +31,7 @@ public class ShopRequestCommentService {
     }
 
     private Long save(Long requestId, ShopRequestCommentAuthor author, String content) {
-        ShopRequestComment saved = shopRequestCommentPersistencePort.save(
+        ShopRequestComment saved = shopRequestCommentSavePort.save(
             ShopRequestComment.of(requestId, author, content)
         );
         return saved.getId();

@@ -10,7 +10,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductImageReorderCommand;
 import com.tastyhouse.application.product.port.in.ProductImageReorderUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -20,16 +20,16 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 class ProductImageReorderService implements ProductImageReorderUseCase {
 
     private final ProductImageApprovalService productImageApprovalService;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductLoadPort productLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductImageReorderService(
         ProductImageApprovalService productImageApprovalService,
-        ProductPersistencePort productPersistencePort,
+        ProductLoadPort productLoadPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productImageApprovalService = productImageApprovalService;
-        this.productPersistencePort = productPersistencePort;
+        this.productLoadPort = productLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -52,7 +52,7 @@ class ProductImageReorderService implements ProductImageReorderUseCase {
     }
 
     private boolean notOwnedBy(Long shopId, ProductId productId) {
-        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(ShopId.of(shopId), List.of(productId));
+        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(ShopId.of(shopId), List.of(productId));
         return found.isEmpty();
     }
 }

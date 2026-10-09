@@ -12,20 +12,24 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureDeleteUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureSavePort;
 
 @Service
 @Transactional
 class ShopTemporaryClosureDeleteService implements ShopTemporaryClosureDeleteUseCase {
 
-    private final ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort;
+    private final ShopTemporaryClosureLoadPort shopTemporaryClosureLoadPort;
+    private final ShopTemporaryClosureSavePort shopTemporaryClosureSavePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopTemporaryClosureDeleteService(
-        ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort,
+        ShopTemporaryClosureLoadPort shopTemporaryClosureLoadPort,
+        ShopTemporaryClosureSavePort shopTemporaryClosureSavePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopTemporaryClosurePersistencePort = shopTemporaryClosurePersistencePort;
+        this.shopTemporaryClosureLoadPort = shopTemporaryClosureLoadPort;
+        this.shopTemporaryClosureSavePort = shopTemporaryClosureSavePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -34,9 +38,9 @@ class ShopTemporaryClosureDeleteService implements ShopTemporaryClosureDeleteUse
         Long ceoId = command.ceoId();
         Long temporaryClosureId = command.temporaryClosureId();
 
-        ShopTemporaryClosure temporaryClosure = shopTemporaryClosurePersistencePort.findById(temporaryClosureId)
+        ShopTemporaryClosure temporaryClosure = shopTemporaryClosureLoadPort.findById(temporaryClosureId)
             .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_TEMPORARY_CLOSURE_NOT_FOUND));
-        shopTemporaryClosurePersistencePort.deleteById(temporaryClosureId);
+        shopTemporaryClosureSavePort.deleteById(temporaryClosureId);
 
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         shopChangeHistoryRecorder.record(

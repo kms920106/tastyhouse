@@ -44,7 +44,7 @@ backend/infrastructure/sms/
 
 **(번복됨 — application `*ServiceConfig` 삭제)** 아래 문단의 `SmsServiceConfig`는 삭제됐다. 지금은 `application/sms/service/SmsVerificationService` 클래스에 `@WebApp` 마커만(`@Service` 없이) 붙고, web-api의 마커 기반 컴포넌트 스캔이 생성자 주입으로 등록한다. 빈 이름(`smsVerificationService`)과 등록 앱(web)은 바뀌지 않았다. `SmsSender`를 생성자로 받는 마커 클래스가 `@WebApp`이 아니면 `AppIsolationTest#appRestrictedPortDependentsShouldBelongToThatApp`이 빌드에서 실패시킨다. 아래는 ServiceConfig 삭제 전의 기록이다.
 
-`SmsVerificationService`(생성자로 `SmsSender`·`SmsVerificationPersistencePort`·`DomainEventPublisher`를 요구)는 `application/sms/service/`의 annotation-free POJO이고, `application`의 `sms/config/SmsServiceConfig`(`@WebApp`)가 `@Bean`으로 등록한다. 이 설정은 web-api에서만 스캔되므로(마커 `@WebApp`), 발송 기능이 없는 admin·ceo·batch에는 이 빈이 뜨지 않는다.
+`SmsVerificationService`(생성자로 `SmsSender`·`SmsVerificationLoadPort`·`SmsVerificationSavePort`·`DomainEventPublisher`를 요구)는 `application/sms/service/`의 annotation-free POJO이고, `application`의 `sms/config/SmsServiceConfig`(`@WebApp`)가 `@Bean`으로 등록한다. 이 설정은 web-api에서만 스캔되므로(마커 `@WebApp`), 발송 기능이 없는 admin·ceo·batch에는 이 빈이 뜨지 않는다.
 
 **이 모듈은 그 등록에 관여하지 않는다.** 벤더(solapi/aws-sns)를 조립해 `SmsSender` 구현체를 web-api의 클래스패스에 올리는 것까지가 이 모듈의 일이다.
 

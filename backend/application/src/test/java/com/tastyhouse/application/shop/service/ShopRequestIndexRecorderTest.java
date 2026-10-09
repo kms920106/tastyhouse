@@ -13,7 +13,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistencePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -23,13 +23,13 @@ class ShopRequestIndexRecorderTest {
     private static final ShopId SHOP_ID = ShopId.of(1L);
     private static final Long SOURCE_ID = 500L;
 
-    private RecordingShopRequestIndexPersistencePort repository;
+    private RecordingShopRequestIndexPersistence repository;
     private ShopRequestIndexRecorder recorder;
 
     @BeforeEach
     void setUp() {
-        repository = new RecordingShopRequestIndexPersistencePort();
-        recorder = new ShopRequestIndexRecorder(repository);
+        repository = new RecordingShopRequestIndexPersistence();
+        recorder = new ShopRequestIndexRecorder(repository, repository);
     }
 
     @Test

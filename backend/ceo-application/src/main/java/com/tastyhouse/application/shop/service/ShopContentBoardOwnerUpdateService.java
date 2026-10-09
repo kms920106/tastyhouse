@@ -15,13 +15,13 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.file.port.in.FileOwnerUploadUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardUpdateCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardSavePort;
 
 @Service
 @Transactional
 class ShopContentBoardOwnerUpdateService implements ShopContentBoardOwnerUpdateUseCase {
 
-    private final ShopContentBoardPersistencePort shopContentBoardPersistencePort;
+    private final ShopContentBoardSavePort shopContentBoardSavePort;
     private final ShopContentBoardOwnerReader shopContentBoardOwnerReader;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
@@ -29,14 +29,14 @@ class ShopContentBoardOwnerUpdateService implements ShopContentBoardOwnerUpdateU
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopContentBoardOwnerUpdateService(
-        ShopContentBoardPersistencePort shopContentBoardPersistencePort,
+        ShopContentBoardSavePort shopContentBoardSavePort,
         ShopContentBoardOwnerReader shopContentBoardOwnerReader,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
         FileOwnerUploadUseCase fileOwnerUploadUseCase,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopContentBoardPersistencePort = shopContentBoardPersistencePort;
+        this.shopContentBoardSavePort = shopContentBoardSavePort;
         this.shopContentBoardOwnerReader = shopContentBoardOwnerReader;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopImageSpecValidator = shopImageSpecValidator;
@@ -64,7 +64,7 @@ class ShopContentBoardOwnerUpdateService implements ShopContentBoardOwnerUpdateU
             : shopContentBoard.getImageFileId();
 
         shopContentBoard.update(ShopContentTopic.from(topic), imageFileId, youtubeUrl, description);
-        shopContentBoardPersistencePort.save(shopContentBoard);
+        shopContentBoardSavePort.save(shopContentBoard);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),

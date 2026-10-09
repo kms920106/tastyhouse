@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.notice.model.Notice;
 import com.tastyhouse.domain.notice.vo.NoticeId;
-import com.tastyhouse.application.notice.port.out.write.NoticePersistencePort;
+import com.tastyhouse.application.notice.port.out.write.NoticeLoadPort;
+import com.tastyhouse.application.notice.port.out.write.NoticeSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.notice.persistence.QNoticeJpaEntity.noticeJpaEntity;
 
 @Repository
-class NoticePersistenceAdapter implements NoticePersistencePort {
+class NoticePersistenceAdapter implements NoticeLoadPort, NoticeSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final NoticeJpaRepository noticeJpaRepository;

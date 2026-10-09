@@ -6,19 +6,19 @@ import com.tastyhouse.domain.shop.model.ShopContentBoard;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardLoadPort;
 
 @Component
 class ShopContentBoardOwnerReader {
 
-    private final ShopContentBoardPersistencePort shopContentBoardPersistencePort;
+    private final ShopContentBoardLoadPort shopContentBoardLoadPort;
 
-    public ShopContentBoardOwnerReader(ShopContentBoardPersistencePort shopContentBoardPersistencePort) {
-        this.shopContentBoardPersistencePort = shopContentBoardPersistencePort;
+    public ShopContentBoardOwnerReader(ShopContentBoardLoadPort shopContentBoardLoadPort) {
+        this.shopContentBoardLoadPort = shopContentBoardLoadPort;
     }
 
     public ShopContentBoard loadOwnedContentBoard(Long shopId, Long contentBoardId) {
-        ShopContentBoard shopContentBoard = shopContentBoardPersistencePort.findById(contentBoardId)
+        ShopContentBoard shopContentBoard = shopContentBoardLoadPort.findById(contentBoardId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
         if (!shopContentBoard.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ApplicationErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND);

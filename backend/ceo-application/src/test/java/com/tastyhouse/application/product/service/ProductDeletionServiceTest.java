@@ -14,7 +14,8 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
@@ -185,18 +186,20 @@ class ProductDeletionServiceTest {
     private record Fixture(ProductDeletionService service) {
 
         private static Fixture of(List<Product> products, long visibleCount, long representativeCount) {
+            StubProductPersistence stubProductPersistence = new StubProductPersistence(products, visibleCount, representativeCount);
             return new Fixture(new ProductDeletionService(
-                new StubProductPersistencePort(products, visibleCount, representativeCount)));
+                stubProductPersistence,
+                stubProductPersistence));
         }
     }
 
-    private static final class StubProductPersistencePort implements ProductPersistencePort {
+    private static final class StubProductPersistence implements ProductLoadPort, ProductSavePort {
 
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final long visibleCount;
         private final long representativeCount;
 
-        private StubProductPersistencePort(List<Product> products, long visibleCount, long representativeCount) {
+        private StubProductPersistence(List<Product> products, long visibleCount, long representativeCount) {
             products.forEach(product -> this.products.put(product.getId(), product));
             this.visibleCount = visibleCount;
             this.representativeCount = representativeCount;

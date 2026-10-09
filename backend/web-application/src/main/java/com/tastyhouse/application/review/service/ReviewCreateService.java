@@ -12,9 +12,9 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.ReviewRegistration;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
-import com.tastyhouse.application.order.port.out.write.OrderProductPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.order.port.out.write.OrderLoadPort;
+import com.tastyhouse.application.order.port.out.write.OrderProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.review.port.in.ReviewCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewCreateUseCase;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
@@ -27,20 +27,20 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 class ReviewCreateService implements ReviewCreateUseCase {
 
     private final ReviewLifecycleService reviewLifecycleService;
-    private final ProductPersistencePort productPersistencePort;
-    private final OrderProductPersistencePort orderProductPersistencePort;
-    private final OrderPersistencePort orderPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final OrderProductLoadPort orderProductLoadPort;
+    private final OrderLoadPort orderLoadPort;
 
     public ReviewCreateService(
         ReviewLifecycleService reviewLifecycleService,
-        ProductPersistencePort productPersistencePort,
-        OrderProductPersistencePort orderProductPersistencePort,
-        OrderPersistencePort orderPersistencePort
+        ProductLoadPort productLoadPort,
+        OrderProductLoadPort orderProductLoadPort,
+        OrderLoadPort orderLoadPort
     ) {
         this.reviewLifecycleService = reviewLifecycleService;
-        this.productPersistencePort = productPersistencePort;
-        this.orderProductPersistencePort = orderProductPersistencePort;
-        this.orderPersistencePort = orderPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.orderProductLoadPort = orderProductLoadPort;
+        this.orderLoadPort = orderLoadPort;
     }
 
     @Override
@@ -52,14 +52,14 @@ class ReviewCreateService implements ReviewCreateUseCase {
 
         OrderId orderId = null;
         if (orderProductId != null) {
-            OrderProduct orderProduct = orderProductPersistencePort.findById(OrderProductId.of(orderProductId))
+            OrderProduct orderProduct = orderProductLoadPort.findById(OrderProductId.of(orderProductId))
                 .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.REVIEW_ORDER_PRODUCT_NOT_FOUND));
             orderId = orderProduct.getOrderId();
             validateOrderOwnership(orderId, MemberId.of(memberId));
         }
         validateDeliveryRating(orderId, deliveryRating, deliveryComment);
 
-        Product product = productPersistencePort.findById(ProductId.of(command.productId()))
+        Product product = productLoadPort.findById(ProductId.of(command.productId()))
             .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         ReviewRegistration registration = reviewLifecycleService.register(
@@ -82,7 +82,7 @@ class ReviewCreateService implements ReviewCreateUseCase {
     }
 
     private void validateOrderOwnership(OrderId orderId, MemberId memberId) {
-        Order order = orderPersistencePort.findById(orderId)
+        Order order = orderLoadPort.findById(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         if (!order.getMemberId().equals(memberId)) {
             throw new ApplicationException(WebErrorCode.REVIEW_ORDER_ACCESS_DENIED);
@@ -97,7 +97,7 @@ class ReviewCreateService implements ReviewCreateUseCase {
             throw new ApplicationException(WebErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
         }
 
-        Order order = orderPersistencePort.findById(orderId)
+        Order order = orderLoadPort.findById(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         if (order.getOrderMethod() != OrderMethod.DELIVERY) {
             throw new ApplicationException(WebErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);

@@ -14,7 +14,8 @@ import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.menureview.port.out.write.MenuReviewPersistencePort;
+import com.tastyhouse.application.menureview.port.out.write.MenuReviewLoadPort;
+import com.tastyhouse.application.menureview.port.out.write.MenuReviewSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
@@ -22,14 +23,17 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 @Service
 public class MenuReviewLifecycleService {
 
-    private final MenuReviewPersistencePort menuReviewPersistencePort;
+    private final MenuReviewLoadPort menuReviewLoadPort;
+    private final MenuReviewSavePort menuReviewSavePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public MenuReviewLifecycleService(
-        MenuReviewPersistencePort menuReviewPersistencePort,
+        MenuReviewLoadPort menuReviewLoadPort,
+        MenuReviewSavePort menuReviewSavePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.menuReviewPersistencePort = menuReviewPersistencePort;
+        this.menuReviewLoadPort = menuReviewLoadPort;
+        this.menuReviewSavePort = menuReviewSavePort;
         this.domainEventPublisher = domainEventPublisher;
     }
 
@@ -42,11 +46,11 @@ public class MenuReviewLifecycleService {
         Integer rating,
         String comment
     ) {
-        if (menuReviewPersistencePort.existsByOrderProductId(orderProductId)) {
+        if (menuReviewLoadPort.existsByOrderProductId(orderProductId)) {
             throw new ApplicationException(WebErrorCode.MENU_REVIEW_ALREADY_EXISTS);
         }
 
-        MenuReview saved = menuReviewPersistencePort.save(
+        MenuReview saved = menuReviewSavePort.save(
             MenuReview.of(memberId, shopId, productId, orderId, orderProductId, rating, comment)
         );
 
@@ -65,7 +69,7 @@ public class MenuReviewLifecycleService {
         MenuReview menuReview = loadOwnedBy(menuReviewId, memberId);
 
         menuReview.updateRating(rating, comment);
-        menuReviewPersistencePort.save(menuReview);
+        menuReviewSavePort.save(menuReview);
 
         domainEventPublisher.publish(new MenuReviewRatingChangedEvent(
             menuReviewId,
@@ -79,7 +83,7 @@ public class MenuReviewLifecycleService {
     public void remove(MenuReviewId menuReviewId, MemberId memberId) {
         MenuReview menuReview = loadOwnedBy(menuReviewId, memberId);
 
-        menuReviewPersistencePort.deleteById(menuReviewId);
+        menuReviewSavePort.deleteById(menuReviewId);
 
         domainEventPublisher.publish(new MenuReviewDeletedEvent(
             menuReviewId,
@@ -91,7 +95,7 @@ public class MenuReviewLifecycleService {
     }
 
     private MenuReview loadOwnedBy(MenuReviewId menuReviewId, MemberId memberId) {
-        return menuReviewPersistencePort.findByIdAndMemberId(menuReviewId, memberId)
+        return menuReviewLoadPort.findByIdAndMemberId(menuReviewId, memberId)
             .orElseThrow(() -> new ApplicationException(WebErrorCode.MENU_REVIEW_ACCESS_DENIED));
     }
 }

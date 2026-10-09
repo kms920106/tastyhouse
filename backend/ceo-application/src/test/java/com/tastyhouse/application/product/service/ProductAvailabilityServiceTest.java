@@ -25,13 +25,20 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
@@ -381,14 +388,20 @@ class ProductAvailabilityServiceTest {
                     group.getId(), ProductId.of(500L), ProductOptionGroupId.of(group.getId()), 1))
                 .toList();
 
+            ProductPersistenceStub productPersistenceStub = new ProductPersistenceStub(owned, visibleCount, visibleRepresentativeCount);
+            ProductOptionPersistenceStub productOptionPersistenceStub = new ProductOptionPersistenceStub(options);
+            ProductCommonOptionPersistenceStub productCommonOptionPersistenceStub = new ProductCommonOptionPersistenceStub(commonOptions);
             this.service = new ProductAvailabilityService(
-                new ProductPersistencePortStub(owned, visibleCount, visibleRepresentativeCount),
-                new ProductOptionPersistencePortStub(options),
-                new ProductCommonOptionPersistencePortStub(commonOptions),
-                new ProductOptionGroupPersistencePortStub(optionGroups),
-                new ProductCommonOptionGroupPersistencePortStub(commonOptionGroups),
-                new ProductOptionGroupLinkPersistencePortStub(optionGroupLinks),
-                new ProductCommonOptionGroupLinkPersistencePortStub(commonOptionGroupLinks)
+                productPersistenceStub,
+                productPersistenceStub,
+                productOptionPersistenceStub,
+                productOptionPersistenceStub,
+                productCommonOptionPersistenceStub,
+                productCommonOptionPersistenceStub,
+                new ProductOptionGroupPersistenceStub(optionGroups),
+                new ProductCommonOptionGroupPersistenceStub(commonOptionGroups),
+                new ProductOptionGroupLinkPersistenceStub(optionGroupLinks),
+                new ProductCommonOptionGroupLinkPersistenceStub(commonOptionGroupLinks)
             );
         }
 
@@ -413,11 +426,11 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductPersistencePortStub(
+    private record ProductPersistenceStub(
         List<Product> products,
         long visibleCount,
         long visibleRepresentativeCount
-    ) implements ProductPersistencePort {
+    ) implements ProductLoadPort, ProductSavePort {
 
         @Override
         public Optional<Product> findById(ProductId id) {
@@ -483,7 +496,7 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductOptionPersistencePortStub(List<ProductOption> options) implements ProductOptionPersistencePort {
+    private record ProductOptionPersistenceStub(List<ProductOption> options) implements ProductOptionLoadPort, ProductOptionSavePort {
 
         @Override
         public Optional<ProductOption> findById(ProductOptionId id) {
@@ -514,9 +527,9 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductCommonOptionPersistencePortStub(
+    private record ProductCommonOptionPersistenceStub(
         List<ProductCommonOption> options
-    ) implements ProductCommonOptionPersistencePort {
+    ) implements ProductCommonOptionLoadPort, ProductCommonOptionSavePort {
 
         @Override
         public Optional<ProductCommonOption> findById(ProductCommonOptionId id) {
@@ -547,9 +560,9 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductOptionGroupPersistencePortStub(
+    private record ProductOptionGroupPersistenceStub(
         List<ProductOptionGroup> groups
-    ) implements ProductOptionGroupPersistencePort {
+    ) implements ProductOptionGroupLoadPort, ProductOptionGroupSavePort {
 
         @Override
         public Optional<ProductOptionGroup> findById(ProductOptionGroupId id) {
@@ -568,9 +581,9 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductCommonOptionGroupPersistencePortStub(
+    private record ProductCommonOptionGroupPersistenceStub(
         List<ProductCommonOptionGroup> groups
-    ) implements ProductCommonOptionGroupPersistencePort {
+    ) implements ProductCommonOptionGroupLoadPort, ProductCommonOptionGroupSavePort {
 
         @Override
         public ProductCommonOptionGroup save(ProductCommonOptionGroup productCommonOptionGroup) {
@@ -584,9 +597,9 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductOptionGroupLinkPersistencePortStub(
+    private record ProductOptionGroupLinkPersistenceStub(
         List<ProductOptionGroupLink> links
-    ) implements ProductOptionGroupLinkPersistencePort {
+    ) implements ProductOptionGroupLinkLoadPort, ProductOptionGroupLinkSavePort {
 
         @Override
         public List<ProductOptionGroupLink> findAllByOptionGroupIdIn(List<ProductOptionGroupId> optionGroupIds) {
@@ -636,9 +649,9 @@ class ProductAvailabilityServiceTest {
         }
     }
 
-    private record ProductCommonOptionGroupLinkPersistencePortStub(
+    private record ProductCommonOptionGroupLinkPersistenceStub(
         List<ProductCommonOptionGroupLink> links
-    ) implements ProductCommonOptionGroupLinkPersistencePort {
+    ) implements ProductCommonOptionGroupLinkLoadPort, ProductCommonOptionGroupLinkSavePort {
 
         @Override
         public List<ProductCommonOptionGroupLink> findAllByOptionGroupIdIn(

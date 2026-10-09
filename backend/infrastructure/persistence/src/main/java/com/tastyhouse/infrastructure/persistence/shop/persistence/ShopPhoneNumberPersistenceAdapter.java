@@ -7,12 +7,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopPhoneNumber;
-import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopPhoneNumberJpaEntity.shopPhoneNumberJpaEntity;
 
 @Repository
-class ShopPhoneNumberPersistenceAdapter implements ShopPhoneNumberPersistencePort {
+class ShopPhoneNumberPersistenceAdapter implements ShopPhoneNumberLoadPort, ShopPhoneNumberSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopPhoneNumberJpaRepository shopPhoneNumberJpaRepository;

@@ -7,8 +7,8 @@ import com.tastyhouse.domain.faq.model.Faq;
 import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 import com.tastyhouse.application.faq.port.in.FaqCreateCommand;
 import com.tastyhouse.application.faq.port.in.FaqCreateUseCase;
-import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
-import com.tastyhouse.application.faq.port.out.write.FaqPersistencePort;
+import com.tastyhouse.application.faq.port.out.write.FaqCategoryLoadPort;
+import com.tastyhouse.application.faq.port.out.write.FaqSavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -16,12 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class FaqCreateService implements FaqCreateUseCase {
 
-    private final FaqPersistencePort faqPersistencePort;
-    private final FaqCategoryPersistencePort faqCategoryPersistencePort;
+    private final FaqSavePort faqSavePort;
+    private final FaqCategoryLoadPort faqCategoryLoadPort;
 
-    public FaqCreateService(FaqPersistencePort faqPersistencePort, FaqCategoryPersistencePort faqCategoryPersistencePort) {
-        this.faqPersistencePort = faqPersistencePort;
-        this.faqCategoryPersistencePort = faqCategoryPersistencePort;
+    public FaqCreateService(FaqSavePort faqSavePort, FaqCategoryLoadPort faqCategoryLoadPort) {
+        this.faqSavePort = faqSavePort;
+        this.faqCategoryLoadPort = faqCategoryLoadPort;
     }
 
     @Override
@@ -30,12 +30,12 @@ class FaqCreateService implements FaqCreateUseCase {
         validateCategoryExists(faqCategoryId);
 
         Faq faq = Faq.of(faqCategoryId, command.question(), command.answer(), command.sort(), command.visible());
-        Faq saved = faqPersistencePort.save(faq);
+        Faq saved = faqSavePort.save(faq);
         return saved.getFaqId().value();
     }
 
     private void validateCategoryExists(FaqCategoryId faqCategoryId) {
-        faqCategoryPersistencePort.findById(faqCategoryId)
+        faqCategoryLoadPort.findById(faqCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 }

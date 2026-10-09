@@ -7,7 +7,8 @@ import com.tastyhouse.domain.event.model.Event;
 import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.application.event.port.in.EventDeleteCommand;
 import com.tastyhouse.application.event.port.in.EventDeleteUseCase;
-import com.tastyhouse.application.event.port.out.write.EventPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventLoadPort;
+import com.tastyhouse.application.event.port.out.write.EventSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,10 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class EventDeleteService implements EventDeleteUseCase {
 
-    private final EventPersistencePort eventPersistencePort;
+    private final EventLoadPort eventLoadPort;
+    private final EventSavePort eventSavePort;
 
-    public EventDeleteService(EventPersistencePort eventPersistencePort) {
-        this.eventPersistencePort = eventPersistencePort;
+    public EventDeleteService(EventLoadPort eventLoadPort, EventSavePort eventSavePort) {
+        this.eventLoadPort = eventLoadPort;
+        this.eventSavePort = eventSavePort;
     }
 
     @Override
@@ -27,11 +30,11 @@ class EventDeleteService implements EventDeleteUseCase {
         Event event = findEventOrThrow(eventId);
 
         event.delete();
-        eventPersistencePort.save(event);
+        eventSavePort.save(event);
     }
 
     private Event findEventOrThrow(EventId eventId) {
-        return eventPersistencePort.findById(eventId)
+        return eventLoadPort.findById(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
     }
 }

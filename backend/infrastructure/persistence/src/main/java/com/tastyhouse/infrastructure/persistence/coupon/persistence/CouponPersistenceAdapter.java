@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.coupon.model.Coupon;
 import com.tastyhouse.domain.coupon.vo.CouponId;
-import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
+import com.tastyhouse.application.coupon.port.out.write.CouponLoadPort;
+import com.tastyhouse.application.coupon.port.out.write.CouponSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.coupon.persistence.QCouponJpaEntity.couponJpaEntity;
 
 @Repository
-class CouponPersistenceAdapter implements CouponPersistencePort {
+class CouponPersistenceAdapter implements CouponLoadPort, CouponSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final CouponJpaRepository couponJpaRepository;

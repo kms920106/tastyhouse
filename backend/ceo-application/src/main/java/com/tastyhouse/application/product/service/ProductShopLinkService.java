@@ -14,9 +14,10 @@ import com.tastyhouse.domain.product.model.ProductShopLinkSpec;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductShopLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductShopLinkSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
@@ -25,18 +26,21 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Service
 public class ProductShopLinkService {
 
-    private final ProductPersistencePort productPersistencePort;
-    private final ProductShopLinkPersistencePort productShopLinkPersistencePort;
-    private final ProductCategoryPersistencePort productCategoryPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductShopLinkLoadPort productShopLinkLoadPort;
+    private final ProductShopLinkSavePort productShopLinkSavePort;
+    private final ProductCategoryLoadPort productCategoryLoadPort;
 
     public ProductShopLinkService(
-        ProductPersistencePort productPersistencePort,
-        ProductShopLinkPersistencePort productShopLinkPersistencePort,
-        ProductCategoryPersistencePort productCategoryPersistencePort
+        ProductLoadPort productLoadPort,
+        ProductShopLinkLoadPort productShopLinkLoadPort,
+        ProductShopLinkSavePort productShopLinkSavePort,
+        ProductCategoryLoadPort productCategoryLoadPort
     ) {
-        this.productPersistencePort = productPersistencePort;
-        this.productShopLinkPersistencePort = productShopLinkPersistencePort;
-        this.productCategoryPersistencePort = productCategoryPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productShopLinkLoadPort = productShopLinkLoadPort;
+        this.productShopLinkSavePort = productShopLinkSavePort;
+        this.productCategoryLoadPort = productCategoryLoadPort;
     }
 
     public void replaceLinks(
@@ -57,7 +61,7 @@ public class ProductShopLinkService {
         }
 
         Map<Long, ProductShopLink> existing = new LinkedHashMap<>();
-        for (ProductShopLink link : productShopLinkPersistencePort.findAllByProductId(productId)) {
+        for (ProductShopLink link : productShopLinkLoadPort.findAllByProductId(productId)) {
             existing.put(link.getShopId().value(), link);
         }
 
@@ -66,7 +70,7 @@ public class ProductShopLinkService {
                 continue;
             }
             validateShopKeepsVisibleProduct(product, ShopId.of(entry.getKey()));
-            productShopLinkPersistencePort.delete(entry.getValue());
+            productShopLinkSavePort.delete(entry.getValue());
         }
 
         for (ProductShopLinkSpec spec : requested.values()) {
@@ -74,14 +78,14 @@ public class ProductShopLinkService {
             ProductCategoryId categoryId = ProductCategoryId.of(spec.productCategoryId());
             if (link == null) {
                 ShopId targetShopId = ShopId.of(spec.shopId());
-                productShopLinkPersistencePort.save(
+                productShopLinkSavePort.save(
                     ProductShopLink.of(productId, targetShopId, categoryId, nextSort(targetShopId))
                 );
                 continue;
             }
 
             link.relocate(categoryId, link.getSort());
-            productShopLinkPersistencePort.save(link);
+            productShopLinkSavePort.save(link);
         }
     }
 
@@ -89,11 +93,11 @@ public class ProductShopLinkService {
         loadProduct(productId);
         validateCategory(targetShopId, productCategoryId);
 
-        if (productShopLinkPersistencePort.existsByProductIdAndShopId(productId, targetShopId)) {
+        if (productShopLinkLoadPort.existsByProductIdAndShopId(productId, targetShopId)) {
             throw new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_ALREADY_LINKED);
         }
 
-        productShopLinkPersistencePort.save(
+        productShopLinkSavePort.save(
             ProductShopLink.of(productId, targetShopId, ProductCategoryId.of(productCategoryId), nextSort(targetShopId))
         );
     }
@@ -101,15 +105,15 @@ public class ProductShopLinkService {
     public void unlinkFromShop(ProductId productId, ShopId targetShopId) {
         Product product = loadProduct(productId);
 
-        ProductShopLink link = productShopLinkPersistencePort.findByProductIdAndShopId(productId, targetShopId)
+        ProductShopLink link = productShopLinkLoadPort.findByProductIdAndShopId(productId, targetShopId)
             .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.PRODUCT_SHOP_LINK_NOT_FOUND));
 
-        if (productShopLinkPersistencePort.countByProductId(productId) <= 1) {
+        if (productShopLinkLoadPort.countByProductId(productId) <= 1) {
             throw new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_LAST_CANNOT_UNLINK);
         }
 
         validateShopKeepsVisibleProduct(product, targetShopId);
-        productShopLinkPersistencePort.delete(link);
+        productShopLinkSavePort.delete(link);
     }
 
     public void createInitialLinks(
@@ -127,17 +131,17 @@ public class ProductShopLinkService {
             ShopId targetShopId = ShopId.of(spec.shopId());
             validateCategory(targetShopId, spec.productCategoryId());
 
-            if (productShopLinkPersistencePort.existsByProductIdAndShopId(productId, targetShopId)) {
+            if (productShopLinkLoadPort.existsByProductIdAndShopId(productId, targetShopId)) {
                 continue;
             }
-            productShopLinkPersistencePort.save(ProductShopLink.of(
+            productShopLinkSavePort.save(ProductShopLink.of(
                 productId, targetShopId, ProductCategoryId.of(spec.productCategoryId()), nextSort(targetShopId)
             ));
         }
     }
 
     private Product loadProduct(ProductId productId) {
-        return productPersistencePort.findById(productId)
+        return productLoadPort.findById(productId)
             .filter(found -> !found.isDeleted())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
@@ -164,7 +168,7 @@ public class ProductShopLinkService {
             throw new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_CATEGORY_REQUIRED);
         }
 
-        ProductCategory category = productCategoryPersistencePort.findById(ProductCategoryId.of(productCategoryId))
+        ProductCategory category = productCategoryLoadPort.findById(ProductCategoryId.of(productCategoryId))
             .orElseThrow(() -> new ApplicationException(CeoErrorCode.PRODUCT_SHOP_LINK_CATEGORY_MISMATCH));
 
         if (!shopId.equals(category.getShopId())) {
@@ -176,13 +180,13 @@ public class ProductShopLinkService {
         if (!product.isVisible()) {
             return;
         }
-        if (productPersistencePort.countVisibleByShopId(shopId) <= 1) {
+        if (productLoadPort.countVisibleByShopId(shopId) <= 1) {
             throw new ApplicationException(CeoErrorCode.PRODUCT_LAST_VISIBLE_CANNOT_HIDE);
         }
     }
 
     private Integer nextSort(ShopId shopId) {
-        List<ProductShopLink> links = productShopLinkPersistencePort.findAllByShopId(shopId);
+        List<ProductShopLink> links = productShopLinkLoadPort.findAllByShopId(shopId);
         int max = -1;
         for (ProductShopLink link : links) {
             if (link.getSort() != null && link.getSort() > max) {

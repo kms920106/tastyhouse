@@ -20,31 +20,39 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 
 @Service
 public class ShopConvenienceInfoService {
 
     private static final double MAX_DISPLAY_LOCATION_DISTANCE_METERS = 1000;
 
-    private final ShopConvenienceInfoPersistencePort shopConvenienceInfoPersistencePort;
-    private final ShopPersistencePort shopPersistencePort;
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopConvenienceInfoLoadPort shopConvenienceInfoLoadPort;
+    private final ShopConvenienceInfoSavePort shopConvenienceInfoSavePort;
+    private final ShopLoadPort shopLoadPort;
+    private final ShopDetailLoadPort shopDetailLoadPort;
+    private final ShopDetailSavePort shopDetailSavePort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopConvenienceInfoService(
-        ShopConvenienceInfoPersistencePort shopConvenienceInfoPersistencePort,
-        ShopPersistencePort shopPersistencePort,
-        ShopDetailPersistencePort shopDetailPersistencePort,
+        ShopConvenienceInfoLoadPort shopConvenienceInfoLoadPort,
+        ShopConvenienceInfoSavePort shopConvenienceInfoSavePort,
+        ShopLoadPort shopLoadPort,
+        ShopDetailLoadPort shopDetailLoadPort,
+        ShopDetailSavePort shopDetailSavePort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopConvenienceInfoPersistencePort = shopConvenienceInfoPersistencePort;
-        this.shopPersistencePort = shopPersistencePort;
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+        this.shopConvenienceInfoLoadPort = shopConvenienceInfoLoadPort;
+        this.shopConvenienceInfoSavePort = shopConvenienceInfoSavePort;
+        this.shopLoadPort = shopLoadPort;
+        this.shopDetailLoadPort = shopDetailLoadPort;
+        this.shopDetailSavePort = shopDetailSavePort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
@@ -68,7 +76,7 @@ public class ShopConvenienceInfoService {
             validateDisplayLocation(shopId, displayLatitude, displayLongitude);
         }
 
-        ShopConvenienceInfo existing = shopConvenienceInfoPersistencePort.findByShopId(shopId).orElse(null);
+        ShopConvenienceInfo existing = shopConvenienceInfoLoadPort.findByShopId(shopId).orElse(null);
         String previousValue = describeConvenienceInfo(existing);
 
         ShopConvenienceInfo shopConvenienceInfo;
@@ -96,7 +104,7 @@ public class ShopConvenienceInfoService {
             shopConvenienceInfo = existing;
         }
 
-        shopConvenienceInfoPersistencePort.save(shopConvenienceInfo);
+        shopConvenienceInfoSavePort.save(shopConvenienceInfo);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -109,10 +117,10 @@ public class ShopConvenienceInfoService {
     }
 
     public Long assignAmenity(Long shopId, Long amenityCategoryId, ShopChangeActor actor) {
-        ShopAmenityCategory amenityCategory = shopDetailPersistencePort.findAmenityCategoryById(amenityCategoryId)
+        ShopAmenityCategory amenityCategory = shopDetailLoadPort.findAmenityCategoryById(amenityCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
 
-        ShopAmenity amenity = shopDetailPersistencePort.saveAmenity(
+        ShopAmenity amenity = shopDetailSavePort.saveAmenity(
             ShopAmenity.of(ShopId.of(shopId), ShopAmenityCategoryId.of(amenityCategoryId))
         );
 
@@ -128,10 +136,10 @@ public class ShopConvenienceInfoService {
     }
 
     public void unassignAmenity(Long shopId, Long amenityCategoryId, ShopChangeActor actor) {
-        ShopAmenityCategory amenityCategory = shopDetailPersistencePort.findAmenityCategoryById(amenityCategoryId)
+        ShopAmenityCategory amenityCategory = shopDetailLoadPort.findAmenityCategoryById(amenityCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
 
-        shopDetailPersistencePort.deleteAmenityByShopIdAndCategoryId(shopId, amenityCategoryId);
+        shopDetailSavePort.deleteAmenityByShopIdAndCategoryId(shopId, amenityCategoryId);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -179,7 +187,7 @@ public class ShopConvenienceInfoService {
     }
 
     private void validateDisplayLocation(Long shopId, BigDecimal displayLatitude, BigDecimal displayLongitude) {
-        Shop shop = shopPersistencePort.findById(ShopId.of(shopId))
+        Shop shop = shopLoadPort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
 
         double distanceMeters = GeoDistance.distanceMeters(

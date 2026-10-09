@@ -9,23 +9,23 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaDeleteUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaLoadPort;
 
 @Service
 @Transactional
 class ShopDeliveryAreaDeleteService implements ShopDeliveryAreaDeleteUseCase {
 
     private final ShopDeliveryAreaService shopDeliveryAreaService;
-    private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;
+    private final ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopDeliveryAreaDeleteService(
         ShopDeliveryAreaService shopDeliveryAreaService,
-        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
+        ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.shopDeliveryAreaService = shopDeliveryAreaService;
-        this.shopDeliveryAreaPersistencePort = shopDeliveryAreaPersistencePort;
+        this.shopDeliveryAreaLoadPort = shopDeliveryAreaLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -34,7 +34,7 @@ class ShopDeliveryAreaDeleteService implements ShopDeliveryAreaDeleteUseCase {
         Long ceoId = command.ceoId();
         Long deliveryAreaId = command.deliveryAreaId();
 
-        ShopDeliveryArea deliveryArea = shopDeliveryAreaPersistencePort.findById(deliveryAreaId)
+        ShopDeliveryArea deliveryArea = shopDeliveryAreaLoadPort.findById(deliveryAreaId)
             .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_DELIVERY_AREA_NOT_FOUND));
         shopOwnershipValidator.validateOwnership(ceoId, deliveryArea.getShopId().value());
 

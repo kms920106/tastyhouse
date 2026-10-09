@@ -6,20 +6,20 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.region.model.AdminDong;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongSavePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 
 @Component
 public class AdminDongSyncExecutor {
 
-    private final AdminDongPersistencePort adminDongPersistencePort;
+    private final AdminDongSavePort adminDongSavePort;
 
-    public AdminDongSyncExecutor(AdminDongPersistencePort adminDongPersistencePort) {
-        this.adminDongPersistencePort = adminDongPersistencePort;
+    public AdminDongSyncExecutor(AdminDongSavePort adminDongSavePort) {
+        this.adminDongSavePort = adminDongSavePort;
     }
 
     @Transactional
     public AdminDongSyncResult synchronizeInTx(List<AdminDong> adminDongs) {
-        return adminDongPersistencePort.synchronize(adminDongs);
+        return adminDongSavePort.synchronize(adminDongs);
     }
 }

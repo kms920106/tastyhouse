@@ -39,7 +39,7 @@
 
 > ~~**이 문서 본문의 `XxxPersistenceAdapter`은 `XxxStatePortImpl`로, "매퍼의 `toDomain`"은 "매퍼의 `toState`"로 읽는다**(예: `FaqCategoryPersistenceAdapter` → `FaqCategoryStatePortImpl`, `ReservationSlotPersistenceAdapter` → `ReservationSlotStatePortImpl`).~~ **(번복됨 — persistence domain 재허용)** 이름이 다시 `XxxPersistenceAdapter`·`toDomain`으로 돌아왔으므로 본문의 `XxxPersistenceAdapter`·`toDomain`은 **그대로 현행**이다. 본문 곳곳의 "(03b) `XxxStatePortImpl`"·"`toState`" 표기는 `XxxPersistenceAdapter`·`toDomain`으로 읽는다. 규칙의 내용(load-copy-save, PK 조회에 소프트 삭제 필터 금지, 벌크 delete 등)은 그대로다.
 
-`domain`의 순수 도메인 모델을 영속화하고(~~(03b) `application`이 도메인 모델에서 만든 `XxxState`를 영속화하고~~ — 번복됨, persistence domain 재허용), 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 write 포트(`XxxPersistencePort` — **덩어리 03a로 `domain`의 `<ctx>/repository/`에서 `application`의 `<ctx>/port/out/write/`로 이동**, 시그니처는 domain 모델. ~~03b로 이 모듈이 구현하는 것은 `XxxStatePort`가 됐다~~ — 번복됨, 다시 `XxxPersistencePort`를 구현한다)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. 외부 연동 모듈들이 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
+`domain`의 순수 도메인 모델을 영속화하고(~~(03b) `application`이 도메인 모델에서 만든 `XxxState`를 영속화하고~~ — 번복됨, persistence domain 재허용), 읽기 계약 패키지 `com.tastyhouse.application..port.out`이 선언한 읽기 포트를 구현하는 **인프라 어댑터 모듈**. 헥사고날 아키텍처에서 write 포트(`XxxLoadPort`·`XxxSavePort`(분리 전 `XxxPersistencePort`) — **덩어리 03a로 `domain`의 `<ctx>/repository/`에서 `application`의 `<ctx>/port/out/write/`로 이동**, 시그니처는 domain 모델. ~~03b로 이 모듈이 구현하는 것은 `XxxStatePort`가 됐다~~ — 번복됨, 다시 `XxxPersistencePort`를 구현한다 — 이후 Load/Save로 분리돼 지금은 `XxxLoadPort`·`XxxSavePort`를 함께 구현한다)를 JPA/QueryDSL/Spring으로 구현하고, 그 읽기 포트(`{Ctx}QueryPort`)도 함께 구현한다. 외부 연동 모듈들이 파일/OAuth/PG 어댑터를 담당하는 것과 같은 원리로 DB 어댑터를 domain 밖으로 분리해 "domain은 프레임워크를 모른다"를 모듈 경계로 강제한다.
 
 **QueryDSL이 이 모듈 안에 갇혀 있다는 점이 이 모듈의 또 하나의 정체성이다.** Q타입 생성(annotationProcessor)이 전 프로젝트에서 이 모듈에서만 일어나고, `querydsl-jpa`는 `implementation`으로만 의존해 소비 모듈(web/admin/ceo/batch)로 전이되지 않는다. 조회는 이 모듈의 `<ctx>/query/` DAO가 캡슐화하지만, **그 계약(포트 인터페이스와 Result·SearchCondition 입출력 타입)은 이 모듈이 아니라 `application` 모듈이 소유한다** — api 모듈은 그 포트 인터페이스만 주입·import하고, `com.tastyhouse.infrastructure..`는 전혀 알지 않는다(읽기 경로 포트화, 챕터 04).
 
@@ -59,7 +59,7 @@ com.tastyhouse.infrastructure.persistence/
     │   ├── XxxMapper.java                엔티티 ↔ 도메인 변환 (package-private, toDomain/toEntity(domain)/applyChanges(entity, domain))
     │   │                                 enum valueOf/name, VO of/value, Embeddable 변환, null 가드
     │   ├── XxxJpaRepository.java         Spring Data JpaRepository<XxxJpaEntity, Long>
-    │   └── XxxPersistenceAdapter.java        @Repository — application XxxPersistencePort(port/out/write) 구현, load-copy-save
+    │   └── XxxPersistenceAdapter.java        @Repository — application XxxLoadPort·XxxSavePort(port/out/write) 구현, load-copy-save
     │                                     (03b 동안은 XxxStatePortImpl — 번복됨. XxxIdConverter는 정책 B로 이미 삭제)
     └── query/                            read 어댑터 (CQRS query 측) — **DAO만 소유(개정)**, domain을 모른다(queryShouldNotDependOnDomain)
         └── XxxQueryAdapter.java              @Repository — com.tastyhouse.application..port.out의 읽기 포트를 implements.
@@ -75,7 +75,7 @@ com.tastyhouse.infrastructure.persistence/
 
 - **패키지 루트는 `com.tastyhouse.infrastructure.persistence`** — **4앱 부트스트랩의 중첩 `ModuleScanConfig`가 `"com.tastyhouse.infrastructure"`를 문자열로 스캔**해 이 루트 아래 빈(PersistenceAdapter·QueryAdapter·Config)을 등록한다(제외 필터 없음). **(번복됨 — imports 제거)** ~~챕터 02 이후 앱의 `scanBasePackages`가 아니라 이 모듈의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure.persistence")`으로 스스로 스캔~~ — 그 설정 클래스는 삭제됐다. **(번복됨 — infrastructure 패키지 루트 통일)** ~~루트는 `com.tastyhouse.infrastructure`였고 `@ComponentScan("com.tastyhouse.infrastructure")`이 그 트리를 통째로 스캔했다(`redis` 하위 패키지는 REGEX `excludeFilters`로 제외 — 그쪽은 당시 `RedisModuleAutoConfiguration`이 갖는다).~~ 루트를 모듈명(`persistence`)으로 한 겹 내리면서 그 통째 스캔과 redis 제외 필터가 함께 사라졌고, 벤더 모듈이 `com.tastyhouse.external..`에 남아 있어야 했던 제약도 없어졌다(지금은 infrastructure 모듈 전부가 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}`를 루트로 쓴다). main 클래스가 루트 밖에 생기면 `LayerRulesTest#shouldResideInModuleRootPackage`가 실패한다. 앱은 `runtimeOnly project(':infrastructure:persistence')` 한 줄과 `ModuleScanConfig`의 `"com.tastyhouse.infrastructure"` 항목만 갖는다(문자열이라 `runtimeOnly`가 유지된다). JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 이 모듈의 `InfrastructurePersistenceConfig`가 `basePackageClasses`(타입 세이프)로 스스로 선언**한다. domain은 이 모듈을 의존하지 않아 컴파일 타임에 이 패키지를 볼 수 없으므로, 엔티티·리포지토리를 소유한 모듈이 스스로 선언하는 것이 Spring Boot 공식 권장과 일치한다.
 - **api 모듈은 소스 레벨에서 이 모듈을 알지 않는다 (개정 — 읽기 경로 포트화, 챕터 04)**: `{도메인}QueryService`는 이제 DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 컴파일 타임에 주입한다. `com.tastyhouse.infrastructure..`(과거 허용되던 `..query..` 포함) import는 4개 api 모듈에서 **전면 0건**이며, 각 모듈 `LayerRulesTest`가 강제한다(챕터 04의 임시 장치 `shouldNotDependOnInfrastructureQuery`는 챕터 05에서 제거됐다). `..persistence..`(write 어댑터) import와 `com.querydsl..` 의존 금지는 그대로다. Gradle 의존 자체(`implementation project(':infrastructure:persistence')`)는 남아 있다 — 이 모듈이 실행 시점에 빈 스캔 대상이기 때문이며, 소스 import 여부와는 별개다.
-- **반대 방향(이 모듈 → application)도 이 모듈의 `LayerRulesTest#shouldNotDependOnApiModules`가 막는다 (개정 — 챕터 03으로 예외 범위 확대)**: 과거(챕터 03까지)는 금지 대상이 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..` + 앱별 application 패키지 4개(`com.tastyhouse.{web|admin|ceo|batch}application..`)의 개별 열거였으나, 챕터 03의 패키지 평탄화로 그 앱별 패키지가 사라지고 유스케이스·읽기 계약이 `com.tastyhouse.application` 한 패키지에 공존하게 되면서 **금지 대상을 `com.tastyhouse.application..` 전체로 단순화**하고 그중 이 모듈이 구현해야 하는 아웃바운드 계약 패키지 `..port.out..`만 예외로 뺐다. 이 모듈은 `{Ctx}QueryPort`·Result·SearchCondition은 정당하게 import하지만, application의 서비스·UseCase(`<ctx>/service/`·`..port.in..`)는 절대 참조하지 않는다. write 포트 `XxxPersistencePort`(`..port.out.write..`)와 스펙 record(`ReviewSortSpec` 등, `..port.out..`)도 같은 예외로 보인다. ~~**(03b)** `XxxState`·`XxxSnapshot`·`XxxStatePort`가 여기 있었고, 도메인 타입을 쓰는 `application/<ctx>/store/`(`XxxPersistencePort`·`XxxStore`)는 `port.out` 밖이라 이 모듈이 볼 수 없었다.~~ **(번복됨 — persistence domain 재허용)** `store`가 사라지고 `XxxPersistencePort`가 `port.out.write`로 돌아와 이 예외로 보인다.
+- **반대 방향(이 모듈 → application)도 이 모듈의 `LayerRulesTest#shouldNotDependOnApiModules`가 막는다 (개정 — 챕터 03으로 예외 범위 확대)**: 과거(챕터 03까지)는 금지 대상이 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..` + 앱별 application 패키지 4개(`com.tastyhouse.{web|admin|ceo|batch}application..`)의 개별 열거였으나, 챕터 03의 패키지 평탄화로 그 앱별 패키지가 사라지고 유스케이스·읽기 계약이 `com.tastyhouse.application` 한 패키지에 공존하게 되면서 **금지 대상을 `com.tastyhouse.application..` 전체로 단순화**하고 그중 이 모듈이 구현해야 하는 아웃바운드 계약 패키지 `..port.out..`만 예외로 뺐다. 이 모듈은 `{Ctx}QueryPort`·Result·SearchCondition은 정당하게 import하지만, application의 서비스·UseCase(`<ctx>/service/`·`..port.in..`)는 절대 참조하지 않는다. write 포트 `XxxLoadPort`·`XxxSavePort`(`..port.out.write..`)와 스펙 record(`ReviewSortSpec` 등, `..port.out..`)도 같은 예외로 보인다. ~~**(03b)** `XxxState`·`XxxSnapshot`·`XxxStatePort`가 여기 있었고, 도메인 타입을 쓰는 `application/<ctx>/store/`(`XxxPersistencePort`·`XxxStore`)는 `port.out` 밖이라 이 모듈이 볼 수 없었다.~~ **(번복됨 — persistence domain 재허용)** `store`가 사라지고 `XxxPersistencePort`가 `port.out.write`로 돌아와 이 예외로 보인다(지금은 `XxxLoadPort`·`XxxSavePort`).
 - **조회 DAO(`..query..`)는 `domain`을 참조하지 않는다 (persistence domain 재허용으로 개정)**: `LayerRulesTest#queryShouldNotDependOnDomain` — 대상은 `com.tastyhouse.infrastructure.persistence..query..`와 봉인 조회 어댑터 3개(`SEALED_PERSISTENCE_TO_QUERY`)다. `build.gradle`이 `:domain`을 다시 선언해 컴파일 게이트가 없으므로 **이 규칙이 유일한 방어선이다 — 지우지 않는다.** 조회 쪽에서 도메인 판단(예외·정책·enum 라벨)이 필요해 보이면 DAO에 domain을 들이지 말고, 원자료를 돌려주고 application의 QueryService가 판정하게 한다. write 어댑터(`..persistence..`의 `XxxPersistenceAdapter`·`XxxMapper`)는 대상이 아니다 — 도메인 모델을 직접 다루는 것이 그 일이다.
 - ~~**이 모듈은 `domain`을 참조하지 않는다 (덩어리 03b 신설)**: `LayerRulesTest#infrastructureShouldNotDependOnDomain`. `build.gradle`에서 `:domain`을 뺐으므로 컴파일 게이트가 1차 방어선이다.~~ **(번복됨 — persistence domain 재허용, 위 항목으로 대상 축소)**
 - **QueryDSL은 이 모듈 안에 갇힌다**: `querydsl-jpa`는 `api`가 아니라 `implementation`으로 의존해 소비 모듈에 전이 노출되지 않는다. 계약 소유 모듈 어느 쪽도 `querydsl-core`/`querydsl-apt` 의존을 갖지 않으므로, **전 프로젝트에서 QueryDSL을 컴파일하는 모듈은 이 모듈 하나뿐**이다. api 4개 모듈 `src/main`의 `com.querydsl.*` import·`@QueryProjection` 선언은 0건이며 각 모듈 `architecture/LayerRulesTest`가 이를 강제한다.
@@ -86,7 +86,7 @@ com.tastyhouse.infrastructure.persistence/
 - **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(**03a로 `application`의 `shared/port/out/`으로 이동** — 과거 domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotPersistenceAdapter` — 03b 동안은 `ReservationSlotStatePortImpl`, 번복됨). 예외 타입은 `application/shared/port/out/`에 그대로 있다(03a가 03b를 위해 옮겨 둔 것 — persistence domain 재허용 후에도 되돌리지 않았다). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveImmediately`(당시 이름 `saveAndFlush`)를 둔다. 같은 자리에서 `DataIntegrityViolationException`(유니크 충돌)도 `UniqueConstraintConflictException`으로 번역한다 — application은 Spring DAO 예외를 import할 수 없다(`applicationShouldNotDependOnPersistenceTechnology`).
 - **`getReferenceById`/`getOne` 사용 시 주의**: 이 프로젝트는 현재 두 메서드를 어디서도 쓰지 않는다. 쓰게 되면 lazy proxy 접근 시 `jakarta.persistence.EntityNotFoundException`(`com.tastyhouse.application.shared.exception.ResourceNotFoundException`과 무관한 JPA 예외 — 이 예외는 에러코드 모듈 분할로 domain에서 application으로 이동했다)이 던져질 수 있는데, `GlobalExceptionHandler`는 도메인 `BusinessException` 계층만 처리하므로 이 예외는 `Exception` 핸들러에 잡혀 404가 아닌 500이 된다. 사용한다면 호출부에서 반드시 도메인 예외로 번역할 것.
 - **엔티티 enum 매핑**: ~~항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지.~~ **(번복됨 — 03b)** 엔티티는 domain enum을 모르므로 **enum 컬럼은 `String` 필드 + `@Column(length = n, columnDefinition = "VARCHAR(n)")`**이다(`@Enumerated` 0건). 저장값은 여전히 **상수명 문자열**이다 — 강등(`name()`)·승격(`valueOf`)은 ~~`application/<ctx>/store/XxxStateMapper`~~ 이 모듈의 `XxxMapper`가 한다(ORDINAL 금지 취지의 승계, **(번복됨 — persistence domain 재허용: 위치만)**). **domain을 다시 볼 수 있게 됐지만 엔티티 필드를 enum으로 되돌리지 않는다** — 조회 DAO 31개 파일·193곳이 `String` 컬럼을 투영하고, 되돌리면 `Projections.constructor`가 런타임에만 깨진다. 필드가 `String`이라 Hibernate는 `VARCHAR`를 기대하므로 `columnDefinition`은 validate 통과에 필수가 아니지만, 03b가 `@Column`을 글자 하나 바꾸지 않았고 `n`이 `schema.sql` 길이의 문서이므로 **떼지 않는다**. DAO에서 enum 상수와 비교할 때는 리터럴도 복제 상수도 쓰지 않고, **비교값을 포트 인자로 받는다**(~~`XxxCodes` 복제 상수~~ 번복됨 — `application/AGENTS.md` "enum 비교값 전달 규칙"). ~~이 모듈에는 enum 어휘가 없다.~~ 조회 DAO에는 enum 어휘가 없다. write 어댑터 `XxxPersistenceAdapter`은 도메인 enum을 `name()`으로 풀어 쓴다(예: `ReservationPersistenceAdapter`의 `ReservationStatus.blockingStatuses()`). DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 `backend/CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙"의 번복 표기.
-- **(번복됨 — 덩어리 03a) 이 모듈에는 도메인 서비스 빈 등록이 없다.** `<ctx>/config/<Ctx>DomainConfig` 18개는 전부 `application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp` — 등록 앱 불변)로 옮겨졌고(`PaymentDomainConfig`는 기존 `PaymentServiceConfig`에 합쳐짐), 그 설정이 등록하던 서비스도 `application/<ctx>/service/`의 마커 없는 POJO가 됐다. **(번복됨 — application `*ServiceConfig` 삭제)** 그 `<Ctx>ServiceConfig`들도 이후 전부 삭제됐고, 지금 서비스는 클래스에 앱 마커만 달아 application의 마커 스캔으로 등록된다(domain 계산기 등 10개만 `application/shared/config/SharedBeanConfig`의 `@Bean`). **(번복됨 — 앱 마커 제거)** 지금은 `@Service`를 달고 코어 `application` 또는 `{앱}-application` 모듈에서 스캔으로 등록된다. 이 모듈에 `*DomainConfig.java`는 0개다. 같은 이유로 서비스 연결 어댑터 2개(`ShopRequestIndexSyncAdapter`·`ReplyPhraseProhibitedWordValidatorAdapter`)·금칙어 캐시 데코레이터 `CachingProhibitedWordPersistencePort`·발행 구현 `SpringDomainEventPublisher`도 떠났다 — 남기면 이 모듈이 `application`의 `port.out` 밖 타입(서비스·`shared/event`)을 봐야 해 `LayerRulesTest#shouldNotDependOnApiModules`에 걸린다. 근거와 옮긴 설계 근거 항목은 `../../application/AGENTS.md`의 "덩어리 03a" 절. **새 도메인 서비스를 만들 때 이 모듈에 설정을 되살리지 않는다.** 아래는 과거 서술이다. **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
+- **(번복됨 — 덩어리 03a) 이 모듈에는 도메인 서비스 빈 등록이 없다.** `<ctx>/config/<Ctx>DomainConfig` 18개는 전부 `application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp` — 등록 앱 불변)로 옮겨졌고(`PaymentDomainConfig`는 기존 `PaymentServiceConfig`에 합쳐짐), 그 설정이 등록하던 서비스도 `application/<ctx>/service/`의 마커 없는 POJO가 됐다. **(번복됨 — application `*ServiceConfig` 삭제)** 그 `<Ctx>ServiceConfig`들도 이후 전부 삭제됐고, 지금 서비스는 클래스에 앱 마커만 달아 application의 마커 스캔으로 등록된다(domain 계산기 등 10개만 `application/shared/config/SharedBeanConfig`의 `@Bean`). **(번복됨 — 앱 마커 제거)** 지금은 `@Service`를 달고 코어 `application` 또는 `{앱}-application` 모듈에서 스캔으로 등록된다. 이 모듈에 `*DomainConfig.java`는 0개다. 같은 이유로 서비스 연결 어댑터 2개(`ShopRequestIndexSyncAdapter`·`ReplyPhraseProhibitedWordValidatorAdapter`)·금칙어 캐시 데코레이터 `CachingProhibitedWordPersistencePort`(현재 `CachingProhibitedWordLoadPort`)·발행 구현 `SpringDomainEventPublisher`도 떠났다 — 남기면 이 모듈이 `application`의 `port.out` 밖 타입(서비스·`shared/event`)을 봐야 해 `LayerRulesTest#shouldNotDependOnApiModules`에 걸린다. 근거와 옮긴 설계 근거 항목은 `../../application/AGENTS.md`의 "덩어리 03a" 절. **새 도메인 서비스를 만들 때 이 모듈에 설정을 되살리지 않는다.** 아래는 과거 서술이다. **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
   - **단, 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 있으면 벤더를 조립하는 채널 모듈이 등록한다**: `mail/config/MailDomainConfig`·`sms/config/SmsDomainConfig`는 이 예외로 `infrastructure:messaging`을 거쳐 채널 모듈 `infrastructure:mail`(`com.tastyhouse.external.mail.config`)·`infrastructure:sms`(`com.tastyhouse.external.sms.config`)로 **이관됐고 이 모듈에 없다**. 두 설정이 `MailSender`·`SmsSender` 빈을 무조건 요구해서 발송 기능이 없는 admin·ceo·batch까지 발송 어댑터를 강제로 들여와야 했기 때문이다. 과거 함께 잔류하던 주입 없는 `MailVerificationEventListener`·`SmsVerificationEventListener`는 다른 리스너 10종과 함께 `application`의 `com.tastyhouse.application.{mail,sms}.listener`로 이동했다(`../../application/AGENTS.md` 참고).
 
     **(번복됨 — 덩어리 02/03a) `FileDomainConfig`도 이 모듈에서 사라졌다.** 이전 판단 기준("구현이 일부 앱에만 있는가")으로는 4개 앱 전부가 `FileStoragePort` 구현을 갖는 파일 저장이 예외 대상이 아니라고 봤으나, `FileUploadService`(+`FileUploadCommand`) 자체가 도메인 서비스가 아니라 유스케이스 계층의 순수 POJO로 재분류되어 `application/file/service/`로 옮겨갔고, 빈 등록도 ~~`application/file/config/FileServiceConfig`(`@SharedApp`)가 맡는다~~ ~~클래스의 `@SharedApp` 마커가 맡는다~~ 코어 `application`의 `@Service`가 맡는다(앱 마커 제거. `FileServiceConfig`는 application `*ServiceConfig` 삭제로 없어졌다). `FileDomainConfig`는 삭제됐다. 판정 기준 자체(포트 구현 앱 범위)는 여전히 유효하지만, 이 서비스는 애초에 그 판정 대상(도메인 서비스)이 아니게 됐다는 것이 이번 이동의 근거다.
@@ -99,11 +99,11 @@ com.tastyhouse.infrastructure.persistence/
   - **모듈 진입점인 `InfrastructurePersistenceConfig`는 모듈 루트에 그대로 둔다** — `basePackageClasses`로 JPA 스캔 범위를 정하므로 옮기면 범위가 어긋난다. **(번복됨 — imports 제거)** ~~`PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)도 루트에 둔다(`AutoConfiguration.imports`가 FQCN으로 참조하므로 경로 변경 금지)~~ — 그 클래스와 imports 파일은 삭제됐다. `<ctx>/config/` 규칙은 신설 도메인 서비스 config에만 적용된다.
 - **(번복됨) 이벤트 리스너를 이 모듈의 `<ctx>/listener/`에 두지 않는다**: 도메인 이벤트 리스너 12종은 `application`의 `com.tastyhouse.application.<ctx>.listener`로 이동했고, ~~리스너 전용 마커 `@SharedApp`으로 4앱 전부가 스캔한다~~ (번복됨 — 앱 마커 제거) 코어 `application`에 있어 4앱 전부가 스캔한다. ~~이 모듈에는 발행 어댑터 `shared/event/SpringDomainEventPublisher`만 남는다.~~ **(03a)** 발행 구현도 `application`의 `shared/event/`로 옮겨가 이 모듈에는 이벤트 관련 코드가 없다. 리스너 작성 규칙·AFTER_COMMIT 유실 경고·배치 근거는 [`backend/application/AGENTS.md`의 도메인 이벤트 리스너 절](../../application/AGENTS.md#ctxlistener--도메인-이벤트-리스너)을 따른다.
 
-reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticePersistenceAdapter` — 단건 로드·저장만, 짝 application 쪽은 `application/notice/port/out/write/NoticePersistencePort`. 03b 동안의 `NoticeStatePortImpl`·`NoticeState`·`NoticeStatePort`·`store/{NoticePersistencePort,NoticeStore,NoticeStateMapper}`는 삭제됨), read 어댑터 `notice/query/`(`NoticeQueryAdapter` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).
+reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticePersistenceAdapter` — 단건 로드·저장만, 짝 application 쪽은 `application/notice/port/out/write/{NoticeLoadPort,NoticeSavePort}`(분리 전 `NoticePersistencePort`). 03b 동안의 `NoticeStatePortImpl`·`NoticeState`·`NoticeStatePort`·`store/{NoticePersistencePort,NoticeStore,NoticeStateMapper}`는 삭제됨), read 어댑터 `notice/query/`(`NoticeQueryAdapter` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).
 
 ## `<ctx>/query/` — read 어댑터 (CQRS query 측, 개정됨 — 읽기 경로 포트화)
 
-표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxPersistencePort`)가 아니라 이 패키지의 `{도메인}QueryAdapter`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `com.tastyhouse.application.<ctx>.port.out`(소유 모듈은 `application`)이 소유**하고, `XxxQueryAdapter`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 ~~domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`~~ **(덩어리 01로 이동)** `application`의 `com.tastyhouse.application.shared.port.out.page.PageResult`, 페이징 입력은 같은 패키지의 `PageQuery`다.
+표현 목적 조회(목록·검색·페이징·상세)는 write 포트(`XxxLoadPort`·`XxxSavePort`)가 아니라 이 패키지의 `{도메인}QueryAdapter`(`@Repository`)가 담당한다. **Result·SearchCondition·`{Ctx}QueryPort` 인터페이스는 이제 이 패키지가 아니라 `com.tastyhouse.application.<ctx>.port.out`(소유 모듈은 `application`)이 소유**하고, `XxxQueryAdapter`는 그 포트를 `implements`한다. DAO는 같은 모듈의 `JPAQueryFactory`와 `QXxxJpaEntity`로 JPA 엔티티에서 Result record로 `Projections.constructor(XxxResult.class, ...)`로 **직접 투영**한다(도메인 모델을 거치지 않음, `@QueryProjection`은 더 이상 쓰지 않음). 반환 페이징 타입은 ~~domain의 `shared/page/PageResult`, 페이징 입력은 `shared/page/PageQuery`~~ **(덩어리 01로 이동)** `application`의 `com.tastyhouse.application.shared.port.out.page.PageResult`, 페이징 입력은 같은 패키지의 `PageQuery`다.
 
 - **도메인당 DAO 1개, 소비자별 메서드 분리**: admin용/web용/ceo용 메서드를 한 DAO에 둔다. 메서드명에 admin 마커를 붙이지 않고 순수 동작명을 쓴다(`findAllNotices`=비노출 포함 전체 / `findVisibleNotices`=노출분만). 대형 도메인(`shop` 등, 대략 400줄 초과)만 용도별 DAO 분리를 허용한다.
 - **DAO 1개 : 포트 N개 (챕터 04)**: 계약 쪽은 DAO와 달리 **소비 앱별로 갈린다**. 한 DAO의 public 표면에 여러 앱의 조회가 섞여 있으면 [소비자별 분할 규칙](../../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)에 따라 포트를 쪼개고 **DAO가 그것을 전부 `implements`** 한다(예: `ShopQueryAdapter implements ShopQueryPort, ShopBasicInfoQueryPort, ShopManagementQueryPort, ShopOwnerQueryPort`). **DAO 본문은 이 분할로 바뀌지 않는다** — 늘어나는 것은 `implements` 목록뿐이고, `@Override` 개수는 분할 전후가 같아야 한다.
@@ -226,7 +226,7 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 - 목록 조회는 페이지 대상 가게를 먼저 뽑고 역·썸네일·음식유형·리뷰수·즐겨찾기수를 shopId 일괄 조회(in절)로 채운다 — 컬렉션 필드(음식유형 다건)가 있어 단일 조인 투영은 카티전 곱이 생기기 때문이다.
 - **필드 셋이 달라 Result를 통합하지 않은 사례**: 사진 카테고리 이미지 조회는 회원용 `ShopPhotoCategoryImageResult`(노출분 표시용)와 관리용 `ShopPhotoCategoryImageManagementResult`(`visible` 포함 — 관리 화면은 미노출 이미지도 상태와 함께 보여줘야 함)로 나뉜다. 같은 패키지에 공존해 충돌하므로 `Management` 한정어를 부여했다.
-- **write 포트 잔류 판정이 갈린 사례**: `findBusinessHoursByShopId`·`findBreakTimesByShopId`·`findClosedDaysByShopId`·`findByShopId`(임시중지·임시휴무)는 표현용으로도 쓰이지만 **휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정**이라는 불변식에 필요하므로 write 포트(`ShopDetailPersistencePort` 등)에 남겼다. 반면 Result DTO를 반환하던 카테고리·배정·배너·사진 목록은 전부 DAO로 보냈다.
+- **write 포트 잔류 판정이 갈린 사례**: `findBusinessHoursByShopId`·`findBreakTimesByShopId`·`findClosedDaysByShopId`·`findByShopId`(임시중지·임시휴무)는 표현용으로도 쓰이지만 **휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정**이라는 불변식에 필요하므로 write 포트(`ShopDetailLoadPort` 등)에 남겼다. 반면 Result DTO를 반환하던 카테고리·배정·배너·사진 목록은 전부 DAO로 보냈다.
 
 ## 설정 파일 (`src/main/resources/application-infrastructure.yml`)
 
@@ -237,7 +237,7 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 ### Internal
 - `domain` (**implementation**) — write 어댑터(`<ctx>/persistence/`의 `XxxPersistenceAdapter`·`XxxMapper`)가 도메인 모델·VO·enum을 직접 다루기 위해 의존한다. `implementation`이므로 이 모듈을 의존하는 앱 쪽으로 domain이 전이되지 않는다(과거 `api`였을 때와 다른 점). `..query..`와 봉인 조회 어댑터 3개는 `queryShouldNotDependOnDomain`으로 domain 참조가 막혀 있다. **(persistence domain 재허용으로 복원)**
 - ~~`domain` (api) — 도메인 모델·write 포트·출력 포트·`shared/event`·`shared/exception`·`exception` 참조. `shared/page` (덩어리 01로 이동 — 아래 `application` 줄)~~ ~~**(덩어리 03b) `domain` 의존은 제거됐다.** 도메인 모델은 `XxxState`로, 도메인 enum은 `String`(비교값은 포트 인자)으로, `@Embedded` VO는 `XxxEmbeddable`로, 도메인 예외는 `Optional`/`boolean` 반환 + application 판정으로 대체됐다. `api`였던 탓에 이 모듈을 의존하는 쪽으로 domain이 전이되던 경로도 함께 사라졌다~~ **(번복됨 — persistence domain 재허용)** 위 줄처럼 `implementation`으로 돌아왔다. 도메인 enum `String` 컬럼과 `XxxEmbeddable`은 유지한다
-- `application` (implementation) — 읽기 계약(`{Ctx}QueryPort`·Result·SearchCondition)을 구현·투영하기 위해 의존한다(QueryAdapter가 그 인터페이스를 `implements`). 챕터 04로 공유 계약 55개까지 이 모듈로 돌아와, 읽기 계약은 전부 이 한 의존으로 보인다. **페이징 계약 `PageQuery`/`PageResult`도 덩어리 01부터 여기서 온다**(`com.tastyhouse.application.shared.port.out.page` — before: `com.tastyhouse.domain.shared.page`). DAO 32곳이 쓰며, `port/out` 아래에 둔 이유는 이 모듈의 `shouldNotDependOnApiModules`가 application 중 `..port.out..`만 허용하기 때문이다. 같은 이유로 enum 카탈로그용 `CodeLabelResult`도 `application.shared.port.out`에 있다. 보는 범위는 `..port.out..`(읽기 계약 + `port/out/write`의 `XxxPersistencePort` + 스펙 record + `OptimisticLockConflictException`)뿐이다. ~~**(03b)** 이 한 줄이 이 모듈의 유일한 프로젝트 의존이었고, `port/out/write`에는 `XxxState`·`XxxSnapshot`·`XxxStatePort`가 있었다~~ **(번복됨 — persistence domain 재허용)**
+- `application` (implementation) — 읽기 계약(`{Ctx}QueryPort`·Result·SearchCondition)을 구현·투영하기 위해 의존한다(QueryAdapter가 그 인터페이스를 `implements`). 챕터 04로 공유 계약 55개까지 이 모듈로 돌아와, 읽기 계약은 전부 이 한 의존으로 보인다. **페이징 계약 `PageQuery`/`PageResult`도 덩어리 01부터 여기서 온다**(`com.tastyhouse.application.shared.port.out.page` — before: `com.tastyhouse.domain.shared.page`). DAO 32곳이 쓰며, `port/out` 아래에 둔 이유는 이 모듈의 `shouldNotDependOnApiModules`가 application 중 `..port.out..`만 허용하기 때문이다. 같은 이유로 enum 카탈로그용 `CodeLabelResult`도 `application.shared.port.out`에 있다. 보는 범위는 `..port.out..`(읽기 계약 + `port/out/write`의 `XxxLoadPort`·`XxxSavePort` + 스펙 record + `OptimisticLockConflictException`)뿐이다. ~~**(03b)** 이 한 줄이 이 모듈의 유일한 프로젝트 의존이었고, `port/out/write`에는 `XxxState`·`XxxSnapshot`·`XxxStatePort`가 있었다~~ **(번복됨 — persistence domain 재허용)**
 
 ### External
 - `spring-boot-starter-data-jpa` (api), `mysql-connector-j`
@@ -245,7 +245,7 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 ## banner 쓰기 — JPA 구현과 MyBatis 구현의 공존
 
-`BannerPersistencePort`(banner 쓰기 포트)는 이 모듈의 `banner/persistence/BannerJpaPersistenceAdapter`(JPA)와 `infrastructure:mybatis`의 `BannerMyBatisPersistenceAdapter`(MyBatis)가 **둘 다 완전히 구현**한다. 어느 쪽이 빈으로 뜨는지는 속성 `persistence.banner.write.provider`(이 모듈의 `application-infrastructure.yml`, 기본 `${BANNER_WRITE_PROVIDER:jpa}`)가 정한다.
+`BannerLoadPort`·`BannerSavePort`(banner 쓰기 포트 — 분리 전 `BannerPersistencePort`)는 이 모듈의 `banner/persistence/BannerJpaPersistenceAdapter`(JPA)와 `infrastructure:mybatis`의 `BannerMyBatisPersistenceAdapter`(MyBatis)가 **둘 다 완전히 구현**한다. 어느 쪽이 빈으로 뜨는지는 속성 `persistence.banner.write.provider`(이 모듈의 `application-infrastructure.yml`, 기본 `${BANNER_WRITE_PROVIDER:jpa}`)가 정한다.
 
 | 항목 | before (MyBatis 파일럿 직후) | after (공존 + 전환) |
 |---|---|---|
@@ -647,7 +647,7 @@ DAO와 같은 `<ctx>/query/` 패키지의 Row·Result는 `import`가 없어서 �
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/order/query/OrderQueryAdapter.java`
 → `findPayment(OrderId)`
 
-`PAYMENT.order_id`의 unique 제약이 깨져 동일 주문에 결제 행이 2건이 되면, **임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다.** `fetchFirst`로 바꾸지 않는다 — 기존 `PaymentPersistencePort#findByOrderId`와 동일한 fail-loud 시맨틱이다.
+`PAYMENT.order_id`의 unique 제약이 깨져 동일 주문에 결제 행이 2건이 되면, **임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다.** `fetchFirst`로 바꾸지 않는다 — 기존 `PaymentLoadPort#findByOrderId`와 동일한 fail-loud 시맨틱이다.
 
 ### `OrderQueryAdapter#withUnwrappedAmount` — 언랩을 없애면 api 모듈 규약이 깨진다
 
@@ -728,7 +728,7 @@ Hibernate 6의 `Component#sortProperties()`는 embeddable 프로퍼티를 **이�
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/payment/query/PaymentQueryAdapter.java`
 → `findPaymentByOrderId`
 
-`PAYMENT.order_id`에 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면 임의의 한 건을 조용히 고르는 대신 즉시 실패시킨다** — `PaymentPersistencePort#findByOrderId`와 동일한 fail-loud 시맨틱을 유지한다.
+`PAYMENT.order_id`에 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면 임의의 한 건을 조용히 고르는 대신 즉시 실패시킨다** — `PaymentLoadPort#findByOrderId`와 동일한 fail-loud 시맨틱을 유지한다.
 
 ### `PaymentQueryAdapter` — 호출부 없는 조회를 미리 만들지 않는다
 
@@ -841,7 +841,7 @@ admin 목록·상세는 삭제된 쿠폰을 제외하지만, **내 쿠폰 조회
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/ceo/query/CeoQueryAdapter.java`
 → 클래스 전체 · `existsByUsername`
 
-~~`findByUsername`/`existsByUsername`은 **불변식 검증 경로**이므로 write 포트에 잔류한다. 여기로 옮기지 않는다.~~ **(번복됨 — JpaRepository 메서드 선언 금지)** 경로별로 갈렸다. 인증 로드(`findByUsername` — 도메인 모델 반환)와 `CeoCreateService`의 생성 중복검사(`existsByUsername` — CommandService는 QueryPort를 주입할 수 없다)는 write 포트 `CeoPersistencePort`에 남는다. 조회 유스케이스 `CeoOwnerUsernameExistsQueryService`(아이디 중복확인 API)는 표현 목적의 원시값 조회라 `CeoOwnerQueryPort#existsByUsername`으로 옮겼고, 이 DAO가 구현한다. admin도 같은 형태다(`AdminQueryPort` ← `admin/query/AdminQueryAdapter`).
+~~`findByUsername`/`existsByUsername`은 **불변식 검증 경로**이므로 write 포트에 잔류한다. 여기로 옮기지 않는다.~~ **(번복됨 — JpaRepository 메서드 선언 금지)** 경로별로 갈렸다. 인증 로드(`findByUsername` — 도메인 모델 반환)와 `CeoCreateService`의 생성 중복검사(`existsByUsername` — CommandService는 QueryPort를 주입할 수 없다)는 write 포트 `CeoLoadPort`에 남는다. 조회 유스케이스 `CeoOwnerUsernameExistsQueryService`(아이디 중복확인 API)는 표현 목적의 원시값 조회라 `CeoOwnerQueryPort#existsByUsername`으로 옮겼고, 이 DAO가 구현한다. admin도 같은 형태다(`AdminQueryPort` ← `admin/query/AdminQueryAdapter`).
 
 ### `CeoReplyPhraseQueryAdapter#findReplyPhrases` — 2차 정렬 키 `id`를 빼지 않는다
 
@@ -1142,7 +1142,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### `ProductQueryAdapter` 클래스 역할
 
-`product` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ProductPersistencePort` 등 9개)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api·batch-module)의 조회 서비스(당시 `ProductQueryService` — web은 유스케이스 분리로 `ProductDetailQueryService`·`ProductBatchQueryService` 등 per-op 서비스)가 주입해 쓰며, 소비 모듈은 QueryDSL을 알지 않는다. 소비자별 메서드 분리는 아래와 같다.
+`product` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ProductLoadPort` 등)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api·batch-module)의 조회 서비스(당시 `ProductQueryService` — web은 유스케이스 분리로 `ProductDetailQueryService`·`ProductBatchQueryService` 등 per-op 서비스)가 주입해 쓰며, 소비 모듈은 QueryDSL을 알지 않는다. 소비자별 메서드 분리는 아래와 같다.
 
 | 소비자 | 메서드 |
 |---|---|
@@ -1337,9 +1337,9 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 | DAO 메서드 | 같은 데이터를 읽는 write 포트 | 반드시 조건이 일치해야 하는 이유 |
 |---|---|---|
-| `findProductPrices` | `ProductPricePersistencePort#findAllByProductId` | — |
-| `findShopProductPrices` | `ProductPricePersistencePort#findAllByShopId` | 어긋나면 손님 화면과 점주 화면의 **매장가격 뱃지가 갈린다** |
-| `countVisibleProducts` | `ProductPersistencePort#countVisibleByShopId` | 조건(`visible = true` **이고** `deleted = false`)이 어긋나면 같은 가게의 뱃지가 점주·손님 화면에서 다르게 켜진다 |
+| `findProductPrices` | `ProductPriceLoadPort#findAllByProductId` | — |
+| `findShopProductPrices` | `ProductPriceLoadPort#findAllByShopId` | 어긋나면 손님 화면과 점주 화면의 **매장가격 뱃지가 갈린다** |
+| `countVisibleProducts` | `ProductLoadPort#countVisibleByShopId` | 조건(`visible = true` **이고** `deleted = false`)이 어긋나면 같은 가게의 뱃지가 점주·손님 화면에서 다르게 켜진다 |
 | `findOptionGroupMergeExcludedSignatures` | exclusion write 포트 | 추천 목록을 만드는 것이 query 서비스라 write 포트를 주입할 수 없다 |
 
 가격 행이 `shop_id`를 직접 들고 있지 않으므로 `findShopProductPrices`는 `PRODUCT_SHOP_LINK`로 조인해 노출 가게와 소프트 삭제를 함께 판정한다. **뱃지는 "이 가게에서 파는 메뉴들이 매장가와 같은가"를 묻는 것**이므로 판정 대상은 그 가게 메뉴판의 구성이며, 가격은 연결된 가게끼리 공유되므로 가격 행 자체는 메뉴 단위 그대로다.
@@ -1348,7 +1348,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 → `findExposurePeriod(Long)`
 
-요일·시간대 축은 판정 계산기가 **도메인 모델을 필요로 하므로** write 포트(`ProductExposureHourPersistencePort`)를 통해 별도로 읽는다. 이 투영은 기간 축과 소유 가게만 담는다.
+요일·시간대 축은 판정 계산기가 **도메인 모델을 필요로 하므로** write 포트(`ProductExposureHourLoadPort`)를 통해 별도로 읽는다. 이 투영은 기간 축과 소유 가게만 담는다.
 
 #### `BatchOptionInfo`는 DAO 밖으로 나가지 않는다
 
@@ -1471,7 +1471,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 → `ShopQueryAdapter`(클래스 선언)
 
-`shop` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ShopPersistencePort`·`ShopDetailPersistencePort` 등)와 역할이 겹치지 않는다. 소비 모듈(web/admin/ceo-api)의 `Shop*QueryService`가 주입해 쓰며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다. 구현하는 읽기 계약은 `ShopQueryPort`·`ShopBasicInfoQueryPort`·`ShopManagementQueryPort`·`ShopOwnerQueryPort` 4종이다.
+`shop` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ShopLoadPort`·`ShopDetailLoadPort` 등)와 역할이 겹치지 않는다. 소비 모듈(web/admin/ceo-api)의 `Shop*QueryService`가 주입해 쓰며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다. 구현하는 읽기 계약은 `ShopQueryPort`·`ShopBasicInfoQueryPort`·`ShopManagementQueryPort`·`ShopOwnerQueryPort` 4종이다.
 
 **shop은 대형 도메인이라 공통 지침의 용도별 분리 허용에 따라 DAO를 둘로 나눈다.** 이 클래스는 *가게별 설정·관리 화면 조회*(전화번호·편의정보·콘텐츠보드·위생뱃지·이미지 변경요청·편의시설/음식유형 배정·배너·사진)를 담당하고, 목록·검색·베스트 등 **대형 조인은 `ShopSearchQueryAdapter`가 담당한다.**
 
@@ -1501,7 +1501,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 → `findShopImageUrls(Long)` · `findVisibleDetailById(Long)` · `existsBookmark(Long, Long)`
 
 - `findShopImageUrls` — 도메인 모델(`Shop`)은 다른 필드를 위해 계속 로드하되 **이미지 URL만 이 조회로 대체해 파일 단건 재조회를 없앤다.**
-- `findVisibleDetailById` — 회원 노출용 가게 단건. 폐업·노출정지 가게는 투영되지 않으며, 가시성 조건(`permanentlyClosed=false`·`hidden=false`)은 write 포트 `ShopPersistencePort#findVisibleById`와 **동일하게 유지한다.** 애그리거트를 로드해 표시 필드를 꺼내던 기존 형태를 한 번의 투영으로 대체한 것이다.
+- `findVisibleDetailById` — 회원 노출용 가게 단건. 폐업·노출정지 가게는 투영되지 않으며, 가시성 조건(`permanentlyClosed=false`·`hidden=false`)은 write 포트 `ShopLoadPort#findVisibleById`와 **동일하게 유지한다.** 애그리거트를 로드해 표시 필드를 꺼내던 기존 형태를 한 번의 투영으로 대체한 것이다.
 - `existsBookmark` — 표현용 단건 판정이라 write 포트가 아니라 이 어댑터가 답한다.
 - `findManagementDetailById` — 관리 상세는 회원 노출용과 달리 **폐업·노출정지 가게도 조회된다.**
 
@@ -1564,7 +1564,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 → `ShopSearchQueryAdapter`(클래스 선언) · `stationNamesByShopId` 이하 일괄 보강 조회
 
-가게 목록·검색 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하므로 write 포트(`ShopPersistencePort`)와 역할이 겹치지 않으며, 소비 모듈은 QueryDSL을 알지 않는다. `ShopSearchQueryPort`·`ShopSearchManagementQueryPort`를 구현한다. 이 클래스는 *목록·검색·베스트·즐겨찾기 등 대형 조인*을 담당하고, 가게별 설정·관리 화면 조회는 `ShopQueryAdapter`가 담당한다.
+가게 목록·검색 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하므로 write 포트(`ShopLoadPort`)와 역할이 겹치지 않으며, 소비 모듈은 QueryDSL을 알지 않는다. `ShopSearchQueryPort`·`ShopSearchManagementQueryPort`를 구현한다. 이 클래스는 *목록·검색·베스트·즐겨찾기 등 대형 조인*을 담당하고, 가게별 설정·관리 화면 조회는 `ShopQueryAdapter`가 담당한다.
 
 **목록 조회는 페이지 대상 가게를 먼저 뽑고 역·썸네일·음식유형·리뷰수·즐겨찾기수를 shopId 일괄 조회(in절)로 채우는 방식을 유지한다** — 컬렉션 필드(음식유형 다건)가 있어 단일 조인 투영으로는 카티전 곱이 생기기 때문이다.
 
@@ -1616,7 +1616,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 → `ShopDeliveryTipQueryAdapter`(클래스 선언) · `findSetting` · `findTiers` · `findRegionTips` · `findScheduleTips` · `findHolidayTipAmount`
 
-가게 배달팁 read 어댑터(CQRS query 측). 점주 설정 화면과 고객 배달팁 팝업이 쓰는 표현용 조회를 담당한다 — write 포트 `ShopDeliveryTipPersistencePort`는 불변식 검증·주문 접수 산출에 필요한 조회만 갖고, **화면용 조인 투영(지역 이름 조립 등)은 여기가 소유한다(CQRS 교차 주입 금지).**
+가게 배달팁 read 어댑터(CQRS query 측). 점주 설정 화면과 고객 배달팁 팝업이 쓰는 표현용 조회를 담당한다 — write 포트 `ShopDeliveryTipLoadPort`는 불변식 검증·주문 접수 산출에 필요한 조회만 갖고, **화면용 조인 투영(지역 이름 조립 등)은 여기가 소유한다(CQRS 교차 주입 금지).**
 
 **배달팁 5종을 한 번에 조회하는 단일 메서드를 두지 않고 파트별로 나눈 것은, 고객 팝업이 구간·설정만 필요로 하는 등 소비 지점마다 필요한 파트가 다르기 때문이다.** 소비 Service가 필요한 것만 조합한다.
 
@@ -1665,7 +1665,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 #### `ReviewQueryAdapter` 클래스 역할
 
-`review` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ReviewPersistencePort`)와 역할이 겹치지 않는다. 소비 모듈(web-api)의 리뷰 조회 서비스가 이 DAO를 주입해 쓰며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다.
+`review` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ReviewLoadPort`)와 역할이 겹치지 않는다. 소비 모듈(web-api)의 리뷰 조회 서비스가 이 DAO를 주입해 쓰며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다.
 
 **도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** admin(관리) 화면 전용 조회는 `ReviewManagementQueryAdapter`, 집계·통계 조회는 `ReviewStatisticsQueryAdapter`가 담당하고, 여기에는 web/공용 목록·상세 조회만 둔다.
 
@@ -1737,7 +1737,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 #### `ReviewStatisticsQueryAdapter` 클래스 역할
 
-리뷰 집계·통계 전용 read 어댑터(CQRS query 측). 가게/상품/회원 단위의 리뷰 수·평균 평점·평점 분포·월별 추이를 JPA 엔티티에서 직접 투영하며, 도메인 모델을 거치지 않으므로 write 포트(`ReviewPersistencePort`)와 역할이 겹치지 않는다.
+리뷰 집계·통계 전용 read 어댑터(CQRS query 측). 가게/상품/회원 단위의 리뷰 수·평균 평점·평점 분포·월별 추이를 JPA 엔티티에서 직접 투영하며, 도메인 모델을 거치지 않으므로 write 포트(`ReviewLoadPort`)와 역할이 겹치지 않는다.
 
 **도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** 목록·상세 조회는 `ReviewQueryAdapter`, 관리(admin) 화면 전용 조회는 `ReviewManagementQueryAdapter`가 담당하고, 여기에는 집계·통계만 둔다.
 
@@ -1843,7 +1843,7 @@ join이 아니라 `EXISTS`로 판정해 **행이 불어나지 않게 한다.** `
 
 #### `OrderQueryAdapter` 클래스 역할
 
-주문 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`OrderPersistencePort`/`OrderProductPersistencePort`/`OrderProductOptionPersistencePort`)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api)의 조회 서비스(당시 `OrderQueryService` — web은 유스케이스 분리로 `OrderDetailQueryService`·`OrderListQueryService`)가 이 DAO를 주입해 쓴다.
+주문 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`OrderLoadPort`/`OrderProductLoadPort`/`OrderProductOptionSavePort`)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api)의 조회 서비스(당시 `OrderQueryService` — web은 유스케이스 분리로 `OrderDetailQueryService`·`OrderListQueryService`)가 이 DAO를 주입해 쓴다.
 
 **소비자별 메서드 분리(공통 지침 패턴 3)**: 회원 화면용 `findOrders(MemberId, PageQuery)`, 관리자 화면용 `findOrders(OrderSearchCondition, PageQuery)` — **이름은 admin 마커 없이 순수 동작명을 쓰고 시그니처(회원 스코프 `MemberId` 유무)로 구별한다.** 상세 조회는 두 화면이 같은 필드 셋을 쓰므로 `findOrderDetail(OrderId)` 하나를 공유한다.
 
@@ -1878,7 +1878,7 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 
 → `findPayment(OrderId)`
 
-`PAYMENT.order_id`는 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면(동일 주문에 결제 행 2건) 임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다** — 기존 `PaymentPersistencePort#findByOrderId`와 동일한 fail-loud 시맨틱을 유지한다. 결제가 아직 없으면 `null`이다.
+`PAYMENT.order_id`는 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면(동일 주문에 결제 행 2건) 임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다** — 기존 `PaymentLoadPort#findByOrderId`와 동일한 fail-loud 시맨틱을 유지한다. 결제가 아직 없으면 `null`이다.
 
 #### `Amount` VO 언랩이 읽기 계약을 경계 타입으로 유지한다
 
@@ -1905,7 +1905,7 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 
 **대상**: `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/region/query/AdminDongQueryAdapter.java`
 
-- `AdminDongPersistencePort`는 존재검증·주소 매칭용 write 포트라 배달가능지역·지역별 배달팁 설정 화면이 쓰는 **표현 목적 검색**을 담지 않는다. 그 조회를 이 DAO가 담당한다.
+- `AdminDongLoadPort`는 존재검증·주소 매칭용 write 포트라 배달가능지역·지역별 배달팁 설정 화면이 쓰는 **표현 목적 검색**을 담지 않는다. 그 조회를 이 DAO가 담당한다.
 - 시도 → 시군구 → 동을 **3단 lazy 조회로 나눈다.** 전국 행정동이 3,600건을 넘어 전 계층을 한 번에 내리면 응답이 비대해지고 대부분이 화면에 쓰이지 않는다. **식별자(`adminDongId`·`code`)는 동 레벨에서만 채워진다** — 상위 두 레벨은 그룹핑 이름일 뿐 마스터 테이블에 자기 행이 없다.
 - 목록 정렬은 주소 인덱스 `idx_admin_dong_name` 순서에 맞춰 **시/도 → 시군구 → 동** 순이다. 인덱스 순서와 어긋나게 바꾸지 않는다.
 - 키워드 검색은 세 컬럼을 각각 비교하지 않고 **조립된 전체 이름 하나**를 부분 일치시킨다 — `"강남구 역삼"`처럼 시군구와 동을 이어 입력해도 걸리게 하기 위함이다.
@@ -1929,7 +1929,7 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 
 **대상**: `.../product/query/StorePriceVerificationQueryAdapter.java`
 
-- 쓰기 포트 `StorePriceVerificationPersistencePort`는 **불변식 검증용 조회만** 갖고, 표현 목적 투영(가게명 조인·항목 수 집계·파일 URL 완성)은 전부 이 DAO가 담당한다.
+- 쓰기 포트 `StorePriceVerificationLoadPort`는 **불변식 검증용 조회만** 갖고, 표현 목적 투영(가게명 조인·항목 수 집계·파일 URL 완성)은 전부 이 DAO가 담당한다.
 - **항목을 목록 조회에 합치지 않고 별 쿼리로 둔다.** 요청 1건에 메뉴가 N건 달리므로 목록에 조인하면 행이 부풀어 페이징이 깨진다 — 목록은 `itemCount` 집계만 담고 항목 자체는 상세에서 가져온다.
 - `itemCount`는 **스칼라 서브쿼리**로 센다. 항목 테이블을 조인해 `GROUP BY`로 세면 페이징 대상 행이 부풀고, **항목이 0건인 요청이 조인에서 탈락한다.**
 - 가격표 이미지는 컬럼이 `NOT NULL`이라 정상 데이터라면 항상 맞지만 **`left join`으로 둔다.** inner join이면 파일 행이 유실된 요청이 **검수 목록에서 조용히 사라져** 처리 불가 상태가 된다.
@@ -1969,7 +1969,7 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 **대상**: `.../shop/query/ShopRiderGuideQueryAdapter.java`
 
 - **고객 비노출 보장**: 이 DAO는 ceo-api·admin-api의 query 서비스만 주입해 쓰며, web-api의 가게 상세·목록 조회는 `SHOP_RIDER_GUIDE`를 조인하지 않는다. 이 관계를 깨고 web 경로에서 조인하지 않는다.
-- write 포트 `ShopRiderGuidePersistencePort`에는 **도메인 불변식 판정에 필요한 3개 메서드만** 남기고, 관리자 목록·이력 조회는 이 DAO가 소유한다.
+- write 포트 `ShopRiderGuideLoadPort`에는 **도메인 불변식 판정에 필요한 3개 메서드만** 남기고, 관리자 목록·이력 조회는 이 DAO가 소유한다.
 - 단건 조회는 **라이더 안내 테이블을 `left join`한다** — 등록 이력이 없어도 가게가 존재하면 결과를 반환한다("미등록"은 오류가 아니라 정상 상태다).
 - 목록 정렬은 `updatedAt` 내림차순이다. 이 저장소의 기본 정렬은 대체로 `createdAt`인데 여기만 다른 것은 **최근 변경분부터 검수하는 실제 운영 순서**를 따르기 위함이다.
 - **픽업 위치 설정 여부를 SQL 술어로 select 절에 투영하지 않고 원본 컬럼을 읽어 Java에서 판정한다.** 판정 기준(도로명·위경도가 모두 채워졌는가)을 `ShopRiderGuide#hasPickupLocation`과 한 곳에서 일치시키기 위함이다.
@@ -2024,7 +2024,7 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 
 - 소비 모듈이 실제로 쓰는 조회 둘만 갖는다 — 주문별 결제 조회(회원의 결제 확인 화면)와 PK 조회(command 커밋 후 응답 조립용 재조회). **관리자 결제·환불 내역 조회는 admin-api에 결제 소비자가 생길 때 추가한다**(호출부 없는 조회를 미리 만들지 않는다).
 - 주문별 조회는 회원 스코프 검증에 쓸 주문의 `memberId`를 함께 투영한다. **주문이 없으면 결제도 조회되지 않으므로(inner join)** 소비 모듈은 "주문 없음"과 "결제 없음"을 결과 부재로 함께 처리한다.
-- `PAYMENT.order_id`에 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면 임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다** — `PaymentPersistencePort#findByOrderId`와 동일한 fail-loud 시맨틱이다. `fetchFirst`로 바꾸지 않는다.
+- `PAYMENT.order_id`에 unique 제약이 있어 주문당 결제는 최대 1건이다. **이 불변식이 깨지면 임의의 한 건을 조용히 고르는 대신 `fetchOne`으로 즉시 실패시킨다** — `PaymentLoadPort#findByOrderId`와 동일한 fail-loud 시맨틱이다. `fetchFirst`로 바꾸지 않는다.
 - 환불 요청 단건 조회는 **소유권을 다시 대조하지 않는다.** 요청 시점에 이미 검증됐고 이 조회는 그 직후 재조회이기 때문이다.
 - 두 조회 경로가 같은 필드 셋을 쓰므로 투영을 공유한다.
 
@@ -2317,7 +2317,7 @@ derived 삭제는 또한 대상을 먼저 조회한 뒤 건별로 삭제하므�
 
 → `ReplyPhraseProhibitedWordValidatorAdapter` · `StorePriceVerificationAdapter` · `ShopRequestIndexSyncAdapter` · `MemberGradeReviewCountAdapter` · `MemberReviewCountAdapter` · `ProductReviewStatisticsAdapter` · `KeywordCountAdapter`
 
-domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`)가 타 컨텍스트의 `service`·`model` 직접 참조를 금지하므로(domain 쪽은 `service` 패키지가 `model`로 흡수돼 지금은 `model`만 금지한다), 도메인 서비스는 포트만 알고 실제 결합은 어댑터가 흡수한다. **(03a) 아래 목록 중 `ReplyPhraseProhibitedWordValidatorAdapter`·`ShopRequestIndexSyncAdapter`는 DB 기술 없이 서비스만 잇는 연결부라 `application`의 `shop/service/`로 옮겨갔고 ~~`ShopServiceConfig`가 등록한다~~ 클래스 마커(`ShopRequestIndexSyncAdapter`는 `@SharedApp`, `ReplyPhraseProhibitedWordValidatorAdapter`는 `@CeoApp`)로 스캔 등록된다(`ShopServiceConfig`는 삭제됨)** — 나머지(`StorePriceVerificationAdapter`·집계 조회 어댑터 4종)는 JPA/DAO를 쓰므로 여기 남는다. **(03b) `StorePriceVerificationAdapter`도 떠났다** — `application/src/main/java/com/tastyhouse/application/shop/service/StorePriceVerificationAdapter.java`(~~마커 없는 POJO, `ShopServiceConfig`가 `@Bean` 등록~~ 지금은 클래스에 `@SharedApp` 마커만 — `ShopServiceConfig`는 삭제됨). 실제로는 JPA가 아니라 `ShopPersistencePort`(도메인 모델 `Shop` 로드·`verifyStorePrice()`·저장)와 `ResourceNotFoundException(SHOP_NOT_FOUND)`를 쓰는 서비스 연결부라, domain을 모르는 이 모듈에 둘 수 없다. 이 모듈에 남은 것은 집계 조회 어댑터 4종뿐이며, 이들은 domain 값 타입 대신 application `port.out`의 값 타입(`application/rank/port/out/MemberReviewCount` 등)을 채운다. **어댑터는 규칙을 복제하지 않고 위임만 한다.**
+domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`)가 타 컨텍스트의 `service`·`model` 직접 참조를 금지하므로(domain 쪽은 `service` 패키지가 `model`로 흡수돼 지금은 `model`만 금지한다), 도메인 서비스는 포트만 알고 실제 결합은 어댑터가 흡수한다. **(03a) 아래 목록 중 `ReplyPhraseProhibitedWordValidatorAdapter`·`ShopRequestIndexSyncAdapter`는 DB 기술 없이 서비스만 잇는 연결부라 `application`의 `shop/service/`로 옮겨갔고 ~~`ShopServiceConfig`가 등록한다~~ 클래스 마커(`ShopRequestIndexSyncAdapter`는 `@SharedApp`, `ReplyPhraseProhibitedWordValidatorAdapter`는 `@CeoApp`)로 스캔 등록된다(`ShopServiceConfig`는 삭제됨)** — 나머지(`StorePriceVerificationAdapter`·집계 조회 어댑터 4종)는 JPA/DAO를 쓰므로 여기 남는다. **(03b) `StorePriceVerificationAdapter`도 떠났다** — `application/src/main/java/com/tastyhouse/application/shop/service/StorePriceVerificationAdapter.java`(~~마커 없는 POJO, `ShopServiceConfig`가 `@Bean` 등록~~ 지금은 클래스에 `@SharedApp` 마커만 — `ShopServiceConfig`는 삭제됨). 실제로는 JPA가 아니라 `ShopLoadPort`·`ShopSavePort`(도메인 모델 `Shop` 로드·`verifyStorePrice()`·저장)와 `ResourceNotFoundException(SHOP_NOT_FOUND)`를 쓰는 서비스 연결부라, domain을 모르는 이 모듈에 둘 수 없다. 이 모듈에 남은 것은 집계 조회 어댑터 4종뿐이며, 이들은 domain 값 타입 대신 application `port.out`의 값 타입(`application/rank/port/out/MemberReviewCount` 등)을 채운다. **어댑터는 규칙을 복제하지 않고 위임만 한다.**
 
 - `ReplyPhraseProhibitedWordValidatorAdapter` — 검수 규칙 자체는 shop 컨텍스트의 `ProhibitedWordValidator`에 그대로 위임한다. 주입받는 빈은 `application/shared/config/SharedBeanConfig#prohibitedWordValidator`(구 `ShopServiceConfig` ← `ShopDomainConfig`)가 캐싱 데코레이터로 감싸 등록한 것이라 검증마다 금칙어 전량을 다시 읽지 않는다.
 - `StorePriceVerificationAdapter` — 인증 요청 애그리거트는 product 소유지만(승인의 본체가 `PRODUCT_PRICE`를 채우는 일이므로) 인증 ON/OFF는 가게 단위 상태라 `SHOP`에 있다. 이 플래그만 좁은 포트로 뽑는다. `@Repository`가 아니라 `@Component`인 이유는 도메인 write 포트 구현이 아니라 출력 포트 어댑터이기 때문이다.
@@ -2385,9 +2385,9 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 
 → `ShopDeliveryTipPersistenceAdapter` · `ShopDeliveryTipMapper`
 
-write 포트 `ShopDeliveryTipPersistencePort`가 5종을 한 인터페이스로 묶었으므로 매퍼도 하나에 모은다 — 타입마다 파일을 쪼개면 같은 어댑터가 매퍼 5개를 import하게 되고, 5종이 함께 바뀌는 변경(예: FK 매핑 방식 전환)이 5개 파일에 흩어진다.
+write 포트 `ShopDeliveryTipLoadPort`·`ShopDeliveryTipSavePort`가 5종을 묶어 다루므로 매퍼도 하나에 모은다 — 타입마다 파일을 쪼개면 같은 어댑터가 매퍼 5개를 import하게 되고, 5종이 함께 바뀌는 변경(예: FK 매핑 방식 전환)이 5개 파일에 흩어진다.
 
-이 어댑터는 `ShopDeliveryTipRegionLookupPort`도 함께 구현한다 **(03b — 도메인 타입을 쓰는 `ShopDeliveryTipRegionLookupPort`은 `application/shop/store/`로 옮겨졌고 application Store가 구현한다. 이 모듈의 `ShopDeliveryTipStatePortImpl`은 원시 타입 `ShopDeliveryTipStatePort` 하나로 두 용도의 조회를 함께 제공하므로, "같은 테이블을 읽는 쿼리를 두 곳에 만들지 않는다"는 취지는 유지된다)** **(번복됨 — persistence domain 재허용)** 다시 이 모듈의 `ShopDeliveryTipPersistenceAdapter`이 `ShopDeliveryTipPersistencePort`·`ShopDeliveryTipRegionLookupPort`(둘 다 `application/shop/port/out/write/`) 둘을 구현한다 — 원래 서술이 현행이다 — **두 포트가 같은 테이블(`SHOP_DELIVERY_TIP_REGION`)을 읽으므로 어댑터를 쪼개면 같은 쿼리가 두 곳에 생긴다.** 포트를 나눈 것은 소비자(`ShopDeliveryAreaService`)의 의존을 좁히기 위함이지 저장소를 나누기 위함이 아니다.
+이 어댑터는 `ShopDeliveryTipRegionLoadPort`(분리 전 `ShopDeliveryTipRegionLookupPort`)도 함께 구현한다 **(03b — 도메인 타입을 쓰는 `ShopDeliveryTipRegionLookupPort`은 `application/shop/store/`로 옮겨졌고 application Store가 구현한다. 이 모듈의 `ShopDeliveryTipStatePortImpl`은 원시 타입 `ShopDeliveryTipStatePort` 하나로 두 용도의 조회를 함께 제공하므로, "같은 테이블을 읽는 쿼리를 두 곳에 만들지 않는다"는 취지는 유지된다)** **(번복됨 — persistence domain 재허용)** 다시 이 모듈의 `ShopDeliveryTipPersistenceAdapter`이 `ShopDeliveryTipLoadPort`·`ShopDeliveryTipSavePort`·`ShopDeliveryTipRegionLoadPort`(모두 `application/shop/port/out/write/`)를 구현한다 — 원래 서술이 현행이다 — **두 포트가 같은 테이블(`SHOP_DELIVERY_TIP_REGION`)을 읽으므로 어댑터를 쪼개면 같은 쿼리가 두 곳에 생긴다.** 포트를 나눈 것은 소비자(`ShopDeliveryAreaService`)의 의존을 좁히기 위함이지 저장소를 나누기 위함이 아니다.
 
 `ShopDeliveryTipSettingJpaEntity`가 거리별 설정(기본배달거리·할증 단위·할증액)을 별도 테이블로 쪼개지 않고 인라인한 이유는 `UNIQUE(shop_id)` 행 하나가 **거리별↔지역별 배타성의 물리적 단일 소유자**가 되게 하기 위해서다.
 

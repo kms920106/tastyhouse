@@ -7,8 +7,8 @@ import com.tastyhouse.domain.event.model.EventWinner;
 import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.application.event.port.in.EventWinnerCreateCommand;
 import com.tastyhouse.application.event.port.in.EventWinnerCreateUseCase;
-import com.tastyhouse.application.event.port.out.write.EventPersistencePort;
-import com.tastyhouse.application.event.port.out.write.EventWinnerPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventLoadPort;
+import com.tastyhouse.application.event.port.out.write.EventWinnerSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -16,12 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class EventWinnerCreateService implements EventWinnerCreateUseCase {
 
-    private final EventPersistencePort eventPersistencePort;
-    private final EventWinnerPersistencePort eventWinnerPersistencePort;
+    private final EventLoadPort eventLoadPort;
+    private final EventWinnerSavePort eventWinnerSavePort;
 
-    public EventWinnerCreateService(EventPersistencePort eventPersistencePort, EventWinnerPersistencePort eventWinnerPersistencePort) {
-        this.eventPersistencePort = eventPersistencePort;
-        this.eventWinnerPersistencePort = eventWinnerPersistencePort;
+    public EventWinnerCreateService(EventLoadPort eventLoadPort, EventWinnerSavePort eventWinnerSavePort) {
+        this.eventLoadPort = eventLoadPort;
+        this.eventWinnerSavePort = eventWinnerSavePort;
     }
 
     @Override
@@ -30,12 +30,12 @@ class EventWinnerCreateService implements EventWinnerCreateUseCase {
         verifyEventExists(eventId);
 
         EventWinner winner = EventWinner.of(eventId, command.rankNo(), command.winnerName(), command.phoneNumber(), command.announcedAt());
-        EventWinner saved = eventWinnerPersistencePort.save(winner);
+        EventWinner saved = eventWinnerSavePort.save(winner);
         return saved.getId();
     }
 
     private void verifyEventExists(EventId eventId) {
-        eventPersistencePort.findById(eventId)
+        eventLoadPort.findById(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
     }
 }

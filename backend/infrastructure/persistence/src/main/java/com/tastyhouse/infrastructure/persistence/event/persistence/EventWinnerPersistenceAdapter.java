@@ -6,12 +6,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.event.model.EventWinner;
-import com.tastyhouse.application.event.port.out.write.EventWinnerPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventWinnerLoadPort;
+import com.tastyhouse.application.event.port.out.write.EventWinnerSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.event.persistence.QEventWinnerJpaEntity.eventWinnerJpaEntity;
 
 @Repository
-class EventWinnerPersistenceAdapter implements EventWinnerPersistencePort {
+class EventWinnerPersistenceAdapter implements EventWinnerLoadPort, EventWinnerSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final EventWinnerJpaRepository eventWinnerJpaRepository;

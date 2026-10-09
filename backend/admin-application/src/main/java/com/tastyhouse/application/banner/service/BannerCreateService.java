@@ -8,16 +8,16 @@ import com.tastyhouse.domain.banner.model.BannerType;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.banner.port.in.BannerCreateCommand;
 import com.tastyhouse.application.banner.port.in.BannerCreateUseCase;
-import com.tastyhouse.application.banner.port.out.write.BannerPersistencePort;
+import com.tastyhouse.application.banner.port.out.write.BannerSavePort;
 
 @Service
 @Transactional
 class BannerCreateService implements BannerCreateUseCase {
 
-    private final BannerPersistencePort bannerPersistencePort;
+    private final BannerSavePort bannerSavePort;
 
-    public BannerCreateService(BannerPersistencePort bannerPersistencePort) {
-        this.bannerPersistencePort = bannerPersistencePort;
+    public BannerCreateService(BannerSavePort bannerSavePort) {
+        this.bannerSavePort = bannerSavePort;
     }
 
     @Override
@@ -32,7 +32,7 @@ class BannerCreateService implements BannerCreateUseCase {
             command.sort(),
             command.visible()
         );
-        Banner saved = bannerPersistencePort.save(banner);
+        Banner saved = bannerSavePort.save(banner);
         return saved.getBannerId().value();
     }
 }

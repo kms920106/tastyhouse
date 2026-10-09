@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.policy.model.PolicyDocument;
 import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.domain.policy.vo.PolicyDocumentId;
-import com.tastyhouse.application.policy.port.out.write.PolicyDocumentPersistencePort;
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentLoadPort;
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.policy.persistence.QPolicyDocumentJpaEntity.policyDocumentJpaEntity;
 
 @Repository
-class PolicyDocumentPersistenceAdapter implements PolicyDocumentPersistencePort {
+class PolicyDocumentPersistenceAdapter implements PolicyDocumentLoadPort, PolicyDocumentSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final PolicyDocumentJpaRepository policyDocumentJpaRepository;

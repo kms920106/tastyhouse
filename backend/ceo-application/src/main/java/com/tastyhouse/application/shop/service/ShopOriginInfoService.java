@@ -15,28 +15,32 @@ import com.tastyhouse.domain.shop.model.ShopOriginInfo;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoSavePort;
 
 @Service
 public class ShopOriginInfoService {
 
-    private final ShopOriginInfoPersistencePort shopOriginInfoPersistencePort;
-    private final ShopPersistencePort shopPersistencePort;
+    private final ShopOriginInfoLoadPort shopOriginInfoLoadPort;
+    private final ShopOriginInfoSavePort shopOriginInfoSavePort;
+    private final ShopLoadPort shopLoadPort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopOriginInfoService(
-        ShopOriginInfoPersistencePort shopOriginInfoPersistencePort,
-        ShopPersistencePort shopPersistencePort,
+        ShopOriginInfoLoadPort shopOriginInfoLoadPort,
+        ShopOriginInfoSavePort shopOriginInfoSavePort,
+        ShopLoadPort shopLoadPort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopOriginInfoPersistencePort = shopOriginInfoPersistencePort;
+        this.shopOriginInfoLoadPort = shopOriginInfoLoadPort;
+        this.shopOriginInfoSavePort = shopOriginInfoSavePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
-        this.shopPersistencePort = shopPersistencePort;
+        this.shopLoadPort = shopLoadPort;
     }
 
     public Optional<ShopOriginInfo> findByShopId(Long shopId) {
-        return shopOriginInfoPersistencePort.findByShopId(shopId);
+        return shopOriginInfoLoadPort.findByShopId(shopId);
     }
 
     public void upsertOriginInfo(
@@ -48,7 +52,7 @@ public class ShopOriginInfoService {
     ) {
         validateShopExists(shopId);
 
-        ShopOriginInfo existing = shopOriginInfoPersistencePort.findByShopId(shopId).orElse(null);
+        ShopOriginInfo existing = shopOriginInfoLoadPort.findByShopId(shopId).orElse(null);
         String previousValue = describeOriginInfo(existing);
 
         ShopOriginInfo shopOriginInfo;
@@ -59,7 +63,7 @@ public class ShopOriginInfoService {
             shopOriginInfo = existing;
         }
 
-        shopOriginInfoPersistencePort.save(shopOriginInfo);
+        shopOriginInfoSavePort.save(shopOriginInfo);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -72,7 +76,7 @@ public class ShopOriginInfoService {
     }
 
     private void validateShopExists(Long shopId) {
-        shopPersistencePort.findById(ShopId.of(shopId))
+        shopLoadPort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 

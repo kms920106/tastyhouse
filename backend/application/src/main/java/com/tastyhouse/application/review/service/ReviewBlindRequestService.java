@@ -22,9 +22,11 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.model.ShopRequestStatus;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentPersistencePort;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
-import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentSavePort;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestSavePort;
+import com.tastyhouse.application.review.port.out.write.ReviewLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -34,24 +36,30 @@ import com.tastyhouse.application.shop.service.ShopRequestIndexRecorder;
 @Service
 public class ReviewBlindRequestService {
 
-    private final ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort;
-    private final ReviewBlindRequestAttachmentPersistencePort reviewBlindRequestAttachmentPersistencePort;
-    private final ReviewPersistencePort reviewPersistencePort;
+    private final ReviewBlindRequestLoadPort reviewBlindRequestLoadPort;
+    private final ReviewBlindRequestSavePort reviewBlindRequestSavePort;
+    private final ReviewBlindRequestAttachmentSavePort reviewBlindRequestAttachmentSavePort;
+    private final ReviewLoadPort reviewLoadPort;
+    private final ReviewSavePort reviewSavePort;
     private final ReviewLifecycleService reviewLifecycleService;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
     private final DomainEventPublisher domainEventPublisher;
 
     public ReviewBlindRequestService(
-        ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort,
-        ReviewBlindRequestAttachmentPersistencePort reviewBlindRequestAttachmentPersistencePort,
-        ReviewPersistencePort reviewPersistencePort,
+        ReviewBlindRequestLoadPort reviewBlindRequestLoadPort,
+        ReviewBlindRequestSavePort reviewBlindRequestSavePort,
+        ReviewBlindRequestAttachmentSavePort reviewBlindRequestAttachmentSavePort,
+        ReviewLoadPort reviewLoadPort,
+        ReviewSavePort reviewSavePort,
         ReviewLifecycleService reviewLifecycleService,
         ShopRequestIndexRecorder shopRequestIndexRecorder,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.reviewBlindRequestPersistencePort = reviewBlindRequestPersistencePort;
-        this.reviewBlindRequestAttachmentPersistencePort = reviewBlindRequestAttachmentPersistencePort;
-        this.reviewPersistencePort = reviewPersistencePort;
+        this.reviewBlindRequestLoadPort = reviewBlindRequestLoadPort;
+        this.reviewBlindRequestSavePort = reviewBlindRequestSavePort;
+        this.reviewBlindRequestAttachmentSavePort = reviewBlindRequestAttachmentSavePort;
+        this.reviewLoadPort = reviewLoadPort;
+        this.reviewSavePort = reviewSavePort;
         this.reviewLifecycleService = reviewLifecycleService;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
         this.domainEventPublisher = domainEventPublisher;
@@ -69,14 +77,14 @@ public class ReviewBlindRequestService {
         loadReviewOfShop(targetReviewId, shopId);
         validateDetailReason(reason, detailReason);
 
-        if (reviewBlindRequestPersistencePort.existsByReviewIdAndStatus(targetReviewId, ReviewBlindStatus.PENDING)) {
+        if (reviewBlindRequestLoadPort.existsByReviewIdAndStatus(targetReviewId, ReviewBlindStatus.PENDING)) {
             throw new ApplicationException(ApplicationErrorCode.REVIEW_BLIND_REQUEST_ALREADY_PENDING);
         }
-        if (reviewBlindRequestPersistencePort.existsTerminatedByReviewId(targetReviewId)) {
+        if (reviewBlindRequestLoadPort.existsTerminatedByReviewId(targetReviewId)) {
             throw new ApplicationException(ApplicationErrorCode.REVIEW_BLIND_REQUEST_ALREADY_USED);
         }
 
-        ReviewBlindRequest saved = reviewBlindRequestPersistencePort.save(
+        ReviewBlindRequest saved = reviewBlindRequestSavePort.save(
             ReviewBlindRequest.of(targetReviewId, ShopId.of(shopId), CeoId.of(ceoId), reason, detailReason)
         );
 
@@ -96,12 +104,12 @@ public class ReviewBlindRequestService {
     public void approve(Long requestId, LocalDateTime now) {
         ReviewBlindRequest request = loadRequest(requestId);
         request.approve(now.plusDays(ReviewBlindRequest.BLIND_PERIOD_DAYS));
-        request = reviewBlindRequestPersistencePort.save(request);
+        request = reviewBlindRequestSavePort.save(request);
 
-        Review review = reviewPersistencePort.findById(request.getReviewId())
+        Review review = reviewLoadPort.findById(request.getReviewId())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         review.hide();
-        reviewPersistencePort.save(review);
+        reviewSavePort.save(review);
 
         domainEventPublisher.publish(ReviewBlindApprovedEvent.of(
             request.getReviewId(),
@@ -117,7 +125,7 @@ public class ReviewBlindRequestService {
     public void reject(Long requestId, String rejectReason) {
         ReviewBlindRequest request = loadRequest(requestId);
         request.reject(rejectReason);
-        request = reviewBlindRequestPersistencePort.save(request);
+        request = reviewBlindRequestSavePort.save(request);
 
         shopRequestIndexRecorder.syncBlindRequestStatus(request.getId(), toShopRequestStatus(request.getStatus()), rejectReason);
     }
@@ -128,7 +136,7 @@ public class ReviewBlindRequestService {
             throw new ResourceNotFoundException(ApplicationErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND);
         }
         request.cancel();
-        request = reviewBlindRequestPersistencePort.save(request);
+        request = reviewBlindRequestSavePort.save(request);
 
         shopRequestIndexRecorder.syncCanceled(ShopRequestType.REVIEW_BLIND, request.getId());
     }
@@ -136,11 +144,11 @@ public class ReviewBlindRequestService {
     public void consentToDelete(ReviewId reviewId, MemberId memberId) {
         Review review = loadOwnedReview(reviewId, memberId);
 
-        ReviewBlindRequest request = reviewBlindRequestPersistencePort.findApprovedByReviewId(reviewId)
+        ReviewBlindRequest request = reviewBlindRequestLoadPort.findApprovedByReviewId(reviewId)
             .orElseThrow(() -> new DomainException(DomainErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED));
 
         request.deleteByConsent();
-        request = reviewBlindRequestPersistencePort.save(request);
+        request = reviewBlindRequestSavePort.save(request);
 
         reviewLifecycleService.removeOwnedBy(reviewId, memberId, review.getProductId());
 
@@ -150,25 +158,25 @@ public class ReviewBlindRequestService {
     public void rejectDeletion(ReviewId reviewId, MemberId memberId) {
         loadOwnedReview(reviewId, memberId);
 
-        reviewBlindRequestPersistencePort.findApprovedByReviewId(reviewId)
+        reviewBlindRequestLoadPort.findApprovedByReviewId(reviewId)
             .orElseThrow(() -> new DomainException(DomainErrorCode.REVIEW_BLIND_REQUEST_NOT_APPROVED));
     }
 
     public void expire(Long requestId) {
         ReviewBlindRequest request = loadRequest(requestId);
         request.expire();
-        request = reviewBlindRequestPersistencePort.save(request);
+        request = reviewBlindRequestSavePort.save(request);
 
-        reviewPersistencePort.findById(request.getReviewId()).ifPresent(review -> {
+        reviewLoadPort.findById(request.getReviewId()).ifPresent(review -> {
             review.unhide();
-            reviewPersistencePort.save(review);
+            reviewSavePort.save(review);
         });
 
         shopRequestIndexRecorder.syncBlindRequestStatus(request.getId(), toShopRequestStatus(request.getStatus()), null);
     }
 
     public List<ReviewBlindRequest> findExpirableBlinds(LocalDateTime now) {
-        return reviewBlindRequestPersistencePort.findExpirableBlinds(now);
+        return reviewBlindRequestLoadPort.findExpirableBlinds(now);
     }
 
     public static ShopRequestStatus toShopRequestStatus(ReviewBlindStatus status) {
@@ -196,7 +204,7 @@ public class ReviewBlindRequestService {
                 i + 1
             ));
         }
-        reviewBlindRequestAttachmentPersistencePort.saveAll(attachments);
+        reviewBlindRequestAttachmentSavePort.saveAll(attachments);
     }
 
     private void validateDetailReason(ReviewBlindReason reason, String detailReason) {
@@ -211,12 +219,12 @@ public class ReviewBlindRequestService {
     }
 
     private ReviewBlindRequest loadRequest(Long requestId) {
-        return reviewBlindRequestPersistencePort.findById(ReviewBlindRequestId.of(requestId))
+        return reviewBlindRequestLoadPort.findById(ReviewBlindRequestId.of(requestId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_BLIND_REQUEST_NOT_FOUND));
     }
 
     private void loadReviewOfShop(ReviewId reviewId, Long shopId) {
-        Review review = reviewPersistencePort.findById(reviewId)
+        Review review = reviewLoadPort.findById(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         if (!review.getShopId().equals(ShopId.of(shopId))) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_ACCESS_DENIED);
@@ -224,7 +232,7 @@ public class ReviewBlindRequestService {
     }
 
     private Review loadOwnedReview(ReviewId reviewId, MemberId memberId) {
-        Review review = reviewPersistencePort.findById(reviewId)
+        Review review = reviewLoadPort.findById(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         if (!review.getMemberId().equals(memberId)) {
             throw new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND);

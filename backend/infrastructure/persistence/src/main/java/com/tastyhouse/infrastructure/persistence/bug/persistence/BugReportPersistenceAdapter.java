@@ -6,10 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.bug.model.BugReport;
 import com.tastyhouse.domain.bug.vo.BugReportId;
-import com.tastyhouse.application.bug.port.out.write.BugReportPersistencePort;
+import com.tastyhouse.application.bug.port.out.write.BugReportLoadPort;
+import com.tastyhouse.application.bug.port.out.write.BugReportSavePort;
 
 @Repository
-class BugReportPersistenceAdapter implements BugReportPersistencePort {
+class BugReportPersistenceAdapter implements BugReportLoadPort, BugReportSavePort {
 
     private final BugReportJpaRepository bugReportJpaRepository;
 

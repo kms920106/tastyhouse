@@ -12,9 +12,9 @@ import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.application.menureview.port.in.MenuReviewCreateCommand;
 import com.tastyhouse.application.menureview.port.in.MenuReviewCreateUseCase;
-import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
-import com.tastyhouse.application.order.port.out.write.OrderProductPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.order.port.out.write.OrderLoadPort;
+import com.tastyhouse.application.order.port.out.write.OrderProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -25,35 +25,35 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 class MenuReviewCreateService implements MenuReviewCreateUseCase {
 
     private final MenuReviewLifecycleService menuReviewLifecycleService;
-    private final OrderProductPersistencePort orderProductPersistencePort;
-    private final OrderPersistencePort orderPersistencePort;
-    private final ProductPersistencePort productPersistencePort;
+    private final OrderProductLoadPort orderProductLoadPort;
+    private final OrderLoadPort orderLoadPort;
+    private final ProductLoadPort productLoadPort;
 
     public MenuReviewCreateService(
         MenuReviewLifecycleService menuReviewLifecycleService,
-        OrderProductPersistencePort orderProductPersistencePort,
-        OrderPersistencePort orderPersistencePort,
-        ProductPersistencePort productPersistencePort
+        OrderProductLoadPort orderProductLoadPort,
+        OrderLoadPort orderLoadPort,
+        ProductLoadPort productLoadPort
     ) {
         this.menuReviewLifecycleService = menuReviewLifecycleService;
-        this.orderProductPersistencePort = orderProductPersistencePort;
-        this.orderPersistencePort = orderPersistencePort;
-        this.productPersistencePort = productPersistencePort;
+        this.orderProductLoadPort = orderProductLoadPort;
+        this.orderLoadPort = orderLoadPort;
+        this.productLoadPort = productLoadPort;
     }
 
     @Override
     public Long createMenuReview(MenuReviewCreateCommand command) {
-        OrderProduct orderProduct = orderProductPersistencePort.findById(OrderProductId.of(command.orderProductId()))
+        OrderProduct orderProduct = orderProductLoadPort.findById(OrderProductId.of(command.orderProductId()))
             .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
-        Order order = orderPersistencePort.findById(orderProduct.getOrderId())
+        Order order = orderLoadPort.findById(orderProduct.getOrderId())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         MemberId targetMemberId = MemberId.of(command.memberId());
         if (!order.getMemberId().equals(targetMemberId)) {
             throw new ApplicationException(WebErrorCode.MENU_REVIEW_ACCESS_DENIED);
         }
 
-        Product product = productPersistencePort.findByIdIncludingDeleted(orderProduct.getProductId())
+        Product product = productLoadPort.findByIdIncludingDeleted(orderProduct.getProductId())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (product.isRatingExcluded()) {
             throw new DomainException(DomainErrorCode.MENU_REVIEW_NOT_ALLOWED);

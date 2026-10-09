@@ -15,8 +15,10 @@ import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCategorySavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCodeSpec;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -25,19 +27,25 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 @Service
 public class ProductSortService {
 
-    private final ProductPersistencePort productPersistencePort;
-    private final ProductCategoryPersistencePort productCategoryPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductSavePort productSavePort;
+    private final ProductCategoryLoadPort productCategoryLoadPort;
+    private final ProductCategorySavePort productCategorySavePort;
 
     public ProductSortService(
-        ProductPersistencePort productPersistencePort,
-        ProductCategoryPersistencePort productCategoryPersistencePort
+        ProductLoadPort productLoadPort,
+        ProductSavePort productSavePort,
+        ProductCategoryLoadPort productCategoryLoadPort,
+        ProductCategorySavePort productCategorySavePort
     ) {
-        this.productPersistencePort = productPersistencePort;
-        this.productCategoryPersistencePort = productCategoryPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productSavePort = productSavePort;
+        this.productCategoryLoadPort = productCategoryLoadPort;
+        this.productCategorySavePort = productCategorySavePort;
     }
 
     public void reorderCategories(ShopId shopId, List<ProductCategoryId> orderedIds) {
-        List<ProductCategory> current = productCategoryPersistencePort.findAllByShopId(shopId);
+        List<ProductCategory> current = productCategoryLoadPort.findAllByShopId(shopId);
         Map<Long, ProductCategory> byId = current.stream()
             .collect(Collectors.toMap(ProductCategory::getId, Function.identity()));
 
@@ -47,7 +55,7 @@ public class ProductSortService {
         for (int index = 0; index < requested.size(); index++) {
             ProductCategory category = byId.get(requested.get(index));
             category.changeSort(index);
-            productCategoryPersistencePort.save(category);
+            productCategorySavePort.save(category);
         }
     }
 
@@ -56,7 +64,7 @@ public class ProductSortService {
         ProductCategoryId productCategoryId,
         List<ProductId> orderedIds
     ) {
-        List<Product> current = productPersistencePort.findAllByShopIdAndCategoryId(shopId, productCategoryId);
+        List<Product> current = productLoadPort.findAllByShopIdAndCategoryId(shopId, productCategoryId);
         Map<Long, Product> byId = current.stream()
             .collect(Collectors.toMap(Product::getId, Function.identity()));
 
@@ -66,7 +74,7 @@ public class ProductSortService {
         for (int index = 0; index < requested.size(); index++) {
             Product product = byId.get(requested.get(index));
             product.changeSort(index);
-            productPersistencePort.save(product);
+            productSavePort.save(product);
         }
     }
 
@@ -81,7 +89,7 @@ public class ProductSortService {
         }
 
         List<Long> movedRawIds = distinctRawIds(movedIds);
-        List<Product> moved = productPersistencePort.findAllByShopIdAndIdIn(shopId, movedIds);
+        List<Product> moved = productLoadPort.findAllByShopIdAndIdIn(shopId, movedIds);
         if (moved.size() != movedRawIds.size()) {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
         }
@@ -101,7 +109,7 @@ public class ProductSortService {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
         }
 
-        List<Product> targetGroup = productPersistencePort.findAllByShopIdAndCategoryId(shopId, targetCategoryId);
+        List<Product> targetGroup = productLoadPort.findAllByShopIdAndCategoryId(shopId, targetCategoryId);
         Map<Long, Product> targetById = targetGroup.stream()
             .collect(Collectors.toMap(Product::getId, Function.identity()));
         Map<Long, Product> movedById = moved.stream()
@@ -115,7 +123,7 @@ public class ProductSortService {
             Long rawId = targetRawIds.get(index);
             Product product = movedById.containsKey(rawId) ? movedById.get(rawId) : targetById.get(rawId);
             product.relocate(targetCategoryId, index);
-            productPersistencePort.save(product);
+            productSavePort.save(product);
         }
 
         Long targetRawCategoryId = targetCategoryId == null ? null : targetCategoryId.value();
@@ -131,11 +139,11 @@ public class ProductSortService {
     }
 
     private void renumber(ShopId shopId, ProductCategoryId productCategoryId) {
-        List<Product> remaining = productPersistencePort.findAllByShopIdAndCategoryId(shopId, productCategoryId);
+        List<Product> remaining = productLoadPort.findAllByShopIdAndCategoryId(shopId, productCategoryId);
         for (int index = 0; index < remaining.size(); index++) {
             Product product = remaining.get(index);
             product.changeSort(index);
-            productPersistencePort.save(product);
+            productSavePort.save(product);
         }
     }
 

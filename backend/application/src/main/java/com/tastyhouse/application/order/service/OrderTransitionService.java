@@ -6,7 +6,8 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.order.model.Order;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.domain.order.vo.OrderId;
-import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
+import com.tastyhouse.application.order.port.out.write.OrderLoadPort;
+import com.tastyhouse.application.order.port.out.write.OrderSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -14,14 +15,16 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Service
 public class OrderTransitionService {
 
-    private final OrderPersistencePort orderPersistencePort;
+    private final OrderLoadPort orderLoadPort;
+    private final OrderSavePort orderSavePort;
 
-    public OrderTransitionService(OrderPersistencePort orderPersistencePort) {
-        this.orderPersistencePort = orderPersistencePort;
+    public OrderTransitionService(OrderLoadPort orderLoadPort, OrderSavePort orderSavePort) {
+        this.orderLoadPort = orderLoadPort;
+        this.orderSavePort = orderSavePort;
     }
 
     public Order load(OrderId orderId) {
-        return orderPersistencePort.findById(orderId)
+        return orderLoadPort.findById(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
     }
 
@@ -45,22 +48,22 @@ public class OrderTransitionService {
 
     public void changeStatus(Order order, OrderStatus status) {
         order.changeStatus(status);
-        orderPersistencePort.save(order);
+        orderSavePort.save(order);
     }
 
     public void confirm(Order order) {
         order.confirm();
-        orderPersistencePort.save(order);
+        orderSavePort.save(order);
     }
 
     public void cancel(Order order) {
         order.cancel();
-        orderPersistencePort.save(order);
+        orderSavePort.save(order);
     }
 
     public void delete(OrderId orderId) {
         Order order = load(orderId);
         order.delete();
-        orderPersistencePort.save(order);
+        orderSavePort.save(order);
     }
 }

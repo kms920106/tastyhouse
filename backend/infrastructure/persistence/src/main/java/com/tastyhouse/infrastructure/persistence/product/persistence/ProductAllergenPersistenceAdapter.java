@@ -8,12 +8,12 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductAllergen;
 import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.application.product.port.out.write.ProductAllergenPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductAllergenSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductAllergenJpaEntity.productAllergenJpaEntity;
 
 @Repository
-class ProductAllergenPersistenceAdapter implements ProductAllergenPersistencePort {
+class ProductAllergenPersistenceAdapter implements ProductAllergenSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductAllergenJpaRepository productAllergenJpaRepository;

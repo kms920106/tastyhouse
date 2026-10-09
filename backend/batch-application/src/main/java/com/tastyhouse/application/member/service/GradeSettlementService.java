@@ -12,7 +12,7 @@ import com.tastyhouse.domain.member.model.MemberGrade;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.port.out.MemberReviewCount;
 import com.tastyhouse.application.member.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberSavePort;
 
 @Service
 public class GradeSettlementService {
@@ -20,14 +20,14 @@ public class GradeSettlementService {
     private static final LocalDateTime ALL_TIME_START = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
 
     private final MemberReviewCountPort memberReviewCountPort;
-    private final MemberPersistencePort memberPersistencePort;
+    private final MemberSavePort memberSavePort;
 
     public GradeSettlementService(
         MemberReviewCountPort memberReviewCountPort,
-        MemberPersistencePort memberPersistencePort
+        MemberSavePort memberSavePort
     ) {
         this.memberReviewCountPort = memberReviewCountPort;
-        this.memberPersistencePort = memberPersistencePort;
+        this.memberSavePort = memberSavePort;
     }
 
     public long settleAll(LocalDateTime now) {
@@ -38,7 +38,7 @@ public class GradeSettlementService {
         for (Map.Entry<MemberGrade, List<Long>> entry : groupMembersByGrade(reviewCounts).entrySet()) {
             List<Long> memberIds = entry.getValue();
             if (!memberIds.isEmpty()) {
-                totalUpdated += memberPersistencePort.bulkUpdateGrade(memberIds, entry.getKey());
+                totalUpdated += memberSavePort.bulkUpdateGrade(memberIds, entry.getKey());
             }
         }
 

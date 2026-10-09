@@ -5,10 +5,10 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordLoadPort;
 
 @Repository
-class ProhibitedWordPersistenceAdapter implements ProhibitedWordPersistencePort {
+class ProhibitedWordPersistenceAdapter implements ProhibitedWordLoadPort {
 
     private final ProhibitedWordJpaRepository jpaRepository;
 

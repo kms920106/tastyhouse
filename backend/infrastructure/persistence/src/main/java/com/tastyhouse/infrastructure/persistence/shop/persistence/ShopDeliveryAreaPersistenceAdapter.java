@@ -15,12 +15,13 @@ import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.DeliveryAreaSource;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryAreaJpaEntity.shopDeliveryAreaJpaEntity;
 
 @Repository
-class ShopDeliveryAreaPersistenceAdapter implements ShopDeliveryAreaPersistencePort {
+class ShopDeliveryAreaPersistenceAdapter implements ShopDeliveryAreaLoadPort, ShopDeliveryAreaSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository;

@@ -16,7 +16,7 @@ import com.tastyhouse.domain.order.vo.OrderProductId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
-import com.tastyhouse.testsupport.menureview.service.FakeMenuReviewPersistencePort;
+import com.tastyhouse.testsupport.menureview.service.FakeMenuReviewPersistence;
 import com.tastyhouse.testsupport.review.service.FakeDomainEventPublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,15 +31,15 @@ class MenuReviewLifecycleServiceTest {
     private static final OrderId ORDER_ID = OrderId.of(10L);
     private static final OrderProductId ORDER_PRODUCT_ID = OrderProductId.of(20L);
 
-    private FakeMenuReviewPersistencePort menuReviewPersistencePort;
+    private FakeMenuReviewPersistence menuReviewPersistence;
     private FakeDomainEventPublisher domainEventPublisher;
     private MenuReviewLifecycleService menuReviewLifecycleService;
 
     @BeforeEach
     void setUp() {
-        menuReviewPersistencePort = new FakeMenuReviewPersistencePort();
+        menuReviewPersistence = new FakeMenuReviewPersistence();
         domainEventPublisher = new FakeDomainEventPublisher();
-        menuReviewLifecycleService = new MenuReviewLifecycleService(menuReviewPersistencePort, domainEventPublisher);
+        menuReviewLifecycleService = new MenuReviewLifecycleService(menuReviewPersistence, menuReviewPersistence, domainEventPublisher);
     }
 
     @Test
@@ -48,7 +48,7 @@ class MenuReviewLifecycleServiceTest {
         Long menuReviewId = register(ORDER_PRODUCT_ID, 5, "양념이 딱 좋았어요");
 
         assertThat(menuReviewId).isNotNull();
-        assertThat(menuReviewPersistencePort.findById(MenuReviewId.of(menuReviewId))).isPresent();
+        assertThat(menuReviewPersistence.findById(MenuReviewId.of(menuReviewId))).isPresent();
     }
 
     @Test
@@ -103,7 +103,7 @@ class MenuReviewLifecycleServiceTest {
 
         menuReviewLifecycleService.modify(MenuReviewId.of(menuReviewId), MEMBER_ID, 2, "짰어요");
 
-        assertThat(menuReviewPersistencePort.findById(MenuReviewId.of(menuReviewId)))
+        assertThat(menuReviewPersistence.findById(MenuReviewId.of(menuReviewId)))
             .get()
             .satisfies(menuReview -> {
                 assertThat(menuReview.getRating()).isEqualTo(2);
@@ -141,7 +141,7 @@ class MenuReviewLifecycleServiceTest {
 
         menuReviewLifecycleService.remove(MenuReviewId.of(menuReviewId), MEMBER_ID);
 
-        assertThat(menuReviewPersistencePort.findById(MenuReviewId.of(menuReviewId))).isEmpty();
+        assertThat(menuReviewPersistence.findById(MenuReviewId.of(menuReviewId))).isEmpty();
         assertThat(domainEventPublisher.publishedEvents())
             .last()
             .isInstanceOfSatisfying(MenuReviewDeletedEvent.class,

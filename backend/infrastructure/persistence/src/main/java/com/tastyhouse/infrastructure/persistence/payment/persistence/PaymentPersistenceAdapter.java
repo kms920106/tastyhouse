@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.payment.model.Payment;
 import com.tastyhouse.domain.payment.vo.PaymentId;
-import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
+import com.tastyhouse.application.payment.port.out.write.PaymentLoadPort;
+import com.tastyhouse.application.payment.port.out.write.PaymentSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.payment.persistence.QPaymentJpaEntity.paymentJpaEntity;
 
 @Repository
-class PaymentPersistenceAdapter implements PaymentPersistencePort {
+class PaymentPersistenceAdapter implements PaymentLoadPort, PaymentSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final PaymentJpaRepository paymentJpaRepository;

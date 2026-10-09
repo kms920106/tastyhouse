@@ -18,8 +18,9 @@ import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;
 import com.tastyhouse.application.order.service.OrderTransitionService;
-import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
-import com.tastyhouse.application.payment.port.out.write.PaymentRefundPersistencePort;
+import com.tastyhouse.application.payment.port.out.write.PaymentLoadPort;
+import com.tastyhouse.application.payment.port.out.write.PaymentRefundSavePort;
+import com.tastyhouse.application.payment.port.out.write.PaymentSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -29,19 +30,22 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 @Service
 public class PaymentCancellationService {
 
-    private final PaymentPersistencePort paymentPersistencePort;
-    private final PaymentRefundPersistencePort paymentRefundPersistencePort;
+    private final PaymentLoadPort paymentLoadPort;
+    private final PaymentSavePort paymentSavePort;
+    private final PaymentRefundSavePort paymentRefundSavePort;
     private final OrderTransitionService orderTransitionService;
     private final DomainEventPublisher domainEventPublisher;
 
     public PaymentCancellationService(
-        PaymentPersistencePort paymentPersistencePort,
-        PaymentRefundPersistencePort paymentRefundPersistencePort,
+        PaymentLoadPort paymentLoadPort,
+        PaymentSavePort paymentSavePort,
+        PaymentRefundSavePort paymentRefundSavePort,
         OrderTransitionService orderTransitionService,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.paymentPersistencePort = paymentPersistencePort;
-        this.paymentRefundPersistencePort = paymentRefundPersistencePort;
+        this.paymentLoadPort = paymentLoadPort;
+        this.paymentSavePort = paymentSavePort;
+        this.paymentRefundSavePort = paymentRefundSavePort;
         this.orderTransitionService = orderTransitionService;
         this.domainEventPublisher = domainEventPublisher;
     }
@@ -78,7 +82,7 @@ public class PaymentCancellationService {
         LocalDateTime now = LocalDateTime.now();
         payment.cancel(cancelReason, now);
 
-        paymentPersistencePort.save(payment);
+        paymentSavePort.save(payment);
         orderTransitionService.cancel(order);
 
         domainEventPublisher.publish(new PaymentCancelledEvent(
@@ -112,7 +116,7 @@ public class PaymentCancellationService {
         }
 
         Amount amount = new Amount(refundAmount);
-        PaymentRefund savedRefund = paymentRefundPersistencePort.save(
+        PaymentRefund savedRefund = paymentRefundSavePort.save(
             PaymentRefund.create(paymentId, amount, refundReason)
         );
 
@@ -129,7 +133,7 @@ public class PaymentCancellationService {
     }
 
     private Payment loadPayment(PaymentId paymentId) {
-        return paymentPersistencePort.findById(paymentId)
+        return paymentLoadPort.findById(paymentId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
     }
 

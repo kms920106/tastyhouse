@@ -26,13 +26,16 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
@@ -44,30 +47,39 @@ public class ProductAvailabilityService {
 
     private static final long MAX_SOLD_OUT_DAYS = 7L;
 
-    private final ProductPersistencePort productPersistencePort;
-    private final ProductOptionPersistencePort productOptionPersistencePort;
-    private final ProductCommonOptionPersistencePort productCommonOptionPersistencePort;
-    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
-    private final ProductCommonOptionGroupPersistencePort productCommonOptionGroupPersistencePort;
-    private final ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort;
-    private final ProductCommonOptionGroupLinkPersistencePort productCommonOptionGroupLinkPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductSavePort productSavePort;
+    private final ProductOptionLoadPort productOptionLoadPort;
+    private final ProductOptionSavePort productOptionSavePort;
+    private final ProductCommonOptionLoadPort productCommonOptionLoadPort;
+    private final ProductCommonOptionSavePort productCommonOptionSavePort;
+    private final ProductOptionGroupLoadPort productOptionGroupLoadPort;
+    private final ProductCommonOptionGroupLoadPort productCommonOptionGroupLoadPort;
+    private final ProductOptionGroupLinkLoadPort productOptionGroupLinkLoadPort;
+    private final ProductCommonOptionGroupLinkLoadPort productCommonOptionGroupLinkLoadPort;
 
     public ProductAvailabilityService(
-        ProductPersistencePort productPersistencePort,
-        ProductOptionPersistencePort productOptionPersistencePort,
-        ProductCommonOptionPersistencePort productCommonOptionPersistencePort,
-        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
-        ProductCommonOptionGroupPersistencePort productCommonOptionGroupPersistencePort,
-        ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort,
-        ProductCommonOptionGroupLinkPersistencePort productCommonOptionGroupLinkPersistencePort
+        ProductLoadPort productLoadPort,
+        ProductSavePort productSavePort,
+        ProductOptionLoadPort productOptionLoadPort,
+        ProductOptionSavePort productOptionSavePort,
+        ProductCommonOptionLoadPort productCommonOptionLoadPort,
+        ProductCommonOptionSavePort productCommonOptionSavePort,
+        ProductOptionGroupLoadPort productOptionGroupLoadPort,
+        ProductCommonOptionGroupLoadPort productCommonOptionGroupLoadPort,
+        ProductOptionGroupLinkLoadPort productOptionGroupLinkLoadPort,
+        ProductCommonOptionGroupLinkLoadPort productCommonOptionGroupLinkLoadPort
     ) {
-        this.productPersistencePort = productPersistencePort;
-        this.productOptionPersistencePort = productOptionPersistencePort;
-        this.productCommonOptionPersistencePort = productCommonOptionPersistencePort;
-        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
-        this.productCommonOptionGroupPersistencePort = productCommonOptionGroupPersistencePort;
-        this.productOptionGroupLinkPersistencePort = productOptionGroupLinkPersistencePort;
-        this.productCommonOptionGroupLinkPersistencePort = productCommonOptionGroupLinkPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productSavePort = productSavePort;
+        this.productOptionLoadPort = productOptionLoadPort;
+        this.productOptionSavePort = productOptionSavePort;
+        this.productCommonOptionLoadPort = productCommonOptionLoadPort;
+        this.productCommonOptionSavePort = productCommonOptionSavePort;
+        this.productOptionGroupLoadPort = productOptionGroupLoadPort;
+        this.productCommonOptionGroupLoadPort = productCommonOptionGroupLoadPort;
+        this.productOptionGroupLinkLoadPort = productOptionGroupLinkLoadPort;
+        this.productCommonOptionGroupLinkLoadPort = productCommonOptionGroupLinkLoadPort;
     }
 
     public void validateSoldOutUntil(LocalDateTime soldOutUntil, LocalDateTime now) {
@@ -96,10 +108,10 @@ public class ProductAvailabilityService {
             .toList();
 
         long visibleShortfall =
-            Math.max(0, 1 - (productPersistencePort.countVisibleByShopId(shopId) - candidates.size()));
+            Math.max(0, 1 - (productLoadPort.countVisibleByShopId(shopId) - candidates.size()));
         long representativeTargets = candidates.stream().filter(Product::isRepresentative).count();
         long representativeShortfall =
-            Math.max(0, 1 - (productPersistencePort.countVisibleRepresentativeByShopId(shopId) - representativeTargets));
+            Math.max(0, 1 - (productLoadPort.countVisibleRepresentativeByShopId(shopId) - representativeTargets));
 
         Map<Long, ProductAvailabilityFailure> rejected = new LinkedHashMap<>();
         rejectFromTail(candidates, rejected, representativeShortfall,
@@ -115,7 +127,7 @@ public class ProductAvailabilityService {
                 continue;
             }
             product.deactivate();
-            productPersistencePort.save(product);
+            productSavePort.save(product);
             succeeded.add(product.getId());
         }
 
@@ -140,7 +152,7 @@ public class ProductAvailabilityService {
             } else {
                 product.markSoldOut();
             }
-            productPersistencePort.save(product);
+            productSavePort.save(product);
             succeeded.add(product.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, loaded.failed());
@@ -152,7 +164,7 @@ public class ProductAvailabilityService {
         List<Long> succeeded = new ArrayList<>();
         for (Product product : loaded.found()) {
             product.releaseSoldOut();
-            productPersistencePort.save(product);
+            productSavePort.save(product);
             succeeded.add(product.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, loaded.failed());
@@ -173,7 +185,7 @@ public class ProductAvailabilityService {
             if (target == ReleaseTarget.HIDDEN || target == ReleaseTarget.ALL) {
                 product.activate();
             }
-            productPersistencePort.save(product);
+            productSavePort.save(product);
             succeeded.add(product.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, loaded.failed());
@@ -197,7 +209,7 @@ public class ProductAvailabilityService {
                 continue;
             }
             product.changeSoldOutUntil(soldOutUntil);
-            productPersistencePort.save(product);
+            productSavePort.save(product);
             succeeded.add(product.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, failed);
@@ -224,7 +236,7 @@ public class ProductAvailabilityService {
             } else {
                 option.markSoldOut();
             }
-            productOptionPersistencePort.save(option);
+            productOptionSavePort.save(option);
             succeeded.add(option.getId());
         }
         for (ProductCommonOption option : plan.commonOptions()) {
@@ -233,7 +245,7 @@ public class ProductAvailabilityService {
             } else {
                 option.markSoldOut();
             }
-            productCommonOptionPersistencePort.save(option);
+            productCommonOptionSavePort.save(option);
             succeeded.add(option.getId());
         }
         succeeded.addAll(plan.alreadyInTargetState());
@@ -255,12 +267,12 @@ public class ProductAvailabilityService {
         List<Long> succeeded = new ArrayList<>();
         for (ProductOption option : plan.options()) {
             option.hide();
-            productOptionPersistencePort.save(option);
+            productOptionSavePort.save(option);
             succeeded.add(option.getId());
         }
         for (ProductCommonOption option : plan.commonOptions()) {
             option.hide();
-            productCommonOptionPersistencePort.save(option);
+            productCommonOptionSavePort.save(option);
             succeeded.add(option.getId());
         }
         succeeded.addAll(plan.alreadyInTargetState());
@@ -284,7 +296,7 @@ public class ProductAvailabilityService {
             if (target == ReleaseTarget.HIDDEN || target == ReleaseTarget.ALL) {
                 option.activate();
             }
-            productOptionPersistencePort.save(option);
+            productOptionSavePort.save(option);
             succeeded.add(option.getId());
         }
         for (ProductCommonOption option : loaded.commonOptions()) {
@@ -294,7 +306,7 @@ public class ProductAvailabilityService {
             if (target == ReleaseTarget.HIDDEN || target == ReleaseTarget.ALL) {
                 option.activate();
             }
-            productCommonOptionPersistencePort.save(option);
+            productCommonOptionSavePort.save(option);
             succeeded.add(option.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, loaded.failed());
@@ -319,7 +331,7 @@ public class ProductAvailabilityService {
                 continue;
             }
             option.changeSoldOutUntil(soldOutUntil);
-            productOptionPersistencePort.save(option);
+            productOptionSavePort.save(option);
             succeeded.add(option.getId());
         }
         for (ProductCommonOption option : loaded.commonOptions()) {
@@ -329,7 +341,7 @@ public class ProductAvailabilityService {
                 continue;
             }
             option.changeSoldOutUntil(soldOutUntil);
-            productCommonOptionPersistencePort.save(option);
+            productCommonOptionSavePort.save(option);
             succeeded.add(option.getId());
         }
         return ProductAvailabilityChangeResult.of(succeeded, failed);
@@ -337,7 +349,7 @@ public class ProductAvailabilityService {
 
     private LoadedProducts loadProducts(ShopId shopId, List<ProductId> productIds) {
         List<ProductId> distinctIds = distinct(productIds);
-        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, distinctIds);
+        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(shopId, distinctIds);
 
         Map<Long, Product> byId = new LinkedHashMap<>();
         found.forEach(product -> byId.put(product.getId(), product));
@@ -361,10 +373,10 @@ public class ProductAvailabilityService {
 
         List<ProductOption> options = distinctOptionIds.isEmpty()
             ? List.of()
-            : productOptionPersistencePort.findAllByIdIn(distinctOptionIds);
+            : productOptionLoadPort.findAllByIdIn(distinctOptionIds);
         List<ProductCommonOption> commonOptions = distinctCommonIds.isEmpty()
             ? List.of()
-            : productCommonOptionPersistencePort.findAllByIdIn(distinctCommonIds);
+            : productCommonOptionLoadPort.findAllByIdIn(distinctCommonIds);
 
         Map<Long, ProductOptionGroup> optionGroups = loadOptionGroups(options);
         Map<Long, ProductCommonOptionGroup> commonGroups = loadCommonOptionGroups(commonOptions);
@@ -452,7 +464,7 @@ public class ProductAvailabilityService {
             );
             List<ProductOption> groupTargets = sortedBySort(entry.getValue(), ProductOption::getSort);
 
-            long selectable = productOptionPersistencePort
+            long selectable = productOptionLoadPort
                 .findAllByOptionGroupId(ProductOptionGroupId.of(entry.getKey())).stream()
                 .filter(option -> !option.isSoldOut() && option.isVisible())
                 .count();
@@ -480,7 +492,7 @@ public class ProductAvailabilityService {
             List<ProductCommonOption> groupTargets =
                 sortedBySort(entry.getValue(), ProductCommonOption::getSort);
 
-            long selectable = productCommonOptionPersistencePort
+            long selectable = productCommonOptionLoadPort
                 .findAllByOptionGroupId(ProductOptionGroupId.of(entry.getKey())).stream()
                 .filter(option -> !option.isSoldOut() && option.isVisible())
                 .count();
@@ -529,7 +541,7 @@ public class ProductAvailabilityService {
             return Map.of();
         }
         Map<Long, ProductOptionGroup> byId = new LinkedHashMap<>();
-        productOptionGroupPersistencePort.findAllByIdIn(groupIds)
+        productOptionGroupLoadPort.findAllByIdIn(groupIds)
             .forEach(group -> byId.put(group.getId(), group));
         return byId;
     }
@@ -544,7 +556,7 @@ public class ProductAvailabilityService {
             return Map.of();
         }
         Map<Long, ProductCommonOptionGroup> byId = new LinkedHashMap<>();
-        productCommonOptionGroupPersistencePort.findAllByIdIn(groupIds)
+        productCommonOptionGroupLoadPort.findAllByIdIn(groupIds)
             .forEach(group -> byId.put(group.getId(), group));
         return byId;
     }
@@ -557,7 +569,7 @@ public class ProductAvailabilityService {
             return Map.of();
         }
 
-        List<ProductOptionGroupLink> links = productOptionGroupLinkPersistencePort
+        List<ProductOptionGroupLink> links = productOptionGroupLinkLoadPort
             .findAllByOptionGroupIdIn(groupIds);
         Map<Long, ShopId> shopIdByProductId = loadShopIdsOf(links.stream()
             .map(ProductOptionGroupLink::getProductId)
@@ -579,7 +591,7 @@ public class ProductAvailabilityService {
             return Map.of();
         }
 
-        List<ProductCommonOptionGroupLink> links = productCommonOptionGroupLinkPersistencePort
+        List<ProductCommonOptionGroupLink> links = productCommonOptionGroupLinkLoadPort
             .findAllByOptionGroupIdIn(groupIds);
         Map<Long, ShopId> shopIdByProductId = loadShopIdsOf(links.stream()
             .map(ProductCommonOptionGroupLink::getProductId)
@@ -596,7 +608,7 @@ public class ProductAvailabilityService {
     private Map<Long, ShopId> loadShopIdsOf(List<ProductId> productIds) {
         Map<Long, ShopId> shopIdByProductId = new LinkedHashMap<>();
         for (ProductId productId : distinct(productIds)) {
-            productPersistencePort.findById(productId)
+            productLoadPort.findById(productId)
                 .ifPresent(product -> shopIdByProductId.put(product.getId(), product.getShopId()));
         }
         return shopIdByProductId;

@@ -5,10 +5,10 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.review.model.ReviewBlindRequestAttachment;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestAttachmentSavePort;
 
 @Repository
-class ReviewBlindRequestAttachmentPersistenceAdapter implements ReviewBlindRequestAttachmentPersistencePort {
+class ReviewBlindRequestAttachmentPersistenceAdapter implements ReviewBlindRequestAttachmentSavePort {
 
     private final ReviewBlindRequestAttachmentJpaRepository reviewBlindRequestAttachmentJpaRepository;
 

@@ -15,22 +15,26 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionReleaseCommand;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionReleaseUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionSavePort;
 
 @Service
 @Transactional
 class ShopSuspensionReleaseService implements ShopSuspensionReleaseUseCase {
 
-    private final ShopSuspensionPersistencePort shopSuspensionPersistencePort;
+    private final ShopSuspensionLoadPort shopSuspensionLoadPort;
+    private final ShopSuspensionSavePort shopSuspensionSavePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopSuspensionReleaseService(
-        ShopSuspensionPersistencePort shopSuspensionPersistencePort,
+        ShopSuspensionLoadPort shopSuspensionLoadPort,
+        ShopSuspensionSavePort shopSuspensionSavePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopSuspensionPersistencePort = shopSuspensionPersistencePort;
+        this.shopSuspensionLoadPort = shopSuspensionLoadPort;
+        this.shopSuspensionSavePort = shopSuspensionSavePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -43,7 +47,7 @@ class ShopSuspensionReleaseService implements ShopSuspensionReleaseUseCase {
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        ShopSuspension shopSuspension = shopSuspensionPersistencePort.findById(suspensionId)
+        ShopSuspension shopSuspension = shopSuspensionLoadPort.findById(suspensionId)
             .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_SUSPENSION_NOT_FOUND));
         if (!shopSuspension.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(CeoErrorCode.SHOP_SUSPENSION_NOT_FOUND);
@@ -51,7 +55,7 @@ class ShopSuspensionReleaseService implements ShopSuspensionReleaseUseCase {
 
         String previousValue = describeSuspension(shopSuspension);
         shopSuspension.release(LocalDateTime.now());
-        shopSuspensionPersistencePort.save(shopSuspension);
+        shopSuspensionSavePort.save(shopSuspension);
 
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         shopChangeHistoryRecorder.record(

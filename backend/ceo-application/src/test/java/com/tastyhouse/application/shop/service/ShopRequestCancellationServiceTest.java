@@ -23,10 +23,12 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
-import com.tastyhouse.testsupport.review.service.FakeReviewBlindRequestPersistencePort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestSavePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewBlindRequestPersistence;
+import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,22 +38,26 @@ class ShopRequestCancellationServiceTest {
     private static final Long SHOP_ID = 1L;
     private static final Long OTHER_SHOP_ID = 2L;
 
-    private FakeShopImageChangeRequestPersistencePort imagePersistencePort;
-    private FakeAdjustmentPersistencePort adjustmentPersistencePort;
-    private RecordingShopRequestIndexPersistencePort indexPersistencePort;
+    private FakeShopImageChangeRequestPersistence imagePersistence;
+    private FakeAdjustmentPersistence adjustmentPersistence;
+    private RecordingShopRequestIndexPersistence indexPersistence;
     private ShopRequestIndexRecorder recorder;
     private ShopRequestCancellationService service;
 
     @BeforeEach
     void setUp() {
-        imagePersistencePort = new FakeShopImageChangeRequestPersistencePort();
-        adjustmentPersistencePort = new FakeAdjustmentPersistencePort();
-        indexPersistencePort = new RecordingShopRequestIndexPersistencePort();
-        recorder = new ShopRequestIndexRecorder(indexPersistencePort);
+        imagePersistence = new FakeShopImageChangeRequestPersistence();
+        adjustmentPersistence = new FakeAdjustmentPersistence();
+        indexPersistence = new RecordingShopRequestIndexPersistence();
+        recorder = new ShopRequestIndexRecorder(indexPersistence, indexPersistence);
+        FakeReviewBlindRequestPersistence fakeReviewBlindRequestPersistence = new FakeReviewBlindRequestPersistence();
         service = new ShopRequestCancellationService(
-            imagePersistencePort,
-            adjustmentPersistencePort,
-            new FakeReviewBlindRequestPersistencePort(),
+            imagePersistence,
+            imagePersistence,
+            adjustmentPersistence,
+            adjustmentPersistence,
+            fakeReviewBlindRequestPersistence,
+            fakeReviewBlindRequestPersistence,
             recorder
         );
     }
@@ -63,10 +69,10 @@ class ShopRequestCancellationServiceTest {
 
         service.cancel(requestId, SHOP_ID);
 
-        assertThat(imagePersistencePort.findById(1L).orElseThrow().getStatus())
+        assertThat(imagePersistence.findById(1L).orElseThrow().getStatus())
             .as("원본이 PENDING으로 남으면 중복 차단이 재요청을 계속 막는다")
             .isEqualTo(ApprovalStatus.CANCELED);
-        assertThat(indexPersistencePort.require(ShopRequestType.TRADEMARK_CHANGE, 1L).getStatus())
+        assertThat(indexPersistence.require(ShopRequestType.TRADEMARK_CHANGE, 1L).getStatus())
             .isEqualTo(ShopRequestStatus.CANCELED);
     }
 
@@ -74,13 +80,13 @@ class ShopRequestCancellationServiceTest {
     @DisplayName("취소 후에는 같은 유형으로 다시 요청할 수 있다(원문의 '취소하고 다시 요청')")
     void cancel_reopensDuplicateBlock() {
         Long requestId = registerImageChangeRequest();
-        assertThat(imagePersistencePort.existsByShopIdAndImageTypeAndStatus(
+        assertThat(imagePersistence.existsByShopIdAndImageTypeAndStatus(
             SHOP_ID, ShopImageType.TRADEMARK, ApprovalStatus.PENDING
         )).isTrue();
 
         service.cancel(requestId, SHOP_ID);
 
-        assertThat(imagePersistencePort.existsByShopIdAndImageTypeAndStatus(
+        assertThat(imagePersistence.existsByShopIdAndImageTypeAndStatus(
             SHOP_ID, ShopImageType.TRADEMARK, ApprovalStatus.PENDING
         ))
             .as("PENDING 중복 차단이 풀려야 재요청이 가능하다")
@@ -94,9 +100,9 @@ class ShopRequestCancellationServiceTest {
 
         service.cancel(requestId, SHOP_ID);
 
-        assertThat(adjustmentPersistencePort.findById(1L).orElseThrow().getStatus())
+        assertThat(adjustmentPersistence.findById(1L).orElseThrow().getStatus())
             .isEqualTo(DeliveryAreaAdjustmentStatus.CANCELED);
-        assertThat(indexPersistencePort.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, 1L).getStatus())
+        assertThat(indexPersistence.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, 1L).getStatus())
             .isEqualTo(ShopRequestStatus.CANCELED);
     }
 
@@ -139,7 +145,7 @@ class ShopRequestCancellationServiceTest {
     void canceledAdjustment_cannotBeRejected() {
         Long requestId = registerAdjustmentRequest(DeliveryAreaAdjustmentStatus.PENDING);
         service.cancel(requestId, SHOP_ID);
-        ShopDeliveryAreaAdjustmentRequest canceled = adjustmentPersistencePort.findById(1L).orElseThrow();
+        ShopDeliveryAreaAdjustmentRequest canceled = adjustmentPersistence.findById(1L).orElseThrow();
 
         assertThatThrownBy(() -> canceled.reject("형식 미비"))
             .isInstanceOf(BusinessException.class)
@@ -148,7 +154,7 @@ class ShopRequestCancellationServiceTest {
     }
 
     private Long registerImageChangeRequest() {
-        ShopImageChangeRequest saved = imagePersistencePort.save(ShopImageChangeRequest.of(
+        ShopImageChangeRequest saved = imagePersistence.save(ShopImageChangeRequest.of(
             ShopId.of(SHOP_ID), ShopImageType.TRADEMARK, UploadedFileId.of(4821L)
         ));
         recorder.record(
@@ -159,11 +165,11 @@ class ShopRequestCancellationServiceTest {
             saved.getImageFileId(),
             7L
         );
-        return indexPersistencePort.require(ShopRequestType.TRADEMARK_CHANGE, saved.getId()).getId();
+        return indexPersistence.require(ShopRequestType.TRADEMARK_CHANGE, saved.getId()).getId();
     }
 
     private Long registerAdjustmentRequest(DeliveryAreaAdjustmentStatus status) {
-        ShopDeliveryAreaAdjustmentRequest saved = adjustmentPersistencePort.save(
+        ShopDeliveryAreaAdjustmentRequest saved = adjustmentPersistence.save(
             ShopDeliveryAreaAdjustmentRequest.of(
                 ShopId.of(SHOP_ID), "맛있는집 강남점", "1234567890", "BBQ",
                 "역삼1동 전역이 중첩됩니다.", UploadedFileId.of(100L)
@@ -179,13 +185,13 @@ class ShopRequestCancellationServiceTest {
         );
         if (status == DeliveryAreaAdjustmentStatus.IN_PROGRESS) {
             saved.startProgress();
-            adjustmentPersistencePort.save(saved);
+            adjustmentPersistence.save(saved);
             recorder.syncAdjustmentStatus(saved.getId(), saved.getStatus(), null);
         }
-        return indexPersistencePort.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, saved.getId()).getId();
+        return indexPersistence.require(ShopRequestType.DELIVERY_AREA_ADJUSTMENT, saved.getId()).getId();
     }
 
-    private static final class FakeShopImageChangeRequestPersistencePort implements ShopImageChangeRequestPersistencePort {
+    private static final class FakeShopImageChangeRequestPersistence implements ShopImageChangeRequestLoadPort, ShopImageChangeRequestSavePort {
 
         private final Map<Long, ShopImageChangeRequest> requests = new HashMap<>();
         private long sequence = 0L;
@@ -231,7 +237,7 @@ class ShopRequestCancellationServiceTest {
         }
     }
 
-    private static final class FakeAdjustmentPersistencePort implements ShopDeliveryAreaAdjustmentRequestPersistencePort {
+    private static final class FakeAdjustmentPersistence implements ShopDeliveryAreaAdjustmentRequestLoadPort, ShopDeliveryAreaAdjustmentRequestSavePort {
 
         private final List<ShopDeliveryAreaAdjustmentRequest> store = new ArrayList<>();
         private long sequence = 0L;

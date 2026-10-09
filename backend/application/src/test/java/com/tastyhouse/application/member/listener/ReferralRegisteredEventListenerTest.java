@@ -77,7 +77,7 @@ class ReferralRegisteredEventListenerTest {
         private boolean failOnNextEarn;
 
         private RecordingLedger() {
-            super(null, null, null);
+            super(null, null, null, null);
         }
 
         @Override
@@ -94,7 +94,7 @@ class ReferralRegisteredEventListenerTest {
         private final List<ReferralId> completed = new ArrayList<>();
 
         private RecordingCompletion() {
-            super(null);
+            super(null, null);
         }
 
         @Override

@@ -24,8 +24,9 @@ import com.tastyhouse.application.auth.port.out.SocialProfileResult;
 import com.tastyhouse.application.auth.service.SocialOAuthFailures;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
-import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountSavePort;
 import com.tastyhouse.application.member.service.MemberRegistrationService;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -38,8 +39,9 @@ public class AppleSocialLoginService {
 
     private final SocialOAuthClient appleOAuthClient;
     private final MemberRegistrationService memberRegistrationService;
-    private final MemberPersistencePort memberPersistencePort;
-    private final MemberSocialAccountPersistencePort memberSocialAccountPersistencePort;
+    private final MemberLoadPort memberLoadPort;
+    private final MemberSocialAccountLoadPort memberSocialAccountLoadPort;
+    private final MemberSocialAccountSavePort memberSocialAccountSavePort;
     private final MemberTokenService tokenService;
     private final MemberJwtTokenProvider jwtTokenProvider;
     private final AppleTempTokenRepository appleTempTokenRepository;
@@ -47,16 +49,18 @@ public class AppleSocialLoginService {
     public AppleSocialLoginService(
         @Qualifier("appleOAuthClient") SocialOAuthClient appleOAuthClient,
         MemberRegistrationService memberRegistrationService,
-        MemberPersistencePort memberPersistencePort,
-        MemberSocialAccountPersistencePort memberSocialAccountPersistencePort,
+        MemberLoadPort memberLoadPort,
+        MemberSocialAccountLoadPort memberSocialAccountLoadPort,
+        MemberSocialAccountSavePort memberSocialAccountSavePort,
         MemberTokenService tokenService,
         MemberJwtTokenProvider jwtTokenProvider,
         AppleTempTokenRepository appleTempTokenRepository
     ) {
         this.appleOAuthClient = appleOAuthClient;
         this.memberRegistrationService = memberRegistrationService;
-        this.memberPersistencePort = memberPersistencePort;
-        this.memberSocialAccountPersistencePort = memberSocialAccountPersistencePort;
+        this.memberLoadPort = memberLoadPort;
+        this.memberSocialAccountLoadPort = memberSocialAccountLoadPort;
+        this.memberSocialAccountSavePort = memberSocialAccountSavePort;
         this.tokenService = tokenService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.appleTempTokenRepository = appleTempTokenRepository;
@@ -73,21 +77,21 @@ public class AppleSocialLoginService {
         String providerId = appleUser.providerId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberSocialAccountPersistencePort.findByProviderAndProviderId(MemberSocialProvider.APPLE, providerId);
+            memberSocialAccountLoadPort.findByProviderAndProviderId(MemberSocialProvider.APPLE, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
 
             socialAccount.updateProviderInfo(appleUser.email(), appleUser.nickname(), appleUser.profileImageUrl());
-            memberSocialAccountPersistencePort.save(socialAccount);
+            memberSocialAccountSavePort.save(socialAccount);
 
-            Member member = memberPersistencePort.findById(socialAccount.getMemberId())
+            Member member = memberLoadPort.findById(socialAccount.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
             return SocialLoginResult.ofLogin(issueJwt(member));
         }
 
         String appleEmail = appleUser.email();
-        if (StringUtils.hasText(appleEmail) && memberPersistencePort.existsByUsername(appleEmail)) {
+        if (StringUtils.hasText(appleEmail) && memberLoadPort.existsByUsername(appleEmail)) {
             String appleTempToken = issueTempToken(credential.value());
             return SocialLoginResult.ofLinkingRequired(appleTempToken);
         }
@@ -111,12 +115,12 @@ public class AppleSocialLoginService {
             .orElseThrow(SocialOAuthFailures::toException);
         String providerId = appleUser.providerId();
 
-        if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.APPLE, providerId)) {
+        if (memberSocialAccountLoadPort.existsByProviderAndProviderId(MemberSocialProvider.APPLE, providerId)) {
             throw new ApplicationException(WebErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
-        Optional<Member> findMember = memberPersistencePort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> findMember = memberLoadPort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (findMember.isEmpty()) {
             return SocialLinkResult.ofSignUpRequired(
@@ -138,7 +142,7 @@ public class AppleSocialLoginService {
 
         Member member = findMember.get();
 
-        memberSocialAccountPersistencePort.save(
+        memberSocialAccountSavePort.save(
             MemberSocialAccount.of(
                 member.getMemberId(),
                 MemberSocialProvider.APPLE,
@@ -177,7 +181,7 @@ public class AppleSocialLoginService {
             .orElseThrow(SocialOAuthFailures::toException);
         String providerId = appleUser.providerId();
 
-        if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.APPLE, providerId)) {
+        if (memberSocialAccountLoadPort.existsByProviderAndProviderId(MemberSocialProvider.APPLE, providerId)) {
             throw new ApplicationException(WebErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -186,7 +190,7 @@ public class AppleSocialLoginService {
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
 
-        memberSocialAccountPersistencePort.save(
+        memberSocialAccountSavePort.save(
             MemberSocialAccount.of(
                 savedMember.getMemberId(),
                 MemberSocialProvider.APPLE,

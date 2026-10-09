@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductFeedbackRead;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductFeedbackReadJpaEntity.productFeedbackReadJpaEntity;
 
 @Repository
-class ProductFeedbackReadPersistenceAdapter implements ProductFeedbackReadPersistencePort {
+class ProductFeedbackReadPersistenceAdapter implements ProductFeedbackReadLoadPort, ProductFeedbackReadSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductFeedbackReadJpaRepository productFeedbackReadJpaRepository;

@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopNoticeJpaEntity.shopNoticeJpaEntity;
 
 @Repository
-class ShopNoticePersistenceAdapter implements ShopNoticePersistencePort {
+class ShopNoticePersistenceAdapter implements ShopNoticeLoadPort, ShopNoticeSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopNoticeJpaRepository shopNoticeJpaRepository;

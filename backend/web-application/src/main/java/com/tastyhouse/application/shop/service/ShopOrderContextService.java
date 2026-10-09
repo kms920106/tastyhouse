@@ -20,38 +20,38 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 
 @Service
 public class ShopOrderContextService {
 
-    private final ShopPersistencePort shopPersistencePort;
-    private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;
-    private final ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort;
+    private final ShopLoadPort shopLoadPort;
+    private final ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort;
+    private final ShopDeliveryTipLoadPort shopDeliveryTipLoadPort;
     private final ShopOrderAvailabilityService shopOrderAvailabilityService;
     private final ShopDeliveryTipCalculator shopDeliveryTipCalculator;
     private final ScheduledOrderSlotService scheduledOrderSlotService;
 
     public ShopOrderContextService(
-        ShopPersistencePort shopPersistencePort,
-        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
-        ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort,
+        ShopLoadPort shopLoadPort,
+        ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort,
+        ShopDeliveryTipLoadPort shopDeliveryTipLoadPort,
         ShopOrderAvailabilityService shopOrderAvailabilityService,
         ShopDeliveryTipCalculator shopDeliveryTipCalculator,
         ScheduledOrderSlotService scheduledOrderSlotService
     ) {
-        this.shopPersistencePort = shopPersistencePort;
-        this.shopDeliveryAreaPersistencePort = shopDeliveryAreaPersistencePort;
-        this.shopDeliveryTipPersistencePort = shopDeliveryTipPersistencePort;
+        this.shopLoadPort = shopLoadPort;
+        this.shopDeliveryAreaLoadPort = shopDeliveryAreaLoadPort;
+        this.shopDeliveryTipLoadPort = shopDeliveryTipLoadPort;
         this.shopOrderAvailabilityService = shopOrderAvailabilityService;
         this.shopDeliveryTipCalculator = shopDeliveryTipCalculator;
         this.scheduledOrderSlotService = scheduledOrderSlotService;
     }
 
     public OrderableShop loadOrderableShop(ShopId shopId, OrderMethod orderMethod, LocalDateTime at) {
-        Shop shop = shopPersistencePort.findVisibleById(shopId)
+        Shop shop = shopLoadPort.findVisibleById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
         shopOrderAvailabilityService.validateOrderable(shop, orderMethod, at);
         return new OrderableShop(shop);
@@ -87,11 +87,11 @@ public class ShopOrderContextService {
             address.adminDongId(),
             orderedAt,
             publicHoliday,
-            shopDeliveryTipPersistencePort.findSettingByShopId(shopId).orElse(null),
-            shopDeliveryTipPersistencePort.findTiersByShopId(shopId),
-            shopDeliveryTipPersistencePort.findRegionTipsByShopId(shopId),
-            shopDeliveryTipPersistencePort.findScheduleTipsByShopId(shopId),
-            shopDeliveryTipPersistencePort.findHolidayTipByShopId(shopId).orElse(null)
+            shopDeliveryTipLoadPort.findSettingByShopId(shopId).orElse(null),
+            shopDeliveryTipLoadPort.findTiersByShopId(shopId),
+            shopDeliveryTipLoadPort.findRegionTipsByShopId(shopId),
+            shopDeliveryTipLoadPort.findScheduleTipsByShopId(shopId),
+            shopDeliveryTipLoadPort.findHolidayTipByShopId(shopId).orElse(null)
         ));
 
         return new ShopDeliveryResolution((int) Math.round(meters), breakdown);
@@ -116,11 +116,11 @@ public class ShopOrderContextService {
     }
 
     private void validateDeliveryArea(ShopId shopId, AdminDongId adminDongId) {
-        if (shopDeliveryAreaPersistencePort.countByShopId(shopId) == 0) {
+        if (shopDeliveryAreaLoadPort.countByShopId(shopId) == 0) {
             return;
         }
         if (adminDongId == null
-            || !shopDeliveryAreaPersistencePort.existsByShopIdAndAdminDongId(shopId, adminDongId)) {
+            || !shopDeliveryAreaLoadPort.existsByShopIdAndAdminDongId(shopId, adminDongId)) {
             throw new ApplicationException(WebErrorCode.ORDER_DELIVERY_AREA_NOT_COVERED);
         }
     }

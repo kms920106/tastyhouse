@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductNutrition;
 import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.application.product.port.out.write.ProductNutritionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductNutritionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductNutritionSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductNutritionJpaEntity.productNutritionJpaEntity;
 
 @Repository
-class ProductNutritionPersistenceAdapter implements ProductNutritionPersistencePort {
+class ProductNutritionPersistenceAdapter implements ProductNutritionLoadPort, ProductNutritionSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductNutritionJpaRepository productNutritionJpaRepository;

@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.model.Point;
-import com.tastyhouse.application.point.port.out.write.PointPersistencePort;
+import com.tastyhouse.application.point.port.out.write.PointLoadPort;
+import com.tastyhouse.application.point.port.out.write.PointSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.point.persistence.QPointJpaEntity.pointJpaEntity;
 
 @Repository
-class PointPersistenceAdapter implements PointPersistencePort {
+class PointPersistenceAdapter implements PointLoadPort, PointSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final PointJpaRepository pointJpaRepository;

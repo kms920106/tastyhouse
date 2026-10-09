@@ -11,13 +11,14 @@ import com.tastyhouse.domain.product.model.StorePriceVerificationItem;
 import com.tastyhouse.domain.product.model.StorePriceVerificationStatus;
 import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.StorePriceVerificationPersistencePort;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationLoadPort;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QStorePriceVerificationItemJpaEntity.storePriceVerificationItemJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QStorePriceVerificationJpaEntity.storePriceVerificationJpaEntity;
 
 @Repository
-class StorePriceVerificationPersistenceAdapter implements StorePriceVerificationPersistencePort {
+class StorePriceVerificationPersistenceAdapter implements StorePriceVerificationLoadPort, StorePriceVerificationSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final StorePriceVerificationJpaRepository storePriceVerificationJpaRepository;

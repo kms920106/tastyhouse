@@ -9,12 +9,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.notification.model.Notification;
 import com.tastyhouse.domain.notification.vo.NotificationId;
-import com.tastyhouse.application.notification.port.out.write.NotificationPersistencePort;
+import com.tastyhouse.application.notification.port.out.write.NotificationLoadPort;
+import com.tastyhouse.application.notification.port.out.write.NotificationSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.notification.persistence.QNotificationJpaEntity.notificationJpaEntity;
 
 @Repository
-class NotificationPersistenceAdapter implements NotificationPersistencePort {
+class NotificationPersistenceAdapter implements NotificationLoadPort, NotificationSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final NotificationJpaRepository notificationJpaRepository;

@@ -9,9 +9,10 @@ import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductAllergen;
 import com.tastyhouse.domain.product.model.ProductNutrition;
 import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.application.product.port.out.write.ProductAllergenPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductNutritionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductAllergenSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductNutritionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductNutritionSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -19,18 +20,21 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Service
 public class ProductNutritionService {
 
-    private final ProductNutritionPersistencePort productNutritionPersistencePort;
-    private final ProductAllergenPersistencePort productAllergenPersistencePort;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductNutritionLoadPort productNutritionLoadPort;
+    private final ProductNutritionSavePort productNutritionSavePort;
+    private final ProductAllergenSavePort productAllergenSavePort;
+    private final ProductLoadPort productLoadPort;
 
     public ProductNutritionService(
-        ProductNutritionPersistencePort productNutritionPersistencePort,
-        ProductAllergenPersistencePort productAllergenPersistencePort,
-        ProductPersistencePort productPersistencePort
+        ProductNutritionLoadPort productNutritionLoadPort,
+        ProductNutritionSavePort productNutritionSavePort,
+        ProductAllergenSavePort productAllergenSavePort,
+        ProductLoadPort productLoadPort
     ) {
-        this.productNutritionPersistencePort = productNutritionPersistencePort;
-        this.productAllergenPersistencePort = productAllergenPersistencePort;
-        this.productPersistencePort = productPersistencePort;
+        this.productNutritionLoadPort = productNutritionLoadPort;
+        this.productNutritionSavePort = productNutritionSavePort;
+        this.productAllergenSavePort = productAllergenSavePort;
+        this.productLoadPort = productLoadPort;
     }
 
     public void upsertNutrition(
@@ -54,7 +58,7 @@ public class ProductNutritionService {
     ) {
         validateProductExists(productId);
 
-        ProductNutrition existing = productNutritionPersistencePort.findByProductId(productId).orElse(null);
+        ProductNutrition existing = productNutritionLoadPort.findByProductId(productId).orElse(null);
         ProductNutrition productNutrition;
         if (existing == null) {
             productNutrition = ProductNutrition.of(productId, servingSize, totalAmount, flavor, size,
@@ -67,20 +71,20 @@ public class ProductNutritionService {
             productNutrition = existing;
         }
 
-        productNutritionPersistencePort.save(productNutrition);
+        productNutritionSavePort.save(productNutrition);
         replaceAllergens(productId, allergenTypes);
     }
 
     public void deleteNutrition(ProductId productId) {
-        ProductNutrition productNutrition = productNutritionPersistencePort.findByProductId(productId)
+        ProductNutrition productNutrition = productNutritionLoadPort.findByProductId(productId)
             .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.PRODUCT_NUTRITION_NOT_FOUND));
 
-        productAllergenPersistencePort.deleteAllByProductId(productId);
-        productNutritionPersistencePort.delete(productNutrition);
+        productAllergenSavePort.deleteAllByProductId(productId);
+        productNutritionSavePort.delete(productNutrition);
     }
 
     private void replaceAllergens(ProductId productId, List<AllergenType> allergenTypes) {
-        productAllergenPersistencePort.deleteAllByProductId(productId);
+        productAllergenSavePort.deleteAllByProductId(productId);
 
         if (allergenTypes == null || allergenTypes.isEmpty()) {
             return;
@@ -90,11 +94,11 @@ public class ProductNutritionService {
             .distinct()
             .map(allergenType -> ProductAllergen.of(productId, allergenType))
             .toList();
-        productAllergenPersistencePort.saveAll(allergens);
+        productAllergenSavePort.saveAll(allergens);
     }
 
     private void validateProductExists(ProductId productId) {
-        Product product = productPersistencePort.findById(productId)
+        Product product = productLoadPort.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (product.isDeleted()) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);

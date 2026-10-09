@@ -9,21 +9,21 @@ import com.tastyhouse.domain.bug.model.BugReportImage;
 import com.tastyhouse.domain.bug.model.BugReportPlatform;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.bug.port.out.write.BugReportImagePersistencePort;
-import com.tastyhouse.application.bug.port.out.write.BugReportPersistencePort;
+import com.tastyhouse.application.bug.port.out.write.BugReportImageSavePort;
+import com.tastyhouse.application.bug.port.out.write.BugReportSavePort;
 
 @Service
 public class BugReportRegistrationService {
 
-    private final BugReportPersistencePort bugReportPersistencePort;
-    private final BugReportImagePersistencePort bugReportImagePersistencePort;
+    private final BugReportSavePort bugReportSavePort;
+    private final BugReportImageSavePort bugReportImageSavePort;
 
     public BugReportRegistrationService(
-        BugReportPersistencePort bugReportPersistencePort,
-        BugReportImagePersistencePort bugReportImagePersistencePort
+        BugReportSavePort bugReportSavePort,
+        BugReportImageSavePort bugReportImageSavePort
     ) {
-        this.bugReportPersistencePort = bugReportPersistencePort;
-        this.bugReportImagePersistencePort = bugReportImagePersistencePort;
+        this.bugReportSavePort = bugReportSavePort;
+        this.bugReportImageSavePort = bugReportImageSavePort;
     }
 
     public BugReport register(
@@ -37,7 +37,7 @@ public class BugReportRegistrationService {
         List<Long> uploadedFileIds
     ) {
         BugReport bugReport = BugReport.of(memberId, device, title, content, appVersion, platform, osVersion);
-        BugReport saved = bugReportPersistencePort.save(bugReport);
+        BugReport saved = bugReportSavePort.save(bugReport);
 
         if (uploadedFileIds == null || uploadedFileIds.isEmpty()) {
             return saved;
@@ -47,7 +47,7 @@ public class BugReportRegistrationService {
             BugReportImage image = BugReportImage.of(
                 saved.getBugReportId(), UploadedFileId.of(uploadedFileIds.get(sort)), sort
             );
-            bugReportImagePersistencePort.save(image);
+            bugReportImageSavePort.save(image);
         }
 
         return saved;

@@ -24,25 +24,29 @@ import com.tastyhouse.domain.shop.model.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolicy;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaSavePort;
 
 @Service
 public class ShopDeliveryAreaRadiusService {
 
-    private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;
-    private final AdminDongPersistencePort adminDongPersistencePort;
+    private final ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort;
+    private final ShopDeliveryAreaSavePort shopDeliveryAreaSavePort;
+    private final AdminDongLoadPort adminDongLoadPort;
     private final ShopDeliveryAreaService shopDeliveryAreaService;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopDeliveryAreaRadiusService(
-        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
-        AdminDongPersistencePort adminDongPersistencePort,
+        ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort,
+        ShopDeliveryAreaSavePort shopDeliveryAreaSavePort,
+        AdminDongLoadPort adminDongLoadPort,
         ShopDeliveryAreaService shopDeliveryAreaService,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopDeliveryAreaPersistencePort = shopDeliveryAreaPersistencePort;
-        this.adminDongPersistencePort = adminDongPersistencePort;
+        this.shopDeliveryAreaLoadPort = shopDeliveryAreaLoadPort;
+        this.shopDeliveryAreaSavePort = shopDeliveryAreaSavePort;
+        this.adminDongLoadPort = adminDongLoadPort;
         this.shopDeliveryAreaService = shopDeliveryAreaService;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
@@ -91,7 +95,7 @@ public class ShopDeliveryAreaRadiusService {
             .approximate(center, radiusMeters, ShopDeliveryAreaPolicy.CIRCLE_SEGMENTS)
             .boundingBox();
 
-        return adminDongPersistencePort.findAllWithinBoundingBox(candidateBox).stream()
+        return adminDongLoadPort.findAllWithinBoundingBox(candidateBox).stream()
             .filter(AdminDong::hasCenter)
             .filter(adminDong -> center.distanceMetersTo(adminDong.getCenter()) <= radiusMeters)
             .map(adminDong -> AdminDongId.of(adminDong.getId()))
@@ -103,7 +107,7 @@ public class ShopDeliveryAreaRadiusService {
         Set<AdminDongId> keep,
         Function<Collection<AdminDongId>, List<String>> adminDongNamesById
     ) {
-        List<ShopDeliveryArea> closing = shopDeliveryAreaPersistencePort
+        List<ShopDeliveryArea> closing = shopDeliveryAreaLoadPort
             .findByShopIdAndSource(shopId, DeliveryAreaSource.MANUAL).stream()
             .filter(area -> !keep.contains(area.getAdminDongId()))
             .toList();
@@ -117,6 +121,6 @@ public class ShopDeliveryAreaRadiusService {
             adminDongNamesById
         );
 
-        closing.forEach(area -> shopDeliveryAreaPersistencePort.deleteById(area.getId()));
+        closing.forEach(area -> shopDeliveryAreaSavePort.deleteById(area.getId()));
     }
 }

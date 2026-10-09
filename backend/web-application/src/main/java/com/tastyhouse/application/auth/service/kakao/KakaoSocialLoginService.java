@@ -24,8 +24,9 @@ import com.tastyhouse.application.auth.port.out.SocialProfileResult;
 import com.tastyhouse.application.auth.service.SocialOAuthFailures;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
-import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountSavePort;
 import com.tastyhouse.application.member.service.MemberRegistrationService;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -38,8 +39,9 @@ public class KakaoSocialLoginService {
 
     private final SocialOAuthClient kakaoOAuthClient;
     private final MemberRegistrationService memberRegistrationService;
-    private final MemberPersistencePort memberPersistencePort;
-    private final MemberSocialAccountPersistencePort memberSocialAccountPersistencePort;
+    private final MemberLoadPort memberLoadPort;
+    private final MemberSocialAccountLoadPort memberSocialAccountLoadPort;
+    private final MemberSocialAccountSavePort memberSocialAccountSavePort;
     private final MemberTokenService tokenService;
     private final MemberJwtTokenProvider jwtTokenProvider;
     private final KakaoTempTokenRepository kakaoTempTokenRepository;
@@ -47,16 +49,18 @@ public class KakaoSocialLoginService {
     public KakaoSocialLoginService(
         @Qualifier("kakaoOAuthClient") SocialOAuthClient kakaoOAuthClient,
         MemberRegistrationService memberRegistrationService,
-        MemberPersistencePort memberPersistencePort,
-        MemberSocialAccountPersistencePort memberSocialAccountPersistencePort,
+        MemberLoadPort memberLoadPort,
+        MemberSocialAccountLoadPort memberSocialAccountLoadPort,
+        MemberSocialAccountSavePort memberSocialAccountSavePort,
         MemberTokenService tokenService,
         MemberJwtTokenProvider jwtTokenProvider,
         KakaoTempTokenRepository kakaoTempTokenRepository
     ) {
         this.kakaoOAuthClient = kakaoOAuthClient;
         this.memberRegistrationService = memberRegistrationService;
-        this.memberPersistencePort = memberPersistencePort;
-        this.memberSocialAccountPersistencePort = memberSocialAccountPersistencePort;
+        this.memberLoadPort = memberLoadPort;
+        this.memberSocialAccountLoadPort = memberSocialAccountLoadPort;
+        this.memberSocialAccountSavePort = memberSocialAccountSavePort;
         this.tokenService = tokenService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.kakaoTempTokenRepository = kakaoTempTokenRepository;
@@ -72,20 +76,20 @@ public class KakaoSocialLoginService {
         String providerId = kakaoUser.providerId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberSocialAccountPersistencePort.findByProviderAndProviderId(MemberSocialProvider.KAKAO, providerId);
+            memberSocialAccountLoadPort.findByProviderAndProviderId(MemberSocialProvider.KAKAO, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(kakaoUser.email(), kakaoUser.nickname(), kakaoUser.profileImageUrl());
-            memberSocialAccountPersistencePort.save(socialAccount);
+            memberSocialAccountSavePort.save(socialAccount);
 
-            Member member = memberPersistencePort.findById(socialAccount.getMemberId())
+            Member member = memberLoadPort.findById(socialAccount.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
             return SocialLoginResult.ofLogin(issueJwt(member));
         }
 
         String kakaoEmail = kakaoUser.email();
-        if (StringUtils.hasText(kakaoEmail) && memberPersistencePort.existsByUsername(kakaoEmail)) {
+        if (StringUtils.hasText(kakaoEmail) && memberLoadPort.existsByUsername(kakaoEmail)) {
             String kakaoTempToken = issueTempToken(credential.value());
             return SocialLoginResult.ofLinkingRequired(kakaoTempToken);
         }
@@ -109,12 +113,12 @@ public class KakaoSocialLoginService {
             .orElseThrow(SocialOAuthFailures::toException);
         String providerId = kakaoUser.providerId();
 
-        if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.KAKAO, providerId)) {
+        if (memberSocialAccountLoadPort.existsByProviderAndProviderId(MemberSocialProvider.KAKAO, providerId)) {
             throw new ApplicationException(WebErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
-        Optional<Member> memberOpt = memberPersistencePort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> memberOpt = memberLoadPort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (memberOpt.isEmpty()) {
             return SocialLinkResult.ofSignUpRequired(
@@ -135,7 +139,7 @@ public class KakaoSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        memberSocialAccountPersistencePort.save(
+        memberSocialAccountSavePort.save(
             MemberSocialAccount.of(
                 member.getMemberId(), MemberSocialProvider.KAKAO, providerId,
                 kakaoUser.email(), kakaoUser.nickname(), kakaoUser.profileImageUrl()
@@ -170,7 +174,7 @@ public class KakaoSocialLoginService {
             .orElseThrow(SocialOAuthFailures::toException);
         String providerId = kakaoUser.providerId();
 
-        if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.KAKAO, providerId)) {
+        if (memberSocialAccountLoadPort.existsByProviderAndProviderId(MemberSocialProvider.KAKAO, providerId)) {
             throw new ApplicationException(WebErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -179,7 +183,7 @@ public class KakaoSocialLoginService {
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
 
-        memberSocialAccountPersistencePort.save(
+        memberSocialAccountSavePort.save(
             MemberSocialAccount.of(
                 savedMember.getMemberId(),
                 MemberSocialProvider.KAKAO,

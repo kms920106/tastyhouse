@@ -4,28 +4,32 @@ import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.application.product.port.out.ProductReviewStatisticsPort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 
 @Service
 public class ProductReviewStatsService {
 
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductSavePort productSavePort;
     private final ProductReviewStatisticsPort productReviewStatisticsPort;
 
     public ProductReviewStatsService(
-        ProductPersistencePort productPersistencePort,
+        ProductLoadPort productLoadPort,
+        ProductSavePort productSavePort,
         ProductReviewStatisticsPort productReviewStatisticsPort
     ) {
-        this.productPersistencePort = productPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productSavePort = productSavePort;
         this.productReviewStatisticsPort = productReviewStatisticsPort;
     }
 
     public void updateReviewStats(Long productId) {
-        productPersistencePort.findById(ProductId.of(productId)).ifPresent(product -> {
+        productLoadPort.findById(ProductId.of(productId)).ifPresent(product -> {
             Long count = productReviewStatisticsPort.countVisibleMenuReviewsByProductId(productId);
             Double rating = roundToTenth(productReviewStatisticsPort.getAverageMenuRatingByProductId(productId));
             product.updateReviewStats(rating, count != null ? count.intValue() : 0);
-            productPersistencePort.save(product);
+            productSavePort.save(product);
         });
     }
 

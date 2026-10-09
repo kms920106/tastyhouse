@@ -12,8 +12,9 @@ import com.tastyhouse.domain.review.model.ReviewOwnerReply;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.review.vo.ReviewOwnerReplyId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyPersistencePort;
-import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplySavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -24,19 +25,22 @@ import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 @Service
 public class ReviewOwnerReplyService {
 
-    private final ReviewOwnerReplyPersistencePort reviewOwnerReplyPersistencePort;
-    private final ReviewPersistencePort reviewPersistencePort;
+    private final ReviewOwnerReplyLoadPort reviewOwnerReplyLoadPort;
+    private final ReviewOwnerReplySavePort reviewOwnerReplySavePort;
+    private final ReviewLoadPort reviewLoadPort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final DomainEventPublisher domainEventPublisher;
 
     public ReviewOwnerReplyService(
-        ReviewOwnerReplyPersistencePort reviewOwnerReplyPersistencePort,
-        ReviewPersistencePort reviewPersistencePort,
+        ReviewOwnerReplyLoadPort reviewOwnerReplyLoadPort,
+        ReviewOwnerReplySavePort reviewOwnerReplySavePort,
+        ReviewLoadPort reviewLoadPort,
         ProhibitedWordValidator prohibitedWordValidator,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.reviewOwnerReplyPersistencePort = reviewOwnerReplyPersistencePort;
-        this.reviewPersistencePort = reviewPersistencePort;
+        this.reviewOwnerReplyLoadPort = reviewOwnerReplyLoadPort;
+        this.reviewOwnerReplySavePort = reviewOwnerReplySavePort;
+        this.reviewLoadPort = reviewLoadPort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.domainEventPublisher = domainEventPublisher;
     }
@@ -47,11 +51,11 @@ public class ReviewOwnerReplyService {
         validateWithinReplyPeriod(review, today);
         prohibitedWordValidator.validate(content);
 
-        if (reviewOwnerReplyPersistencePort.existsByReviewId(targetReviewId)) {
+        if (reviewOwnerReplyLoadPort.existsByReviewId(targetReviewId)) {
             throw new ApplicationException(CeoErrorCode.REVIEW_OWNER_REPLY_ALREADY_EXISTS);
         }
 
-        ReviewOwnerReply saved = reviewOwnerReplyPersistencePort.save(
+        ReviewOwnerReply saved = reviewOwnerReplySavePort.save(
             ReviewOwnerReply.of(targetReviewId, ShopId.of(shopId), CeoId.of(ceoId), content)
         );
 
@@ -80,7 +84,7 @@ public class ReviewOwnerReplyService {
 
         ReviewOwnerReply reply = loadReplyOfReview(targetReviewId);
         reply.updateContent(content);
-        reviewOwnerReplyPersistencePort.save(reply);
+        reviewOwnerReplySavePort.save(reply);
     }
 
     public void remove(Long shopId, Long reviewId) {
@@ -88,11 +92,11 @@ public class ReviewOwnerReplyService {
         loadReviewOfShop(targetReviewId, shopId);
 
         ReviewOwnerReply reply = loadReplyOfReview(targetReviewId);
-        reviewOwnerReplyPersistencePort.delete(reply);
+        reviewOwnerReplySavePort.delete(reply);
     }
 
     private Review loadReviewOfShop(ReviewId reviewId, Long shopId) {
-        Review review = reviewPersistencePort.findById(reviewId)
+        Review review = reviewLoadPort.findById(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         if (!review.getShopId().equals(ShopId.of(shopId))) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_ACCESS_DENIED);
@@ -101,7 +105,7 @@ public class ReviewOwnerReplyService {
     }
 
     private ReviewOwnerReply loadReplyOfReview(ReviewId reviewId) {
-        return reviewOwnerReplyPersistencePort.findByReviewId(reviewId)
+        return reviewOwnerReplyLoadPort.findByReviewId(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.REVIEW_OWNER_REPLY_NOT_FOUND));
     }
 }

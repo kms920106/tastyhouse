@@ -10,12 +10,13 @@ import com.tastyhouse.domain.order.vo.OrderId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewJpaEntity.reviewJpaEntity;
 
 @Repository
-class ReviewPersistenceAdapter implements ReviewPersistencePort {
+class ReviewPersistenceAdapter implements ReviewLoadPort, ReviewSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewJpaRepository reviewJpaRepository;

@@ -121,13 +121,17 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 
 **Repository write 포트 + load-copy-save**:
 ```java
-// application/notice/port/out/write/NoticePersistencePort.java (03a로 이 패키지에서 이동 — 인터페이스만)
-public interface NoticePersistencePort {
+// application/notice/port/out/write/NoticeLoadPort.java (조회 — 03a로 이 패키지에서 이동, 이후 Load/Save 분리 — 인터페이스만)
+public interface NoticeLoadPort {
     Optional<Notice> findById(NoticeId noticeId);
+}
+
+// application/notice/port/out/write/NoticeSavePort.java (변경 — 삭제도 Save에 둔다)
+public interface NoticeSavePort {
     Notice save(Notice notice);
 }
 
-// infrastructure-module: <ctx>/persistence/NoticePersistenceAdapter (@Repository)
+// infrastructure-module: <ctx>/persistence/NoticePersistenceAdapter (@Repository, NoticeLoadPort·NoticeSavePort 구현)
 //  - save: id null이면 insert, 있으면 managed 엔티티 조회 후 Mapper.applyChanges 복사
 //  - detached merge 금지(@CreatedDate(updatable=false) 감사 필드 파손 방지)
 ```

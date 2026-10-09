@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.mail.model.MailVerification;
 import com.tastyhouse.domain.mail.model.MailVerificationStatus;
-import com.tastyhouse.application.mail.port.out.write.MailVerificationPersistencePort;
+import com.tastyhouse.application.mail.port.out.write.MailVerificationLoadPort;
+import com.tastyhouse.application.mail.port.out.write.MailVerificationSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.mail.persistence.QMailVerificationJpaEntity.mailVerificationJpaEntity;
 
 @Repository
-class MailVerificationPersistenceAdapter implements MailVerificationPersistencePort {
+class MailVerificationPersistenceAdapter implements MailVerificationLoadPort, MailVerificationSavePort {
 
     private final MailVerificationJpaRepository jpaRepository;
     private final JPAQueryFactory queryFactory;

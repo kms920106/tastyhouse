@@ -10,29 +10,41 @@ import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestSavePort;
 
 @Service
 public class ShopRequestCancellationService {
 
-    private final ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort;
-    private final ShopDeliveryAreaAdjustmentRequestPersistencePort shopDeliveryAreaAdjustmentRequestPersistencePort;
-    private final ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort;
+    private final ShopImageChangeRequestLoadPort shopImageChangeRequestLoadPort;
+    private final ShopImageChangeRequestSavePort shopImageChangeRequestSavePort;
+    private final ShopDeliveryAreaAdjustmentRequestLoadPort shopDeliveryAreaAdjustmentRequestLoadPort;
+    private final ShopDeliveryAreaAdjustmentRequestSavePort shopDeliveryAreaAdjustmentRequestSavePort;
+    private final ReviewBlindRequestLoadPort reviewBlindRequestLoadPort;
+    private final ReviewBlindRequestSavePort reviewBlindRequestSavePort;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 
     public ShopRequestCancellationService(
-        ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort,
-        ShopDeliveryAreaAdjustmentRequestPersistencePort shopDeliveryAreaAdjustmentRequestPersistencePort,
-        ReviewBlindRequestPersistencePort reviewBlindRequestPersistencePort,
+        ShopImageChangeRequestLoadPort shopImageChangeRequestLoadPort,
+        ShopImageChangeRequestSavePort shopImageChangeRequestSavePort,
+        ShopDeliveryAreaAdjustmentRequestLoadPort shopDeliveryAreaAdjustmentRequestLoadPort,
+        ShopDeliveryAreaAdjustmentRequestSavePort shopDeliveryAreaAdjustmentRequestSavePort,
+        ReviewBlindRequestLoadPort reviewBlindRequestLoadPort,
+        ReviewBlindRequestSavePort reviewBlindRequestSavePort,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
-        this.shopImageChangeRequestPersistencePort = shopImageChangeRequestPersistencePort;
-        this.shopDeliveryAreaAdjustmentRequestPersistencePort = shopDeliveryAreaAdjustmentRequestPersistencePort;
-        this.reviewBlindRequestPersistencePort = reviewBlindRequestPersistencePort;
+        this.shopImageChangeRequestLoadPort = shopImageChangeRequestLoadPort;
+        this.shopImageChangeRequestSavePort = shopImageChangeRequestSavePort;
+        this.shopDeliveryAreaAdjustmentRequestLoadPort = shopDeliveryAreaAdjustmentRequestLoadPort;
+        this.shopDeliveryAreaAdjustmentRequestSavePort = shopDeliveryAreaAdjustmentRequestSavePort;
+        this.reviewBlindRequestLoadPort = reviewBlindRequestLoadPort;
+        this.reviewBlindRequestSavePort = reviewBlindRequestSavePort;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
     }
 
@@ -50,27 +62,27 @@ public class ShopRequestCancellationService {
     }
 
     private void cancelImageChange(Long sourceRequestId) {
-        ShopImageChangeRequest request = shopImageChangeRequestPersistencePort.findById(sourceRequestId)
+        ShopImageChangeRequest request = shopImageChangeRequestLoadPort.findById(sourceRequestId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
         request.cancel();
-        shopImageChangeRequestPersistencePort.save(request);
+        shopImageChangeRequestSavePort.save(request);
     }
 
     private void cancelReviewBlind(Long sourceRequestId) {
-        ReviewBlindRequest request = reviewBlindRequestPersistencePort
+        ReviewBlindRequest request = reviewBlindRequestLoadPort
             .findById(ReviewBlindRequestId.of(sourceRequestId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
         if (request.getStatus() != ReviewBlindStatus.PENDING) {
             throw new DomainException(DomainErrorCode.SHOP_REQUEST_NOT_CANCELABLE);
         }
         request.cancel();
-        reviewBlindRequestPersistencePort.save(request);
+        reviewBlindRequestSavePort.save(request);
     }
 
     private void cancelAdjustment(Long sourceRequestId) {
-        ShopDeliveryAreaAdjustmentRequest request = shopDeliveryAreaAdjustmentRequestPersistencePort.findById(sourceRequestId)
+        ShopDeliveryAreaAdjustmentRequest request = shopDeliveryAreaAdjustmentRequestLoadPort.findById(sourceRequestId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_REQUEST_NOT_FOUND));
         request.cancel();
-        shopDeliveryAreaAdjustmentRequestPersistencePort.save(request);
+        shopDeliveryAreaAdjustmentRequestSavePort.save(request);
     }
 }

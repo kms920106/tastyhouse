@@ -23,8 +23,10 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -290,7 +292,7 @@ class ProductPriceServiceTest {
     private static final class Fixture {
 
         private final Map<Long, Product> products = new LinkedHashMap<>();
-        private final MapProductPricePersistencePort prices = new MapProductPricePersistencePort();
+        private final MapProductPricePersistence prices = new MapProductPricePersistence();
         private final RecordingVerificationPort verificationPort = new RecordingVerificationPort();
         private final ProductPriceService service;
 
@@ -307,8 +309,10 @@ class ProductPriceServiceTest {
                 null, 0, false, null, false, null, true, 0,
                 false, false, null, false, null, null, null, null, null, null
             ));
+            OwnedProductPersistence ownedProductPersistence = new OwnedProductPersistence(products);
             this.service = new ProductPriceService(
-                prices, new OwnedProductPersistencePort(products), verificationPort);
+                prices,
+                prices, ownedProductPersistence, ownedProductPersistence, verificationPort);
         }
 
         private void replace(List<ProductPriceSpec> specs) {
@@ -320,11 +324,11 @@ class ProductPriceServiceTest {
         }
     }
 
-    private static final class OwnedProductPersistencePort implements ProductPersistencePort {
+    private static final class OwnedProductPersistence implements ProductLoadPort, ProductSavePort {
 
         private final Map<Long, Product> products;
 
-        private OwnedProductPersistencePort(Map<Long, Product> products) {
+        private OwnedProductPersistence(Map<Long, Product> products) {
             this.products = products;
         }
 
@@ -397,7 +401,7 @@ class ProductPriceServiceTest {
         }
     }
 
-    private static final class MapProductPricePersistencePort implements ProductPricePersistencePort {
+    private static final class MapProductPricePersistence implements ProductPriceLoadPort, ProductPriceSavePort {
 
         private final Map<Long, ProductPrice> rows = new LinkedHashMap<>();
         private final List<Long> deleted = new ArrayList<>();

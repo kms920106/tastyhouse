@@ -8,16 +8,16 @@ import com.tastyhouse.domain.shop.model.ShopBannerImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.in.ShopBannerImageCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopBannerImageCreateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 
 @Service
 @Transactional
 class ShopBannerImageCreateService implements ShopBannerImageCreateUseCase {
 
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopDetailSavePort shopDetailSavePort;
 
-    public ShopBannerImageCreateService(ShopDetailPersistencePort shopDetailPersistencePort) {
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+    public ShopBannerImageCreateService(ShopDetailSavePort shopDetailSavePort) {
+        this.shopDetailSavePort = shopDetailSavePort;
     }
 
     @Override
@@ -26,7 +26,7 @@ class ShopBannerImageCreateService implements ShopBannerImageCreateUseCase {
         Long imageFileId = command.imageFileId();
         Integer sort = command.sort();
 
-        ShopBannerImage bannerImage = shopDetailPersistencePort.saveBannerImage(
+        ShopBannerImage bannerImage = shopDetailSavePort.saveBannerImage(
             ShopBannerImage.of(ShopId.of(id), UploadedFileId.of(imageFileId), sort)
         );
         return bannerImage.getId();

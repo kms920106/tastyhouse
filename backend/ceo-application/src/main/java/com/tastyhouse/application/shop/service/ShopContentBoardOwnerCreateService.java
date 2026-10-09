@@ -17,7 +17,8 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerCreateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardSavePort;
 
 @Service
 @Transactional
@@ -25,20 +26,23 @@ class ShopContentBoardOwnerCreateService implements ShopContentBoardOwnerCreateU
 
     private static final long MAX_CONTENT_BOARD_COUNT = 4;
 
-    private final ShopContentBoardPersistencePort shopContentBoardPersistencePort;
+    private final ShopContentBoardLoadPort shopContentBoardLoadPort;
+    private final ShopContentBoardSavePort shopContentBoardSavePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
     private final FileOwnerUploadUseCase fileOwnerUploadUseCase;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopContentBoardOwnerCreateService(
-        ShopContentBoardPersistencePort shopContentBoardPersistencePort,
+        ShopContentBoardLoadPort shopContentBoardLoadPort,
+        ShopContentBoardSavePort shopContentBoardSavePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
         FileOwnerUploadUseCase fileOwnerUploadUseCase,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopContentBoardPersistencePort = shopContentBoardPersistencePort;
+        this.shopContentBoardLoadPort = shopContentBoardLoadPort;
+        this.shopContentBoardSavePort = shopContentBoardSavePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopImageSpecValidator = shopImageSpecValidator;
         this.fileOwnerUploadUseCase = fileOwnerUploadUseCase;
@@ -56,7 +60,7 @@ class ShopContentBoardOwnerCreateService implements ShopContentBoardOwnerCreateU
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        if (shopContentBoardPersistencePort.countByShopId(shopId) >= MAX_CONTENT_BOARD_COUNT) {
+        if (shopContentBoardLoadPort.countByShopId(shopId) >= MAX_CONTENT_BOARD_COUNT) {
             throw new ApplicationException(CeoErrorCode.SHOP_CONTENT_BOARD_LIMIT_EXCEEDED);
         }
 
@@ -66,7 +70,7 @@ class ShopContentBoardOwnerCreateService implements ShopContentBoardOwnerCreateU
         ShopContentBoard shopContentBoard = ShopContentBoard.of(
             ShopId.of(shopId), type, ShopContentTopic.from(topic), imageFileId, youtubeUrl, description
         );
-        ShopContentBoard saved = shopContentBoardPersistencePort.save(shopContentBoard);
+        ShopContentBoard saved = shopContentBoardSavePort.save(shopContentBoard);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),

@@ -20,13 +20,16 @@ import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopCeoAssignmentHistoryPersistencePort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopCeoAssignmentHistorySavePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistorySavePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -36,28 +39,38 @@ class ShopLifecycleServiceTest {
     private static final Long CEO_ID = 7L;
     private static final Long STATION_ID = 3L;
 
-    private RecordingShopCeoAssignmentHistoryPersistencePort assignmentHistoryPersistencePort;
+    private RecordingShopCeoAssignmentHistorySavePort assignmentHistorySavePort;
     private ShopLifecycleService shopLifecycleService;
 
     @BeforeEach
     void setUp() {
-        assignmentHistoryPersistencePort = new RecordingShopCeoAssignmentHistoryPersistencePort();
+        assignmentHistorySavePort = new RecordingShopCeoAssignmentHistorySavePort();
         ShopChangeHistoryRecorder changeHistoryRecorder =
-            new ShopChangeHistoryRecorder(new RecordingShopChangeHistoryPersistencePort());
+            new ShopChangeHistoryRecorder(new RecordingShopChangeHistorySavePort());
+        FakeShopPersistence fakeShopPersistence = new FakeShopPersistence();
+        FakeShopBookmarkPersistence fakeShopBookmarkPersistence = new FakeShopBookmarkPersistence();
+        FakeShopImageChangeRequestPersistence fakeShopImageChangeRequestPersistence = new FakeShopImageChangeRequestPersistence();
+        FakeShopPersistence imageApprovalShopPersistence = new FakeShopPersistence();
+        RecordingShopRequestIndexPersistence recordingShopRequestIndexPersistence = new RecordingShopRequestIndexPersistence();
         shopLifecycleService = new ShopLifecycleService(
-            new FakeShopPersistencePort(),
+            fakeShopPersistence,
+            fakeShopPersistence,
             null,
-            new FakeShopBookmarkPersistencePort(),
+            null,
+            fakeShopBookmarkPersistence,
+            fakeShopBookmarkPersistence,
             id -> true,
             new ShopImageApprovalService(
-                new FakeShopImageChangeRequestPersistencePort(),
-                new FakeShopPersistencePort(),
+                fakeShopImageChangeRequestPersistence,
+                fakeShopImageChangeRequestPersistence,
+                imageApprovalShopPersistence,
+                imageApprovalShopPersistence,
                 changeHistoryRecorder,
-                new ShopRequestIndexRecorder(new RecordingShopRequestIndexPersistencePort())
+                new ShopRequestIndexRecorder(recordingShopRequestIndexPersistence, recordingShopRequestIndexPersistence)
             ),
-            new ProhibitedWordValidator(new FakeProhibitedWordPersistencePort()),
+            new ProhibitedWordValidator(new FakeProhibitedWordLoadPort()),
             changeHistoryRecorder,
-            new ShopCeoAssignmentRecorder(assignmentHistoryPersistencePort)
+            new ShopCeoAssignmentRecorder(assignmentHistorySavePort)
         );
     }
 
@@ -66,8 +79,8 @@ class ShopLifecycleServiceTest {
     void createShop_withCeo_recordsGrant() {
         Shop shop = createShop(CEO_ID);
 
-        assertThat(assignmentHistoryPersistencePort.saved()).hasSize(1);
-        ShopCeoAssignmentHistory history = assignmentHistoryPersistencePort.saved().getFirst();
+        assertThat(assignmentHistorySavePort.saved()).hasSize(1);
+        ShopCeoAssignmentHistory history = assignmentHistorySavePort.saved().getFirst();
         assertThat(history.getActionType()).isEqualTo(ShopCeoAssignmentActionType.GRANT);
         assertThat(history.getCeoId()).isEqualTo(CeoId.of(CEO_ID));
         assertThat(history.getShopId()).isEqualTo(shop.getShopId());
@@ -79,7 +92,7 @@ class ShopLifecycleServiceTest {
     void createShop_withoutCeo_recordsNothing() {
         createShop(null);
 
-        assertThat(assignmentHistoryPersistencePort.saved()).isEmpty();
+        assertThat(assignmentHistorySavePort.saved()).isEmpty();
     }
 
     private Shop createShop(Long ceoId) {
@@ -97,7 +110,7 @@ class ShopLifecycleServiceTest {
         );
     }
 
-    private static final class FakeShopPersistencePort implements ShopPersistencePort {
+    private static final class FakeShopPersistence implements ShopLoadPort, ShopSavePort {
 
         private final Map<Long, Shop> shops = new HashMap<>();
         private final AtomicLong sequence = new AtomicLong();
@@ -143,7 +156,7 @@ class ShopLifecycleServiceTest {
         }
     }
 
-    private static final class FakeShopBookmarkPersistencePort implements ShopBookmarkPersistencePort {
+    private static final class FakeShopBookmarkPersistence implements ShopBookmarkLoadPort, ShopBookmarkSavePort {
 
         @Override
         public boolean existsByShopIdAndMemberId(Long shopId, MemberId memberId) {
@@ -160,8 +173,8 @@ class ShopLifecycleServiceTest {
         }
     }
 
-    private static final class FakeShopImageChangeRequestPersistencePort
-        implements ShopImageChangeRequestPersistencePort {
+    private static final class FakeShopImageChangeRequestPersistence
+        implements ShopImageChangeRequestLoadPort, ShopImageChangeRequestSavePort {
 
         @Override
         public Optional<ShopImageChangeRequest> findById(Long id) {
@@ -188,7 +201,7 @@ class ShopLifecycleServiceTest {
         }
     }
 
-    private static final class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+    private static final class FakeProhibitedWordLoadPort implements ProhibitedWordLoadPort {
 
         @Override
         public java.util.List<ProhibitedWord> findAll() {

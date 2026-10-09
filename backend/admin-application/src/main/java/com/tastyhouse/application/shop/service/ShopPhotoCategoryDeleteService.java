@@ -5,22 +5,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryDeleteUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 
 @Service
 @Transactional
 class ShopPhotoCategoryDeleteService implements ShopPhotoCategoryDeleteUseCase {
 
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopDetailSavePort shopDetailSavePort;
 
-    public ShopPhotoCategoryDeleteService(ShopDetailPersistencePort shopDetailPersistencePort) {
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+    public ShopPhotoCategoryDeleteService(ShopDetailSavePort shopDetailSavePort) {
+        this.shopDetailSavePort = shopDetailSavePort;
     }
 
     @Override
     public void deletePhotoCategory(ShopPhotoCategoryDeleteCommand command) {
         Long categoryId = command.categoryId();
 
-        shopDetailPersistencePort.deletePhotoCategoryById(categoryId);
+        shopDetailSavePort.deletePhotoCategoryById(categoryId);
     }
 }

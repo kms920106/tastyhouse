@@ -13,28 +13,32 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.sms.port.out.SmsSendResult;
 import com.tastyhouse.application.sms.port.out.SmsSender;
-import com.tastyhouse.application.sms.port.out.write.SmsVerificationPersistencePort;
+import com.tastyhouse.application.sms.port.out.write.SmsVerificationLoadPort;
+import com.tastyhouse.application.sms.port.out.write.SmsVerificationSavePort;
 
 @Service
 public class SmsVerificationService {
 
-    private final SmsVerificationPersistencePort smsVerificationPersistencePort;
+    private final SmsVerificationLoadPort smsVerificationLoadPort;
+    private final SmsVerificationSavePort smsVerificationSavePort;
     private final SmsSender smsSender;
     private final DomainEventPublisher domainEventPublisher;
 
     public SmsVerificationService(
-        SmsVerificationPersistencePort smsVerificationPersistencePort,
+        SmsVerificationLoadPort smsVerificationLoadPort,
+        SmsVerificationSavePort smsVerificationSavePort,
         SmsSender smsSender,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.smsVerificationPersistencePort = smsVerificationPersistencePort;
+        this.smsVerificationLoadPort = smsVerificationLoadPort;
+        this.smsVerificationSavePort = smsVerificationSavePort;
         this.smsSender = smsSender;
         this.domainEventPublisher = domainEventPublisher;
     }
 
     public SmsVerification issue(String phoneNumber) {
-        smsVerificationPersistencePort.expireAllPendingByPhoneNumber(phoneNumber);
-        SmsVerification saved = smsVerificationPersistencePort.save(SmsVerification.create(phoneNumber));
+        smsVerificationSavePort.expireAllPendingByPhoneNumber(phoneNumber);
+        SmsVerification saved = smsVerificationSavePort.save(SmsVerification.create(phoneNumber));
 
         SmsSendResult result = smsSender.send(phoneNumber, SmsVerificationMessage.body(saved.getVerificationCode()));
         if (!result.success()) {
@@ -45,13 +49,13 @@ public class SmsVerificationService {
     }
 
     public void confirm(String phoneNumber, String verificationCode) {
-        SmsVerification verification = smsVerificationPersistencePort
+        SmsVerification verification = smsVerificationLoadPort
             .findLatestPendingByPhoneNumber(phoneNumber, SmsVerificationStatus.PENDING)
             .orElseThrow(() -> new ApplicationException(WebErrorCode.SMS_VERIFICATION_CODE_NOT_FOUND));
 
         LocalDateTime now = LocalDateTime.now();
         verification.verify(VerificationCode.of(verificationCode), now);
-        smsVerificationPersistencePort.save(verification);
+        smsVerificationSavePort.save(verification);
 
         domainEventPublisher.publish(new SmsVerifiedEvent(
             verification.getSmsVerificationId(),

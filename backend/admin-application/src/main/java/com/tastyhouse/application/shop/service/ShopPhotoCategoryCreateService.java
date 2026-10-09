@@ -7,16 +7,16 @@ import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryCreateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 
 @Service
 @Transactional
 class ShopPhotoCategoryCreateService implements ShopPhotoCategoryCreateUseCase {
 
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopDetailSavePort shopDetailSavePort;
 
-    public ShopPhotoCategoryCreateService(ShopDetailPersistencePort shopDetailPersistencePort) {
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+    public ShopPhotoCategoryCreateService(ShopDetailSavePort shopDetailSavePort) {
+        this.shopDetailSavePort = shopDetailSavePort;
     }
 
     @Override
@@ -24,7 +24,7 @@ class ShopPhotoCategoryCreateService implements ShopPhotoCategoryCreateUseCase {
         Long id = command.shopId();
         String name = command.name();
 
-        ShopPhotoCategory photoCategory = shopDetailPersistencePort.savePhotoCategory(ShopPhotoCategory.of(ShopId.of(id), name));
+        ShopPhotoCategory photoCategory = shopDetailSavePort.savePhotoCategory(ShopPhotoCategory.of(ShopId.of(id), name));
         return photoCategory.getId();
     }
 }

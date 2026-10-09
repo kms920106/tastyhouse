@@ -8,16 +8,19 @@ import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopChoiceUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopChoiceUpdateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopChoicePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopChoiceLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopChoiceSavePort;
 
 @Service
 @Transactional
 class ShopChoiceUpdateService implements ShopChoiceUpdateUseCase {
 
-    private final ShopChoicePersistencePort shopChoicePersistencePort;
+    private final ShopChoiceLoadPort shopChoiceLoadPort;
+    private final ShopChoiceSavePort shopChoiceSavePort;
 
-    public ShopChoiceUpdateService(ShopChoicePersistencePort shopChoicePersistencePort) {
-        this.shopChoicePersistencePort = shopChoicePersistencePort;
+    public ShopChoiceUpdateService(ShopChoiceLoadPort shopChoiceLoadPort, ShopChoiceSavePort shopChoiceSavePort) {
+        this.shopChoiceLoadPort = shopChoiceLoadPort;
+        this.shopChoiceSavePort = shopChoiceSavePort;
     }
 
     @Override
@@ -26,9 +29,9 @@ class ShopChoiceUpdateService implements ShopChoiceUpdateUseCase {
         String title = command.title();
         String content = command.content();
 
-        ShopChoice shopChoice = shopChoicePersistencePort.findById(id)
+        ShopChoice shopChoice = shopChoiceLoadPort.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_CHOICE_NOT_FOUND));
         shopChoice.update(title, content);
-        shopChoicePersistencePort.save(shopChoice);
+        shopChoiceSavePort.save(shopChoice);
     }
 }

@@ -1,0 +1,46 @@
+package com.tastyhouse.testsupport.product.service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import com.tastyhouse.domain.product.model.ProductCategory;
+import com.tastyhouse.domain.product.vo.ProductCategoryId;
+import com.tastyhouse.domain.shop.vo.ShopId;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCategorySavePort;
+
+public class FakeShopLinkProductCategoryPersistence implements ProductCategoryLoadPort, ProductCategorySavePort {
+
+    private final Map<Long, ProductCategory> categories = new HashMap<>();
+
+    public void given(Long categoryId, ShopId shopId) {
+        categories.put(categoryId, ProductCategory.reconstitute(categoryId, shopId, "그룹" + categoryId, null, 0, true));
+    }
+
+    @Override
+    public Optional<ProductCategory> findById(ProductCategoryId id) {
+        return Optional.ofNullable(categories.get(id.value()));
+    }
+
+    @Override
+    public List<ProductCategory> findCategoriesByNameAndShopId(String name, ShopId shopId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ProductCategory save(ProductCategory productCategory) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<ProductCategory> findAllByShopId(ShopId shopId) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void delete(ProductCategory productCategory) {
+        throw new UnsupportedOperationException();
+    }
+}

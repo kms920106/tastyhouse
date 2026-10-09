@@ -10,28 +10,28 @@ import com.tastyhouse.domain.shop.model.ShopNotice;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.in.ShopNoticeDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerDeleteUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeImagePersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeSavePort;
 
 @Service
 @Transactional
 class ShopNoticeOwnerDeleteService implements ShopNoticeOwnerDeleteUseCase {
 
-    private final ShopNoticePersistencePort shopNoticePersistencePort;
-    private final ShopNoticeImagePersistencePort shopNoticeImagePersistencePort;
+    private final ShopNoticeSavePort shopNoticeSavePort;
+    private final ShopNoticeImageSavePort shopNoticeImageSavePort;
     private final ShopNoticeOwnerReader shopNoticeOwnerReader;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopNoticeOwnerDeleteService(
-        ShopNoticePersistencePort shopNoticePersistencePort,
-        ShopNoticeImagePersistencePort shopNoticeImagePersistencePort,
+        ShopNoticeSavePort shopNoticeSavePort,
+        ShopNoticeImageSavePort shopNoticeImageSavePort,
         ShopNoticeOwnerReader shopNoticeOwnerReader,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopNoticePersistencePort = shopNoticePersistencePort;
-        this.shopNoticeImagePersistencePort = shopNoticeImagePersistencePort;
+        this.shopNoticeSavePort = shopNoticeSavePort;
+        this.shopNoticeImageSavePort = shopNoticeImageSavePort;
         this.shopNoticeOwnerReader = shopNoticeOwnerReader;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
@@ -47,8 +47,8 @@ class ShopNoticeOwnerDeleteService implements ShopNoticeOwnerDeleteUseCase {
         ShopNotice notice = shopNoticeOwnerReader.loadOwnedNotice(shopId, noticeId);
         String previousValue = describeNotice(notice);
 
-        shopNoticeImagePersistencePort.deleteByShopNoticeId(noticeId);
-        shopNoticePersistencePort.deleteById(noticeId);
+        shopNoticeImageSavePort.deleteByShopNoticeId(noticeId);
+        shopNoticeSavePort.deleteById(noticeId);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),

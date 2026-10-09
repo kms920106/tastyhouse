@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.review.model.ReviewOwnerReply;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.review.vo.ReviewOwnerReplyId;
-import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplyLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewOwnerReplySavePort;
 
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewOwnerReplyJpaEntity.reviewOwnerReplyJpaEntity;
 
 @Repository
-class ReviewOwnerReplyPersistenceAdapter implements ReviewOwnerReplyPersistencePort {
+class ReviewOwnerReplyPersistenceAdapter implements ReviewOwnerReplyLoadPort, ReviewOwnerReplySavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewOwnerReplyJpaRepository reviewOwnerReplyJpaRepository;

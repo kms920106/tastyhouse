@@ -32,29 +32,33 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipSetting;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipTierSpec;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipSavePort;
 
 @Service
 public class ShopDeliveryTipService {
 
-    private final ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort;
-    private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;
-    private final AdminDongPersistencePort adminDongPersistencePort;
+    private final ShopDeliveryTipLoadPort shopDeliveryTipLoadPort;
+    private final ShopDeliveryTipSavePort shopDeliveryTipSavePort;
+    private final ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort;
+    private final AdminDongLoadPort adminDongLoadPort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopDeliveryTipService(
-        ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort,
-        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
-        AdminDongPersistencePort adminDongPersistencePort,
+        ShopDeliveryTipLoadPort shopDeliveryTipLoadPort,
+        ShopDeliveryTipSavePort shopDeliveryTipSavePort,
+        ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort,
+        AdminDongLoadPort adminDongLoadPort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopDeliveryTipPersistencePort = shopDeliveryTipPersistencePort;
-        this.shopDeliveryAreaPersistencePort = shopDeliveryAreaPersistencePort;
-        this.adminDongPersistencePort = adminDongPersistencePort;
+        this.shopDeliveryTipLoadPort = shopDeliveryTipLoadPort;
+        this.shopDeliveryTipSavePort = shopDeliveryTipSavePort;
+        this.shopDeliveryAreaLoadPort = shopDeliveryAreaLoadPort;
+        this.adminDongLoadPort = adminDongLoadPort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -75,16 +79,16 @@ public class ShopDeliveryTipService {
 
         validateTierMonotonicity(sorted);
 
-        String previousValue = describeTiers(shopDeliveryTipPersistencePort.findTiersByShopId(shopId));
+        String previousValue = describeTiers(shopDeliveryTipLoadPort.findTiersByShopId(shopId));
 
-        shopDeliveryTipPersistencePort.deleteTiersByShopId(shopId);
+        shopDeliveryTipSavePort.deleteTiersByShopId(shopId);
 
         List<ShopDeliveryTipTier> tiers = new ArrayList<>(sorted.size());
         for (int tierOrder = 0; tierOrder < sorted.size(); tierOrder++) {
             ShopDeliveryTipTierSpec spec = sorted.get(tierOrder);
             tiers.add(ShopDeliveryTipTier.of(shopId, tierOrder, spec.minOrderAmount(), spec.tipAmount()));
         }
-        List<ShopDeliveryTipTier> saved = shopDeliveryTipPersistencePort.saveTiers(tiers);
+        List<ShopDeliveryTipTier> saved = shopDeliveryTipSavePort.saveTiers(tiers);
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -104,7 +108,7 @@ public class ShopDeliveryTipService {
         int surchargeAmount,
         ShopChangeActor actor
     ) {
-        if (shopDeliveryTipPersistencePort.countRegionTipsByShopId(shopId) > 0) {
+        if (shopDeliveryTipLoadPort.countRegionTipsByShopId(shopId) > 0) {
             throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT,
                 CeoErrorCode.SHOP_DELIVERY_TIP_EXTRA_TYPE_CONFLICT.getDefaultMessage()
                     + " 지역별 배달팁을 모두 삭제한 뒤 거리별을 설정하세요.");
@@ -114,7 +118,7 @@ public class ShopDeliveryTipService {
         String previousValue = describeDistanceTip(setting);
 
         setting.changeToDistance(baseDistanceMeters, unit, surchargeAmount);
-        ShopDeliveryTipSetting saved = shopDeliveryTipPersistencePort.saveSetting(setting);
+        ShopDeliveryTipSetting saved = shopDeliveryTipSavePort.saveSetting(setting);
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -128,11 +132,11 @@ public class ShopDeliveryTipService {
     }
 
     public void clearDistanceTip(ShopId shopId, ShopChangeActor actor) {
-        shopDeliveryTipPersistencePort.findSettingByShopId(shopId).ifPresent(setting -> {
+        shopDeliveryTipLoadPort.findSettingByShopId(shopId).ifPresent(setting -> {
             String previousValue = describeDistanceTip(setting);
 
             setting.clearExtraTip();
-            shopDeliveryTipPersistencePort.saveSetting(setting);
+            shopDeliveryTipSavePort.saveSetting(setting);
 
             shopChangeHistoryRecorder.record(
                 shopId,
@@ -161,10 +165,10 @@ public class ShopDeliveryTipService {
 
         List<ShopDeliveryTipRegion> regionTips = buildRegionTips(shopId, requested);
 
-        String previousValue = describeRegionTips(shopDeliveryTipPersistencePort.findRegionTipsByShopId(shopId));
+        String previousValue = describeRegionTips(shopDeliveryTipLoadPort.findRegionTipsByShopId(shopId));
 
-        shopDeliveryTipPersistencePort.deleteRegionTipsByShopId(shopId);
-        List<ShopDeliveryTipRegion> saved = shopDeliveryTipPersistencePort.saveRegionTips(regionTips);
+        shopDeliveryTipSavePort.deleteRegionTipsByShopId(shopId);
+        List<ShopDeliveryTipRegion> saved = shopDeliveryTipSavePort.saveRegionTips(regionTips);
 
         if (requested.isEmpty()) {
             if (!setting.usesDistance()) {
@@ -173,7 +177,7 @@ public class ShopDeliveryTipService {
         } else {
             setting.changeToRegion();
         }
-        shopDeliveryTipPersistencePort.saveSetting(setting);
+        shopDeliveryTipSavePort.saveSetting(setting);
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -206,10 +210,10 @@ public class ShopDeliveryTipService {
             ))
             .toList();
 
-        String previousValue = describeScheduleTips(shopDeliveryTipPersistencePort.findScheduleTipsByShopId(shopId));
+        String previousValue = describeScheduleTips(shopDeliveryTipLoadPort.findScheduleTipsByShopId(shopId));
 
-        shopDeliveryTipPersistencePort.deleteScheduleTipsByShopId(shopId);
-        List<ShopDeliveryTipSchedule> saved = shopDeliveryTipPersistencePort.saveScheduleTips(scheduleTips);
+        shopDeliveryTipSavePort.deleteScheduleTipsByShopId(shopId);
+        List<ShopDeliveryTipSchedule> saved = shopDeliveryTipSavePort.saveScheduleTips(scheduleTips);
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -224,11 +228,11 @@ public class ShopDeliveryTipService {
 
     public ShopDeliveryTipHoliday changeHolidayTip(ShopId shopId, int tipAmount, ShopChangeActor actor) {
         String previousValue = describeHolidayTip(
-            shopDeliveryTipPersistencePort.findHolidayTipByShopId(shopId).orElse(null)
+            shopDeliveryTipLoadPort.findHolidayTipByShopId(shopId).orElse(null)
         );
 
         if (tipAmount == 0) {
-            shopDeliveryTipPersistencePort.deleteHolidayTipByShopId(shopId);
+            shopDeliveryTipSavePort.deleteHolidayTipByShopId(shopId);
 
             shopChangeHistoryRecorder.record(
                 shopId,
@@ -241,14 +245,14 @@ public class ShopDeliveryTipService {
             return null;
         }
 
-        ShopDeliveryTipHoliday holidayTip = shopDeliveryTipPersistencePort.findHolidayTipByShopId(shopId)
+        ShopDeliveryTipHoliday holidayTip = shopDeliveryTipLoadPort.findHolidayTipByShopId(shopId)
             .map(existing -> {
                 existing.changeTipAmount(tipAmount);
                 return existing;
             })
             .orElseGet(() -> ShopDeliveryTipHoliday.of(shopId, tipAmount));
 
-        ShopDeliveryTipHoliday saved = shopDeliveryTipPersistencePort.saveHolidayTip(holidayTip);
+        ShopDeliveryTipHoliday saved = shopDeliveryTipSavePort.saveHolidayTip(holidayTip);
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -262,7 +266,7 @@ public class ShopDeliveryTipService {
     }
 
     private ShopDeliveryTipSetting loadOrCreateSetting(ShopId shopId) {
-        return shopDeliveryTipPersistencePort.findSettingByShopId(shopId)
+        return shopDeliveryTipLoadPort.findSettingByShopId(shopId)
             .orElseGet(() -> ShopDeliveryTipSetting.of(shopId));
     }
 
@@ -289,7 +293,7 @@ public class ShopDeliveryTipService {
     }
 
     private String describeRegionTips(List<ShopDeliveryTipRegion> regionTips) {
-        Map<Long, String> namesById = adminDongPersistencePort
+        Map<Long, String> namesById = adminDongLoadPort
             .findAllByIds(regionTips.stream().map(ShopDeliveryTipRegion::getAdminDongId).toList())
             .stream()
             .collect(Collectors.toMap(AdminDong::getId, AdminDong::getDongName, (first, second) -> first));
@@ -357,11 +361,11 @@ public class ShopDeliveryTipService {
             }
 
             AdminDongId adminDongId = AdminDongId.of(spec.adminDongId());
-            if (!adminDongPersistencePort.existsById(adminDongId)) {
+            if (!adminDongLoadPort.existsById(adminDongId)) {
                 throw new ApplicationException(CeoErrorCode.ADMIN_DONG_NOT_FOUND,
                     CeoErrorCode.ADMIN_DONG_NOT_FOUND.getDefaultMessage() + " 행정동 ID: " + spec.adminDongId());
             }
-            if (!shopDeliveryAreaPersistencePort.existsByShopIdAndAdminDongId(shopId, adminDongId)) {
+            if (!shopDeliveryAreaLoadPort.existsByShopIdAndAdminDongId(shopId, adminDongId)) {
                 throw new ApplicationException(CeoErrorCode.SHOP_DELIVERY_TIP_REGION_NOT_IN_DELIVERY_AREA,
                     CeoErrorCode.SHOP_DELIVERY_TIP_REGION_NOT_IN_DELIVERY_AREA.getDefaultMessage()
                         + " 행정동 ID: " + spec.adminDongId());

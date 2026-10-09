@@ -11,7 +11,8 @@ import com.tastyhouse.domain.notification.model.NotificationTargetType;
 import com.tastyhouse.domain.notification.model.NotificationType;
 import com.tastyhouse.domain.notification.vo.NotificationId;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.notification.port.out.write.NotificationPersistencePort;
+import com.tastyhouse.application.notification.port.out.write.NotificationLoadPort;
+import com.tastyhouse.application.notification.port.out.write.NotificationSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -19,10 +20,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Service
 public class NotificationService {
 
-    private final NotificationPersistencePort notificationPersistencePort;
+    private final NotificationLoadPort notificationLoadPort;
+    private final NotificationSavePort notificationSavePort;
 
-    public NotificationService(NotificationPersistencePort notificationPersistencePort) {
-        this.notificationPersistencePort = notificationPersistencePort;
+    public NotificationService(NotificationLoadPort notificationLoadPort, NotificationSavePort notificationSavePort) {
+        this.notificationLoadPort = notificationLoadPort;
+        this.notificationSavePort = notificationSavePort;
     }
 
     public Long notify(
@@ -33,7 +36,7 @@ public class NotificationService {
         NotificationTargetType targetType,
         Long targetId
     ) {
-        Notification saved = notificationPersistencePort.save(
+        Notification saved = notificationSavePort.save(
             Notification.of(memberId, type, title, body, targetType, targetId)
         );
         return saved.getId();
@@ -62,7 +65,7 @@ public class NotificationService {
     }
 
     public void markAsRead(NotificationId notificationId, MemberId memberId, LocalDateTime readAt) {
-        Notification notification = notificationPersistencePort.findById(notificationId)
+        Notification notification = notificationLoadPort.findById(notificationId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.NOTIFICATION_NOT_FOUND));
 
         if (!notification.getMemberId().equals(memberId)) {
@@ -70,16 +73,16 @@ public class NotificationService {
         }
 
         notification.markAsRead(readAt);
-        notificationPersistencePort.save(notification);
+        notificationSavePort.save(notification);
     }
 
     public void markAllAsRead(MemberId memberId, LocalDateTime readAt) {
-        List<Notification> unread = notificationPersistencePort.findUnreadByMemberId(memberId);
+        List<Notification> unread = notificationLoadPort.findUnreadByMemberId(memberId);
         if (unread.isEmpty()) {
             return;
         }
 
         unread.forEach(notification -> notification.markAsRead(readAt));
-        notificationPersistencePort.saveAll(unread);
+        notificationSavePort.saveAll(unread);
     }
 }

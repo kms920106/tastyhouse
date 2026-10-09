@@ -16,8 +16,10 @@ import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCategorySavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
@@ -214,8 +216,11 @@ class ProductSortServiceTest {
         private final ProductSortService service;
 
         private Fixture() {
+            StubProductPersistence stubProductPersistence = new StubProductPersistence(products);
+            StubProductCategoryPersistence stubProductCategoryPersistence = new StubProductCategoryPersistence(categories);
             this.service = new ProductSortService(
-                new StubProductPersistencePort(products), new StubProductCategoryPersistencePort(categories));
+                stubProductPersistence,
+                stubProductPersistence, stubProductCategoryPersistence, stubProductCategoryPersistence);
         }
 
         private void addProduct(Long id, Long categoryId, Integer sort) {
@@ -240,7 +245,7 @@ class ProductSortServiceTest {
         }
     }
 
-    private record StubProductPersistencePort(Map<Long, Product> products) implements ProductPersistencePort {
+    private record StubProductPersistence(Map<Long, Product> products) implements ProductLoadPort, ProductSavePort {
 
         @Override
         public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
@@ -315,8 +320,8 @@ class ProductSortServiceTest {
         }
     }
 
-    private record StubProductCategoryPersistencePort(Map<Long, ProductCategory> categories)
-        implements ProductCategoryPersistencePort {
+    private record StubProductCategoryPersistence(Map<Long, ProductCategory> categories)
+        implements ProductCategoryLoadPort, ProductCategorySavePort {
 
         @Override
         public List<ProductCategory> findAllByShopId(ShopId shopId) {

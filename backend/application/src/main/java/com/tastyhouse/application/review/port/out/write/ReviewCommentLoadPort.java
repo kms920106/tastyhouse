@@ -1,0 +1,11 @@
+package com.tastyhouse.application.review.port.out.write;
+
+import java.util.Optional;
+
+import com.tastyhouse.domain.review.model.ReviewComment;
+import com.tastyhouse.domain.review.vo.ReviewCommentId;
+
+public interface ReviewCommentLoadPort {
+
+    Optional<ReviewComment> findById(ReviewCommentId commentId);
+}

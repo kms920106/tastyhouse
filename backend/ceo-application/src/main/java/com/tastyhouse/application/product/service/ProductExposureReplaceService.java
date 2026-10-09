@@ -16,7 +16,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductExposureHourCommand;
 import com.tastyhouse.application.product.port.in.ProductExposureReplaceCommand;
 import com.tastyhouse.application.product.port.in.ProductExposureReplaceUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -26,16 +26,16 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 class ProductExposureReplaceService implements ProductExposureReplaceUseCase {
 
     private final ProductExposureService productExposureService;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductLoadPort productLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductExposureReplaceService(
         ProductExposureService productExposureService,
-        ProductPersistencePort productPersistencePort,
+        ProductLoadPort productLoadPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productExposureService = productExposureService;
-        this.productPersistencePort = productPersistencePort;
+        this.productLoadPort = productLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -75,7 +75,7 @@ class ProductExposureReplaceService implements ProductExposureReplaceUseCase {
 
     private void requireOwnedProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(
+        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(
             ShopId.of(shopId), List.of(ProductId.of(productId)));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);

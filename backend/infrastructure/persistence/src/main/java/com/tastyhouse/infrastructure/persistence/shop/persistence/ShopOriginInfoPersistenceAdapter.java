@@ -6,12 +6,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopOriginInfo;
-import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopOriginInfoJpaEntity.shopOriginInfoJpaEntity;
 
 @Repository
-class ShopOriginInfoPersistenceAdapter implements ShopOriginInfoPersistencePort {
+class ShopOriginInfoPersistenceAdapter implements ShopOriginInfoLoadPort, ShopOriginInfoSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopOriginInfoJpaRepository shopOriginInfoJpaRepository;

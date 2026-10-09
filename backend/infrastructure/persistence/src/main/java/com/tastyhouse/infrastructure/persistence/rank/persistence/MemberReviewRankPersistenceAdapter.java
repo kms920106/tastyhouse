@@ -9,12 +9,12 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankPersistencePort;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.rank.persistence.QMemberReviewRankJpaEntity.memberReviewRankJpaEntity;
 
 @Repository
-class MemberReviewRankPersistenceAdapter implements MemberReviewRankPersistencePort {
+class MemberReviewRankPersistenceAdapter implements MemberReviewRankSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final MemberReviewRankJpaRepository memberReviewRankJpaRepository;

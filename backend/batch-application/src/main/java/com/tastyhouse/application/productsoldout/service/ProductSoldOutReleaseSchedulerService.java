@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.domain.product.model.Product;
 import com.tastyhouse.domain.product.model.ProductCommonOption;
 import com.tastyhouse.domain.product.model.ProductOption;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
 import com.tastyhouse.application.productsoldout.port.in.ReleaseExpiredSoldOutUseCase;
 
 @Service
@@ -20,20 +20,20 @@ class ProductSoldOutReleaseSchedulerService implements ReleaseExpiredSoldOutUseC
 
     private static final Logger log = LoggerFactory.getLogger(ProductSoldOutReleaseSchedulerService.class);
 
-    private final ProductPersistencePort productPersistencePort;
-    private final ProductOptionPersistencePort productOptionPersistencePort;
-    private final ProductCommonOptionPersistencePort productCommonOptionPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductOptionLoadPort productOptionLoadPort;
+    private final ProductCommonOptionLoadPort productCommonOptionLoadPort;
     private final ProductSoldOutReleaseExecutor productSoldOutReleaseExecutor;
 
     public ProductSoldOutReleaseSchedulerService(
-        ProductPersistencePort productPersistencePort,
-        ProductOptionPersistencePort productOptionPersistencePort,
-        ProductCommonOptionPersistencePort productCommonOptionPersistencePort,
+        ProductLoadPort productLoadPort,
+        ProductOptionLoadPort productOptionLoadPort,
+        ProductCommonOptionLoadPort productCommonOptionLoadPort,
         ProductSoldOutReleaseExecutor productSoldOutReleaseExecutor
     ) {
-        this.productPersistencePort = productPersistencePort;
-        this.productOptionPersistencePort = productOptionPersistencePort;
-        this.productCommonOptionPersistencePort = productCommonOptionPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productOptionLoadPort = productOptionLoadPort;
+        this.productCommonOptionLoadPort = productCommonOptionLoadPort;
         this.productSoldOutReleaseExecutor = productSoldOutReleaseExecutor;
     }
 
@@ -41,9 +41,9 @@ class ProductSoldOutReleaseSchedulerService implements ReleaseExpiredSoldOutUseC
     public void releaseExpiredSoldOut() {
         LocalDateTime now = LocalDateTime.now();
 
-        List<Product> products = productPersistencePort.findAllSoldOutExpiredBefore(now);
-        List<ProductOption> options = productOptionPersistencePort.findAllSoldOutExpiredBefore(now);
-        List<ProductCommonOption> commonOptions = productCommonOptionPersistencePort.findAllSoldOutExpiredBefore(now);
+        List<Product> products = productLoadPort.findAllSoldOutExpiredBefore(now);
+        List<ProductOption> options = productOptionLoadPort.findAllSoldOutExpiredBefore(now);
+        List<ProductCommonOption> commonOptions = productCommonOptionLoadPort.findAllSoldOutExpiredBefore(now);
 
         int total = products.size() + options.size() + commonOptions.size();
         if (total == 0) {

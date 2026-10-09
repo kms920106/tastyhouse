@@ -24,8 +24,9 @@ import com.tastyhouse.application.auth.port.out.SocialProfileResult;
 import com.tastyhouse.application.auth.service.SocialOAuthFailures;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
-import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountSavePort;
 import com.tastyhouse.application.member.service.MemberRegistrationService;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -38,8 +39,9 @@ public class NaverSocialLoginService {
 
     private final SocialOAuthClient naverOAuthClient;
     private final MemberRegistrationService memberRegistrationService;
-    private final MemberPersistencePort memberPersistencePort;
-    private final MemberSocialAccountPersistencePort memberSocialAccountPersistencePort;
+    private final MemberLoadPort memberLoadPort;
+    private final MemberSocialAccountLoadPort memberSocialAccountLoadPort;
+    private final MemberSocialAccountSavePort memberSocialAccountSavePort;
     private final MemberTokenService tokenService;
     private final MemberJwtTokenProvider jwtTokenProvider;
     private final NaverTempTokenRepository naverTempTokenRepository;
@@ -47,16 +49,18 @@ public class NaverSocialLoginService {
     public NaverSocialLoginService(
         @Qualifier("naverOAuthClient") SocialOAuthClient naverOAuthClient,
         MemberRegistrationService memberRegistrationService,
-        MemberPersistencePort memberPersistencePort,
-        MemberSocialAccountPersistencePort memberSocialAccountPersistencePort,
+        MemberLoadPort memberLoadPort,
+        MemberSocialAccountLoadPort memberSocialAccountLoadPort,
+        MemberSocialAccountSavePort memberSocialAccountSavePort,
         MemberTokenService tokenService,
         MemberJwtTokenProvider jwtTokenProvider,
         NaverTempTokenRepository naverTempTokenRepository
     ) {
         this.naverOAuthClient = naverOAuthClient;
         this.memberRegistrationService = memberRegistrationService;
-        this.memberPersistencePort = memberPersistencePort;
-        this.memberSocialAccountPersistencePort = memberSocialAccountPersistencePort;
+        this.memberLoadPort = memberLoadPort;
+        this.memberSocialAccountLoadPort = memberSocialAccountLoadPort;
+        this.memberSocialAccountSavePort = memberSocialAccountSavePort;
         this.tokenService = tokenService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.naverTempTokenRepository = naverTempTokenRepository;
@@ -72,20 +76,20 @@ public class NaverSocialLoginService {
         String providerId = naverUser.providerId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberSocialAccountPersistencePort.findByProviderAndProviderId(MemberSocialProvider.NAVER, providerId);
+            memberSocialAccountLoadPort.findByProviderAndProviderId(MemberSocialProvider.NAVER, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(naverUser.email(), naverUser.nickname(), naverUser.profileImageUrl());
-            memberSocialAccountPersistencePort.save(socialAccount);
+            memberSocialAccountSavePort.save(socialAccount);
 
-            Member member = memberPersistencePort.findById(socialAccount.getMemberId())
+            Member member = memberLoadPort.findById(socialAccount.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
             return SocialLoginResult.ofLogin(issueJwt(member));
         }
 
         String naverEmail = naverUser.email();
-        if (StringUtils.hasText(naverEmail) && memberPersistencePort.existsByUsername(naverEmail)) {
+        if (StringUtils.hasText(naverEmail) && memberLoadPort.existsByUsername(naverEmail)) {
             String naverTempToken = issueTempToken(credential.value());
             return SocialLoginResult.ofLinkingRequired(naverTempToken);
         }
@@ -109,12 +113,12 @@ public class NaverSocialLoginService {
             .orElseThrow(SocialOAuthFailures::toException);
         String providerId = naverUser.providerId();
 
-        if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.NAVER, providerId)) {
+        if (memberSocialAccountLoadPort.existsByProviderAndProviderId(MemberSocialProvider.NAVER, providerId)) {
             throw new ApplicationException(WebErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
-        Optional<Member> memberOpt = memberPersistencePort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> memberOpt = memberLoadPort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (memberOpt.isEmpty()) {
             return SocialLinkResult.ofSignUpRequired(
@@ -135,7 +139,7 @@ public class NaverSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        memberSocialAccountPersistencePort.save(
+        memberSocialAccountSavePort.save(
             MemberSocialAccount.of(
                 member.getMemberId(), MemberSocialProvider.NAVER, providerId,
                 naverUser.email(), naverUser.nickname(), naverUser.profileImageUrl()
@@ -161,7 +165,7 @@ public class NaverSocialLoginService {
             .orElseThrow(SocialOAuthFailures::toException);
         String providerId = naverUser.providerId();
 
-        if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.NAVER, providerId)) {
+        if (memberSocialAccountLoadPort.existsByProviderAndProviderId(MemberSocialProvider.NAVER, providerId)) {
             throw new ApplicationException(WebErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -170,7 +174,7 @@ public class NaverSocialLoginService {
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
 
-        memberSocialAccountPersistencePort.save(
+        memberSocialAccountSavePort.save(
             MemberSocialAccount.of(
                 savedMember.getMemberId(), MemberSocialProvider.NAVER, providerId,
                 naverUser.email(), naverUser.nickname(), naverUser.profileImageUrl()

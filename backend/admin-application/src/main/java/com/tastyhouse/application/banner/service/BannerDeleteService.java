@@ -7,7 +7,8 @@ import com.tastyhouse.domain.banner.model.Banner;
 import com.tastyhouse.domain.banner.vo.BannerId;
 import com.tastyhouse.application.banner.port.in.BannerDeleteCommand;
 import com.tastyhouse.application.banner.port.in.BannerDeleteUseCase;
-import com.tastyhouse.application.banner.port.out.write.BannerPersistencePort;
+import com.tastyhouse.application.banner.port.out.write.BannerLoadPort;
+import com.tastyhouse.application.banner.port.out.write.BannerSavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,10 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class BannerDeleteService implements BannerDeleteUseCase {
 
-    private final BannerPersistencePort bannerPersistencePort;
+    private final BannerLoadPort bannerLoadPort;
+    private final BannerSavePort bannerSavePort;
 
-    public BannerDeleteService(BannerPersistencePort bannerPersistencePort) {
-        this.bannerPersistencePort = bannerPersistencePort;
+    public BannerDeleteService(BannerLoadPort bannerLoadPort, BannerSavePort bannerSavePort) {
+        this.bannerLoadPort = bannerLoadPort;
+        this.bannerSavePort = bannerSavePort;
     }
 
     @Override
@@ -27,11 +30,11 @@ class BannerDeleteService implements BannerDeleteUseCase {
         Banner banner = findBannerOrThrow(bannerId);
 
         banner.delete();
-        bannerPersistencePort.save(banner);
+        bannerSavePort.save(banner);
     }
 
     private Banner findBannerOrThrow(BannerId bannerId) {
-        return bannerPersistencePort.findById(bannerId)
+        return bannerLoadPort.findById(bannerId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.BANNER_NOT_FOUND));
     }
 }

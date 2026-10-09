@@ -3,10 +3,10 @@ package com.tastyhouse.infrastructure.persistence.payment.persistence;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.payment.model.PaymentRefund;
-import com.tastyhouse.application.payment.port.out.write.PaymentRefundPersistencePort;
+import com.tastyhouse.application.payment.port.out.write.PaymentRefundSavePort;
 
 @Repository
-class PaymentRefundPersistenceAdapter implements PaymentRefundPersistencePort {
+class PaymentRefundPersistenceAdapter implements PaymentRefundSavePort {
 
     private final PaymentRefundJpaRepository paymentRefundJpaRepository;
 

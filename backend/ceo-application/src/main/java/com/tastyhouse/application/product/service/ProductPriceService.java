@@ -19,8 +19,10 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
@@ -29,17 +31,23 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Service
 public class ProductPriceService {
 
-    private final ProductPricePersistencePort productPricePersistencePort;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductPriceLoadPort productPriceLoadPort;
+    private final ProductPriceSavePort productPriceSavePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductSavePort productSavePort;
     private final StorePriceVerificationPort storePriceVerificationPort;
 
     public ProductPriceService(
-        ProductPricePersistencePort productPricePersistencePort,
-        ProductPersistencePort productPersistencePort,
+        ProductPriceLoadPort productPriceLoadPort,
+        ProductPriceSavePort productPriceSavePort,
+        ProductLoadPort productLoadPort,
+        ProductSavePort productSavePort,
         StorePriceVerificationPort storePriceVerificationPort
     ) {
-        this.productPricePersistencePort = productPricePersistencePort;
-        this.productPersistencePort = productPersistencePort;
+        this.productPriceLoadPort = productPriceLoadPort;
+        this.productPriceSavePort = productPriceSavePort;
+        this.productLoadPort = productLoadPort;
+        this.productSavePort = productSavePort;
         this.storePriceVerificationPort = storePriceVerificationPort;
     }
 
@@ -55,7 +63,7 @@ public class ProductPriceService {
         validateSpecs(specs);
         requireVerifiedIfStoreOrPickupPriceGiven(shopId, specs);
 
-        List<ProductPrice> existing = productPricePersistencePort.findAllByProductId(productId);
+        List<ProductPrice> existing = productPriceLoadPort.findAllByProductId(productId);
         List<ProductPrice> saved = applySpecs(productId, specs, existing, now);
 
         syncOriginalPrice(product, saved);
@@ -73,7 +81,7 @@ public class ProductPriceService {
 
         for (ProductPriceSpec spec : specs) {
             if (spec.id() == null) {
-                saved.add(productPricePersistencePort.save(ProductPrice.of(
+                saved.add(productPriceSavePort.save(ProductPrice.of(
                     productId,
                     spec.priceName(),
                     spec.deliveryPrice(),
@@ -100,7 +108,7 @@ public class ProductPriceService {
                 spec.sort(),
                 now
             );
-            saved.add(productPricePersistencePort.save(target));
+            saved.add(productPriceSavePort.save(target));
             keptIds.add(spec.id());
         }
 
@@ -109,7 +117,7 @@ public class ProductPriceService {
             .map(ProductPrice::getProductPriceId)
             .toList();
         if (!removed.isEmpty()) {
-            productPricePersistencePort.deleteAllByIdIn(removed);
+            productPriceSavePort.deleteAllByIdIn(removed);
         }
 
         return saved.stream()
@@ -165,14 +173,14 @@ public class ProductPriceService {
             return;
         }
         product.syncOriginalPrice(basePrice);
-        productPersistencePort.save(product);
+        productSavePort.save(product);
     }
 
     private void refreshStorePriceVerification(ShopId shopId) {
         if (!storePriceVerificationPort.isStorePriceVerified(shopId.value())) {
             return;
         }
-        List<ProductPrice> violated = productPricePersistencePort.findAllByShopId(shopId).stream()
+        List<ProductPrice> violated = productPriceLoadPort.findAllByShopId(shopId).stream()
             .filter(ProductPrice::isDeliveryPriceHigherThanStorePrice)
             .toList();
         if (violated.isEmpty()) {
@@ -181,13 +189,13 @@ public class ProductPriceService {
 
         for (ProductPrice price : violated) {
             price.clearStoreAndPickupPrice();
-            productPricePersistencePort.save(price);
+            productPriceSavePort.save(price);
         }
         storePriceVerificationPort.clearStorePriceVerification(shopId.value());
     }
 
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
-        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, List.of(productId));
+        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }

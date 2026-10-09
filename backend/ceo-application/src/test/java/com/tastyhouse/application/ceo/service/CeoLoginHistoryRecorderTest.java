@@ -10,7 +10,7 @@ import com.tastyhouse.domain.ceo.model.CeoLoginFailureReason;
 import com.tastyhouse.domain.ceo.model.CeoLoginHistory;
 import com.tastyhouse.domain.ceo.model.CeoLoginResult;
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistoryPersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistorySavePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +21,7 @@ class CeoLoginHistoryRecorderTest {
     @Test
     @DisplayName("recordSuccess는 SUCCESS 이력 1행을 남기고 실패 사유는 비운다")
     void recordSuccess_savesSuccessRowWithoutFailureReason() {
-        FakeCeoLoginHistoryPersistencePort repository = new FakeCeoLoginHistoryPersistencePort();
+        FakeCeoLoginHistorySavePort repository = new FakeCeoLoginHistorySavePort();
         CeoLoginHistoryRecorder recorder = new CeoLoginHistoryRecorder(repository);
 
         recorder.recordSuccess(CeoId.of(7L), "121.130.11.24", "Mozilla/5.0");
@@ -38,7 +38,7 @@ class CeoLoginHistoryRecorderTest {
     @Test
     @DisplayName("recordFailure는 FAILURE 이력 1행을 사유와 함께 남긴다")
     void recordFailure_savesFailureRowWithReason() {
-        FakeCeoLoginHistoryPersistencePort repository = new FakeCeoLoginHistoryPersistencePort();
+        FakeCeoLoginHistorySavePort repository = new FakeCeoLoginHistorySavePort();
         CeoLoginHistoryRecorder recorder = new CeoLoginHistoryRecorder(repository);
 
         recorder.recordFailure(CeoId.of(7L), CeoLoginFailureReason.BAD_CREDENTIALS, "10.0.0.1", "curl/8.4.0");
@@ -52,7 +52,7 @@ class CeoLoginHistoryRecorderTest {
     @Test
     @DisplayName("500자를 넘는 User-Agent는 500자로 절단해 저장한다")
     void record_truncatesUserAgentToColumnLength() {
-        FakeCeoLoginHistoryPersistencePort repository = new FakeCeoLoginHistoryPersistencePort();
+        FakeCeoLoginHistorySavePort repository = new FakeCeoLoginHistorySavePort();
         CeoLoginHistoryRecorder recorder = new CeoLoginHistoryRecorder(repository);
         String longUserAgent = "a".repeat(USER_AGENT_MAX_LENGTH + 120);
 
@@ -66,7 +66,7 @@ class CeoLoginHistoryRecorderTest {
     @Test
     @DisplayName("500자 이하 User-Agent는 그대로 저장하고, null도 그대로 둔다")
     void record_keepsShortOrNullUserAgentAsIs() {
-        FakeCeoLoginHistoryPersistencePort repository = new FakeCeoLoginHistoryPersistencePort();
+        FakeCeoLoginHistorySavePort repository = new FakeCeoLoginHistorySavePort();
         CeoLoginHistoryRecorder recorder = new CeoLoginHistoryRecorder(repository);
         String exactLengthUserAgent = "b".repeat(USER_AGENT_MAX_LENGTH);
 
@@ -77,7 +77,7 @@ class CeoLoginHistoryRecorderTest {
         assertThat(repository.saved.get(1).getUserAgent()).isNull();
     }
 
-    private static class FakeCeoLoginHistoryPersistencePort implements CeoLoginHistoryPersistencePort {
+    private static class FakeCeoLoginHistorySavePort implements CeoLoginHistorySavePort {
 
         private final List<CeoLoginHistory> saved = new ArrayList<>();
 

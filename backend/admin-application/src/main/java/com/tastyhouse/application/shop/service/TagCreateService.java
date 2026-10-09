@@ -6,23 +6,23 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shop.model.Tag;
 import com.tastyhouse.application.shop.port.in.TagCreateCommand;
 import com.tastyhouse.application.shop.port.in.TagCreateUseCase;
-import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.TagSavePort;
 
 @Service
 @Transactional
 class TagCreateService implements TagCreateUseCase {
 
-    private final TagPersistencePort tagPersistencePort;
+    private final TagSavePort tagSavePort;
 
-    public TagCreateService(TagPersistencePort tagPersistencePort) {
-        this.tagPersistencePort = tagPersistencePort;
+    public TagCreateService(TagSavePort tagSavePort) {
+        this.tagSavePort = tagSavePort;
     }
 
     @Override
     public Long createTag(TagCreateCommand command) {
         String tagName = command.tagName();
 
-        Tag tag = tagPersistencePort.save(Tag.of(tagName));
+        Tag tag = tagSavePort.save(Tag.of(tagName));
         return tag.getId();
     }
 }

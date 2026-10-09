@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.rank.model.RankPeriod;
 import com.tastyhouse.domain.rank.vo.RankPeriodId;
-import com.tastyhouse.application.rank.port.out.write.RankPeriodPersistencePort;
+import com.tastyhouse.application.rank.port.out.write.RankPeriodLoadPort;
+import com.tastyhouse.application.rank.port.out.write.RankPeriodSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.rank.persistence.QRankPeriodJpaEntity.rankPeriodJpaEntity;
 
 @Repository
-class RankPeriodPersistenceAdapter implements RankPeriodPersistencePort {
+class RankPeriodPersistenceAdapter implements RankPeriodLoadPort, RankPeriodSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final RankPeriodJpaRepository rankPeriodJpaRepository;

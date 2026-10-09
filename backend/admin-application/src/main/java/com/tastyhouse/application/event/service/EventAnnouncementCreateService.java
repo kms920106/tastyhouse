@@ -7,8 +7,9 @@ import com.tastyhouse.domain.event.model.EventAnnouncement;
 import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.application.event.port.in.EventAnnouncementCreateCommand;
 import com.tastyhouse.application.event.port.in.EventAnnouncementCreateUseCase;
-import com.tastyhouse.application.event.port.out.write.EventAnnouncementPersistencePort;
-import com.tastyhouse.application.event.port.out.write.EventPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventAnnouncementLoadPort;
+import com.tastyhouse.application.event.port.out.write.EventAnnouncementSavePort;
+import com.tastyhouse.application.event.port.out.write.EventLoadPort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -18,15 +19,18 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class EventAnnouncementCreateService implements EventAnnouncementCreateUseCase {
 
-    private final EventPersistencePort eventPersistencePort;
-    private final EventAnnouncementPersistencePort eventAnnouncementPersistencePort;
+    private final EventLoadPort eventLoadPort;
+    private final EventAnnouncementLoadPort eventAnnouncementLoadPort;
+    private final EventAnnouncementSavePort eventAnnouncementSavePort;
 
     public EventAnnouncementCreateService(
-        EventPersistencePort eventPersistencePort,
-        EventAnnouncementPersistencePort eventAnnouncementPersistencePort
+        EventLoadPort eventLoadPort,
+        EventAnnouncementLoadPort eventAnnouncementLoadPort,
+        EventAnnouncementSavePort eventAnnouncementSavePort
     ) {
-        this.eventPersistencePort = eventPersistencePort;
-        this.eventAnnouncementPersistencePort = eventAnnouncementPersistencePort;
+        this.eventLoadPort = eventLoadPort;
+        this.eventAnnouncementLoadPort = eventAnnouncementLoadPort;
+        this.eventAnnouncementSavePort = eventAnnouncementSavePort;
     }
 
     @Override
@@ -34,17 +38,17 @@ class EventAnnouncementCreateService implements EventAnnouncementCreateUseCase {
         EventId eventId = EventId.of(command.eventId());
         verifyEventExists(eventId);
 
-        if (eventAnnouncementPersistencePort.existsByEventId(eventId)) {
+        if (eventAnnouncementLoadPort.existsByEventId(eventId)) {
             throw new ApplicationException(AdminErrorCode.EVENT_ANNOUNCEMENT_ALREADY_EXISTS);
         }
 
         EventAnnouncement announcement = EventAnnouncement.of(eventId, command.name(), command.content(), command.announcedAt());
-        EventAnnouncement saved = eventAnnouncementPersistencePort.save(announcement);
+        EventAnnouncement saved = eventAnnouncementSavePort.save(announcement);
         return saved.getId();
     }
 
     private void verifyEventExists(EventId eventId) {
-        eventPersistencePort.findById(eventId)
+        eventLoadPort.findById(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
     }
 }

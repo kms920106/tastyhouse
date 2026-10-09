@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.review.model.ShopReviewDisplaySetting;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingLoadPort;
+import com.tastyhouse.application.review.port.out.write.ShopReviewDisplaySettingSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QShopReviewDisplaySettingJpaEntity.shopReviewDisplaySettingJpaEntity;
 
 @Repository
-class ShopReviewDisplaySettingPersistenceAdapter implements ShopReviewDisplaySettingPersistencePort {
+class ShopReviewDisplaySettingPersistenceAdapter implements ShopReviewDisplaySettingLoadPort, ShopReviewDisplaySettingSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopReviewDisplaySettingJpaRepository shopReviewDisplaySettingJpaRepository;

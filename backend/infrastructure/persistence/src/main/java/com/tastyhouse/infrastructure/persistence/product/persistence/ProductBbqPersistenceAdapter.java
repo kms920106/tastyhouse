@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductBbq;
 import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.application.product.port.out.write.ProductBbqPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductBbqLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductBbqSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductBbqJpaEntity.productBbqJpaEntity;
 
 @Repository
-class ProductBbqPersistenceAdapter implements ProductBbqPersistencePort {
+class ProductBbqPersistenceAdapter implements ProductBbqLoadPort, ProductBbqSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductBbqJpaRepository productBbqJpaRepository;

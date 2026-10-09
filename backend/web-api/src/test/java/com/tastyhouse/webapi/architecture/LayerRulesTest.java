@@ -25,7 +25,8 @@ class LayerRulesTest {
     void controllersShouldNotDependOnPersistencePorts() {
         ArchRule rule = noClasses()
             .that().haveSimpleNameEndingWith("ApiController")
-            .should().dependOnClassesThat().haveSimpleNameEndingWith("PersistencePort")
+            .should().dependOnClassesThat().haveSimpleNameEndingWith("LoadPort")
+            .orShould().dependOnClassesThat().haveSimpleNameEndingWith("SavePort")
             .orShould().dependOnClassesThat().resideInAPackage("com.tastyhouse.application..port.out.write..")
             .orShould().dependOnClassesThat().haveSimpleNameEndingWith("Repository")
             .because("컨트롤러는 쓰기 포트(port.out.write)도 Spring Data·토큰 저장소(XxxJpaRepository·XxxTokenRepository)도 직접 주입하지 않는다");

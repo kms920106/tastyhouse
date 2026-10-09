@@ -37,14 +37,18 @@ import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopCeoAssignmentHistoryPersistencePort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopCeoAssignmentHistorySavePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistorySavePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopRequestIndexPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,10 +56,10 @@ class ShopIntroductionRecordingTest {
 
     private static final Long SHOP_ID = 1L;
 
-    private RecordingShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort;
+    private RecordingShopChangeHistorySavePort shopChangeHistorySavePort;
     private ShopLifecycleService shopLifecycleService;
 
-    private static final class FakeShopDetailPersistencePort implements ShopDetailPersistencePort {
+    private static final class FakeShopDetailPersistence implements ShopDetailLoadPort, ShopDetailSavePort {
 
         private final List<ShopOwnerMessageHistory> ownerMessages = new ArrayList<>();
         private long sequence = 0L;
@@ -234,11 +238,11 @@ class ShopIntroductionRecordingTest {
         }
     }
 
-    private static final class FakeShopPersistencePort implements ShopPersistencePort {
+    private static final class FakeShopPersistence implements ShopLoadPort, ShopSavePort {
 
         private final Map<Long, Shop> shops = new HashMap<>();
 
-        FakeShopPersistencePort() {
+        FakeShopPersistence() {
             shops.put(SHOP_ID, Shop.reconstitute(
                 SHOP_ID, null, null, "맛있는 분식",
                 BigDecimal.valueOf(37.497942), BigDecimal.valueOf(127.027621), 4.5,
@@ -264,7 +268,7 @@ class ShopIntroductionRecordingTest {
         }
     }
 
-    private static final class FakeShopBookmarkPersistencePort implements ShopBookmarkPersistencePort {
+    private static final class FakeShopBookmarkPersistence implements ShopBookmarkLoadPort, ShopBookmarkSavePort {
 
         @Override
         public boolean existsByShopIdAndMemberId(Long shopId, MemberId memberId) {
@@ -282,7 +286,7 @@ class ShopIntroductionRecordingTest {
         }
     }
 
-    private static final class FakeShopImageChangeRequestPersistencePort implements ShopImageChangeRequestPersistencePort {
+    private static final class FakeShopImageChangeRequestPersistence implements ShopImageChangeRequestLoadPort, ShopImageChangeRequestSavePort {
 
         @Override
         public ShopImageChangeRequest save(ShopImageChangeRequest shopImageChangeRequest) {
@@ -305,7 +309,7 @@ class ShopIntroductionRecordingTest {
         }
     }
 
-    private static final class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+    private static final class FakeProhibitedWordLoadPort implements ProhibitedWordLoadPort {
 
         @Override
         public List<ProhibitedWord> findAll() {
@@ -315,22 +319,33 @@ class ShopIntroductionRecordingTest {
 
     @BeforeEach
     void setUp() {
-        shopChangeHistoryPersistencePort = new RecordingShopChangeHistoryPersistencePort();
-        ShopChangeHistoryRecorder recorder = new ShopChangeHistoryRecorder(shopChangeHistoryPersistencePort);
+        shopChangeHistorySavePort = new RecordingShopChangeHistorySavePort();
+        ShopChangeHistoryRecorder recorder = new ShopChangeHistoryRecorder(shopChangeHistorySavePort);
+        FakeShopPersistence fakeShopPersistence = new FakeShopPersistence();
+        FakeShopDetailPersistence fakeShopDetailPersistence = new FakeShopDetailPersistence();
+        FakeShopBookmarkPersistence fakeShopBookmarkPersistence = new FakeShopBookmarkPersistence();
+        FakeShopImageChangeRequestPersistence fakeShopImageChangeRequestPersistence = new FakeShopImageChangeRequestPersistence();
+        FakeShopPersistence imageApprovalShopPersistence = new FakeShopPersistence();
+        RecordingShopRequestIndexPersistence recordingShopRequestIndexPersistence = new RecordingShopRequestIndexPersistence();
         shopLifecycleService = new ShopLifecycleService(
-            new FakeShopPersistencePort(),
-            new FakeShopDetailPersistencePort(),
-            new FakeShopBookmarkPersistencePort(),
+            fakeShopPersistence,
+            fakeShopPersistence,
+            fakeShopDetailPersistence,
+            fakeShopDetailPersistence,
+            fakeShopBookmarkPersistence,
+            fakeShopBookmarkPersistence,
             id -> true,
             new ShopImageApprovalService(
-                new FakeShopImageChangeRequestPersistencePort(),
-                new FakeShopPersistencePort(),
+                fakeShopImageChangeRequestPersistence,
+                fakeShopImageChangeRequestPersistence,
+                imageApprovalShopPersistence,
+                imageApprovalShopPersistence,
                 recorder,
-                new ShopRequestIndexRecorder(new RecordingShopRequestIndexPersistencePort())
+                new ShopRequestIndexRecorder(recordingShopRequestIndexPersistence, recordingShopRequestIndexPersistence)
             ),
-            new ProhibitedWordValidator(new FakeProhibitedWordPersistencePort()),
+            new ProhibitedWordValidator(new FakeProhibitedWordLoadPort()),
             recorder,
-            new ShopCeoAssignmentRecorder(new RecordingShopCeoAssignmentHistoryPersistencePort())
+            new ShopCeoAssignmentRecorder(new RecordingShopCeoAssignmentHistorySavePort())
         );
     }
 
@@ -339,8 +354,8 @@ class ShopIntroductionRecordingTest {
     void createOwnerMessage_recordsExactlyOneHistory() {
         shopLifecycleService.createOwnerMessage(SHOP_ID, "언제나 정성을 다하겠습니다", ShopChangeActor.ceo(7L));
 
-        assertThat(shopChangeHistoryPersistencePort.savedOf(ShopChangeType.INTRODUCTION)).hasSize(1);
-        ShopChangeHistory history = shopChangeHistoryPersistencePort.savedOf(ShopChangeType.INTRODUCTION).getFirst();
+        assertThat(shopChangeHistorySavePort.savedOf(ShopChangeType.INTRODUCTION)).hasSize(1);
+        ShopChangeHistory history = shopChangeHistorySavePort.savedOf(ShopChangeType.INTRODUCTION).getFirst();
         assertThat(history.getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
         assertThat(history.getActorType()).isEqualTo(ShopChangeActorType.CEO);
         assertThat(history.getActorId()).isEqualTo(7L);
@@ -355,7 +370,7 @@ class ShopIntroductionRecordingTest {
         shopLifecycleService.createOwnerMessage(SHOP_ID, "이전 한마디", ShopChangeActor.ceo(7L));
         shopLifecycleService.createOwnerMessage(SHOP_ID, longMessage, ShopChangeActor.ceo(7L));
 
-        List<ShopChangeHistory> histories = shopChangeHistoryPersistencePort.savedOf(ShopChangeType.INTRODUCTION);
+        List<ShopChangeHistory> histories = shopChangeHistorySavePort.savedOf(ShopChangeType.INTRODUCTION);
         assertThat(histories).hasSize(2);
         assertThat(histories.get(1).getPreviousValue()).isEqualTo("이전 한마디");
         assertThat(histories.get(1).getNewValue()).isEqualTo(longMessage);

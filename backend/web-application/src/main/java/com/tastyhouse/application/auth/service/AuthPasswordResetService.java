@@ -11,7 +11,7 @@ import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.mail.service.MailVerificationService;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateUseCase;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
@@ -21,18 +21,18 @@ public class AuthPasswordResetService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthPasswordResetService.class);
 
-    private final MemberPersistencePort memberPersistencePort;
+    private final MemberLoadPort memberLoadPort;
     private final MailVerificationService mailVerificationService;
     private final MemberJwtTokenProvider jwtTokenProvider;
     private final MemberPasswordUpdateUseCase memberPasswordUpdateUseCase;
 
     public AuthPasswordResetService(
-        MemberPersistencePort memberPersistencePort,
+        MemberLoadPort memberLoadPort,
         MailVerificationService mailVerificationService,
         MemberJwtTokenProvider jwtTokenProvider,
         MemberPasswordUpdateUseCase memberPasswordUpdateUseCase
     ) {
-        this.memberPersistencePort = memberPersistencePort;
+        this.memberLoadPort = memberLoadPort;
         this.mailVerificationService = mailVerificationService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.memberPasswordUpdateUseCase = memberPasswordUpdateUseCase;
@@ -40,7 +40,7 @@ public class AuthPasswordResetService {
 
     @Transactional
     public void sendPasswordResetCode(String username) {
-        if (!memberPersistencePort.existsByUsername(username)) {
+        if (!memberLoadPort.existsByUsername(username)) {
             log.info("비밀번호 재설정 요청: 존재하지 않는 아이디. username={}", username);
             return;
         }
@@ -62,7 +62,7 @@ public class AuthPasswordResetService {
 
         String username = jwtTokenProvider.getUsernameFromPasswordResetToken(passwordResetToken);
 
-        Member member = memberPersistencePort.findByUsername(username)
+        Member member = memberLoadPort.findByUsername(username)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.MEMBER_NOT_FOUND));
 
         MemberPasswordUpdateCommand command =

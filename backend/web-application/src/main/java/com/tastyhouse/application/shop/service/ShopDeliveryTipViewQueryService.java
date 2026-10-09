@@ -22,7 +22,7 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipCalculator;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipContext;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -37,31 +37,31 @@ import com.tastyhouse.application.shop.port.out.ShopDeliveryTipScheduleResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipSettingResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipTierResult;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryTipViewResult;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 
 @Service
 @Transactional(readOnly = true)
 class ShopDeliveryTipViewQueryService implements ShopDeliveryTipViewQueryUseCase {
 
-    private final ShopPersistencePort shopPersistencePort;
-    private final MemberDeliveryAddressPersistencePort memberDeliveryAddressPersistencePort;
-    private final ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort;
+    private final ShopLoadPort shopLoadPort;
+    private final MemberDeliveryAddressLoadPort memberDeliveryAddressLoadPort;
+    private final ShopDeliveryTipLoadPort shopDeliveryTipLoadPort;
     private final ShopDeliveryTipQueryPort shopDeliveryTipQueryPort;
     private final ShopDeliveryTipCalculator shopDeliveryTipCalculator;
     private final PublicHolidayCalendar publicHolidayCalendar;
 
     public ShopDeliveryTipViewQueryService(
-        ShopPersistencePort shopPersistencePort,
-        MemberDeliveryAddressPersistencePort memberDeliveryAddressPersistencePort,
-        ShopDeliveryTipPersistencePort shopDeliveryTipPersistencePort,
+        ShopLoadPort shopLoadPort,
+        MemberDeliveryAddressLoadPort memberDeliveryAddressLoadPort,
+        ShopDeliveryTipLoadPort shopDeliveryTipLoadPort,
         ShopDeliveryTipQueryPort shopDeliveryTipQueryPort,
         ShopDeliveryTipCalculator shopDeliveryTipCalculator,
         PublicHolidayCalendar publicHolidayCalendar
     ) {
-        this.shopPersistencePort = shopPersistencePort;
-        this.memberDeliveryAddressPersistencePort = memberDeliveryAddressPersistencePort;
-        this.shopDeliveryTipPersistencePort = shopDeliveryTipPersistencePort;
+        this.shopLoadPort = shopLoadPort;
+        this.memberDeliveryAddressLoadPort = memberDeliveryAddressLoadPort;
+        this.shopDeliveryTipLoadPort = shopDeliveryTipLoadPort;
         this.shopDeliveryTipQueryPort = shopDeliveryTipQueryPort;
         this.shopDeliveryTipCalculator = shopDeliveryTipCalculator;
         this.publicHolidayCalendar = publicHolidayCalendar;
@@ -115,7 +115,7 @@ class ShopDeliveryTipViewQueryService implements ShopDeliveryTipViewQueryUseCase
             return null;
         }
 
-        MemberDeliveryAddress deliveryAddress = memberDeliveryAddressPersistencePort.findById(deliveryAddressId)
+        MemberDeliveryAddress deliveryAddress = memberDeliveryAddressLoadPort.findById(deliveryAddressId)
             .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.MEMBER_DELIVERY_ADDRESS_NOT_FOUND));
         if (!deliveryAddress.isOwnedBy(MemberId.of(memberId))) {
             throw new ApplicationException(WebErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
@@ -131,11 +131,11 @@ class ShopDeliveryTipViewQueryService implements ShopDeliveryTipViewQueryUseCase
             deliveryAddress.getAdminDongId(),
             now,
             publicHolidayCalendar.isPublicHoliday(now.toLocalDate()),
-            shopDeliveryTipPersistencePort.findSettingByShopId(typedShopId).orElse(null),
-            shopDeliveryTipPersistencePort.findTiersByShopId(typedShopId),
-            shopDeliveryTipPersistencePort.findRegionTipsByShopId(typedShopId),
-            shopDeliveryTipPersistencePort.findScheduleTipsByShopId(typedShopId),
-            shopDeliveryTipPersistencePort.findHolidayTipByShopId(typedShopId).orElse(null)
+            shopDeliveryTipLoadPort.findSettingByShopId(typedShopId).orElse(null),
+            shopDeliveryTipLoadPort.findTiersByShopId(typedShopId),
+            shopDeliveryTipLoadPort.findRegionTipsByShopId(typedShopId),
+            shopDeliveryTipLoadPort.findScheduleTipsByShopId(typedShopId),
+            shopDeliveryTipLoadPort.findHolidayTipByShopId(typedShopId).orElse(null)
         ));
     }
 
@@ -232,7 +232,7 @@ class ShopDeliveryTipViewQueryService implements ShopDeliveryTipViewQueryUseCase
     }
 
     private Shop findVisibleShopAggregate(Long shopId) {
-        return shopPersistencePort.findVisibleById(ShopId.of(shopId))
+        return shopLoadPort.findVisibleById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 }

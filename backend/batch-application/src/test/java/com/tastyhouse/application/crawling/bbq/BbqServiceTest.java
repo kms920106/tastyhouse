@@ -22,7 +22,8 @@ import com.tastyhouse.application.crawling.bbq.port.out.ImageDownloadResult;
 import com.tastyhouse.application.crawling.bbq.port.out.RemoteImagePort;
 import com.tastyhouse.application.file.port.out.FileDeleteResult;
 import com.tastyhouse.application.file.port.out.FileStoragePort;
-import com.tastyhouse.application.file.port.out.write.UploadedFilePersistencePort;
+import com.tastyhouse.application.file.port.out.write.UploadedFileLoadPort;
+import com.tastyhouse.application.file.port.out.write.UploadedFileSavePort;
 import com.tastyhouse.application.file.service.FileUploadService;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.BatchJobException;
@@ -59,7 +60,7 @@ class BbqServiceTest {
         bbqMenuPort = mock(BbqMenuPort.class);
         bbqProductSyncService = mock(BbqProductSyncService.class);
         remoteImagePort = mock(RemoteImagePort.class);
-        FileUploadService fileUploadService = new FileUploadService(new FixedIdPersistencePort(), storage, event -> { });
+        FileUploadService fileUploadService = new FileUploadService(new FixedIdPersistence(), storage, event -> { });
         service = new BbqService(bbqMenuPort, bbqProductSyncService, remoteImagePort, fileUploadService);
 
         BbqProductCategoryResponse category = BbqProductCategoryResponse.from(BBQ_CATEGORY_ID, SHOP_ID, "치킨", 0, true);
@@ -148,7 +149,7 @@ class BbqServiceTest {
         }
     }
 
-    private static final class FixedIdPersistencePort implements UploadedFilePersistencePort {
+    private static final class FixedIdPersistence implements UploadedFileLoadPort, UploadedFileSavePort {
 
         @Override
         public UploadedFile save(UploadedFile file) {

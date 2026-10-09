@@ -6,10 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.file.model.UploadedFile;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.application.file.port.out.write.UploadedFilePersistencePort;
+import com.tastyhouse.application.file.port.out.write.UploadedFileLoadPort;
+import com.tastyhouse.application.file.port.out.write.UploadedFileSavePort;
 
 @Repository
-class UploadedFilePersistenceAdapter implements UploadedFilePersistencePort {
+class UploadedFilePersistenceAdapter implements UploadedFileLoadPort, UploadedFileSavePort {
 
     private final UploadedFileJpaRepository uploadedFileJpaRepository;
 

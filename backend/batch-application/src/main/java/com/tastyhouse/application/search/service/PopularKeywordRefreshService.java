@@ -11,8 +11,9 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.domain.search.model.PopularKeyword;
 import com.tastyhouse.application.search.port.out.KeywordCount;
 import com.tastyhouse.application.search.port.out.KeywordCountPort;
-import com.tastyhouse.application.search.port.out.write.PopularKeywordPersistencePort;
-import com.tastyhouse.application.search.port.out.write.SearchKeywordLogPersistencePort;
+import com.tastyhouse.application.search.port.out.write.PopularKeywordLoadPort;
+import com.tastyhouse.application.search.port.out.write.PopularKeywordSavePort;
+import com.tastyhouse.application.search.port.out.write.SearchKeywordLogSavePort;
 
 @Service
 public class PopularKeywordRefreshService {
@@ -21,29 +22,32 @@ public class PopularKeywordRefreshService {
 
     private static final int LOG_RETENTION_DAYS = 30;
 
-    private final SearchKeywordLogPersistencePort searchKeywordLogPersistencePort;
+    private final SearchKeywordLogSavePort searchKeywordLogSavePort;
     private final KeywordCountPort keywordCountPort;
-    private final PopularKeywordPersistencePort popularKeywordPersistencePort;
+    private final PopularKeywordLoadPort popularKeywordLoadPort;
+    private final PopularKeywordSavePort popularKeywordSavePort;
 
     public PopularKeywordRefreshService(
-        SearchKeywordLogPersistencePort searchKeywordLogPersistencePort,
+        SearchKeywordLogSavePort searchKeywordLogSavePort,
         KeywordCountPort keywordCountPort,
-        PopularKeywordPersistencePort popularKeywordPersistencePort
+        PopularKeywordLoadPort popularKeywordLoadPort,
+        PopularKeywordSavePort popularKeywordSavePort
     ) {
-        this.searchKeywordLogPersistencePort = searchKeywordLogPersistencePort;
+        this.searchKeywordLogSavePort = searchKeywordLogSavePort;
         this.keywordCountPort = keywordCountPort;
-        this.popularKeywordPersistencePort = popularKeywordPersistencePort;
+        this.popularKeywordLoadPort = popularKeywordLoadPort;
+        this.popularKeywordSavePort = popularKeywordSavePort;
     }
 
     public void refresh() {
         LocalDateTime since = LocalDateTime.now().minusDays(AGGREGATION_WINDOW_DAYS);
         List<KeywordCount> rows = keywordCountPort.findTopKeywordsSince(since);
 
-        Set<String> previousKeywords = popularKeywordPersistencePort.findActiveOrderByRank().stream()
+        Set<String> previousKeywords = popularKeywordLoadPort.findActiveOrderByRank().stream()
             .map(PopularKeyword::getKeyword)
             .collect(Collectors.toSet());
 
-        popularKeywordPersistencePort.deleteAll();
+        popularKeywordSavePort.deleteAll();
 
         List<PopularKeyword> newRanks = new ArrayList<>();
         int rank = 1;
@@ -51,10 +55,10 @@ public class PopularKeywordRefreshService {
             String keyword = row.keyword();
             newRanks.add(PopularKeyword.of(keyword, rank++, !previousKeywords.contains(keyword)));
         }
-        popularKeywordPersistencePort.saveAll(newRanks);
+        popularKeywordSavePort.saveAll(newRanks);
     }
 
     public void deleteOldSearchLogs() {
-        searchKeywordLogPersistencePort.deleteOlderThan(LocalDateTime.now().minusDays(LOG_RETENTION_DAYS));
+        searchKeywordLogSavePort.deleteOlderThan(LocalDateTime.now().minusDays(LOG_RETENTION_DAYS));
     }
 }

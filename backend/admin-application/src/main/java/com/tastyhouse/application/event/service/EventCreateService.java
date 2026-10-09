@@ -8,16 +8,16 @@ import com.tastyhouse.domain.event.model.EventStatus;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.event.port.in.EventCreateCommand;
 import com.tastyhouse.application.event.port.in.EventCreateUseCase;
-import com.tastyhouse.application.event.port.out.write.EventPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventSavePort;
 
 @Service
 @Transactional
 class EventCreateService implements EventCreateUseCase {
 
-    private final EventPersistencePort eventPersistencePort;
+    private final EventSavePort eventSavePort;
 
-    public EventCreateService(EventPersistencePort eventPersistencePort) {
-        this.eventPersistencePort = eventPersistencePort;
+    public EventCreateService(EventSavePort eventSavePort) {
+        this.eventSavePort = eventSavePort;
     }
 
     @Override
@@ -36,7 +36,7 @@ class EventCreateService implements EventCreateUseCase {
             command.startAt(),
             command.endAt()
         );
-        Event saved = eventPersistencePort.save(event);
+        Event saved = eventSavePort.save(event);
         return saved.getEventId().value();
     }
 }

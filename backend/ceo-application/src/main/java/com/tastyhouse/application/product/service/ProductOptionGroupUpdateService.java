@@ -11,8 +11,8 @@ import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionSelectionRule;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUpdateUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
@@ -22,21 +22,21 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 class ProductOptionGroupUpdateService implements ProductOptionGroupUpdateUseCase {
 
-    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
-    private final ProductOptionPersistencePort productOptionPersistencePort;
+    private final ProductOptionGroupSavePort productOptionGroupSavePort;
+    private final ProductOptionLoadPort productOptionLoadPort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
 
     public ProductOptionGroupUpdateService(
-        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
-        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductOptionGroupSavePort productOptionGroupSavePort,
+        ProductOptionLoadPort productOptionLoadPort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
-        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
-        this.productOptionPersistencePort = productOptionPersistencePort;
+        this.productOptionGroupSavePort = productOptionGroupSavePort;
+        this.productOptionLoadPort = productOptionLoadPort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
@@ -78,10 +78,10 @@ class ProductOptionGroupUpdateService implements ProductOptionGroupUpdateUseCase
         );
 
         List<ProductOption> groupOptions =
-            productOptionPersistencePort.findAllByOptionGroupId(group.getProductOptionGroupId());
+            productOptionLoadPort.findAllByOptionGroupId(group.getProductOptionGroupId());
         ProductOptionSelectionRule.validateZeroPriceOption(group, groupOptions);
 
-        productOptionGroupPersistencePort.save(group);
+        productOptionGroupSavePort.save(group);
     }
 
     private void validateSelectRange(Integer minSelect, Integer maxSelect) {

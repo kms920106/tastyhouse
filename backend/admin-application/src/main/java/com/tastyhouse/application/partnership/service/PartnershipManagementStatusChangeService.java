@@ -8,7 +8,8 @@ import com.tastyhouse.domain.partnership.model.PartnershipStatus;
 import com.tastyhouse.domain.partnership.vo.PartnershipRequestId;
 import com.tastyhouse.application.partnership.port.in.PartnershipManagementStatusChangeUseCase;
 import com.tastyhouse.application.partnership.port.in.PartnershipStatusChangeCommand;
-import com.tastyhouse.application.partnership.port.out.write.PartnershipPersistencePort;
+import com.tastyhouse.application.partnership.port.out.write.PartnershipLoadPort;
+import com.tastyhouse.application.partnership.port.out.write.PartnershipSavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -16,10 +17,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class PartnershipManagementStatusChangeService implements PartnershipManagementStatusChangeUseCase {
 
-    private final PartnershipPersistencePort partnershipPersistencePort;
+    private final PartnershipLoadPort partnershipLoadPort;
+    private final PartnershipSavePort partnershipSavePort;
 
-    public PartnershipManagementStatusChangeService(PartnershipPersistencePort partnershipPersistencePort) {
-        this.partnershipPersistencePort = partnershipPersistencePort;
+    public PartnershipManagementStatusChangeService(PartnershipLoadPort partnershipLoadPort, PartnershipSavePort partnershipSavePort) {
+        this.partnershipLoadPort = partnershipLoadPort;
+        this.partnershipSavePort = partnershipSavePort;
     }
 
     @Override
@@ -29,11 +32,11 @@ class PartnershipManagementStatusChangeService implements PartnershipManagementS
         PartnershipRequest partnershipRequest = findPartnershipRequestOrThrow(partnershipRequestId);
 
         partnershipRequest.changeStatus(partnershipStatus);
-        partnershipPersistencePort.save(partnershipRequest);
+        partnershipSavePort.save(partnershipRequest);
     }
 
     private PartnershipRequest findPartnershipRequestOrThrow(PartnershipRequestId partnershipRequestId) {
-        return partnershipPersistencePort.findById(partnershipRequestId)
+        return partnershipLoadPort.findById(partnershipRequestId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
     }
 }

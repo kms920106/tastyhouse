@@ -9,8 +9,9 @@ import com.tastyhouse.domain.member.model.MemberDeliveryAddress;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
-import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressPersistencePort;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberDeliveryAddressSavePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
@@ -22,15 +23,18 @@ public class MemberDeliveryAddressService {
 
     private static final int ADDRESS_TOKEN_MIN_COUNT = 3;
 
-    private final MemberDeliveryAddressPersistencePort memberDeliveryAddressPersistencePort;
-    private final AdminDongPersistencePort adminDongPersistencePort;
+    private final MemberDeliveryAddressLoadPort memberDeliveryAddressLoadPort;
+    private final MemberDeliveryAddressSavePort memberDeliveryAddressSavePort;
+    private final AdminDongLoadPort adminDongLoadPort;
 
     public MemberDeliveryAddressService(
-        MemberDeliveryAddressPersistencePort memberDeliveryAddressPersistencePort,
-        AdminDongPersistencePort adminDongPersistencePort
+        MemberDeliveryAddressLoadPort memberDeliveryAddressLoadPort,
+        MemberDeliveryAddressSavePort memberDeliveryAddressSavePort,
+        AdminDongLoadPort adminDongLoadPort
     ) {
-        this.memberDeliveryAddressPersistencePort = memberDeliveryAddressPersistencePort;
-        this.adminDongPersistencePort = adminDongPersistencePort;
+        this.memberDeliveryAddressLoadPort = memberDeliveryAddressLoadPort;
+        this.memberDeliveryAddressSavePort = memberDeliveryAddressSavePort;
+        this.adminDongLoadPort = adminDongLoadPort;
     }
 
     public Long create(
@@ -43,7 +47,7 @@ public class MemberDeliveryAddressService {
         BigDecimal longitude,
         boolean isDefault
     ) {
-        if (memberDeliveryAddressPersistencePort.countByMemberId(memberId) >= MAX_ADDRESS_COUNT) {
+        if (memberDeliveryAddressLoadPort.countByMemberId(memberId) >= MAX_ADDRESS_COUNT) {
             throw new ApplicationException(WebErrorCode.MEMBER_DELIVERY_ADDRESS_LIMIT_EXCEEDED);
         }
 
@@ -63,7 +67,7 @@ public class MemberDeliveryAddressService {
             longitude,
             isDefault
         );
-        return memberDeliveryAddressPersistencePort.save(address).getId();
+        return memberDeliveryAddressSavePort.save(address).getId();
     }
 
     public void update(
@@ -87,12 +91,12 @@ public class MemberDeliveryAddressService {
             latitude,
             longitude
         );
-        memberDeliveryAddressPersistencePort.save(address);
+        memberDeliveryAddressSavePort.save(address);
     }
 
     public void delete(MemberId memberId, Long addressId) {
         MemberDeliveryAddress address = loadOwnedAddress(memberId, addressId);
-        memberDeliveryAddressPersistencePort.deleteById(address.getId());
+        memberDeliveryAddressSavePort.deleteById(address.getId());
     }
 
     public void changeDefault(MemberId memberId, Long addressId) {
@@ -101,7 +105,7 @@ public class MemberDeliveryAddressService {
         unmarkExistingDefault(memberId);
 
         address.markAsDefault();
-        memberDeliveryAddressPersistencePort.save(address);
+        memberDeliveryAddressSavePort.save(address);
     }
 
     public MemberDeliveryAddress findOwnedAddress(MemberId memberId, Long addressId) {
@@ -109,7 +113,7 @@ public class MemberDeliveryAddressService {
     }
 
     private MemberDeliveryAddress loadOwnedAddress(MemberId memberId, Long addressId) {
-        MemberDeliveryAddress address = memberDeliveryAddressPersistencePort.findById(addressId)
+        MemberDeliveryAddress address = memberDeliveryAddressLoadPort.findById(addressId)
             .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.MEMBER_DELIVERY_ADDRESS_NOT_FOUND));
         if (!address.isOwnedBy(memberId)) {
             throw new ApplicationException(WebErrorCode.MEMBER_DELIVERY_ADDRESS_ACCESS_DENIED);
@@ -118,9 +122,9 @@ public class MemberDeliveryAddressService {
     }
 
     private void unmarkExistingDefault(MemberId memberId) {
-        memberDeliveryAddressPersistencePort.findDefaultByMemberId(memberId).ifPresent(existing -> {
+        memberDeliveryAddressLoadPort.findDefaultByMemberId(memberId).ifPresent(existing -> {
             existing.unmarkDefault();
-            memberDeliveryAddressPersistencePort.save(existing);
+            memberDeliveryAddressSavePort.save(existing);
         });
     }
 
@@ -141,6 +145,6 @@ public class MemberDeliveryAddressService {
         if (tokens.length < ADDRESS_TOKEN_MIN_COUNT) {
             return Optional.empty();
         }
-        return adminDongPersistencePort.findByDongNameMatch(tokens[0], tokens[1], tokens[2]);
+        return adminDongLoadPort.findByDongNameMatch(tokens[0], tokens[1], tokens[2]);
     }
 }

@@ -22,7 +22,7 @@ import com.tastyhouse.application.product.port.in.ProductOptionTargetCommand;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityChangeView;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -35,20 +35,20 @@ class ProductOptionSoldOutService implements ProductOptionSoldOutUseCase {
 
     private final ProductAvailabilityService productAvailabilityService;
     private final ShopNextOpenTimeCalculator shopNextOpenTimeCalculator;
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopDetailLoadPort shopDetailLoadPort;
     private final PublicHolidayCalendar publicHolidayCalendar;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionSoldOutService(
         ProductAvailabilityService productAvailabilityService,
         ShopNextOpenTimeCalculator shopNextOpenTimeCalculator,
-        ShopDetailPersistencePort shopDetailPersistencePort,
+        ShopDetailLoadPort shopDetailLoadPort,
         PublicHolidayCalendar publicHolidayCalendar,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productAvailabilityService = productAvailabilityService;
         this.shopNextOpenTimeCalculator = shopNextOpenTimeCalculator;
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+        this.shopDetailLoadPort = shopDetailLoadPort;
         this.publicHolidayCalendar = publicHolidayCalendar;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -81,8 +81,8 @@ class ProductOptionSoldOutService implements ProductOptionSoldOutUseCase {
 
         ShopNextOpenTimeContext context = ShopNextOpenTimeContext.of(
             now,
-            shopDetailPersistencePort.findBusinessHoursByShopId(shopId),
-            shopDetailPersistencePort.findClosedDaysByShopId(shopId),
+            shopDetailLoadPort.findBusinessHoursByShopId(shopId),
+            shopDetailLoadPort.findClosedDaysByShopId(shopId),
             publicHolidays
         );
 

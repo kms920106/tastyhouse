@@ -9,7 +9,8 @@ import com.tastyhouse.domain.bug.model.BugReportPriority;
 import com.tastyhouse.domain.bug.vo.BugReportId;
 import com.tastyhouse.application.bug.port.in.BugReportClassifyCommand;
 import com.tastyhouse.application.bug.port.in.BugReportClassifyUseCase;
-import com.tastyhouse.application.bug.port.out.write.BugReportPersistencePort;
+import com.tastyhouse.application.bug.port.out.write.BugReportLoadPort;
+import com.tastyhouse.application.bug.port.out.write.BugReportSavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -17,10 +18,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class BugReportClassifyService implements BugReportClassifyUseCase {
 
-    private final BugReportPersistencePort bugReportPersistencePort;
+    private final BugReportLoadPort bugReportLoadPort;
+    private final BugReportSavePort bugReportSavePort;
 
-    public BugReportClassifyService(BugReportPersistencePort bugReportPersistencePort) {
-        this.bugReportPersistencePort = bugReportPersistencePort;
+    public BugReportClassifyService(BugReportLoadPort bugReportLoadPort, BugReportSavePort bugReportSavePort) {
+        this.bugReportLoadPort = bugReportLoadPort;
+        this.bugReportSavePort = bugReportSavePort;
     }
 
     @Override
@@ -31,11 +34,11 @@ class BugReportClassifyService implements BugReportClassifyUseCase {
         BugReport bugReport = findBugReportOrThrow(bugReportId);
 
         bugReport.classify(bugReportCategory, bugReportPriority);
-        bugReportPersistencePort.save(bugReport);
+        bugReportSavePort.save(bugReport);
     }
 
     private BugReport findBugReportOrThrow(BugReportId bugReportId) {
-        return bugReportPersistencePort.findById(bugReportId)
+        return bugReportLoadPort.findById(bugReportId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.BUG_REPORT_NOT_FOUND));
     }
 }

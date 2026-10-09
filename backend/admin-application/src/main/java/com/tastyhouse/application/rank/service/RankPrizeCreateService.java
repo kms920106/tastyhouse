@@ -8,16 +8,16 @@ import com.tastyhouse.domain.rank.model.RankPrize;
 import com.tastyhouse.domain.rank.vo.RankPeriodId;
 import com.tastyhouse.application.rank.port.in.RankPrizeCreateCommand;
 import com.tastyhouse.application.rank.port.in.RankPrizeCreateUseCase;
-import com.tastyhouse.application.rank.port.out.write.RankPrizePersistencePort;
+import com.tastyhouse.application.rank.port.out.write.RankPrizeSavePort;
 
 @Service
 @Transactional
 class RankPrizeCreateService implements RankPrizeCreateUseCase {
 
-    private final RankPrizePersistencePort rankPrizePersistencePort;
+    private final RankPrizeSavePort rankPrizeSavePort;
 
-    public RankPrizeCreateService(RankPrizePersistencePort rankPrizePersistencePort) {
-        this.rankPrizePersistencePort = rankPrizePersistencePort;
+    public RankPrizeCreateService(RankPrizeSavePort rankPrizeSavePort) {
+        this.rankPrizeSavePort = rankPrizeSavePort;
     }
 
     @Override
@@ -27,7 +27,7 @@ class RankPrizeCreateService implements RankPrizeCreateUseCase {
         UploadedFileId uploadedFileId = imageFileId == null ? null : UploadedFileId.of(imageFileId);
 
         RankPrize prize = RankPrize.of(rankPeriodId, command.prizeRank(), command.name(), command.brand(), uploadedFileId);
-        RankPrize saved = rankPrizePersistencePort.save(prize);
+        RankPrize saved = rankPrizeSavePort.save(prize);
         return saved.getRankPrizeId().value();
     }
 }

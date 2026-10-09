@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.rank.model.RankPrize;
 import com.tastyhouse.domain.rank.vo.RankPrizeId;
-import com.tastyhouse.application.rank.port.out.write.RankPrizePersistencePort;
+import com.tastyhouse.application.rank.port.out.write.RankPrizeLoadPort;
+import com.tastyhouse.application.rank.port.out.write.RankPrizeSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.rank.persistence.QRankPrizeJpaEntity.rankPrizeJpaEntity;
 
 @Repository
-class RankPrizePersistenceAdapter implements RankPrizePersistencePort {
+class RankPrizePersistenceAdapter implements RankPrizeLoadPort, RankPrizeSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final RankPrizeJpaRepository rankPrizeJpaRepository;

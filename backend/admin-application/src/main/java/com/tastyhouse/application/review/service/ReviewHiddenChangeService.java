@@ -7,7 +7,8 @@ import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.review.port.in.ReviewHiddenChangeCommand;
 import com.tastyhouse.application.review.port.in.ReviewHiddenChangeUseCase;
-import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,10 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class ReviewHiddenChangeService implements ReviewHiddenChangeUseCase {
 
-    private final ReviewPersistencePort reviewPersistencePort;
+    private final ReviewLoadPort reviewLoadPort;
+    private final ReviewSavePort reviewSavePort;
 
-    public ReviewHiddenChangeService(ReviewPersistencePort reviewPersistencePort) {
-        this.reviewPersistencePort = reviewPersistencePort;
+    public ReviewHiddenChangeService(ReviewLoadPort reviewLoadPort, ReviewSavePort reviewSavePort) {
+        this.reviewLoadPort = reviewLoadPort;
+        this.reviewSavePort = reviewSavePort;
     }
 
     @Override
@@ -26,7 +29,7 @@ class ReviewHiddenChangeService implements ReviewHiddenChangeUseCase {
         Long id = command.reviewId();
         boolean hidden = command.hidden();
         ReviewId reviewId = ReviewId.of(id);
-        Review review = reviewPersistencePort.findById(reviewId)
+        Review review = reviewLoadPort.findById(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
 
         if (hidden) {
@@ -35,6 +38,6 @@ class ReviewHiddenChangeService implements ReviewHiddenChangeUseCase {
             review.unhide();
         }
 
-        reviewPersistencePort.save(review);
+        reviewSavePort.save(review);
     }
 }

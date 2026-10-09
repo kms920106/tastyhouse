@@ -33,10 +33,14 @@ import com.tastyhouse.domain.shop.model.SuspensionReason;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.StationId;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureSavePort;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -171,15 +175,15 @@ class ShopOrderAvailabilityServiceTest {
         List<OrderMethod> assignedOrderMethods,
         List<ShopSuspension> suspensions
     ) {
-        ShopDetailPersistencePort shopDetailPersistencePort = new ShopDetailPersistencePortFake(assignedOrderMethods);
+        ShopDetailPersistenceFake shopDetailPersistence = new ShopDetailPersistenceFake(assignedOrderMethods);
         ShopOperatingStatusService operatingStatusService = new ShopOperatingStatusService(
-            new ShopPersistencePortFake(shop),
-            shopDetailPersistencePort,
-            new ShopTemporaryClosurePersistencePortFake(),
-            new ShopSuspensionPersistencePortFake(suspensions),
+            new ShopPersistenceFake(shop),
+            shopDetailPersistence,
+            new ShopTemporaryClosurePersistenceFake(),
+            new ShopSuspensionPersistenceFake(suspensions),
             new ShopOperatingStatusCalculator()
         );
-        return new ShopOrderAvailabilityService(operatingStatusService, shopDetailPersistencePort);
+        return new ShopOrderAvailabilityService(operatingStatusService, shopDetailPersistence);
     }
 
     private Shop openShop() {
@@ -197,11 +201,11 @@ class ShopOrderAvailabilityServiceTest {
         );
     }
 
-    private static final class ShopPersistencePortFake implements ShopPersistencePort {
+    private static final class ShopPersistenceFake implements ShopLoadPort, ShopSavePort {
 
         private final Shop shop;
 
-        private ShopPersistencePortFake(Shop shop) {
+        private ShopPersistenceFake(Shop shop) {
             this.shop = shop;
         }
 
@@ -221,11 +225,11 @@ class ShopOrderAvailabilityServiceTest {
         }
     }
 
-    private static final class ShopSuspensionPersistencePortFake implements ShopSuspensionPersistencePort {
+    private static final class ShopSuspensionPersistenceFake implements ShopSuspensionLoadPort, ShopSuspensionSavePort {
 
         private final List<ShopSuspension> suspensions;
 
-        private ShopSuspensionPersistencePortFake(List<ShopSuspension> suspensions) {
+        private ShopSuspensionPersistenceFake(List<ShopSuspension> suspensions) {
             this.suspensions = suspensions;
         }
 
@@ -245,7 +249,7 @@ class ShopOrderAvailabilityServiceTest {
         }
     }
 
-    private static final class ShopTemporaryClosurePersistencePortFake implements ShopTemporaryClosurePersistencePort {
+    private static final class ShopTemporaryClosurePersistenceFake implements ShopTemporaryClosureLoadPort, ShopTemporaryClosureSavePort {
 
         @Override
         public ShopTemporaryClosure save(ShopTemporaryClosure shopTemporaryClosure) {
@@ -268,11 +272,11 @@ class ShopOrderAvailabilityServiceTest {
         }
     }
 
-    private static final class ShopDetailPersistencePortFake implements ShopDetailPersistencePort {
+    private static final class ShopDetailPersistenceFake implements ShopDetailLoadPort, ShopDetailSavePort {
 
         private final List<OrderMethod> assignedOrderMethods;
 
-        private ShopDetailPersistencePortFake(List<OrderMethod> assignedOrderMethods) {
+        private ShopDetailPersistenceFake(List<OrderMethod> assignedOrderMethods) {
             this.assignedOrderMethods = assignedOrderMethods;
         }
 

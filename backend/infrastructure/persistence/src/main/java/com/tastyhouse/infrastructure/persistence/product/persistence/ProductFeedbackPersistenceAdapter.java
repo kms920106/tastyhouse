@@ -11,12 +11,13 @@ import com.tastyhouse.domain.product.model.ProductFeedback;
 import com.tastyhouse.domain.product.model.ProductFeedbackType;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductFeedbackJpaEntity.productFeedbackJpaEntity;
 
 @Repository
-class ProductFeedbackPersistenceAdapter implements ProductFeedbackPersistencePort {
+class ProductFeedbackPersistenceAdapter implements ProductFeedbackLoadPort, ProductFeedbackSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductFeedbackJpaRepository productFeedbackJpaRepository;

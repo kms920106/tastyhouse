@@ -3,10 +3,10 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopRequestComment;
-import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentSavePort;
 
 @Repository
-class ShopRequestCommentPersistenceAdapter implements ShopRequestCommentPersistencePort {
+class ShopRequestCommentPersistenceAdapter implements ShopRequestCommentSavePort {
 
     private final ShopRequestCommentJpaRepository shopRequestCommentJpaRepository;
 

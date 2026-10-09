@@ -5,10 +5,11 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopChoice;
-import com.tastyhouse.application.shop.port.out.write.ShopChoicePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopChoiceLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopChoiceSavePort;
 
 @Repository
-class ShopChoicePersistenceAdapter implements ShopChoicePersistencePort {
+class ShopChoicePersistenceAdapter implements ShopChoiceLoadPort, ShopChoiceSavePort {
 
     private final ShopChoiceJpaRepository shopChoiceJpaRepository;
 

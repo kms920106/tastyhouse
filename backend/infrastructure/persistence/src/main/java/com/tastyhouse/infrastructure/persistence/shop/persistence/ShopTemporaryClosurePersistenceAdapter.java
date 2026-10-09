@@ -7,12 +7,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopTemporaryClosure;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopTemporaryClosureJpaEntity.shopTemporaryClosureJpaEntity;
 
 @Repository
-class ShopTemporaryClosurePersistenceAdapter implements ShopTemporaryClosurePersistencePort {
+class ShopTemporaryClosurePersistenceAdapter implements ShopTemporaryClosureLoadPort, ShopTemporaryClosureSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopTemporaryClosureJpaRepository shopTemporaryClosureJpaRepository;

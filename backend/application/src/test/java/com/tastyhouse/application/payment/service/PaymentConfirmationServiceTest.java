@@ -24,12 +24,14 @@ import com.tastyhouse.domain.payment.model.TossPaymentRecord;
 import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
+import com.tastyhouse.application.order.port.out.write.OrderLoadPort;
+import com.tastyhouse.application.order.port.out.write.OrderSavePort;
 import com.tastyhouse.application.order.service.OrderTransitionService;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
-import com.tastyhouse.application.payment.port.out.write.PaymentPersistencePort;
-import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordPersistencePort;
+import com.tastyhouse.application.payment.port.out.write.PaymentLoadPort;
+import com.tastyhouse.application.payment.port.out.write.PaymentSavePort;
+import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 
@@ -53,10 +55,10 @@ class PaymentConfirmationServiceTest {
         ));
 
         assertThat(confirmed.value()).isEqualTo(PAYMENT_ID.value());
-        assertThat(fixture.paymentPersistencePort.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
-        assertThat(fixture.paymentPersistencePort.lastSaved.getPgTid()).isEqualTo("tid-1");
-        assertThat(fixture.paymentPersistencePort.lastSaved.getCardCompany()).isEqualTo("신한카드");
-        assertThat(fixture.orderPersistencePort.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(fixture.paymentPersistence.lastSaved.getPgTid()).isEqualTo("tid-1");
+        assertThat(fixture.paymentPersistence.lastSaved.getCardCompany()).isEqualTo("신한카드");
+        assertThat(fixture.orderPersistence.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
     }
 
     @Test
@@ -70,8 +72,8 @@ class PaymentConfirmationServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL.getDefaultMessage());
 
-        assertThat(fixture.paymentPersistencePort.lastSaved).isNull();
-        assertThat(fixture.orderPersistencePort.lastSaved).isNull();
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
     }
 
     @Test
@@ -81,9 +83,9 @@ class PaymentConfirmationServiceTest {
 
         fixture.service.applyPgConfirmation(MEMBER_ID, PgProvider.TOSS, "pg-order-1", successConfirmResult());
 
-        assertThat(fixture.paymentPersistencePort.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
-        assertThat(fixture.orderPersistencePort.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
-        assertThat(fixture.tossPaymentRecordPersistencePort.saved).hasSize(1);
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(fixture.orderPersistence.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(fixture.tossPaymentRecordSavePort.saved).hasSize(1);
         assertThat(fixture.eventPublisher.published).hasSize(1);
 
         PaymentCompletedEvent event = (PaymentCompletedEvent) fixture.eventPublisher.published.getFirst();
@@ -102,9 +104,9 @@ class PaymentConfirmationServiceTest {
 
         fixture.service.applyPgConfirmation(MEMBER_ID, PgProvider.KAKAO, "pg-order-1", withoutDetail);
 
-        assertThat(fixture.paymentPersistencePort.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
-        assertThat(fixture.paymentPersistencePort.lastSaved.getPgProvider()).isEqualTo(PgProvider.KAKAO);
-        assertThat(fixture.tossPaymentRecordPersistencePort.saved).isEmpty();
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(fixture.paymentPersistence.lastSaved.getPgProvider()).isEqualTo(PgProvider.KAKAO);
+        assertThat(fixture.tossPaymentRecordSavePort.saved).isEmpty();
     }
 
     @Test
@@ -117,9 +119,9 @@ class PaymentConfirmationServiceTest {
 
         fixture.service.failPgConfirmation("pg-order-1", rejected);
 
-        assertThat(fixture.paymentPersistencePort.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.FAILED);
-        assertThat(fixture.orderPersistencePort.lastSaved).isNull();
-        assertThat(fixture.tossPaymentRecordPersistencePort.saved).hasSize(1);
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.FAILED);
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+        assertThat(fixture.tossPaymentRecordSavePort.saved).hasSize(1);
         assertThat(fixture.eventPublisher.published).isEmpty();
     }
 
@@ -133,7 +135,7 @@ class PaymentConfirmationServiceTest {
 
         fixture.service.failPgConfirmation("pg-order-1", rejected);
 
-        assertThat(fixture.tossPaymentRecordPersistencePort.saved).hasSize(1);
+        assertThat(fixture.tossPaymentRecordSavePort.saved).hasSize(1);
     }
 
     @Test
@@ -145,9 +147,9 @@ class PaymentConfirmationServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ApplicationErrorCode.PAYMENT_AMOUNT_MISMATCH.getDefaultMessage());
 
-        assertThat(fixture.paymentPersistencePort.lastSaved).isNull();
-        assertThat(fixture.orderPersistencePort.lastSaved).isNull();
-        assertThat(fixture.tossPaymentRecordPersistencePort.saved).isEmpty();
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+        assertThat(fixture.tossPaymentRecordSavePort.saved).isEmpty();
     }
 
     @Test
@@ -160,7 +162,7 @@ class PaymentConfirmationServiceTest {
         assertThat(target.paymentId()).isEqualTo(PAYMENT_ID.value());
         assertThat(target.pgOrderId()).isEqualTo("pg-order-1");
         assertThat(target.amount()).isEqualTo(21000);
-        assertThat(fixture.paymentPersistencePort.lastSaved).isNull();
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
     }
 
     @Test
@@ -176,8 +178,8 @@ class PaymentConfirmationServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ApplicationErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
-        assertThat(applyFixture.paymentPersistencePort.lastSaved).isNull();
-        assertThat(applyFixture.orderPersistencePort.lastSaved).isNull();
+        assertThat(applyFixture.paymentPersistence.lastSaved).isNull();
+        assertThat(applyFixture.orderPersistence.lastSaved).isNull();
     }
 
     @Test
@@ -187,10 +189,10 @@ class PaymentConfirmationServiceTest {
 
         fixture.service.completeOnSitePayment(MEMBER_ID, PAYMENT_ID);
 
-        assertThat(fixture.paymentPersistencePort.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
-        assertThat(fixture.orderPersistencePort.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(fixture.orderPersistence.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
 
-        assertThat(fixture.orderPersistencePort.lastSaved.getEarnedPoint()).isEqualTo(2100);
+        assertThat(fixture.orderPersistence.lastSaved.getEarnedPoint()).isEqualTo(2100);
 
         PaymentCompletedEvent event = (PaymentCompletedEvent) fixture.eventPublisher.published.getFirst();
         assertThat(event.isOnSitePayment()).isTrue();
@@ -205,8 +207,8 @@ class PaymentConfirmationServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_ON_SITE.getDefaultMessage());
 
-        assertThat(fixture.paymentPersistencePort.lastSaved).isNull();
-        assertThat(fixture.orderPersistencePort.lastSaved).isNull();
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
     }
 
     @Test
@@ -233,7 +235,7 @@ class PaymentConfirmationServiceTest {
     @DisplayName("결제 개시: 이미 결제가 진행 중인 주문이면 거절한다")
     void open_rejectsDuplicatePayment() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
-        fixture.paymentPersistencePort.existsByOrderId = true;
+        fixture.paymentPersistence.existsByOrderId = true;
 
         assertThatThrownBy(() -> fixture.service.open(MEMBER_ID, ORDER_ID, PaymentMethod.CREDIT_CARD))
             .isInstanceOf(BusinessException.class)
@@ -260,20 +262,21 @@ class PaymentConfirmationServiceTest {
     private static final class Fixture {
 
         private final PaymentConfirmationService service;
-        private final PaymentPersistencePortStub paymentPersistencePort;
-        private final OrderPersistencePortStub orderPersistencePort;
-        private final TossPaymentRecordPersistencePortStub tossPaymentRecordPersistencePort;
+        private final PaymentPersistenceStub paymentPersistence;
+        private final OrderPersistenceStub orderPersistence;
+        private final TossPaymentRecordSavePortStub tossPaymentRecordSavePort;
         private final DomainEventPublisherStub eventPublisher;
 
         private Fixture(Payment payment, Order order) {
-            this.paymentPersistencePort = new PaymentPersistencePortStub(payment);
-            this.orderPersistencePort = new OrderPersistencePortStub(order);
-            this.tossPaymentRecordPersistencePort = new TossPaymentRecordPersistencePortStub();
+            this.paymentPersistence = new PaymentPersistenceStub(payment);
+            this.orderPersistence = new OrderPersistenceStub(order);
+            this.tossPaymentRecordSavePort = new TossPaymentRecordSavePortStub();
             this.eventPublisher = new DomainEventPublisherStub();
             this.service = new PaymentConfirmationService(
-                paymentPersistencePort,
-                tossPaymentRecordPersistencePort,
-                new OrderTransitionService(orderPersistencePort),
+                paymentPersistence,
+                paymentPersistence,
+                tossPaymentRecordSavePort,
+                new OrderTransitionService(orderPersistence, orderPersistence),
                 eventPublisher
             );
         }
@@ -308,13 +311,13 @@ class PaymentConfirmationServiceTest {
         }
     }
 
-    private static final class PaymentPersistencePortStub implements PaymentPersistencePort {
+    private static final class PaymentPersistenceStub implements PaymentLoadPort, PaymentSavePort {
 
         private final Payment stored;
         private Payment lastSaved;
         private boolean existsByOrderId;
 
-        private PaymentPersistencePortStub(Payment stored) {
+        private PaymentPersistenceStub(Payment stored) {
             this.stored = stored;
         }
 
@@ -340,12 +343,12 @@ class PaymentConfirmationServiceTest {
         }
     }
 
-    private static final class OrderPersistencePortStub implements OrderPersistencePort {
+    private static final class OrderPersistenceStub implements OrderLoadPort, OrderSavePort {
 
         private final Order stored;
         private Order lastSaved;
 
-        private OrderPersistencePortStub(Order stored) {
+        private OrderPersistenceStub(Order stored) {
             this.stored = stored;
         }
 
@@ -361,7 +364,7 @@ class PaymentConfirmationServiceTest {
         }
     }
 
-    private static final class TossPaymentRecordPersistencePortStub implements TossPaymentRecordPersistencePort {
+    private static final class TossPaymentRecordSavePortStub implements TossPaymentRecordSavePort {
 
         private final List<TossPaymentRecord> saved = new ArrayList<>();
 

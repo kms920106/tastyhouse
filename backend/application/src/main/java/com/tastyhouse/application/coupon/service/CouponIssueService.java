@@ -12,8 +12,9 @@ import com.tastyhouse.domain.coupon.model.MemberCoupon;
 import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
-import com.tastyhouse.application.coupon.port.out.write.MemberCouponPersistencePort;
+import com.tastyhouse.application.coupon.port.out.write.CouponLoadPort;
+import com.tastyhouse.application.coupon.port.out.write.MemberCouponLoadPort;
+import com.tastyhouse.application.coupon.port.out.write.MemberCouponSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -22,28 +23,31 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Service
 public class CouponIssueService {
 
-    private final CouponPersistencePort couponPersistencePort;
-    private final MemberCouponPersistencePort memberCouponPersistencePort;
+    private final CouponLoadPort couponLoadPort;
+    private final MemberCouponLoadPort memberCouponLoadPort;
+    private final MemberCouponSavePort memberCouponSavePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public CouponIssueService(
-        CouponPersistencePort couponPersistencePort,
-        MemberCouponPersistencePort memberCouponPersistencePort,
+        CouponLoadPort couponLoadPort,
+        MemberCouponLoadPort memberCouponLoadPort,
+        MemberCouponSavePort memberCouponSavePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.couponPersistencePort = couponPersistencePort;
-        this.memberCouponPersistencePort = memberCouponPersistencePort;
+        this.couponLoadPort = couponLoadPort;
+        this.memberCouponLoadPort = memberCouponLoadPort;
+        this.memberCouponSavePort = memberCouponSavePort;
         this.domainEventPublisher = domainEventPublisher;
     }
 
     public MemberCouponId issueCoupon(MemberId memberId, CouponId couponId) {
         Coupon coupon = findCouponOrThrow(couponId);
 
-        if (memberCouponPersistencePort.existsByMemberIdAndCouponId(memberId, couponId)) {
+        if (memberCouponLoadPort.existsByMemberIdAndCouponId(memberId, couponId)) {
             throw new ApplicationException(ApplicationErrorCode.COUPON_ALREADY_ISSUED);
         }
 
-        MemberCoupon issued = memberCouponPersistencePort.save(
+        MemberCoupon issued = memberCouponSavePort.save(
             MemberCoupon.of(memberId, couponId, false, null, coupon.getUseEndAt())
         );
         MemberCouponId memberCouponId = issued.getMemberCouponId();
@@ -59,21 +63,21 @@ public class CouponIssueService {
     }
 
     public CouponUseResult useCoupon(MemberCouponId memberCouponId, MemberId memberId, int orderAmountAfterProductDiscount) {
-        MemberCoupon memberCoupon = memberCouponPersistencePort.findById(memberCouponId)
+        MemberCoupon memberCoupon = memberCouponLoadPort.findById(memberCouponId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_COUPON_NOT_FOUND));
 
         if (!memberCoupon.getMemberId().equals(memberId)) {
             throw new ApplicationException(ApplicationErrorCode.COUPON_ACCESS_DENIED);
         }
 
-        Coupon coupon = couponPersistencePort.findById(memberCoupon.getCouponId())
+        Coupon coupon = couponLoadPort.findById(memberCoupon.getCouponId())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.COUPON_INFO_NOT_FOUND));
 
         coupon.validateMinOrderAmount(orderAmountAfterProductDiscount);
         int discountAmount = coupon.calculateDiscount(orderAmountAfterProductDiscount);
 
         memberCoupon.use();
-        memberCouponPersistencePort.save(memberCoupon);
+        memberCouponSavePort.save(memberCoupon);
 
         domainEventPublisher.publish(new MemberCouponUsedEvent(
             memberCoupon.getMemberCouponId(),
@@ -86,7 +90,7 @@ public class CouponIssueService {
     }
 
     private Coupon findCouponOrThrow(CouponId couponId) {
-        return couponPersistencePort.findById(couponId)
+        return couponLoadPort.findById(couponId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.COUPON_NOT_FOUND));
     }
 }

@@ -14,7 +14,8 @@ import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.application.product.port.in.ProductOptionOrderChangeCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionOrderChangeUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -23,16 +24,19 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 class ProductOptionOrderChangeService implements ProductOptionOrderChangeUseCase {
 
-    private final ProductOptionPersistencePort productOptionPersistencePort;
+    private final ProductOptionLoadPort productOptionLoadPort;
+    private final ProductOptionSavePort productOptionSavePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
 
     public ProductOptionOrderChangeService(
-        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductOptionLoadPort productOptionLoadPort,
+        ProductOptionSavePort productOptionSavePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
-        this.productOptionPersistencePort = productOptionPersistencePort;
+        this.productOptionLoadPort = productOptionLoadPort;
+        this.productOptionSavePort = productOptionSavePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
     }
@@ -47,7 +51,7 @@ class ProductOptionOrderChangeService implements ProductOptionOrderChangeUseCase
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
         productOptionGroupOwnershipValidator.validateOptionGroupShop(shopId, optionGroupId);
 
-        Map<Long, ProductOption> byId = productOptionPersistencePort
+        Map<Long, ProductOption> byId = productOptionLoadPort
             .findAllByOptionGroupId(ProductOptionGroupId.of(optionGroupId)).stream()
             .collect(Collectors.toMap(ProductOption::getId, Function.identity()));
 
@@ -67,7 +71,7 @@ class ProductOptionOrderChangeService implements ProductOptionOrderChangeUseCase
                 option.getCupCount(),
                 option.getPersonalCupDiscountAmount()
             );
-            productOptionPersistencePort.save(option);
+            productOptionSavePort.save(option);
         }
     }
 

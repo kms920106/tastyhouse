@@ -6,7 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.application.ceo.port.in.CeoCreateCommand;
 import com.tastyhouse.application.ceo.port.in.CeoCreateUseCase;
-import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoadPort;
+import com.tastyhouse.application.ceo.port.out.write.CeoSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
@@ -14,10 +15,12 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 @Transactional
 class CeoCreateService implements CeoCreateUseCase {
 
-    private final CeoPersistencePort ceoPersistencePort;
+    private final CeoLoadPort ceoLoadPort;
+    private final CeoSavePort ceoSavePort;
 
-    public CeoCreateService(CeoPersistencePort ceoPersistencePort) {
-        this.ceoPersistencePort = ceoPersistencePort;
+    public CeoCreateService(CeoLoadPort ceoLoadPort, CeoSavePort ceoSavePort) {
+        this.ceoLoadPort = ceoLoadPort;
+        this.ceoSavePort = ceoSavePort;
     }
 
     @Override
@@ -26,12 +29,12 @@ class CeoCreateService implements CeoCreateUseCase {
         String encodedPassword = command.encodedPassword();
         String name = command.name();
 
-        if (ceoPersistencePort.existsByUsername(username)) {
+        if (ceoLoadPort.existsByUsername(username)) {
             throw new ApplicationException(CeoErrorCode.CEO_USERNAME_DUPLICATED);
         }
 
         Ceo ceo = Ceo.create(username, encodedPassword, name);
 
-        ceoPersistencePort.save(ceo);
+        ceoSavePort.save(ceo);
     }
 }

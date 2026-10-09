@@ -8,19 +8,19 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 
 @Component
 public class ShopOwnershipValidator {
 
-    private final ShopPersistencePort shopPersistencePort;
+    private final ShopLoadPort shopLoadPort;
 
-    public ShopOwnershipValidator(ShopPersistencePort shopPersistencePort) {
-        this.shopPersistencePort = shopPersistencePort;
+    public ShopOwnershipValidator(ShopLoadPort shopLoadPort) {
+        this.shopLoadPort = shopLoadPort;
     }
 
     public Shop validateOwnership(Long ceoId, Long shopId) {
-        Shop shop = shopPersistencePort.findById(ShopId.of(shopId))
+        Shop shop = shopLoadPort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
         if (shop.getCeoId() == null || !shop.getCeoId().equals(CeoId.of(ceoId))) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_ACCESS_DENIED);

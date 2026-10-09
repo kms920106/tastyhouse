@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductExposureHour;
 import com.tastyhouse.domain.product.vo.ProductId;
-import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductExposureHourJpaEntity.productExposureHourJpaEntity;
 
 @Repository
-class ProductExposureHourPersistenceAdapter implements ProductExposureHourPersistencePort {
+class ProductExposureHourPersistenceAdapter implements ProductExposureHourLoadPort, ProductExposureHourSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductExposureHourJpaRepository productExposureHourJpaRepository;

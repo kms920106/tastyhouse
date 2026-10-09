@@ -25,7 +25,7 @@ import com.tastyhouse.application.ceo.port.in.CeoLoginFailureRecordUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryFailureCommand;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistorySuccessCommand;
 import com.tastyhouse.application.ceo.port.in.CeoLoginSuccessRecordUseCase;
-import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoadPort;
 
 @Service
 class CeoLoginService implements CeoLoginUseCase {
@@ -34,20 +34,20 @@ class CeoLoginService implements CeoLoginUseCase {
 
     private final AuthenticationManager authenticationManager;
     private final CeoTokenService tokenService;
-    private final CeoPersistencePort ceoPersistencePort;
+    private final CeoLoadPort ceoLoadPort;
     private final CeoLoginSuccessRecordUseCase ceoLoginSuccessRecordUseCase;
     private final CeoLoginFailureRecordUseCase ceoLoginFailureRecordUseCase;
 
     public CeoLoginService(
         AuthenticationManager authenticationManager,
         CeoTokenService tokenService,
-        CeoPersistencePort ceoPersistencePort,
+        CeoLoadPort ceoLoadPort,
         CeoLoginSuccessRecordUseCase ceoLoginSuccessRecordUseCase,
         CeoLoginFailureRecordUseCase ceoLoginFailureRecordUseCase
     ) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
-        this.ceoPersistencePort = ceoPersistencePort;
+        this.ceoLoadPort = ceoLoadPort;
         this.ceoLoginSuccessRecordUseCase = ceoLoginSuccessRecordUseCase;
         this.ceoLoginFailureRecordUseCase = ceoLoginFailureRecordUseCase;
     }
@@ -84,7 +84,7 @@ class CeoLoginService implements CeoLoginUseCase {
         String userAgent
     ) {
         try {
-            Optional<Ceo> ceo = ceoPersistencePort.findByUsername(username);
+            Optional<Ceo> ceo = ceoLoadPort.findByUsername(username);
             if (ceo.isEmpty()) {
 
                 return;

@@ -8,7 +8,8 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductCategoryUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductCategoryUpdateUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCategorySavePort;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
@@ -18,16 +19,19 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 class ProductCategoryUpdateService implements ProductCategoryUpdateUseCase {
 
-    private final ProductCategoryPersistencePort productCategoryPersistencePort;
+    private final ProductCategoryLoadPort productCategoryLoadPort;
+    private final ProductCategorySavePort productCategorySavePort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductCategoryUpdateService(
-        ProductCategoryPersistencePort productCategoryPersistencePort,
+        ProductCategoryLoadPort productCategoryLoadPort,
+        ProductCategorySavePort productCategorySavePort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productCategoryPersistencePort = productCategoryPersistencePort;
+        this.productCategoryLoadPort = productCategoryLoadPort;
+        this.productCategorySavePort = productCategorySavePort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -46,11 +50,11 @@ class ProductCategoryUpdateService implements ProductCategoryUpdateUseCase {
 
         ProductCategory category = loadOwnedCategory(shopId, productCategoryId);
         category.changeDetails(name, description);
-        productCategoryPersistencePort.save(category);
+        productCategorySavePort.save(category);
     }
 
     private ProductCategory loadOwnedCategory(Long shopId, Long productCategoryId) {
-        ProductCategory category = productCategoryPersistencePort.findById(ProductCategoryId.of(productCategoryId))
+        ProductCategory category = productCategoryLoadPort.findById(ProductCategoryId.of(productCategoryId))
             .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.PRODUCT_CATEGORY_NOT_FOUND));
         if (!category.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(CeoErrorCode.PRODUCT_CATEGORY_NOT_FOUND);

@@ -11,14 +11,15 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.reservation.model.ReservationSlot;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.reservation.port.out.write.ReservationSlotPersistencePort;
+import com.tastyhouse.application.reservation.port.out.write.ReservationSlotLoadPort;
+import com.tastyhouse.application.reservation.port.out.write.ReservationSlotSavePort;
 import com.tastyhouse.application.shared.port.out.OptimisticLockConflictException;
 import com.tastyhouse.application.shared.port.out.UniqueConstraintConflictException;
 
 import static com.tastyhouse.infrastructure.persistence.reservation.persistence.QReservationSlotJpaEntity.reservationSlotJpaEntity;
 
 @Repository
-class ReservationSlotPersistenceAdapter implements ReservationSlotPersistencePort {
+class ReservationSlotPersistenceAdapter implements ReservationSlotLoadPort, ReservationSlotSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReservationSlotJpaRepository slotJpaRepository;

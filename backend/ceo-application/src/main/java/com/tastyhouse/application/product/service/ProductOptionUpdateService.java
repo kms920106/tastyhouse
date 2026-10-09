@@ -12,8 +12,9 @@ import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionSelectionRule;
 import com.tastyhouse.application.product.port.in.ProductOptionUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionUpdateUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
@@ -23,23 +24,26 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 class ProductOptionUpdateService implements ProductOptionUpdateUseCase {
 
-    private final ProductOptionPersistencePort productOptionPersistencePort;
-    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
+    private final ProductOptionLoadPort productOptionLoadPort;
+    private final ProductOptionSavePort productOptionSavePort;
+    private final ProductOptionGroupLoadPort productOptionGroupLoadPort;
     private final CupDepositPolicy cupDepositPolicy;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
 
     public ProductOptionUpdateService(
-        ProductOptionPersistencePort productOptionPersistencePort,
-        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductOptionLoadPort productOptionLoadPort,
+        ProductOptionSavePort productOptionSavePort,
+        ProductOptionGroupLoadPort productOptionGroupLoadPort,
         CupDepositPolicy cupDepositPolicy,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
-        this.productOptionPersistencePort = productOptionPersistencePort;
-        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
+        this.productOptionLoadPort = productOptionLoadPort;
+        this.productOptionSavePort = productOptionSavePort;
+        this.productOptionGroupLoadPort = productOptionGroupLoadPort;
         this.cupDepositPolicy = cupDepositPolicy;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
@@ -78,18 +82,18 @@ class ProductOptionUpdateService implements ProductOptionUpdateUseCase {
 
         validateZeroPriceOptionAfterChange(option);
 
-        productOptionPersistencePort.save(option);
+        productOptionSavePort.save(option);
     }
 
     private void validateZeroPriceOptionAfterChange(ProductOption changed) {
-        ProductOptionGroup group = productOptionGroupPersistencePort
+        ProductOptionGroup group = productOptionGroupLoadPort
             .findById(changed.getOptionGroupId())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
         if (!group.isRequired()) {
             return;
         }
 
-        List<ProductOption> options = productOptionPersistencePort
+        List<ProductOption> options = productOptionLoadPort
             .findAllByOptionGroupId(changed.getOptionGroupId()).stream()
             .map(option -> option.getId().equals(changed.getId()) ? changed : option)
             .toList();

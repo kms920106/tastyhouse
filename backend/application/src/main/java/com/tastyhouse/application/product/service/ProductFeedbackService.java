@@ -11,9 +11,11 @@ import com.tastyhouse.domain.product.model.ProductFeedbackRead;
 import com.tastyhouse.domain.product.model.ProductFeedbackType;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackReadSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductFeedbackSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -23,18 +25,24 @@ public class ProductFeedbackService {
 
     public static final int FEEDBACK_WINDOW_DAYS = 7;
 
-    private final ProductPersistencePort productPersistencePort;
-    private final ProductFeedbackPersistencePort productFeedbackPersistencePort;
-    private final ProductFeedbackReadPersistencePort productFeedbackReadPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductFeedbackLoadPort productFeedbackLoadPort;
+    private final ProductFeedbackSavePort productFeedbackSavePort;
+    private final ProductFeedbackReadLoadPort productFeedbackReadLoadPort;
+    private final ProductFeedbackReadSavePort productFeedbackReadSavePort;
 
     public ProductFeedbackService(
-        ProductPersistencePort productPersistencePort,
-        ProductFeedbackPersistencePort productFeedbackPersistencePort,
-        ProductFeedbackReadPersistencePort productFeedbackReadPersistencePort
+        ProductLoadPort productLoadPort,
+        ProductFeedbackLoadPort productFeedbackLoadPort,
+        ProductFeedbackSavePort productFeedbackSavePort,
+        ProductFeedbackReadLoadPort productFeedbackReadLoadPort,
+        ProductFeedbackReadSavePort productFeedbackReadSavePort
     ) {
-        this.productPersistencePort = productPersistencePort;
-        this.productFeedbackPersistencePort = productFeedbackPersistencePort;
-        this.productFeedbackReadPersistencePort = productFeedbackReadPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productFeedbackLoadPort = productFeedbackLoadPort;
+        this.productFeedbackSavePort = productFeedbackSavePort;
+        this.productFeedbackReadLoadPort = productFeedbackReadLoadPort;
+        this.productFeedbackReadSavePort = productFeedbackReadSavePort;
     }
 
     public ProductFeedback submit(
@@ -44,36 +52,36 @@ public class ProductFeedbackService {
         String content,
         LocalDateTime now
     ) {
-        Product product = productPersistencePort.findById(productId)
+        Product product = productLoadPort.findById(productId)
             .filter(found -> !found.isDeleted())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
 
         LocalDateTime windowStart = now.minusDays(FEEDBACK_WINDOW_DAYS);
-        if (productFeedbackPersistencePort.existsRecentDuplicate(memberId, productId, feedbackType, windowStart)) {
+        if (productFeedbackLoadPort.existsRecentDuplicate(memberId, productId, feedbackType, windowStart)) {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_FEEDBACK_ALREADY_SUBMITTED);
         }
 
         ProductFeedback feedback = ProductFeedback.of(
             productId, product.getShopId(), memberId, feedbackType, content
         );
-        return productFeedbackPersistencePort.save(feedback);
+        return productFeedbackSavePort.save(feedback);
     }
 
     public boolean hasUnread(ShopId shopId, LocalDateTime now) {
         LocalDateTime windowStart = now.minusDays(FEEDBACK_WINDOW_DAYS);
-        LocalDateTime since = productFeedbackReadPersistencePort.findByShopId(shopId)
+        LocalDateTime since = productFeedbackReadLoadPort.findByShopId(shopId)
             .map(ProductFeedbackRead::getReadAt)
 
             .filter(readAt -> readAt.isAfter(windowStart))
             .orElse(windowStart);
 
-        return productFeedbackPersistencePort.existsByShopIdAndCreatedAtAfter(shopId, since);
+        return productFeedbackLoadPort.existsByShopIdAndCreatedAtAfter(shopId, since);
     }
 
     public void markRead(ShopId shopId, LocalDateTime now) {
-        ProductFeedbackRead feedbackRead = productFeedbackReadPersistencePort.findByShopId(shopId)
+        ProductFeedbackRead feedbackRead = productFeedbackReadLoadPort.findByShopId(shopId)
             .orElseGet(() -> ProductFeedbackRead.of(shopId, now));
         feedbackRead.markRead(now);
-        productFeedbackReadPersistencePort.save(feedbackRead);
+        productFeedbackReadSavePort.save(feedbackRead);
     }
 }

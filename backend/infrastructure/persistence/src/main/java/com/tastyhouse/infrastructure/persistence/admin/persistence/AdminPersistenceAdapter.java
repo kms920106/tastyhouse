@@ -6,12 +6,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.admin.model.Admin;
-import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
+import com.tastyhouse.application.admin.port.out.write.AdminLoadPort;
+import com.tastyhouse.application.admin.port.out.write.AdminSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.admin.persistence.QAdminJpaEntity.adminJpaEntity;
 
 @Repository
-class AdminPersistenceAdapter implements AdminPersistencePort {
+class AdminPersistenceAdapter implements AdminLoadPort, AdminSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final AdminJpaRepository adminJpaRepository;

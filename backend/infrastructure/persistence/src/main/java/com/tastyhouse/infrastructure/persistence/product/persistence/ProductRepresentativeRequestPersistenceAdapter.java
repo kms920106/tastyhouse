@@ -11,12 +11,13 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductRepresentativeRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductRepresentativeRequestSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductRepresentativeRequestJpaEntity.productRepresentativeRequestJpaEntity;
 
 @Repository
-class ProductRepresentativeRequestPersistenceAdapter implements ProductRepresentativeRequestPersistencePort {
+class ProductRepresentativeRequestPersistenceAdapter implements ProductRepresentativeRequestLoadPort, ProductRepresentativeRequestSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductRepresentativeRequestJpaRepository productRepresentativeRequestJpaRepository;

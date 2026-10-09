@@ -6,22 +6,22 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.faq.model.FaqCategory;
 import com.tastyhouse.application.faq.port.in.FaqCategoryCreateCommand;
 import com.tastyhouse.application.faq.port.in.FaqCategoryCreateUseCase;
-import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
+import com.tastyhouse.application.faq.port.out.write.FaqCategorySavePort;
 
 @Service
 @Transactional
 class FaqCategoryCreateService implements FaqCategoryCreateUseCase {
 
-    private final FaqCategoryPersistencePort faqCategoryPersistencePort;
+    private final FaqCategorySavePort faqCategorySavePort;
 
-    public FaqCategoryCreateService(FaqCategoryPersistencePort faqCategoryPersistencePort) {
-        this.faqCategoryPersistencePort = faqCategoryPersistencePort;
+    public FaqCategoryCreateService(FaqCategorySavePort faqCategorySavePort) {
+        this.faqCategorySavePort = faqCategorySavePort;
     }
 
     @Override
     public Long createCategory(FaqCategoryCreateCommand command) {
         FaqCategory faqCategory = FaqCategory.of(command.name(), command.sort(), command.visible());
-        FaqCategory saved = faqCategoryPersistencePort.save(faqCategory);
+        FaqCategory saved = faqCategorySavePort.save(faqCategory);
         return saved.getFaqCategoryId().value();
     }
 }

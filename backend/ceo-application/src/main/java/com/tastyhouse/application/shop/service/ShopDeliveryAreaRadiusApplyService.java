@@ -14,7 +14,7 @@ import com.tastyhouse.domain.shared.geo.GeoPoint;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaRadiusApplyUseCase;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkResult;
@@ -24,16 +24,16 @@ import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkResult;
 class ShopDeliveryAreaRadiusApplyService implements ShopDeliveryAreaRadiusApplyUseCase {
 
     private final ShopDeliveryAreaRadiusService shopDeliveryAreaRadiusService;
-    private final AdminDongPersistencePort adminDongPersistencePort;
+    private final AdminDongLoadPort adminDongLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopDeliveryAreaRadiusApplyService(
         ShopDeliveryAreaRadiusService shopDeliveryAreaRadiusService,
-        AdminDongPersistencePort adminDongPersistencePort,
+        AdminDongLoadPort adminDongLoadPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.shopDeliveryAreaRadiusService = shopDeliveryAreaRadiusService;
-        this.adminDongPersistencePort = adminDongPersistencePort;
+        this.adminDongLoadPort = adminDongLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -69,7 +69,7 @@ class ShopDeliveryAreaRadiusApplyService implements ShopDeliveryAreaRadiusApplyU
     }
 
     private List<String> resolveRegionNames(Collection<AdminDongId> adminDongIds) {
-        return adminDongPersistencePort.findAllByIds(adminDongIds).stream()
+        return adminDongLoadPort.findAllByIds(adminDongIds).stream()
             .map(AdminDong::fullName)
             .toList();
     }

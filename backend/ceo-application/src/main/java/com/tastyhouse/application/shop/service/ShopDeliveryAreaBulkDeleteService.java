@@ -10,7 +10,7 @@ import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaBulkDeleteUseCase;
 import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkDeleteResult;
@@ -20,16 +20,16 @@ import com.tastyhouse.application.shop.port.out.ShopDeliveryAreaBulkDeleteResult
 class ShopDeliveryAreaBulkDeleteService implements ShopDeliveryAreaBulkDeleteUseCase {
 
     private final ShopDeliveryAreaService shopDeliveryAreaService;
-    private final AdminDongPersistencePort adminDongPersistencePort;
+    private final AdminDongLoadPort adminDongLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopDeliveryAreaBulkDeleteService(
         ShopDeliveryAreaService shopDeliveryAreaService,
-        AdminDongPersistencePort adminDongPersistencePort,
+        AdminDongLoadPort adminDongLoadPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.shopDeliveryAreaService = shopDeliveryAreaService;
-        this.adminDongPersistencePort = adminDongPersistencePort;
+        this.adminDongLoadPort = adminDongLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -53,7 +53,7 @@ class ShopDeliveryAreaBulkDeleteService implements ShopDeliveryAreaBulkDeleteUse
     }
 
     private List<String> resolveRegionNames(Collection<AdminDongId> adminDongIds) {
-        return adminDongPersistencePort.findAllByIds(adminDongIds).stream()
+        return adminDongLoadPort.findAllByIds(adminDongIds).stream()
             .map(AdminDong::fullName)
             .toList();
     }

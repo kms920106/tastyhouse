@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.application.review.port.in.ReviewCommentLookupUseCase;
-import com.tastyhouse.application.review.port.out.write.ReviewCommentPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewCommentLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -13,15 +13,15 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class ReviewCommentLookupService implements ReviewCommentLookupUseCase {
 
-    private final ReviewCommentPersistencePort reviewCommentPersistencePort;
+    private final ReviewCommentLoadPort reviewCommentLoadPort;
 
-    public ReviewCommentLookupService(ReviewCommentPersistencePort reviewCommentPersistencePort) {
-        this.reviewCommentPersistencePort = reviewCommentPersistencePort;
+    public ReviewCommentLookupService(ReviewCommentLoadPort reviewCommentLoadPort) {
+        this.reviewCommentLoadPort = reviewCommentLoadPort;
     }
 
     @Override
     public Long findReviewIdOfComment(Long commentId) {
-        return reviewCommentPersistencePort.findById(ReviewCommentId.of(commentId))
+        return reviewCommentLoadPort.findById(ReviewCommentId.of(commentId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_COMMENT_NOT_FOUND))
             .getReviewId()
             .value();

@@ -9,7 +9,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUnlinkCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupUnlinkUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -19,18 +19,18 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 class ProductOptionGroupUnlinkService implements ProductOptionGroupUnlinkUseCase {
 
     private final ProductOptionGroupLinkService productOptionGroupLinkService;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductLoadPort productLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
 
     public ProductOptionGroupUnlinkService(
         ProductOptionGroupLinkService productOptionGroupLinkService,
-        ProductPersistencePort productPersistencePort,
+        ProductLoadPort productLoadPort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
         this.productOptionGroupLinkService = productOptionGroupLinkService;
-        this.productPersistencePort = productPersistencePort;
+        this.productLoadPort = productLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
     }
@@ -50,7 +50,7 @@ class ProductOptionGroupUnlinkService implements ProductOptionGroupUnlinkUseCase
     }
 
     private void loadOwnedProduct(Long shopId, Long productId) {
-        Product product = productPersistencePort.findById(ProductId.of(productId))
+        Product product = productLoadPort.findById(ProductId.of(productId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);

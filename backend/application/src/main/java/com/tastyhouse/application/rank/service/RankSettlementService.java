@@ -16,7 +16,7 @@ import com.tastyhouse.domain.rank.model.MemberReviewRank;
 import com.tastyhouse.domain.rank.model.RankType;
 import com.tastyhouse.application.rank.port.out.MemberReviewCount;
 import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
-import com.tastyhouse.application.rank.port.out.write.MemberReviewRankPersistencePort;
+import com.tastyhouse.application.rank.port.out.write.MemberReviewRankSavePort;
 
 @Service
 public class RankSettlementService {
@@ -25,14 +25,14 @@ public class RankSettlementService {
 
     private static final int DEFAULT_LIMIT = 10;
 
-    private final MemberReviewRankPersistencePort memberReviewRankPersistencePort;
+    private final MemberReviewRankSavePort memberReviewRankSavePort;
     private final MemberReviewCountPort memberReviewCountPort;
 
     public RankSettlementService(
-        MemberReviewRankPersistencePort memberReviewRankPersistencePort,
+        MemberReviewRankSavePort memberReviewRankSavePort,
         MemberReviewCountPort memberReviewCountPort
     ) {
-        this.memberReviewRankPersistencePort = memberReviewRankPersistencePort;
+        this.memberReviewRankSavePort = memberReviewRankSavePort;
         this.memberReviewCountPort = memberReviewCountPort;
     }
 
@@ -54,8 +54,8 @@ public class RankSettlementService {
             .toList();
         List<MemberReviewRank> ranks = buildRanks(reviewCounts.stream().limit(limit).toList(), memberIds, rankType, baseDate);
 
-        memberReviewRankPersistencePort.deleteByRankTypeAndBaseDate(rankType, baseDate);
-        memberReviewRankPersistencePort.saveAll(ranks);
+        memberReviewRankSavePort.deleteByRankTypeAndBaseDate(rankType, baseDate);
+        memberReviewRankSavePort.saveAll(ranks);
 
         return ranks.size();
     }

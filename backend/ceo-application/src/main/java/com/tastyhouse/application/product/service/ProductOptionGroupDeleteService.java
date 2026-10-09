@@ -6,23 +6,23 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupDeleteUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupSavePort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
 class ProductOptionGroupDeleteService implements ProductOptionGroupDeleteUseCase {
 
-    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
+    private final ProductOptionGroupSavePort productOptionGroupSavePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
 
     public ProductOptionGroupDeleteService(
-        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductOptionGroupSavePort productOptionGroupSavePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
-        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
+        this.productOptionGroupSavePort = productOptionGroupSavePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
     }
@@ -38,6 +38,6 @@ class ProductOptionGroupDeleteService implements ProductOptionGroupDeleteUseCase
         ProductOptionGroup group =
             productOptionGroupOwnershipValidator.loadOwnedOptionGroup(shopId, optionGroupId);
         group.hide();
-        productOptionGroupPersistencePort.save(group);
+        productOptionGroupSavePort.save(group);
     }
 }

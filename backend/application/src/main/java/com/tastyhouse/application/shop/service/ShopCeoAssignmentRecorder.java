@@ -6,17 +6,17 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentActionType;
 import com.tastyhouse.domain.shop.model.ShopCeoAssignmentHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistoryPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistorySavePort;
 
 @Service
 public class ShopCeoAssignmentRecorder {
 
-    private final ShopCeoAssignmentHistoryPersistencePort shopCeoAssignmentHistoryPersistencePort;
+    private final ShopCeoAssignmentHistorySavePort shopCeoAssignmentHistorySavePort;
 
     public ShopCeoAssignmentRecorder(
-        ShopCeoAssignmentHistoryPersistencePort shopCeoAssignmentHistoryPersistencePort
+        ShopCeoAssignmentHistorySavePort shopCeoAssignmentHistorySavePort
     ) {
-        this.shopCeoAssignmentHistoryPersistencePort = shopCeoAssignmentHistoryPersistencePort;
+        this.shopCeoAssignmentHistorySavePort = shopCeoAssignmentHistorySavePort;
     }
 
     public void recordGrant(ShopId shopId, CeoId ceoId, Long actorAdminId) {
@@ -39,6 +39,6 @@ public class ShopCeoAssignmentRecorder {
             actionType,
             actorAdminId
         );
-        shopCeoAssignmentHistoryPersistencePort.save(history);
+        shopCeoAssignmentHistorySavePort.save(history);
     }
 }

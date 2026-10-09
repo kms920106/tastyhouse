@@ -9,16 +9,19 @@ import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageUpdateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 
 @Service
 @Transactional
 class ShopPhotoCategoryImageUpdateService implements ShopPhotoCategoryImageUpdateUseCase {
 
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopDetailLoadPort shopDetailLoadPort;
+    private final ShopDetailSavePort shopDetailSavePort;
 
-    public ShopPhotoCategoryImageUpdateService(ShopDetailPersistencePort shopDetailPersistencePort) {
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+    public ShopPhotoCategoryImageUpdateService(ShopDetailLoadPort shopDetailLoadPort, ShopDetailSavePort shopDetailSavePort) {
+        this.shopDetailLoadPort = shopDetailLoadPort;
+        this.shopDetailSavePort = shopDetailSavePort;
     }
 
     @Override
@@ -28,9 +31,9 @@ class ShopPhotoCategoryImageUpdateService implements ShopPhotoCategoryImageUpdat
         Integer sort = command.sort();
         Boolean visible = command.visible();
 
-        ShopPhotoCategoryImage image = shopDetailPersistencePort.findPhotoCategoryImageById(imageId)
+        ShopPhotoCategoryImage image = shopDetailLoadPort.findPhotoCategoryImageById(imageId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_PHOTO_CATEGORY_IMAGE_NOT_FOUND));
         image.update(UploadedFileId.of(imageFileId), sort, visible);
-        shopDetailPersistencePort.savePhotoCategoryImage(image);
+        shopDetailSavePort.savePhotoCategoryImage(image);
     }
 }

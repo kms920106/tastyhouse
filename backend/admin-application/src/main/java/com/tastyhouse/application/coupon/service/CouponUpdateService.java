@@ -8,7 +8,8 @@ import com.tastyhouse.domain.coupon.model.DiscountType;
 import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.application.coupon.port.in.CouponUpdateCommand;
 import com.tastyhouse.application.coupon.port.in.CouponUpdateUseCase;
-import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
+import com.tastyhouse.application.coupon.port.out.write.CouponLoadPort;
+import com.tastyhouse.application.coupon.port.out.write.CouponSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -16,10 +17,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class CouponUpdateService implements CouponUpdateUseCase {
 
-    private final CouponPersistencePort couponPersistencePort;
+    private final CouponLoadPort couponLoadPort;
+    private final CouponSavePort couponSavePort;
 
-    public CouponUpdateService(CouponPersistencePort couponPersistencePort) {
-        this.couponPersistencePort = couponPersistencePort;
+    public CouponUpdateService(CouponLoadPort couponLoadPort, CouponSavePort couponSavePort) {
+        this.couponLoadPort = couponLoadPort;
+        this.couponSavePort = couponSavePort;
     }
 
     @Override
@@ -41,11 +44,11 @@ class CouponUpdateService implements CouponUpdateUseCase {
             command.useEndAt(),
             command.visible()
         );
-        couponPersistencePort.save(coupon);
+        couponSavePort.save(coupon);
     }
 
     private Coupon findCouponOrThrow(CouponId couponId) {
-        return couponPersistencePort.findById(couponId)
+        return couponLoadPort.findById(couponId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.COUPON_NOT_FOUND));
     }
 }

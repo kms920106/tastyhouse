@@ -7,13 +7,14 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductOptionGroupMergeExclusion;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductOptionGroupMergeExclusionJpaEntity.productOptionGroupMergeExclusionJpaEntity;
 
 @Repository
 class ProductOptionGroupMergeExclusionPersistenceAdapter
-    implements ProductOptionGroupMergeExclusionPersistencePort {
+    implements ProductOptionGroupMergeExclusionLoadPort, ProductOptionGroupMergeExclusionSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductOptionGroupMergeExclusionJpaRepository jpaRepository;

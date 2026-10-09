@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.admin.model.Admin;
-import com.tastyhouse.application.admin.port.out.write.AdminPersistencePort;
+import com.tastyhouse.application.admin.port.out.write.AdminLoadPort;
 import com.tastyhouse.application.auth.port.out.AdminJwtResult;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -20,18 +20,18 @@ public class AdminTokenService {
     private final AdminJwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
-    private final AdminPersistencePort adminPersistencePort;
+    private final AdminLoadPort adminLoadPort;
 
     public AdminTokenService(
         AdminJwtTokenProvider jwtTokenProvider,
         RefreshTokenRepository refreshTokenRepository,
         BlacklistRepository blacklistRepository,
-        AdminPersistencePort adminPersistencePort
+        AdminLoadPort adminLoadPort
     ) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenRepository = refreshTokenRepository;
         this.blacklistRepository = blacklistRepository;
-        this.adminPersistencePort = adminPersistencePort;
+        this.adminLoadPort = adminLoadPort;
     }
 
     public AdminJwtResult issue(Authentication authentication, boolean rememberMe) {
@@ -60,7 +60,7 @@ public class AdminTokenService {
             throw new ApplicationException(AdminErrorCode.ADMIN_AUTHENTICATION_FAILED, "만료되었거나 이미 로그아웃된 Refresh Token입니다.");
         }
 
-        Admin admin = adminPersistencePort.findByUsername(username)
+        Admin admin = adminLoadPort.findByUsername(username)
             .orElseThrow(() -> new ApplicationException(AdminErrorCode.ADMIN_AUTHENTICATION_FAILED, "존재하지 않는 관리자입니다."));
         if (!admin.isActive()) {
             refreshTokenRepository.delete(username);

@@ -7,23 +7,26 @@ import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeDeleteUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeSavePort;
 
 @Service
 @Transactional
 class ShopHygieneBadgeDeleteService implements ShopHygieneBadgeDeleteUseCase {
 
-    private final ShopHygieneBadgePersistencePort shopHygieneBadgePersistencePort;
+    private final ShopHygieneBadgeLoadPort shopHygieneBadgeLoadPort;
+    private final ShopHygieneBadgeSavePort shopHygieneBadgeSavePort;
 
-    public ShopHygieneBadgeDeleteService(ShopHygieneBadgePersistencePort shopHygieneBadgePersistencePort) {
-        this.shopHygieneBadgePersistencePort = shopHygieneBadgePersistencePort;
+    public ShopHygieneBadgeDeleteService(ShopHygieneBadgeLoadPort shopHygieneBadgeLoadPort, ShopHygieneBadgeSavePort shopHygieneBadgeSavePort) {
+        this.shopHygieneBadgeLoadPort = shopHygieneBadgeLoadPort;
+        this.shopHygieneBadgeSavePort = shopHygieneBadgeSavePort;
     }
 
     @Override
     public void deleteHygieneBadge(ShopHygieneBadgeDeleteCommand command) {
         Long hygieneBadgeId = command.hygieneBadgeId();
-        shopHygieneBadgePersistencePort.findById(hygieneBadgeId)
+        shopHygieneBadgeLoadPort.findById(hygieneBadgeId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_HYGIENE_BADGE_NOT_FOUND));
-        shopHygieneBadgePersistencePort.deleteById(hygieneBadgeId);
+        shopHygieneBadgeSavePort.deleteById(hygieneBadgeId);
     }
 }

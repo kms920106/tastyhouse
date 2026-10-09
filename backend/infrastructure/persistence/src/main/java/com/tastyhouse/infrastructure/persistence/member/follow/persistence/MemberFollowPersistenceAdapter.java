@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.follow.model.MemberFollow;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.follow.port.out.write.MemberFollowPersistencePort;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowLoadPort;
+import com.tastyhouse.application.member.follow.port.out.write.MemberFollowSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.member.follow.persistence.QMemberFollowJpaEntity.memberFollowJpaEntity;
 
 @Repository
-class MemberFollowPersistenceAdapter implements MemberFollowPersistencePort {
+class MemberFollowPersistenceAdapter implements MemberFollowLoadPort, MemberFollowSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final MemberFollowJpaRepository memberFollowJpaRepository;

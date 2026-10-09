@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.member.referral.model.MemberReferral;
 import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.referral.port.out.write.MemberReferralPersistencePort;
+import com.tastyhouse.application.member.referral.port.out.write.MemberReferralLoadPort;
+import com.tastyhouse.application.member.referral.port.out.write.MemberReferralSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.member.referral.persistence.QMemberReferralJpaEntity.memberReferralJpaEntity;
 
 @Repository
-class MemberReferralPersistenceAdapter implements MemberReferralPersistencePort {
+class MemberReferralPersistenceAdapter implements MemberReferralLoadPort, MemberReferralSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final MemberReferralJpaRepository memberReferralJpaRepository;

@@ -3,10 +3,10 @@ package com.tastyhouse.infrastructure.persistence.bug.persistence;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.bug.model.BugReportImage;
-import com.tastyhouse.application.bug.port.out.write.BugReportImagePersistencePort;
+import com.tastyhouse.application.bug.port.out.write.BugReportImageSavePort;
 
 @Repository
-class BugReportImagePersistenceAdapter implements BugReportImagePersistencePort {
+class BugReportImagePersistenceAdapter implements BugReportImageSavePort {
 
     private final BugReportImageJpaRepository bugReportImageJpaRepository;
 

@@ -10,7 +10,8 @@ import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.exception.DomainException;
 import com.tastyhouse.application.bug.port.in.BugReportManagementStatusChangeUseCase;
 import com.tastyhouse.application.bug.port.in.BugReportStatusChangeCommand;
-import com.tastyhouse.application.bug.port.out.write.BugReportPersistencePort;
+import com.tastyhouse.application.bug.port.out.write.BugReportLoadPort;
+import com.tastyhouse.application.bug.port.out.write.BugReportSavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -18,10 +19,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class BugReportManagementStatusChangeService implements BugReportManagementStatusChangeUseCase {
 
-    private final BugReportPersistencePort bugReportPersistencePort;
+    private final BugReportLoadPort bugReportLoadPort;
+    private final BugReportSavePort bugReportSavePort;
 
-    public BugReportManagementStatusChangeService(BugReportPersistencePort bugReportPersistencePort) {
-        this.bugReportPersistencePort = bugReportPersistencePort;
+    public BugReportManagementStatusChangeService(BugReportLoadPort bugReportLoadPort, BugReportSavePort bugReportSavePort) {
+        this.bugReportLoadPort = bugReportLoadPort;
+        this.bugReportSavePort = bugReportSavePort;
     }
 
     @Override
@@ -39,11 +42,11 @@ class BugReportManagementStatusChangeService implements BugReportManagementStatu
             case RECEIVED -> throw new DomainException(DomainErrorCode.BUG_REPORT_INVALID_STATUS);
         }
 
-        bugReportPersistencePort.save(bugReport);
+        bugReportSavePort.save(bugReport);
     }
 
     private BugReport findBugReportOrThrow(BugReportId bugReportId) {
-        return bugReportPersistencePort.findById(bugReportId)
+        return bugReportLoadPort.findById(bugReportId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.BUG_REPORT_NOT_FOUND));
     }
 }

@@ -9,7 +9,8 @@ import com.tastyhouse.domain.event.vo.EventId;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 import com.tastyhouse.application.event.port.in.EventUpdateCommand;
 import com.tastyhouse.application.event.port.in.EventUpdateUseCase;
-import com.tastyhouse.application.event.port.out.write.EventPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventLoadPort;
+import com.tastyhouse.application.event.port.out.write.EventSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -17,10 +18,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class EventUpdateService implements EventUpdateUseCase {
 
-    private final EventPersistencePort eventPersistencePort;
+    private final EventLoadPort eventLoadPort;
+    private final EventSavePort eventSavePort;
 
-    public EventUpdateService(EventPersistencePort eventPersistencePort) {
-        this.eventPersistencePort = eventPersistencePort;
+    public EventUpdateService(EventLoadPort eventLoadPort, EventSavePort eventSavePort) {
+        this.eventLoadPort = eventLoadPort;
+        this.eventSavePort = eventSavePort;
     }
 
     @Override
@@ -41,11 +44,11 @@ class EventUpdateService implements EventUpdateUseCase {
             command.startAt(),
             command.endAt()
         );
-        eventPersistencePort.save(event);
+        eventSavePort.save(event);
     }
 
     private Event findEventOrThrow(EventId eventId) {
-        return eventPersistencePort.findById(eventId)
+        return eventLoadPort.findById(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
     }
 }

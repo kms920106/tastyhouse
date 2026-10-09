@@ -7,7 +7,7 @@ import org.springframework.util.StringUtils;
 
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.application.auth.port.out.CeoJwtResult;
-import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.security.jwt.TokenType;
@@ -20,18 +20,18 @@ public class CeoTokenService {
     private final CeoJwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final BlacklistRepository blacklistRepository;
-    private final CeoPersistencePort ceoPersistencePort;
+    private final CeoLoadPort ceoLoadPort;
 
     public CeoTokenService(
         CeoJwtTokenProvider jwtTokenProvider,
         RefreshTokenRepository refreshTokenRepository,
         BlacklistRepository blacklistRepository,
-        CeoPersistencePort ceoPersistencePort
+        CeoLoadPort ceoLoadPort
     ) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.refreshTokenRepository = refreshTokenRepository;
         this.blacklistRepository = blacklistRepository;
-        this.ceoPersistencePort = ceoPersistencePort;
+        this.ceoLoadPort = ceoLoadPort;
     }
 
     public CeoJwtResult issue(Authentication authentication, boolean rememberMe) {
@@ -60,7 +60,7 @@ public class CeoTokenService {
             throw new ApplicationException(CeoErrorCode.CEO_AUTHENTICATION_FAILED, "만료되었거나 이미 로그아웃된 Refresh Token입니다.");
         }
 
-        Ceo ceo = ceoPersistencePort.findByUsername(username)
+        Ceo ceo = ceoLoadPort.findByUsername(username)
             .orElseThrow(() -> new ApplicationException(CeoErrorCode.CEO_AUTHENTICATION_FAILED, "존재하지 않는 점주입니다."));
         if (!ceo.isActive()) {
             refreshTokenRepository.delete(username);

@@ -7,7 +7,8 @@ import com.tastyhouse.domain.faq.model.FaqCategory;
 import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 import com.tastyhouse.application.faq.port.in.FaqCategoryUpdateCommand;
 import com.tastyhouse.application.faq.port.in.FaqCategoryUpdateUseCase;
-import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
+import com.tastyhouse.application.faq.port.out.write.FaqCategoryLoadPort;
+import com.tastyhouse.application.faq.port.out.write.FaqCategorySavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,10 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class FaqCategoryUpdateService implements FaqCategoryUpdateUseCase {
 
-    private final FaqCategoryPersistencePort faqCategoryPersistencePort;
+    private final FaqCategoryLoadPort faqCategoryLoadPort;
+    private final FaqCategorySavePort faqCategorySavePort;
 
-    public FaqCategoryUpdateService(FaqCategoryPersistencePort faqCategoryPersistencePort) {
-        this.faqCategoryPersistencePort = faqCategoryPersistencePort;
+    public FaqCategoryUpdateService(FaqCategoryLoadPort faqCategoryLoadPort, FaqCategorySavePort faqCategorySavePort) {
+        this.faqCategoryLoadPort = faqCategoryLoadPort;
+        this.faqCategorySavePort = faqCategorySavePort;
     }
 
     @Override
@@ -27,11 +30,11 @@ class FaqCategoryUpdateService implements FaqCategoryUpdateUseCase {
         FaqCategory faqCategory = findCategoryOrThrow(faqCategoryId);
 
         faqCategory.update(command.name(), command.sort(), command.visible());
-        faqCategoryPersistencePort.save(faqCategory);
+        faqCategorySavePort.save(faqCategory);
     }
 
     private FaqCategory findCategoryOrThrow(FaqCategoryId faqCategoryId) {
-        return faqCategoryPersistencePort.findById(faqCategoryId)
+        return faqCategoryLoadPort.findById(faqCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 }

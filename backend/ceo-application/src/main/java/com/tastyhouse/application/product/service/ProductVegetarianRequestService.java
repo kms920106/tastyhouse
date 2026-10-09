@@ -12,7 +12,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductVegetarianRequestCommand;
 import com.tastyhouse.application.product.port.in.ProductVegetarianRequestUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopFoodTypeCategoryReader;
@@ -23,18 +23,18 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 class ProductVegetarianRequestService implements ProductVegetarianRequestUseCase {
 
     private final ProductVegetarianApprovalService productVegetarianApprovalService;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductLoadPort productLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopFoodTypeCategoryReader shopFoodTypeCategoryReader;
 
     public ProductVegetarianRequestService(
         ProductVegetarianApprovalService productVegetarianApprovalService,
-        ProductPersistencePort productPersistencePort,
+        ProductLoadPort productLoadPort,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopFoodTypeCategoryReader shopFoodTypeCategoryReader
     ) {
         this.productVegetarianApprovalService = productVegetarianApprovalService;
-        this.productPersistencePort = productPersistencePort;
+        this.productLoadPort = productLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopFoodTypeCategoryReader = shopFoodTypeCategoryReader;
     }
@@ -62,7 +62,7 @@ class ProductVegetarianRequestService implements ProductVegetarianRequestUseCase
 
     private void requireOwnedProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(
+        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(
             ShopId.of(shopId), List.of(ProductId.of(productId)));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);

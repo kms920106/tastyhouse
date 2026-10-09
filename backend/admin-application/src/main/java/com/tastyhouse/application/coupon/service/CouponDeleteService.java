@@ -7,7 +7,8 @@ import com.tastyhouse.domain.coupon.model.Coupon;
 import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.application.coupon.port.in.CouponDeleteCommand;
 import com.tastyhouse.application.coupon.port.in.CouponDeleteUseCase;
-import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
+import com.tastyhouse.application.coupon.port.out.write.CouponLoadPort;
+import com.tastyhouse.application.coupon.port.out.write.CouponSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,10 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class CouponDeleteService implements CouponDeleteUseCase {
 
-    private final CouponPersistencePort couponPersistencePort;
+    private final CouponLoadPort couponLoadPort;
+    private final CouponSavePort couponSavePort;
 
-    public CouponDeleteService(CouponPersistencePort couponPersistencePort) {
-        this.couponPersistencePort = couponPersistencePort;
+    public CouponDeleteService(CouponLoadPort couponLoadPort, CouponSavePort couponSavePort) {
+        this.couponLoadPort = couponLoadPort;
+        this.couponSavePort = couponSavePort;
     }
 
     @Override
@@ -27,11 +30,11 @@ class CouponDeleteService implements CouponDeleteUseCase {
         Coupon coupon = findCouponOrThrow(couponId);
 
         coupon.delete();
-        couponPersistencePort.save(coupon);
+        couponSavePort.save(coupon);
     }
 
     private Coupon findCouponOrThrow(CouponId couponId) {
-        return couponPersistencePort.findById(couponId)
+        return couponLoadPort.findById(couponId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.COUPON_NOT_FOUND));
     }
 }

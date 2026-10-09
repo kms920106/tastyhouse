@@ -9,16 +9,19 @@ import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryUpdateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 
 @Service
 @Transactional
 class ShopFoodTypeCategoryUpdateService implements ShopFoodTypeCategoryUpdateUseCase {
 
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopDetailLoadPort shopDetailLoadPort;
+    private final ShopDetailSavePort shopDetailSavePort;
 
-    public ShopFoodTypeCategoryUpdateService(ShopDetailPersistencePort shopDetailPersistencePort) {
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+    public ShopFoodTypeCategoryUpdateService(ShopDetailLoadPort shopDetailLoadPort, ShopDetailSavePort shopDetailSavePort) {
+        this.shopDetailLoadPort = shopDetailLoadPort;
+        this.shopDetailSavePort = shopDetailSavePort;
     }
 
     @Override
@@ -30,7 +33,7 @@ class ShopFoodTypeCategoryUpdateService implements ShopFoodTypeCategoryUpdateUse
         Integer sort = command.sort();
         Boolean visible = command.visible();
 
-        ShopFoodTypeCategory foodTypeCategory = shopDetailPersistencePort.findFoodTypeCategoryById(categoryId)
+        ShopFoodTypeCategory foodTypeCategory = shopDetailLoadPort.findFoodTypeCategoryById(categoryId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
         foodTypeCategory.update(
             displayName,
@@ -39,6 +42,6 @@ class ShopFoodTypeCategoryUpdateService implements ShopFoodTypeCategoryUpdateUse
             sort,
             visible
         );
-        shopDetailPersistencePort.saveFoodTypeCategory(foodTypeCategory);
+        shopDetailSavePort.saveFoodTypeCategory(foodTypeCategory);
     }
 }

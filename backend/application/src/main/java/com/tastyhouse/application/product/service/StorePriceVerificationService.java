@@ -22,9 +22,11 @@ import com.tastyhouse.domain.product.vo.StorePriceVerificationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.ShopRequestIndexSyncPort;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
-import com.tastyhouse.application.product.port.out.write.StorePriceVerificationPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceSavePort;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationLoadPort;
+import com.tastyhouse.application.product.port.out.write.StorePriceVerificationSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -35,22 +37,28 @@ public class StorePriceVerificationService {
     private static final List<StorePriceVerificationStatus> OPEN_STATUSES =
         List.of(StorePriceVerificationStatus.PENDING, StorePriceVerificationStatus.IN_PROGRESS);
 
-    private final StorePriceVerificationPersistencePort verificationPersistencePort;
-    private final ProductPricePersistencePort productPricePersistencePort;
-    private final ProductPersistencePort productPersistencePort;
+    private final StorePriceVerificationLoadPort verificationLoadPort;
+    private final StorePriceVerificationSavePort verificationSavePort;
+    private final ProductPriceLoadPort productPriceLoadPort;
+    private final ProductPriceSavePort productPriceSavePort;
+    private final ProductLoadPort productLoadPort;
     private final StorePriceVerificationPort storePriceVerificationPort;
     private final ShopRequestIndexSyncPort shopRequestIndexSyncPort;
 
     public StorePriceVerificationService(
-        StorePriceVerificationPersistencePort verificationPersistencePort,
-        ProductPricePersistencePort productPricePersistencePort,
-        ProductPersistencePort productPersistencePort,
+        StorePriceVerificationLoadPort verificationLoadPort,
+        StorePriceVerificationSavePort verificationSavePort,
+        ProductPriceLoadPort productPriceLoadPort,
+        ProductPriceSavePort productPriceSavePort,
+        ProductLoadPort productLoadPort,
         StorePriceVerificationPort storePriceVerificationPort,
         ShopRequestIndexSyncPort shopRequestIndexSyncPort
     ) {
-        this.verificationPersistencePort = verificationPersistencePort;
-        this.productPricePersistencePort = productPricePersistencePort;
-        this.productPersistencePort = productPersistencePort;
+        this.verificationLoadPort = verificationLoadPort;
+        this.verificationSavePort = verificationSavePort;
+        this.productPriceLoadPort = productPriceLoadPort;
+        this.productPriceSavePort = productPriceSavePort;
+        this.productLoadPort = productLoadPort;
         this.storePriceVerificationPort = storePriceVerificationPort;
         this.shopRequestIndexSyncPort = shopRequestIndexSyncPort;
     }
@@ -61,7 +69,7 @@ public class StorePriceVerificationService {
         List<StorePriceVerificationItemSpec> items,
         Long requestedByCeoId
     ) {
-        if (verificationPersistencePort.existsByShopIdAndStatusIn(shopId, OPEN_STATUSES)) {
+        if (verificationLoadPort.existsByShopIdAndStatusIn(shopId, OPEN_STATUSES)) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_IN_PROGRESS);
         }
         if (items == null || items.isEmpty()) {
@@ -70,11 +78,11 @@ public class StorePriceVerificationService {
 
         List<ResolvedItem> resolved = resolveItems(shopId, items);
 
-        StorePriceVerification saved = verificationPersistencePort.save(
+        StorePriceVerification saved = verificationSavePort.save(
             StorePriceVerification.of(shopId, priceListFileId, requestedByCeoId));
 
         for (ResolvedItem item : resolved) {
-            verificationPersistencePort.saveItem(StorePriceVerificationItem.of(
+            verificationSavePort.saveItem(StorePriceVerificationItem.of(
                 saved.getVerificationId(),
                 item.productId(),
                 item.productPriceId(),
@@ -100,7 +108,7 @@ public class StorePriceVerificationService {
                         + ": " + product.getName());
             }
 
-            ProductPrice price = productPricePersistencePort.findById(ProductPriceId.of(item.priceId()))
+            ProductPrice price = productPriceLoadPort.findById(ProductPriceId.of(item.priceId()))
                 .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_PRICE_NOT_FOUND));
 
             if (!price.getProductId().equals(productId)) {
@@ -120,23 +128,23 @@ public class StorePriceVerificationService {
     public void startReview(StorePriceVerificationId verificationId, LocalDateTime now) {
         StorePriceVerification verification = loadVerification(verificationId);
         verification.startReview(now);
-        verificationPersistencePort.save(verification);
+        verificationSavePort.save(verification);
         syncIndex(verification, null);
     }
 
     public void approve(StorePriceVerificationId verificationId, LocalDateTime now) {
         StorePriceVerification verification = loadVerification(verificationId);
 
-        for (StorePriceVerificationItem item : verificationPersistencePort
+        for (StorePriceVerificationItem item : verificationLoadPort
             .findAllItemsByVerificationId(verificationId)) {
-            ProductPrice price = productPricePersistencePort.findById(item.getProductPriceId())
+            ProductPrice price = productPriceLoadPort.findById(item.getProductPriceId())
                 .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_PRICE_NOT_FOUND));
             price.applyVerifiedStorePrice(item.getStorePrice(), item.isApplyPickupSamePrice(), now);
-            productPricePersistencePort.save(price);
+            productPriceSavePort.save(price);
         }
 
         verification.approve(now);
-        verificationPersistencePort.save(verification);
+        verificationSavePort.save(verification);
         syncIndex(verification, null);
 
         storePriceVerificationPort.verifyStorePrice(verification.getShopId().value());
@@ -145,21 +153,21 @@ public class StorePriceVerificationService {
     public void reject(StorePriceVerificationId verificationId, String rejectReason, LocalDateTime now) {
         StorePriceVerification verification = loadVerification(verificationId);
         verification.reject(rejectReason, now);
-        verificationPersistencePort.save(verification);
+        verificationSavePort.save(verification);
         syncIndex(verification, rejectReason);
     }
 
     public void cancel(StorePriceVerificationId verificationId, LocalDateTime now) {
         StorePriceVerification verification = loadVerification(verificationId);
         verification.cancel(now);
-        verificationPersistencePort.save(verification);
+        verificationSavePort.save(verification);
         syncIndex(verification, null);
     }
 
     public List<StorePriceUnverifiedItem> findUnverifiedItems(ShopId shopId) {
         Map<Long, StorePriceUnverifiedItem> byProductId = new LinkedHashMap<>();
 
-        for (ProductPrice price : productPricePersistencePort.findAllByShopId(shopId)) {
+        for (ProductPrice price : productPriceLoadPort.findAllByShopId(shopId)) {
             var reason = price.resolveUnverifiedReason();
             if (reason == null) {
                 continue;
@@ -168,7 +176,7 @@ public class StorePriceVerificationService {
             if (byProductId.containsKey(productId)) {
                 continue;
             }
-            Product product = productPersistencePort.findById(price.getProductId()).orElse(null);
+            Product product = productLoadPort.findById(price.getProductId()).orElse(null);
             if (product == null || product.isDeleted()) {
                 continue;
             }
@@ -196,13 +204,13 @@ public class StorePriceVerificationService {
     }
 
     private StorePriceVerification loadVerification(StorePriceVerificationId verificationId) {
-        return verificationPersistencePort.findById(verificationId)
+        return verificationLoadPort.findById(verificationId)
             .orElseThrow(() -> new ResourceNotFoundException(
                 ApplicationErrorCode.SHOP_STORE_PRICE_VERIFICATION_NOT_FOUND));
     }
 
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
-        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(shopId, List.of(productId));
+        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }

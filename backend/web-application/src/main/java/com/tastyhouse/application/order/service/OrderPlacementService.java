@@ -36,9 +36,9 @@ import com.tastyhouse.application.coupon.service.CouponIssueService;
 import com.tastyhouse.application.holiday.service.PublicHolidayCalendar;
 import com.tastyhouse.application.member.service.MemberDeliveryAddressService;
 import com.tastyhouse.application.member.service.OrdererLookupService;
-import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
-import com.tastyhouse.application.order.port.out.write.OrderProductOptionPersistencePort;
-import com.tastyhouse.application.order.port.out.write.OrderProductPersistencePort;
+import com.tastyhouse.application.order.port.out.write.OrderProductOptionSavePort;
+import com.tastyhouse.application.order.port.out.write.OrderProductSavePort;
+import com.tastyhouse.application.order.port.out.write.OrderSavePort;
 import com.tastyhouse.application.point.service.PointLedgerService;
 import com.tastyhouse.application.product.service.OrderProductValidationService;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -48,9 +48,9 @@ import com.tastyhouse.application.shop.service.ShopOrderContextService;
 @Service
 public class OrderPlacementService {
 
-    private final OrderPersistencePort orderPersistencePort;
-    private final OrderProductPersistencePort orderProductPersistencePort;
-    private final OrderProductOptionPersistencePort orderProductOptionPersistencePort;
+    private final OrderSavePort orderSavePort;
+    private final OrderProductSavePort orderProductSavePort;
+    private final OrderProductOptionSavePort orderProductOptionSavePort;
     private final OrderProductValidationService orderProductValidationService;
     private final ShopOrderContextService shopOrderContextService;
     private final OrdererLookupService ordererLookupService;
@@ -60,9 +60,9 @@ public class OrderPlacementService {
     private final PublicHolidayCalendar publicHolidayCalendar;
 
     public OrderPlacementService(
-        OrderPersistencePort orderPersistencePort,
-        OrderProductPersistencePort orderProductPersistencePort,
-        OrderProductOptionPersistencePort orderProductOptionPersistencePort,
+        OrderSavePort orderSavePort,
+        OrderProductSavePort orderProductSavePort,
+        OrderProductOptionSavePort orderProductOptionSavePort,
         OrderProductValidationService orderProductValidationService,
         ShopOrderContextService shopOrderContextService,
         OrdererLookupService ordererLookupService,
@@ -71,9 +71,9 @@ public class OrderPlacementService {
         PointLedgerService pointLedgerService,
         PublicHolidayCalendar publicHolidayCalendar
     ) {
-        this.orderPersistencePort = orderPersistencePort;
-        this.orderProductPersistencePort = orderProductPersistencePort;
-        this.orderProductOptionPersistencePort = orderProductOptionPersistencePort;
+        this.orderSavePort = orderSavePort;
+        this.orderProductSavePort = orderProductSavePort;
+        this.orderProductOptionSavePort = orderProductOptionSavePort;
         this.orderProductValidationService = orderProductValidationService;
         this.shopOrderContextService = shopOrderContextService;
         this.ordererLookupService = ordererLookupService;
@@ -102,7 +102,7 @@ public class OrderPlacementService {
             orderer.username(),
             0, 0, 0, 0, 0, 0, 0, 0, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0, 0
         );
-        Order savedOrder = orderPersistencePort.save(order);
+        Order savedOrder = orderSavePort.save(order);
 
         List<OrderProductSnapshot> snapshots = orderProductValidationService.validate(
             toSelections(placement), placement.orderMethod(), LocalDateTime.now());
@@ -123,7 +123,7 @@ public class OrderPlacementService {
                 snapshot.discountPrice(),
                 0, 0, 0
             );
-            OrderProduct savedOrderProduct = orderProductPersistencePort.save(orderProduct);
+            OrderProduct savedOrderProduct = orderProductSavePort.save(orderProduct);
 
             OrderLineOptionAmounts optionAmounts = saveSelectedOptions(savedOrderProduct, snapshot);
             int totalOptionPrice = optionAmounts.totalOptionPrice();
@@ -138,7 +138,7 @@ public class OrderPlacementService {
             int itemPersonalCupDiscount = optionAmounts.totalPersonalCupDiscount() * snapshot.quantity();
 
             savedOrderProduct.updatePrices(totalOptionPrice, itemTotal, itemDeposit);
-            orderProductPersistencePort.save(savedOrderProduct);
+            orderProductSavePort.save(savedOrderProduct);
 
             totalProductAmount += snapshot.originalPrice() * snapshot.quantity()
                 + totalOptionPrice * snapshot.quantity();
@@ -183,7 +183,7 @@ public class OrderPlacementService {
         savedOrder.updateAmounts(totalProductAmount, productDiscountAmount, couponDiscountAmount,
             pointDiscountAmount, totalDiscountAmount, deliveryTipAmount, cupDepositAmount, finalAmount,
             deliveryTip.destination(), schedule, memberCouponId, pointDiscountAmount);
-        orderPersistencePort.save(savedOrder);
+        orderSavePort.save(savedOrder);
 
         return savedOrder.getOrderId();
     }
@@ -269,7 +269,7 @@ public class OrderPlacementService {
         int totalDepositAmount = 0;
         int totalPersonalCupDiscount = 0;
         for (OrderProductOptionSnapshot option : snapshot.options()) {
-            orderProductOptionPersistencePort.save(OrderProductOption.of(
+            orderProductOptionSavePort.save(OrderProductOption.of(
                 savedOrderProduct.getOrderProductId(),
                 option.optionGroupId(),
                 option.optionGroupName(),

@@ -20,33 +20,33 @@ import com.tastyhouse.domain.shop.model.ShopOrderMethodAvailability;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureLoadPort;
 
 @Service
 public class ShopOperatingStatusService {
 
     private static final boolean PUBLIC_HOLIDAY = false;
 
-    private final ShopPersistencePort shopPersistencePort;
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
-    private final ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort;
-    private final ShopSuspensionPersistencePort shopSuspensionPersistencePort;
+    private final ShopLoadPort shopLoadPort;
+    private final ShopDetailLoadPort shopDetailLoadPort;
+    private final ShopTemporaryClosureLoadPort shopTemporaryClosureLoadPort;
+    private final ShopSuspensionLoadPort shopSuspensionLoadPort;
     private final ShopOperatingStatusCalculator shopOperatingStatusCalculator;
 
     public ShopOperatingStatusService(
-        ShopPersistencePort shopPersistencePort,
-        ShopDetailPersistencePort shopDetailPersistencePort,
-        ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort,
-        ShopSuspensionPersistencePort shopSuspensionPersistencePort,
+        ShopLoadPort shopLoadPort,
+        ShopDetailLoadPort shopDetailLoadPort,
+        ShopTemporaryClosureLoadPort shopTemporaryClosureLoadPort,
+        ShopSuspensionLoadPort shopSuspensionLoadPort,
         ShopOperatingStatusCalculator shopOperatingStatusCalculator
     ) {
-        this.shopPersistencePort = shopPersistencePort;
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
-        this.shopTemporaryClosurePersistencePort = shopTemporaryClosurePersistencePort;
-        this.shopSuspensionPersistencePort = shopSuspensionPersistencePort;
+        this.shopLoadPort = shopLoadPort;
+        this.shopDetailLoadPort = shopDetailLoadPort;
+        this.shopTemporaryClosureLoadPort = shopTemporaryClosureLoadPort;
+        this.shopSuspensionLoadPort = shopSuspensionLoadPort;
         this.shopOperatingStatusCalculator = shopOperatingStatusCalculator;
     }
 
@@ -55,7 +55,7 @@ public class ShopOperatingStatusService {
     }
 
     public ShopOperatingStatusResult findOrderAvailability(Long shopId, OrderMethod orderMethod, LocalDateTime now) {
-        Shop shop = shopPersistencePort.findById(ShopId.of(shopId))
+        Shop shop = shopLoadPort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
         return calculate(shop, shopId, orderMethod, now);
     }
@@ -70,13 +70,13 @@ public class ShopOperatingStatusService {
     }
 
     public Map<OrderMethod, ShopOperatingStatusResult> findOrderMethodAvailabilities(Long shopId, LocalDateTime now) {
-        Shop shop = shopPersistencePort.findById(ShopId.of(shopId))
+        Shop shop = shopLoadPort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
 
         ShopOperatingStatusAggregates aggregates = loadAggregates(shopId);
 
         Map<OrderMethod, ShopOperatingStatusResult> availabilities = new LinkedHashMap<>();
-        for (ShopOrderMethod assigned : shopDetailPersistencePort.findOrderMethodsByShopId(shopId)) {
+        for (ShopOrderMethod assigned : shopDetailLoadPort.findOrderMethodsByShopId(shopId)) {
             OrderMethod orderMethod = assigned.getOrderMethod();
             availabilities.put(orderMethod, shopOperatingStatusCalculator.calculate(
                 aggregates.toContext(shop, orderMethod, PUBLIC_HOLIDAY, now)
@@ -91,7 +91,7 @@ public class ShopOperatingStatusService {
             .collect(Collectors.toMap(
                 Function.identity(),
 
-                shopId -> shopPersistencePort.findById(ShopId.of(shopId))
+                shopId -> shopLoadPort.findById(ShopId.of(shopId))
                     .map(shop -> calculate(shop, shopId, null, now).status())
                     .orElse(ShopOperatingStatus.PREPARING)
             ));
@@ -110,11 +110,11 @@ public class ShopOperatingStatusService {
 
     private ShopOperatingStatusAggregates loadAggregates(Long shopId) {
         return ShopOperatingStatusAggregates.of(
-            shopDetailPersistencePort.findBusinessHoursByShopId(shopId),
-            shopDetailPersistencePort.findBreakTimesByShopId(shopId),
-            shopDetailPersistencePort.findClosedDaysByShopId(shopId),
-            shopTemporaryClosurePersistencePort.findByShopId(shopId),
-            shopSuspensionPersistencePort.findByShopId(shopId)
+            shopDetailLoadPort.findBusinessHoursByShopId(shopId),
+            shopDetailLoadPort.findBreakTimesByShopId(shopId),
+            shopDetailLoadPort.findClosedDaysByShopId(shopId),
+            shopTemporaryClosureLoadPort.findByShopId(shopId),
+            shopSuspensionLoadPort.findByShopId(shopId)
         );
     }
 }

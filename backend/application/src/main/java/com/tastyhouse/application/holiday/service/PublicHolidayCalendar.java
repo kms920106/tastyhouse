@@ -8,29 +8,29 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
-import com.tastyhouse.application.holiday.port.out.write.PublicHolidayPersistencePort;
+import com.tastyhouse.application.holiday.port.out.write.PublicHolidayLoadPort;
 
 @Service
 public class PublicHolidayCalendar {
 
-    private final PublicHolidayPersistencePort publicHolidayPersistencePort;
+    private final PublicHolidayLoadPort publicHolidayLoadPort;
 
-    public PublicHolidayCalendar(PublicHolidayPersistencePort publicHolidayPersistencePort) {
-        this.publicHolidayPersistencePort = publicHolidayPersistencePort;
+    public PublicHolidayCalendar(PublicHolidayLoadPort publicHolidayLoadPort) {
+        this.publicHolidayLoadPort = publicHolidayLoadPort;
     }
 
     public boolean isPublicHoliday(LocalDate date) {
         if (date == null) {
             return false;
         }
-        return publicHolidayPersistencePort.existsByHolidayDate(date);
+        return publicHolidayLoadPort.existsByHolidayDate(date);
     }
 
     public Set<LocalDate> findBetween(LocalDate from, LocalDate to) {
         if (from == null || to == null || from.isAfter(to)) {
             return Set.of();
         }
-        List<PublicHoliday> holidays = publicHolidayPersistencePort.findAllByHolidayDateBetween(from, to);
+        List<PublicHoliday> holidays = publicHolidayLoadPort.findAllByHolidayDateBetween(from, to);
         return holidays.stream()
             .map(PublicHoliday::getHolidayDate)
             .collect(Collectors.toUnmodifiableSet());

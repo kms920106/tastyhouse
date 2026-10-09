@@ -15,7 +15,8 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestSavePort;
 
 @Service
 public class ShopDeliveryAreaAdjustmentService {
@@ -23,16 +24,19 @@ public class ShopDeliveryAreaAdjustmentService {
     private static final List<DeliveryAreaAdjustmentStatus> OPEN_STATUSES =
         List.of(DeliveryAreaAdjustmentStatus.PENDING, DeliveryAreaAdjustmentStatus.IN_PROGRESS);
 
-    private final ShopDeliveryAreaAdjustmentRequestPersistencePort shopDeliveryAreaAdjustmentRequestPersistencePort;
+    private final ShopDeliveryAreaAdjustmentRequestLoadPort shopDeliveryAreaAdjustmentRequestLoadPort;
+    private final ShopDeliveryAreaAdjustmentRequestSavePort shopDeliveryAreaAdjustmentRequestSavePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 
     public ShopDeliveryAreaAdjustmentService(
-        ShopDeliveryAreaAdjustmentRequestPersistencePort shopDeliveryAreaAdjustmentRequestPersistencePort,
+        ShopDeliveryAreaAdjustmentRequestLoadPort shopDeliveryAreaAdjustmentRequestLoadPort,
+        ShopDeliveryAreaAdjustmentRequestSavePort shopDeliveryAreaAdjustmentRequestSavePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
-        this.shopDeliveryAreaAdjustmentRequestPersistencePort = shopDeliveryAreaAdjustmentRequestPersistencePort;
+        this.shopDeliveryAreaAdjustmentRequestLoadPort = shopDeliveryAreaAdjustmentRequestLoadPort;
+        this.shopDeliveryAreaAdjustmentRequestSavePort = shopDeliveryAreaAdjustmentRequestSavePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
     }
@@ -46,11 +50,11 @@ public class ShopDeliveryAreaAdjustmentService {
         UploadedFileId consentFileId,
         ShopChangeActor actor
     ) {
-        if (shopDeliveryAreaAdjustmentRequestPersistencePort.existsByShopIdAndStatusIn(shopId, OPEN_STATUSES)) {
+        if (shopDeliveryAreaAdjustmentRequestLoadPort.existsByShopIdAndStatusIn(shopId, OPEN_STATUSES)) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_ALREADY_PENDING);
         }
 
-        ShopDeliveryAreaAdjustmentRequest saved = shopDeliveryAreaAdjustmentRequestPersistencePort.save(
+        ShopDeliveryAreaAdjustmentRequest saved = shopDeliveryAreaAdjustmentRequestSavePort.save(
             ShopDeliveryAreaAdjustmentRequest.of(
                 shopId,
                 counterpartShopName,
@@ -88,26 +92,26 @@ public class ShopDeliveryAreaAdjustmentService {
     public void startProgress(Long requestId) {
         ShopDeliveryAreaAdjustmentRequest request = findRequest(requestId);
         request.startProgress();
-        shopDeliveryAreaAdjustmentRequestPersistencePort.save(request);
+        shopDeliveryAreaAdjustmentRequestSavePort.save(request);
         shopRequestIndexRecorder.syncAdjustmentStatus(requestId, request.getStatus(), null);
     }
 
     public void complete(Long requestId) {
         ShopDeliveryAreaAdjustmentRequest request = findRequest(requestId);
         request.complete();
-        shopDeliveryAreaAdjustmentRequestPersistencePort.save(request);
+        shopDeliveryAreaAdjustmentRequestSavePort.save(request);
         shopRequestIndexRecorder.syncAdjustmentStatus(requestId, request.getStatus(), null);
     }
 
     public void reject(Long requestId, String reason) {
         ShopDeliveryAreaAdjustmentRequest request = findRequest(requestId);
         request.reject(reason);
-        shopDeliveryAreaAdjustmentRequestPersistencePort.save(request);
+        shopDeliveryAreaAdjustmentRequestSavePort.save(request);
         shopRequestIndexRecorder.syncAdjustmentStatus(requestId, request.getStatus(), reason);
     }
 
     private ShopDeliveryAreaAdjustmentRequest findRequest(Long requestId) {
-        return shopDeliveryAreaAdjustmentRequestPersistencePort.findById(requestId)
+        return shopDeliveryAreaAdjustmentRequestLoadPort.findById(requestId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_DELIVERY_AREA_ADJUSTMENT_REQUEST_NOT_FOUND));
     }
 }

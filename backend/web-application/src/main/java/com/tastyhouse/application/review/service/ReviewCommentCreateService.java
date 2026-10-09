@@ -8,22 +8,22 @@ import com.tastyhouse.domain.review.model.ReviewComment;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.review.port.in.ReviewCommentCreateCommand;
 import com.tastyhouse.application.review.port.in.ReviewCommentCreateUseCase;
-import com.tastyhouse.application.review.port.out.write.ReviewCommentPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewCommentSavePort;
 
 @Service
 @Transactional
 class ReviewCommentCreateService implements ReviewCommentCreateUseCase {
 
-    private final ReviewCommentPersistencePort reviewCommentPersistencePort;
+    private final ReviewCommentSavePort reviewCommentSavePort;
 
-    public ReviewCommentCreateService(ReviewCommentPersistencePort reviewCommentPersistencePort) {
-        this.reviewCommentPersistencePort = reviewCommentPersistencePort;
+    public ReviewCommentCreateService(ReviewCommentSavePort reviewCommentSavePort) {
+        this.reviewCommentSavePort = reviewCommentSavePort;
     }
 
     @Override
     public Long createComment(ReviewCommentCreateCommand command) {
         ReviewId targetReviewId = ReviewId.of(command.reviewId());
-        ReviewComment comment = reviewCommentPersistencePort.save(
+        ReviewComment comment = reviewCommentSavePort.save(
             ReviewComment.of(targetReviewId, MemberId.of(command.memberId()), command.content())
         );
         return comment.getId();

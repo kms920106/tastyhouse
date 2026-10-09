@@ -7,15 +7,18 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 
 @Service
 public class StorePriceVerificationAdapter implements StorePriceVerificationPort {
 
-    private final ShopPersistencePort shopPersistencePort;
+    private final ShopLoadPort shopLoadPort;
+    private final ShopSavePort shopSavePort;
 
-    public StorePriceVerificationAdapter(ShopPersistencePort shopPersistencePort) {
-        this.shopPersistencePort = shopPersistencePort;
+    public StorePriceVerificationAdapter(ShopLoadPort shopLoadPort, ShopSavePort shopSavePort) {
+        this.shopLoadPort = shopLoadPort;
+        this.shopSavePort = shopSavePort;
     }
 
     @Override
@@ -27,18 +30,18 @@ public class StorePriceVerificationAdapter implements StorePriceVerificationPort
     public void verifyStorePrice(Long shopId) {
         Shop shop = loadShop(shopId);
         shop.verifyStorePrice();
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
     }
 
     @Override
     public void clearStorePriceVerification(Long shopId) {
         Shop shop = loadShop(shopId);
         shop.clearStorePriceVerification();
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
     }
 
     private Shop loadShop(Long shopId) {
-        return shopPersistencePort.findById(ShopId.of(shopId))
+        return shopLoadPort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 }

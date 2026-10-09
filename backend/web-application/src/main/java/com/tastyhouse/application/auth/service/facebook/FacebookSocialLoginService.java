@@ -24,8 +24,9 @@ import com.tastyhouse.application.auth.port.out.SocialProfileResult;
 import com.tastyhouse.application.auth.service.SocialOAuthFailures;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
-import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountSavePort;
 import com.tastyhouse.application.member.service.MemberRegistrationService;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -38,8 +39,9 @@ public class FacebookSocialLoginService {
 
     private final SocialOAuthClient facebookOAuthClient;
     private final MemberRegistrationService memberRegistrationService;
-    private final MemberPersistencePort memberPersistencePort;
-    private final MemberSocialAccountPersistencePort memberSocialAccountPersistencePort;
+    private final MemberLoadPort memberLoadPort;
+    private final MemberSocialAccountLoadPort memberSocialAccountLoadPort;
+    private final MemberSocialAccountSavePort memberSocialAccountSavePort;
     private final MemberTokenService tokenService;
     private final MemberJwtTokenProvider jwtTokenProvider;
     private final FacebookTempTokenRepository facebookTempTokenRepository;
@@ -47,16 +49,18 @@ public class FacebookSocialLoginService {
     public FacebookSocialLoginService(
         @Qualifier("facebookOAuthClient") SocialOAuthClient facebookOAuthClient,
         MemberRegistrationService memberRegistrationService,
-        MemberPersistencePort memberPersistencePort,
-        MemberSocialAccountPersistencePort memberSocialAccountPersistencePort,
+        MemberLoadPort memberLoadPort,
+        MemberSocialAccountLoadPort memberSocialAccountLoadPort,
+        MemberSocialAccountSavePort memberSocialAccountSavePort,
         MemberTokenService tokenService,
         MemberJwtTokenProvider jwtTokenProvider,
         FacebookTempTokenRepository facebookTempTokenRepository
     ) {
         this.facebookOAuthClient = facebookOAuthClient;
         this.memberRegistrationService = memberRegistrationService;
-        this.memberPersistencePort = memberPersistencePort;
-        this.memberSocialAccountPersistencePort = memberSocialAccountPersistencePort;
+        this.memberLoadPort = memberLoadPort;
+        this.memberSocialAccountLoadPort = memberSocialAccountLoadPort;
+        this.memberSocialAccountSavePort = memberSocialAccountSavePort;
         this.tokenService = tokenService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.facebookTempTokenRepository = facebookTempTokenRepository;
@@ -72,20 +76,20 @@ public class FacebookSocialLoginService {
         String providerId = facebookUser.providerId();
 
         Optional<MemberSocialAccount> socialAccountOpt =
-            memberSocialAccountPersistencePort.findByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId);
+            memberSocialAccountLoadPort.findByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId);
 
         if (socialAccountOpt.isPresent()) {
             MemberSocialAccount socialAccount = socialAccountOpt.get();
             socialAccount.updateProviderInfo(facebookUser.email(), facebookUser.name(), facebookUser.profileImageUrl());
-            memberSocialAccountPersistencePort.save(socialAccount);
+            memberSocialAccountSavePort.save(socialAccount);
 
-            Member member = memberPersistencePort.findById(socialAccount.getMemberId())
+            Member member = memberLoadPort.findById(socialAccount.getMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
             return SocialLoginResult.ofLogin(issueJwt(member));
         }
 
         String facebookEmail = facebookUser.email();
-        if (StringUtils.hasText(facebookEmail) && memberPersistencePort.existsByUsername(facebookEmail)) {
+        if (StringUtils.hasText(facebookEmail) && memberLoadPort.existsByUsername(facebookEmail)) {
             String facebookTempToken = issueTempToken(credential.value());
             return SocialLoginResult.ofLinkingRequired(facebookTempToken);
         }
@@ -109,12 +113,12 @@ public class FacebookSocialLoginService {
             .orElseThrow(SocialOAuthFailures::toException);
         String providerId = facebookUser.providerId();
 
-        if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
+        if (memberSocialAccountLoadPort.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
             throw new ApplicationException(WebErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
         String phoneNumber = jwtTokenProvider.getPhoneNumberFromSmsVerifyToken(smsVerifyToken);
-        Optional<Member> memberOpt = memberPersistencePort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
+        Optional<Member> memberOpt = memberLoadPort.findByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED);
 
         if (memberOpt.isEmpty()) {
             return SocialLinkResult.ofSignUpRequired(
@@ -135,7 +139,7 @@ public class FacebookSocialLoginService {
         }
 
         Member member = memberOpt.get();
-        memberSocialAccountPersistencePort.save(
+        memberSocialAccountSavePort.save(
             MemberSocialAccount.of(
                 member.getMemberId(), MemberSocialProvider.FACEBOOK, providerId,
                 facebookUser.email(), facebookUser.name(), facebookUser.profileImageUrl()
@@ -161,7 +165,7 @@ public class FacebookSocialLoginService {
             .orElseThrow(SocialOAuthFailures::toException);
         String providerId = facebookUser.providerId();
 
-        if (memberSocialAccountPersistencePort.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
+        if (memberSocialAccountLoadPort.existsByProviderAndProviderId(MemberSocialProvider.FACEBOOK, providerId)) {
             throw new ApplicationException(WebErrorCode.SOCIAL_ACCOUNT_ALREADY_REGISTERED);
         }
 
@@ -170,7 +174,7 @@ public class FacebookSocialLoginService {
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled, referrerNickname
         );
 
-        memberSocialAccountPersistencePort.save(
+        memberSocialAccountSavePort.save(
             MemberSocialAccount.of(
                 savedMember.getMemberId(), MemberSocialProvider.FACEBOOK, providerId,
                 facebookUser.email(), facebookUser.name(), facebookUser.profileImageUrl()

@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopRequestIndex;
 import com.tastyhouse.domain.shop.model.ShopRequestType;
-import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopRequestIndexSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopRequestIndexJpaEntity.shopRequestIndexJpaEntity;
 
 @Repository
-class ShopRequestIndexPersistenceAdapter implements ShopRequestIndexPersistencePort {
+class ShopRequestIndexPersistenceAdapter implements ShopRequestIndexLoadPort, ShopRequestIndexSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopRequestIndexJpaRepository shopRequestIndexJpaRepository;

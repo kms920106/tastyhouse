@@ -8,7 +8,8 @@ import com.tastyhouse.domain.member.event.MemberRegisteredEvent;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberGender;
 import com.tastyhouse.domain.member.model.MemberStatus;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSavePort;
 import com.tastyhouse.application.member.referral.service.ReferralRegistrationService;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -17,16 +18,19 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 @Service
 public class MemberRegistrationService {
 
-    private final MemberPersistencePort memberPersistencePort;
+    private final MemberLoadPort memberLoadPort;
+    private final MemberSavePort memberSavePort;
     private final ReferralRegistrationService referralRegistrationService;
     private final DomainEventPublisher domainEventPublisher;
 
     public MemberRegistrationService(
-        MemberPersistencePort memberPersistencePort,
+        MemberLoadPort memberLoadPort,
+        MemberSavePort memberSavePort,
         ReferralRegistrationService referralRegistrationService,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.memberPersistencePort = memberPersistencePort;
+        this.memberLoadPort = memberLoadPort;
+        this.memberSavePort = memberSavePort;
         this.referralRegistrationService = referralRegistrationService;
         this.domainEventPublisher = domainEventPublisher;
     }
@@ -44,17 +48,17 @@ public class MemberRegistrationService {
         boolean eventInfoEnabled,
         String referrerNickname
     ) {
-        if (memberPersistencePort.existsByUsername(username)) {
+        if (memberLoadPort.existsByUsername(username)) {
             throw new ApplicationException(WebErrorCode.MEMBER_USERNAME_DUPLICATED);
         }
-        if (memberPersistencePort.existsByNickname(nickname)) {
+        if (memberLoadPort.existsByNickname(nickname)) {
             throw new ApplicationException(WebErrorCode.MEMBER_NICKNAME_DUPLICATED);
         }
-        if (memberPersistencePort.existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED)) {
+        if (memberLoadPort.existsByPhoneNumberAndStatusNot(phoneNumber, MemberStatus.DELETED)) {
             throw new ApplicationException(WebErrorCode.MEMBER_PHONE_ALREADY_REGISTERED);
         }
 
-        Member member = memberPersistencePort.save(Member.of(
+        Member member = memberSavePort.save(Member.of(
             username, encodedPassword, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
         ));
@@ -77,7 +81,7 @@ public class MemberRegistrationService {
         boolean eventInfoEnabled,
         String referrerNickname
     ) {
-        Member member = memberPersistencePort.save(Member.ofSocial(
+        Member member = memberSavePort.save(Member.ofSocial(
             username, nickname, fullName, gender, birthDate, phoneNumber,
             pushNotificationEnabled, marketingInfoEnabled, eventInfoEnabled
         ));
@@ -96,7 +100,7 @@ public class MemberRegistrationService {
             throw new ApplicationException(WebErrorCode.REFERRAL_SELF_NOT_ALLOWED);
         }
 
-        Member referrer = memberPersistencePort.findByNickname(referrerNickname)
+        Member referrer = memberLoadPort.findByNickname(referrerNickname)
             .orElseThrow(() -> new ApplicationException(WebErrorCode.REFERRAL_REFERRER_NOT_FOUND));
 
         referralRegistrationService.register(referrer.getMemberId(), member.getMemberId());

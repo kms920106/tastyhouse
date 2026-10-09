@@ -50,6 +50,10 @@ class LayerRulesTest {
 
     private static final int RESOLVED_FLOOR = 43;
 
+    private static final List<String> LOAD_PREFIXES = List.of("find", "exists", "count", "filter");
+
+    private static final List<String> SAVE_PREFIXES = List.of("save", "delete", "sync", "bulk", "expire");
+
     private static final List<String> PERSISTENCE_TECHNOLOGY_PACKAGES = List.of(
         "org.springframework.dao",
         "org.springframework.orm",
@@ -92,15 +96,56 @@ class LayerRulesTest {
     }
 
     @Test
-    void writePortsShouldBeNamedPort() {
+    void writePortsShouldBeLoadOrSavePort() {
         ArchRule rule = classes()
             .that().resideInAPackage("com.tastyhouse.application..port.out.write..")
             .and().areInterfaces()
-            .should().haveSimpleNameEndingWith("Port")
-            .because("쓰기 포트는 XxxPersistencePort로 짓는다 — 옛 XxxRepository 이름은 RuleAnchorTest#writePortsExist와 "
-                + "컨트롤러 가드의 이름 기반 대상에서 빠진다");
+            .should().haveSimpleNameEndingWith("LoadPort")
+            .orShould().haveSimpleNameEndingWith("SavePort")
+            .because("쓰기 포트는 목적별로 {Ctx}LoadPort(조회)·{Ctx}SavePort(변경)로 나눈다 — 옛 XxxPersistencePort·XxxRepository 이름은 "
+                + "RuleAnchorTest#writePortsExist와 메서드 분류 가드의 대상에서 빠진다");
 
         rule.check(classes);
+    }
+
+    @Test
+    void loadPortsShouldOnlyQuery() {
+        List<String> violations = writePortMethods("LoadPort").stream()
+            .filter(method -> !startsWithAny(method.getName(), LOAD_PREFIXES))
+            .map(JavaMethod::getFullName)
+            .sorted()
+            .toList();
+
+        assertThat(writePortMethods("LoadPort")).as("LoadPort 메서드가 0건이면 규칙이 공허하게 통과한다").isNotEmpty();
+        assertThat(violations)
+            .as("LoadPort에는 상태를 바꾸지 않는 조회(" + String.join("·", LOAD_PREFIXES) + ")만 둔다 — 변경 메서드는 SavePort로")
+            .isEmpty();
+    }
+
+    @Test
+    void savePortsShouldOnlyMutate() {
+        List<String> violations = writePortMethods("SavePort").stream()
+            .filter(method -> !startsWithAny(method.getName(), SAVE_PREFIXES))
+            .map(JavaMethod::getFullName)
+            .sorted()
+            .toList();
+
+        assertThat(writePortMethods("SavePort")).as("SavePort 메서드가 0건이면 규칙이 공허하게 통과한다").isNotEmpty();
+        assertThat(violations)
+            .as("SavePort에는 상태를 바꾸는 메서드(" + String.join("·", SAVE_PREFIXES) + ")만 둔다 — 조회는 LoadPort로")
+            .isEmpty();
+    }
+
+    private List<JavaMethod> writePortMethods(String suffix) {
+        return classes.stream()
+            .filter(javaClass -> resideInAPackage("com.tastyhouse.application..port.out.write..").test(javaClass))
+            .filter(javaClass -> javaClass.isInterface() && javaClass.getSimpleName().endsWith(suffix))
+            .flatMap(javaClass -> javaClass.getMethods().stream())
+            .toList();
+    }
+
+    private static boolean startsWithAny(String name, List<String> prefixes) {
+        return prefixes.stream().anyMatch(name::startsWith);
     }
 
     @Test

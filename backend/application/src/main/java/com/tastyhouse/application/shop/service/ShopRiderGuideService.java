@@ -18,25 +18,29 @@ import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideSavePort;
 
 @Service
 public class ShopRiderGuideService {
 
-    private final ShopRiderGuidePersistencePort shopRiderGuidePersistencePort;
-    private final ShopPersistencePort shopPersistencePort;
+    private final ShopRiderGuideLoadPort shopRiderGuideLoadPort;
+    private final ShopRiderGuideSavePort shopRiderGuideSavePort;
+    private final ShopLoadPort shopLoadPort;
     private final ShopRiderGuideValidator shopRiderGuideValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopRiderGuideService(
-        ShopRiderGuidePersistencePort shopRiderGuidePersistencePort,
-        ShopPersistencePort shopPersistencePort,
+        ShopRiderGuideLoadPort shopRiderGuideLoadPort,
+        ShopRiderGuideSavePort shopRiderGuideSavePort,
+        ShopLoadPort shopLoadPort,
         ShopRiderGuideValidator shopRiderGuideValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopRiderGuidePersistencePort = shopRiderGuidePersistencePort;
-        this.shopPersistencePort = shopPersistencePort;
+        this.shopRiderGuideLoadPort = shopRiderGuideLoadPort;
+        this.shopRiderGuideSavePort = shopRiderGuideSavePort;
+        this.shopLoadPort = shopLoadPort;
         this.shopRiderGuideValidator = shopRiderGuideValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
@@ -49,9 +53,9 @@ public class ShopRiderGuideService {
         String previousVisitGuide = riderGuide.getVisitGuide();
 
         riderGuide.changeVisitGuide(visitGuide);
-        shopRiderGuidePersistencePort.save(riderGuide);
+        shopRiderGuideSavePort.save(riderGuide);
 
-        shopRiderGuidePersistencePort.saveHistory(ShopRiderGuideHistory.of(
+        shopRiderGuideSavePort.saveHistory(ShopRiderGuideHistory.of(
             ShopId.of(shopId),
             actorType,
             actorId,
@@ -76,7 +80,7 @@ public class ShopRiderGuideService {
     public void deleteVisitGuide(Long shopId, Long adminId, String reason) {
         findShop(shopId);
 
-        ShopRiderGuide riderGuide = shopRiderGuidePersistencePort.findByShopId(ShopId.of(shopId))
+        ShopRiderGuide riderGuide = shopRiderGuideLoadPort.findByShopId(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND));
 
         String previousVisitGuide = riderGuide.getVisitGuide();
@@ -85,9 +89,9 @@ public class ShopRiderGuideService {
         }
 
         riderGuide.changeVisitGuide(null);
-        shopRiderGuidePersistencePort.save(riderGuide);
+        shopRiderGuideSavePort.save(riderGuide);
 
-        shopRiderGuidePersistencePort.saveHistory(ShopRiderGuideHistory.of(
+        shopRiderGuideSavePort.saveHistory(ShopRiderGuideHistory.of(
             ShopId.of(shopId),
             RiderGuideActorType.ADMIN,
             adminId,
@@ -101,7 +105,7 @@ public class ShopRiderGuideService {
     public Long requestRevision(Long shopId, Long adminId, String reason) {
         findShop(shopId);
 
-        ShopRiderGuide riderGuide = shopRiderGuidePersistencePort.findByShopId(ShopId.of(shopId))
+        ShopRiderGuide riderGuide = shopRiderGuideLoadPort.findByShopId(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND));
 
         String currentVisitGuide = riderGuide.getVisitGuide();
@@ -109,7 +113,7 @@ public class ShopRiderGuideService {
             throw new ResourceNotFoundException(ApplicationErrorCode.SHOP_RIDER_VISIT_GUIDE_NOT_FOUND);
         }
 
-        ShopRiderGuideHistory history = shopRiderGuidePersistencePort.saveHistory(ShopRiderGuideHistory.of(
+        ShopRiderGuideHistory history = shopRiderGuideSavePort.saveHistory(ShopRiderGuideHistory.of(
             ShopId.of(shopId),
             RiderGuideActorType.ADMIN,
             adminId,
@@ -138,7 +142,7 @@ public class ShopRiderGuideService {
         String previousValue = describePickupLocation(riderGuide);
 
         riderGuide.changePickupLocation(roadAddress, lotAddress, detailAddress, latitude, longitude);
-        shopRiderGuidePersistencePort.save(riderGuide);
+        shopRiderGuideSavePort.save(riderGuide);
 
         if (actorType == RiderGuideActorType.CEO) {
             shopChangeHistoryRecorder.record(
@@ -155,11 +159,11 @@ public class ShopRiderGuideService {
     public void clearPickupLocation(Long shopId, RiderGuideActorType actorType, Long actorId) {
         findActiveShop(shopId);
 
-        shopRiderGuidePersistencePort.findByShopId(ShopId.of(shopId)).ifPresent(riderGuide -> {
+        shopRiderGuideLoadPort.findByShopId(ShopId.of(shopId)).ifPresent(riderGuide -> {
             String previousValue = describePickupLocation(riderGuide);
 
             riderGuide.clearPickupLocation();
-            shopRiderGuidePersistencePort.save(riderGuide);
+            shopRiderGuideSavePort.save(riderGuide);
 
             if (actorType == RiderGuideActorType.CEO) {
                 shopChangeHistoryRecorder.record(
@@ -196,12 +200,12 @@ public class ShopRiderGuideService {
     }
 
     private ShopRiderGuide findOrCreate(Long shopId) {
-        return shopRiderGuidePersistencePort.findByShopId(ShopId.of(shopId))
+        return shopRiderGuideLoadPort.findByShopId(ShopId.of(shopId))
             .orElseGet(() -> ShopRiderGuide.of(ShopId.of(shopId)));
     }
 
     private Shop findShop(Long shopId) {
-        return shopPersistencePort.findById(ShopId.of(shopId))
+        return shopLoadPort.findById(ShopId.of(shopId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 

@@ -7,7 +7,7 @@ import com.tastyhouse.domain.product.model.ProductCategory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductCategoryOwnerCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductCategoryOwnerCreateUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryLoadPort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
@@ -18,18 +18,18 @@ class ProductCategoryOwnerCreateService implements ProductCategoryOwnerCreateUse
     private static final boolean DEFAULT_VISIBLE = true;
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductCategoryPersistencePort productCategoryPersistencePort;
+    private final ProductCategoryLoadPort productCategoryLoadPort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductCategoryOwnerCreateService(
         ProductRegistrationService productRegistrationService,
-        ProductCategoryPersistencePort productCategoryPersistencePort,
+        ProductCategoryLoadPort productCategoryLoadPort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productRegistrationService = productRegistrationService;
-        this.productCategoryPersistencePort = productCategoryPersistencePort;
+        this.productCategoryLoadPort = productCategoryLoadPort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -56,6 +56,6 @@ class ProductCategoryOwnerCreateService implements ProductCategoryOwnerCreateUse
     }
 
     private Integer nextSort(Long shopId) {
-        return productCategoryPersistencePort.findAllByShopId(ShopId.of(shopId)).size();
+        return productCategoryLoadPort.findAllByShopId(ShopId.of(shopId)).size();
     }
 }

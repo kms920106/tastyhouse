@@ -18,8 +18,10 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shared.model.DayType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -150,16 +152,18 @@ class ProductExposureServiceTest {
             false, null, false, null, true, 0,
             false, false, null, false, null, null, null, null, null, null
         );
-        private final FakeExposureHourPersistencePort hours = new FakeExposureHourPersistencePort();
+        private final FakeExposureHourPersistence hours = new FakeExposureHourPersistence();
         private final ProductExposureService service;
 
         private Fixture() {
+            StubProductPersistence stubProductPersistence = new StubProductPersistence(product);
             this.service = new ProductExposureService(
-                new StubProductPersistencePort(product), hours, new ProductExposureCalculator());
+                stubProductPersistence,
+                stubProductPersistence, hours, hours, new ProductExposureCalculator());
         }
     }
 
-    private static final class FakeExposureHourPersistencePort implements ProductExposureHourPersistencePort {
+    private static final class FakeExposureHourPersistence implements ProductExposureHourLoadPort, ProductExposureHourSavePort {
 
         private final List<ProductExposureHour> rows = new ArrayList<>();
 
@@ -180,7 +184,7 @@ class ProductExposureServiceTest {
         }
     }
 
-    private record StubProductPersistencePort(Product product) implements ProductPersistencePort {
+    private record StubProductPersistence(Product product) implements ProductLoadPort, ProductSavePort {
 
         @Override
         public Optional<Product> findById(ProductId id) {

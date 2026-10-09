@@ -10,24 +10,24 @@ import com.tastyhouse.domain.shop.model.ShopContentBoard;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerDeleteUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardSavePort;
 
 @Service
 @Transactional
 class ShopContentBoardOwnerDeleteService implements ShopContentBoardOwnerDeleteUseCase {
 
-    private final ShopContentBoardPersistencePort shopContentBoardPersistencePort;
+    private final ShopContentBoardSavePort shopContentBoardSavePort;
     private final ShopContentBoardOwnerReader shopContentBoardOwnerReader;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopContentBoardOwnerDeleteService(
-        ShopContentBoardPersistencePort shopContentBoardPersistencePort,
+        ShopContentBoardSavePort shopContentBoardSavePort,
         ShopContentBoardOwnerReader shopContentBoardOwnerReader,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopContentBoardPersistencePort = shopContentBoardPersistencePort;
+        this.shopContentBoardSavePort = shopContentBoardSavePort;
         this.shopContentBoardOwnerReader = shopContentBoardOwnerReader;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
@@ -43,7 +43,7 @@ class ShopContentBoardOwnerDeleteService implements ShopContentBoardOwnerDeleteU
         ShopContentBoard shopContentBoard = shopContentBoardOwnerReader.loadOwnedContentBoard(shopId, contentBoardId);
         String previousValue = describeContentBoard(shopContentBoard);
 
-        shopContentBoardPersistencePort.deleteById(contentBoardId);
+        shopContentBoardSavePort.deleteById(contentBoardId);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),

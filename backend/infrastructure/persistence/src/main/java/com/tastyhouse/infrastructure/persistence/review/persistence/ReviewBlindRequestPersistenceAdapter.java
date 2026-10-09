@@ -11,12 +11,13 @@ import com.tastyhouse.domain.review.model.ReviewBlindRequest;
 import com.tastyhouse.domain.review.model.ReviewBlindStatus;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewBlindRequestSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewBlindRequestJpaEntity.reviewBlindRequestJpaEntity;
 
 @Repository
-class ReviewBlindRequestPersistenceAdapter implements ReviewBlindRequestPersistencePort {
+class ReviewBlindRequestPersistenceAdapter implements ReviewBlindRequestLoadPort, ReviewBlindRequestSavePort {
 
     private static final List<String> TERMINATED_STATUSES = List.of(
         ReviewBlindStatus.APPROVED.name(),

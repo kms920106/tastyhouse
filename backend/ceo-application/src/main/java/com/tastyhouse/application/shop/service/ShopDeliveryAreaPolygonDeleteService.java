@@ -10,7 +10,7 @@ import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonDeleteUseCase;
 
@@ -19,16 +19,16 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonDeleteUseC
 class ShopDeliveryAreaPolygonDeleteService implements ShopDeliveryAreaPolygonDeleteUseCase {
 
     private final ShopDeliveryAreaPolygonService shopDeliveryAreaPolygonService;
-    private final AdminDongPersistencePort adminDongPersistencePort;
+    private final AdminDongLoadPort adminDongLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopDeliveryAreaPolygonDeleteService(
         ShopDeliveryAreaPolygonService shopDeliveryAreaPolygonService,
-        AdminDongPersistencePort adminDongPersistencePort,
+        AdminDongLoadPort adminDongLoadPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.shopDeliveryAreaPolygonService = shopDeliveryAreaPolygonService;
-        this.adminDongPersistencePort = adminDongPersistencePort;
+        this.adminDongLoadPort = adminDongLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -45,7 +45,7 @@ class ShopDeliveryAreaPolygonDeleteService implements ShopDeliveryAreaPolygonDel
     }
 
     private List<String> resolveRegionNames(Collection<AdminDongId> adminDongIds) {
-        return adminDongPersistencePort.findAllByIds(adminDongIds).stream()
+        return adminDongLoadPort.findAllByIds(adminDongIds).stream()
             .map(AdminDong::fullName)
             .toList();
     }

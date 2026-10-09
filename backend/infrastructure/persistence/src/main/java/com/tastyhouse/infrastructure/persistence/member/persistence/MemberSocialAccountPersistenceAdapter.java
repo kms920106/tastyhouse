@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.model.MemberSocialAccount;
 import com.tastyhouse.domain.member.model.MemberSocialProvider;
-import com.tastyhouse.application.member.port.out.write.MemberSocialAccountPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSocialAccountSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.member.persistence.QMemberSocialAccountJpaEntity.memberSocialAccountJpaEntity;
 
 @Repository
-class MemberSocialAccountPersistenceAdapter implements MemberSocialAccountPersistencePort {
+class MemberSocialAccountPersistenceAdapter implements MemberSocialAccountLoadPort, MemberSocialAccountSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final MemberSocialAccountJpaRepository memberSocialAccountJpaRepository;

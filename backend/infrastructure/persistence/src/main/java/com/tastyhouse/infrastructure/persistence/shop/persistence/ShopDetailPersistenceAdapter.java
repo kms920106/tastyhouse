@@ -20,7 +20,8 @@ import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
 import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopAmenityJpaEntity.shopAmenityJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopBreakTimeJpaEntity.shopBreakTimeJpaEntity;
@@ -31,7 +32,7 @@ import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopOr
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopOwnerMessageHistoryJpaEntity.shopOwnerMessageHistoryJpaEntity;
 
 @Repository
-class ShopDetailPersistenceAdapter implements ShopDetailPersistencePort {
+class ShopDetailPersistenceAdapter implements ShopDetailLoadPort, ShopDetailSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopBusinessHourJpaRepository shopBusinessHourJpaRepository;

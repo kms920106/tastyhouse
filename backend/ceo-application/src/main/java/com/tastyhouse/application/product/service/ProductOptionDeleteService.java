@@ -10,23 +10,27 @@ import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.model.ProductOptionSelectionRule;
 import com.tastyhouse.application.product.port.in.ProductOptionDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionDeleteUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional
 class ProductOptionDeleteService implements ProductOptionDeleteUseCase {
 
-    private final ProductOptionPersistencePort productOptionPersistencePort;
+    private final ProductOptionLoadPort productOptionLoadPort;
+    private final ProductOptionSavePort productOptionSavePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
 
     public ProductOptionDeleteService(
-        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductOptionLoadPort productOptionLoadPort,
+        ProductOptionSavePort productOptionSavePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
-        this.productOptionPersistencePort = productOptionPersistencePort;
+        this.productOptionLoadPort = productOptionLoadPort;
+        this.productOptionSavePort = productOptionSavePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
     }
@@ -45,7 +49,7 @@ class ProductOptionDeleteService implements ProductOptionDeleteUseCase {
             productOptionGroupOwnershipValidator.loadOwnedOptionGroup(shopId, optionGroupId);
 
         List<ProductOption> groupOptions =
-            productOptionPersistencePort.findAllByOptionGroupId(group.getProductOptionGroupId());
+            productOptionLoadPort.findAllByOptionGroupId(group.getProductOptionGroupId());
 
         ProductOptionSelectionRule.validateRemainingAfterBlocking(group, option, groupOptions);
 
@@ -56,6 +60,6 @@ class ProductOptionDeleteService implements ProductOptionDeleteUseCase {
             .toList();
         ProductOptionSelectionRule.validateZeroPriceOption(group, groupOptionsAfterHide);
 
-        productOptionPersistencePort.save(option);
+        productOptionSavePort.save(option);
     }
 }

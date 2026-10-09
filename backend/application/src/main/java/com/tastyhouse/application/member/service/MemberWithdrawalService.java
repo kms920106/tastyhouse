@@ -9,8 +9,9 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.model.MemberWithdrawal;
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
-import com.tastyhouse.application.member.port.out.write.MemberWithdrawalPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
+import com.tastyhouse.application.member.port.out.write.MemberSavePort;
+import com.tastyhouse.application.member.port.out.write.MemberWithdrawalSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -18,28 +19,31 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Service
 public class MemberWithdrawalService {
 
-    private final MemberPersistencePort memberPersistencePort;
-    private final MemberWithdrawalPersistencePort memberWithdrawalPersistencePort;
+    private final MemberLoadPort memberLoadPort;
+    private final MemberSavePort memberSavePort;
+    private final MemberWithdrawalSavePort memberWithdrawalSavePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public MemberWithdrawalService(
-        MemberPersistencePort memberPersistencePort,
-        MemberWithdrawalPersistencePort memberWithdrawalPersistencePort,
+        MemberLoadPort memberLoadPort,
+        MemberSavePort memberSavePort,
+        MemberWithdrawalSavePort memberWithdrawalSavePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.memberPersistencePort = memberPersistencePort;
-        this.memberWithdrawalPersistencePort = memberWithdrawalPersistencePort;
+        this.memberLoadPort = memberLoadPort;
+        this.memberSavePort = memberSavePort;
+        this.memberWithdrawalSavePort = memberWithdrawalSavePort;
         this.domainEventPublisher = domainEventPublisher;
     }
 
     public void withdraw(MemberId memberId, MemberWithdrawalReason reason, String reasonDetail) {
-        Member member = memberPersistencePort.findById(memberId)
+        Member member = memberLoadPort.findById(memberId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
 
         member.withdraw();
-        memberPersistencePort.save(member);
+        memberSavePort.save(member);
 
-        memberWithdrawalPersistencePort.save(MemberWithdrawal.of(memberId, reason, reasonDetail));
+        memberWithdrawalSavePort.save(MemberWithdrawal.of(memberId, reason, reasonDetail));
 
         domainEventPublisher.publish(
             new MemberWithdrawnEvent(member.getMemberId(), reason, LocalDateTime.now())

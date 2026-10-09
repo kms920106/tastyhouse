@@ -15,36 +15,44 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 
 @Service
 public class ShopPhoneNumberRegistryService {
 
     private static final int MAX_PHONE_NUMBER_COUNT = 10;
 
-    private final ShopPhoneNumberPersistencePort shopPhoneNumberPersistencePort;
-    private final ShopPersistencePort shopPersistencePort;
+    private final ShopPhoneNumberLoadPort shopPhoneNumberLoadPort;
+    private final ShopPhoneNumberSavePort shopPhoneNumberSavePort;
+    private final ShopLoadPort shopLoadPort;
+    private final ShopSavePort shopSavePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopPhoneNumberRegistryService(
-        ShopPhoneNumberPersistencePort shopPhoneNumberPersistencePort,
-        ShopPersistencePort shopPersistencePort,
+        ShopPhoneNumberLoadPort shopPhoneNumberLoadPort,
+        ShopPhoneNumberSavePort shopPhoneNumberSavePort,
+        ShopLoadPort shopLoadPort,
+        ShopSavePort shopSavePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopPhoneNumberPersistencePort = shopPhoneNumberPersistencePort;
-        this.shopPersistencePort = shopPersistencePort;
+        this.shopPhoneNumberLoadPort = shopPhoneNumberLoadPort;
+        this.shopPhoneNumberSavePort = shopPhoneNumberSavePort;
+        this.shopLoadPort = shopLoadPort;
+        this.shopSavePort = shopSavePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
     public Long addPhoneNumber(Long shopId, String phoneNumber, boolean virtual, ShopChangeActor actor) {
-        List<ShopPhoneNumber> existingPhoneNumbers = shopPhoneNumberPersistencePort.findByShopId(shopId);
+        List<ShopPhoneNumber> existingPhoneNumbers = shopPhoneNumberLoadPort.findByShopId(shopId);
         if (existingPhoneNumbers.size() >= MAX_PHONE_NUMBER_COUNT) {
             throw new ApplicationException(CeoErrorCode.SHOP_PHONE_NUMBER_LIMIT_EXCEEDED);
         }
 
         boolean primary = existingPhoneNumbers.isEmpty();
-        ShopPhoneNumber saved = shopPhoneNumberPersistencePort.save(
+        ShopPhoneNumber saved = shopPhoneNumberSavePort.save(
             ShopPhoneNumber.of(ShopId.of(shopId), phoneNumber, primary, virtual)
         );
 
@@ -73,9 +81,9 @@ public class ShopPhoneNumberRegistryService {
     }
 
     public void deletePhoneNumber(Long id, ShopChangeActor actor) {
-        ShopPhoneNumber phoneNumber = shopPhoneNumberPersistencePort.findById(id)
+        ShopPhoneNumber phoneNumber = shopPhoneNumberLoadPort.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
-        shopPhoneNumberPersistencePort.deleteById(id);
+        shopPhoneNumberSavePort.deleteById(id);
 
         shopChangeHistoryRecorder.record(
             phoneNumber.getShopId(),
@@ -90,14 +98,14 @@ public class ShopPhoneNumberRegistryService {
             return;
         }
 
-        List<ShopPhoneNumber> remainingPhoneNumbers = shopPhoneNumberPersistencePort.findByShopId(phoneNumber.getShopId().value());
+        List<ShopPhoneNumber> remainingPhoneNumbers = shopPhoneNumberLoadPort.findByShopId(phoneNumber.getShopId().value());
         if (remainingPhoneNumbers.isEmpty()) {
             return;
         }
 
         ShopPhoneNumber newPrimary = remainingPhoneNumbers.getFirst();
         newPrimary.markPrimary();
-        ShopPhoneNumber saved = shopPhoneNumberPersistencePort.save(newPrimary);
+        ShopPhoneNumber saved = shopPhoneNumberSavePort.save(newPrimary);
         syncShopPhoneNumber(phoneNumber.getShopId().value(), saved.getPhoneNumber());
 
         shopChangeHistoryRecorder.record(
@@ -111,21 +119,21 @@ public class ShopPhoneNumberRegistryService {
     }
 
     public void designatePrimary(Long id, ShopChangeActor actor) {
-        ShopPhoneNumber target = shopPhoneNumberPersistencePort.findById(id)
+        ShopPhoneNumber target = shopPhoneNumberLoadPort.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(CeoErrorCode.SHOP_PHONE_NUMBER_NOT_FOUND));
 
-        List<ShopPhoneNumber> phoneNumbers = shopPhoneNumberPersistencePort.findByShopId(target.getShopId().value());
+        List<ShopPhoneNumber> phoneNumbers = shopPhoneNumberLoadPort.findByShopId(target.getShopId().value());
         String previousPrimaryPhoneNumber = null;
         for (ShopPhoneNumber phoneNumber : phoneNumbers) {
             if (phoneNumber.isPrimary() && !phoneNumber.getId().equals(target.getId())) {
                 previousPrimaryPhoneNumber = phoneNumber.getPhoneNumber();
                 phoneNumber.unmarkPrimary();
-                shopPhoneNumberPersistencePort.save(phoneNumber);
+                shopPhoneNumberSavePort.save(phoneNumber);
             }
         }
 
         target.markPrimary();
-        ShopPhoneNumber saved = shopPhoneNumberPersistencePort.save(target);
+        ShopPhoneNumber saved = shopPhoneNumberSavePort.save(target);
         syncShopPhoneNumber(saved.getShopId().value(), saved.getPhoneNumber());
 
         shopChangeHistoryRecorder.record(
@@ -151,9 +159,9 @@ public class ShopPhoneNumberRegistryService {
 
     private void syncShopPhoneNumber(Long shopId, String phoneNumber) {
         ShopId targetShopId = ShopId.of(shopId);
-        Shop shop = shopPersistencePort.findById(targetShopId)
+        Shop shop = shopLoadPort.findById(targetShopId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
         shop.changePhoneNumber(phoneNumber);
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
     }
 }

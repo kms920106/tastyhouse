@@ -6,22 +6,22 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.rank.model.RankPeriod;
 import com.tastyhouse.application.rank.port.in.RankPeriodCreateCommand;
 import com.tastyhouse.application.rank.port.in.RankPeriodCreateUseCase;
-import com.tastyhouse.application.rank.port.out.write.RankPeriodPersistencePort;
+import com.tastyhouse.application.rank.port.out.write.RankPeriodSavePort;
 
 @Service
 @Transactional
 class RankPeriodCreateService implements RankPeriodCreateUseCase {
 
-    private final RankPeriodPersistencePort rankPeriodPersistencePort;
+    private final RankPeriodSavePort rankPeriodSavePort;
 
-    public RankPeriodCreateService(RankPeriodPersistencePort rankPeriodPersistencePort) {
-        this.rankPeriodPersistencePort = rankPeriodPersistencePort;
+    public RankPeriodCreateService(RankPeriodSavePort rankPeriodSavePort) {
+        this.rankPeriodSavePort = rankPeriodSavePort;
     }
 
     @Override
     public Long createPeriod(RankPeriodCreateCommand command) {
         RankPeriod period = RankPeriod.of(command.startAt(), command.endAt(), command.visible());
-        RankPeriod saved = rankPeriodPersistencePort.save(period);
+        RankPeriod saved = rankPeriodSavePort.save(period);
         return saved.getRankPeriodId().value();
     }
 }

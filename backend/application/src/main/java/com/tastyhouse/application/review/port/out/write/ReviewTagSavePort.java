@@ -1,0 +1,13 @@
+package com.tastyhouse.application.review.port.out.write;
+
+import java.util.List;
+
+import com.tastyhouse.domain.review.model.ReviewTag;
+import com.tastyhouse.domain.review.vo.ReviewId;
+
+public interface ReviewTagSavePort {
+
+    void saveAll(List<ReviewTag> tags);
+
+    void deleteByReviewId(ReviewId reviewId);
+}

@@ -6,10 +6,11 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.review.model.ReviewReply;
 import com.tastyhouse.domain.review.vo.ReviewReplyId;
-import com.tastyhouse.application.review.port.out.write.ReviewReplyPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewReplyLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewReplySavePort;
 
 @Repository
-class ReviewReplyPersistenceAdapter implements ReviewReplyPersistencePort {
+class ReviewReplyPersistenceAdapter implements ReviewReplyLoadPort, ReviewReplySavePort {
 
     private final ReviewReplyJpaRepository reviewReplyJpaRepository;
 

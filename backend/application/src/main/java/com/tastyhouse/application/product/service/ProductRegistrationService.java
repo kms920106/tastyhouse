@@ -20,47 +20,59 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductBbqPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductBbqLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductBbqSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductCategorySavePort;
+import com.tastyhouse.application.product.port.out.write.ProductImageSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductShopLinkSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
 public class ProductRegistrationService {
 
-    private final ProductPersistencePort productPersistencePort;
-    private final ProductCategoryPersistencePort productCategoryPersistencePort;
-    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
-    private final ProductOptionPersistencePort productOptionPersistencePort;
-    private final ProductImagePersistencePort productImagePersistencePort;
-    private final ProductBbqPersistencePort productBbqPersistencePort;
-    private final ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort;
-    private final ProductShopLinkPersistencePort productShopLinkPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductSavePort productSavePort;
+    private final ProductCategorySavePort productCategorySavePort;
+    private final ProductOptionGroupSavePort productOptionGroupSavePort;
+    private final ProductOptionSavePort productOptionSavePort;
+    private final ProductImageSavePort productImageSavePort;
+    private final ProductBbqLoadPort productBbqLoadPort;
+    private final ProductBbqSavePort productBbqSavePort;
+    private final ProductOptionGroupLinkLoadPort productOptionGroupLinkLoadPort;
+    private final ProductOptionGroupLinkSavePort productOptionGroupLinkSavePort;
+    private final ProductShopLinkSavePort productShopLinkSavePort;
 
     public ProductRegistrationService(
-        ProductPersistencePort productPersistencePort,
-        ProductCategoryPersistencePort productCategoryPersistencePort,
-        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
-        ProductOptionPersistencePort productOptionPersistencePort,
-        ProductImagePersistencePort productImagePersistencePort,
-        ProductBbqPersistencePort productBbqPersistencePort,
-        ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort,
-        ProductShopLinkPersistencePort productShopLinkPersistencePort
+        ProductLoadPort productLoadPort,
+        ProductSavePort productSavePort,
+        ProductCategorySavePort productCategorySavePort,
+        ProductOptionGroupSavePort productOptionGroupSavePort,
+        ProductOptionSavePort productOptionSavePort,
+        ProductImageSavePort productImageSavePort,
+        ProductBbqLoadPort productBbqLoadPort,
+        ProductBbqSavePort productBbqSavePort,
+        ProductOptionGroupLinkLoadPort productOptionGroupLinkLoadPort,
+        ProductOptionGroupLinkSavePort productOptionGroupLinkSavePort,
+        ProductShopLinkSavePort productShopLinkSavePort
     ) {
-        this.productPersistencePort = productPersistencePort;
-        this.productCategoryPersistencePort = productCategoryPersistencePort;
-        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
-        this.productOptionPersistencePort = productOptionPersistencePort;
-        this.productImagePersistencePort = productImagePersistencePort;
-        this.productBbqPersistencePort = productBbqPersistencePort;
-        this.productOptionGroupLinkPersistencePort = productOptionGroupLinkPersistencePort;
-        this.productShopLinkPersistencePort = productShopLinkPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productSavePort = productSavePort;
+        this.productCategorySavePort = productCategorySavePort;
+        this.productOptionGroupSavePort = productOptionGroupSavePort;
+        this.productOptionSavePort = productOptionSavePort;
+        this.productImageSavePort = productImageSavePort;
+        this.productBbqLoadPort = productBbqLoadPort;
+        this.productBbqSavePort = productBbqSavePort;
+        this.productOptionGroupLinkLoadPort = productOptionGroupLinkLoadPort;
+        this.productOptionGroupLinkSavePort = productOptionGroupLinkSavePort;
+        this.productShopLinkSavePort = productShopLinkSavePort;
     }
 
     public Product createProduct(
@@ -102,9 +114,9 @@ public class ProductRegistrationService {
             composition,
             singleServing
         );
-        Product saved = productPersistencePort.save(product);
+        Product saved = productSavePort.save(product);
 
-        productShopLinkPersistencePort.save(
+        productShopLinkSavePort.save(
             ProductShopLink.of(saved.getProductId(), shopId, productCategoryId, sort)
         );
         return saved;
@@ -138,19 +150,19 @@ public class ProductRegistrationService {
             visible,
             sort
         );
-        productPersistencePort.save(product);
+        productSavePort.save(product);
     }
 
     public void markSoldOut(ProductId productId) {
         Product product = loadProduct(productId);
         product.markSoldOut();
-        productPersistencePort.save(product);
+        productSavePort.save(product);
     }
 
     public void deactivateProduct(ProductId productId) {
         Product product = loadProduct(productId);
         product.deactivate();
-        productPersistencePort.save(product);
+        productSavePort.save(product);
     }
 
     public ProductCategory createProductCategory(
@@ -161,12 +173,12 @@ public class ProductRegistrationService {
         boolean visible
     ) {
         ProductCategory category = ProductCategory.of(shopId, name, description, sort, visible);
-        return productCategoryPersistencePort.save(category);
+        return productCategorySavePort.save(category);
     }
 
     public Long saveProductImage(ProductId productId, UploadedFileId imageFileId, Integer sort, boolean visible) {
         ProductImage image = ProductImage.of(productId, imageFileId, sort, visible);
-        ProductImage saved = productImagePersistencePort.save(image);
+        ProductImage saved = productImageSavePort.save(image);
         return saved.getId();
     }
 
@@ -184,7 +196,7 @@ public class ProductRegistrationService {
     ) {
         int resolvedSort = sort != null
             ? sort
-            : productOptionGroupLinkPersistencePort.findAllByProductId(productId).size();
+            : productOptionGroupLinkLoadPort.findAllByProductId(productId).size();
         ProductOptionGroup group = ProductOptionGroup.of(
             productId,
             name,
@@ -197,19 +209,19 @@ public class ProductRegistrationService {
             visible,
             groupType
         );
-        ProductOptionGroup saved = productOptionGroupPersistencePort.save(group);
+        ProductOptionGroup saved = productOptionGroupSavePort.save(group);
         linkOptionGroup(productId, saved.getProductOptionGroupId(), resolvedSort);
         return saved;
     }
 
     public void linkOptionGroup(ProductId productId, ProductOptionGroupId optionGroupId, Integer sort) {
-        if (productOptionGroupLinkPersistencePort.existsByProductIdAndOptionGroupId(productId, optionGroupId)) {
+        if (productOptionGroupLinkLoadPort.existsByProductIdAndOptionGroupId(productId, optionGroupId)) {
             return;
         }
         int resolvedSort = sort != null
             ? sort
-            : productOptionGroupLinkPersistencePort.findAllByProductId(productId).size();
-        productOptionGroupLinkPersistencePort.save(
+            : productOptionGroupLinkLoadPort.findAllByProductId(productId).size();
+        productOptionGroupLinkSavePort.save(
             ProductOptionGroupLink.of(productId, optionGroupId, resolvedSort));
     }
 
@@ -234,24 +246,24 @@ public class ProductRegistrationService {
             cupCount,
             personalCupDiscountAmount
         );
-        ProductOption saved = productOptionPersistencePort.save(option);
+        ProductOption saved = productOptionSavePort.save(option);
         return saved.getId();
     }
 
     public void saveProductBbq(ProductId productId, BbqMenuId bbqMenuId, BbqCategoryId bbqCategoryId, boolean optionsSynced) {
         ProductBbq bbq = ProductBbq.of(productId, bbqMenuId, bbqCategoryId, optionsSynced);
-        productBbqPersistencePort.save(bbq);
+        productBbqSavePort.save(bbq);
     }
 
     public void markBbqOptionsSynced(ProductId productId) {
-        ProductBbq bbq = productBbqPersistencePort.findByProductId(productId)
+        ProductBbq bbq = productBbqLoadPort.findByProductId(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         bbq.markOptionsSynced();
-        productBbqPersistencePort.save(bbq);
+        productBbqSavePort.save(bbq);
     }
 
     private Product loadProduct(ProductId productId) {
-        return productPersistencePort.findById(productId)
+        return productLoadPort.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 }

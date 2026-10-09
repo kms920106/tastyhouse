@@ -13,7 +13,8 @@ import com.tastyhouse.domain.product.vo.ProductCategoryId;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.ProductReviewStatisticsPort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,9 +25,9 @@ class ProductReviewStatsServiceTest {
     @Test
     @DisplayName("메뉴 평가 평균을 소수점 첫째 자리로 반올림해 반영하고 평가 수를 갱신한다")
     void updateReviewStats_roundsAverageToTenth() {
-        ProductPersistencePortStub repository = new ProductPersistencePortStub(product());
+        ProductPersistenceStub repository = new ProductPersistenceStub(product());
         ProductReviewStatisticsPortStub port = new ProductReviewStatisticsPortStub(12L, 4.266666);
-        ProductReviewStatsService service = new ProductReviewStatsService(repository, port);
+        ProductReviewStatsService service = new ProductReviewStatsService(repository, repository, port);
 
         service.updateReviewStats(PRODUCT_ID);
 
@@ -38,9 +39,9 @@ class ProductReviewStatsServiceTest {
     @Test
     @DisplayName("메뉴 평가가 없으면 평점을 null로 둔다(0.0이 아니다 — '평점 0점'과 구분)")
     void updateReviewStats_nullRatingWhenNoMenuReview() {
-        ProductPersistencePortStub repository = new ProductPersistencePortStub(product());
+        ProductPersistenceStub repository = new ProductPersistenceStub(product());
         ProductReviewStatisticsPortStub port = new ProductReviewStatisticsPortStub(0L, null);
-        ProductReviewStatsService service = new ProductReviewStatsService(repository, port);
+        ProductReviewStatsService service = new ProductReviewStatsService(repository, repository, port);
 
         service.updateReviewStats(PRODUCT_ID);
 
@@ -51,9 +52,9 @@ class ProductReviewStatsServiceTest {
     @Test
     @DisplayName("평가 수가 null이면 0으로 반영한다")
     void updateReviewStats_treatsNullCountAsZero() {
-        ProductPersistencePortStub repository = new ProductPersistencePortStub(product());
+        ProductPersistenceStub repository = new ProductPersistenceStub(product());
         ProductReviewStatisticsPortStub port = new ProductReviewStatisticsPortStub(null, 4.0);
-        ProductReviewStatsService service = new ProductReviewStatsService(repository, port);
+        ProductReviewStatsService service = new ProductReviewStatsService(repository, repository, port);
 
         service.updateReviewStats(PRODUCT_ID);
 
@@ -63,9 +64,9 @@ class ProductReviewStatsServiceTest {
     @Test
     @DisplayName("상품이 없으면(이미 삭제됨) 조용히 넘어가고 저장하지 않는다")
     void updateReviewStats_skipsWhenProductMissing() {
-        ProductPersistencePortStub repository = new ProductPersistencePortStub(null);
+        ProductPersistenceStub repository = new ProductPersistenceStub(null);
         ProductReviewStatisticsPortStub port = new ProductReviewStatisticsPortStub(5L, 4.0);
-        ProductReviewStatsService service = new ProductReviewStatsService(repository, port);
+        ProductReviewStatsService service = new ProductReviewStatsService(repository, repository, port);
 
         service.updateReviewStats(PRODUCT_ID);
 
@@ -102,12 +103,12 @@ class ProductReviewStatsServiceTest {
         );
     }
 
-    private static final class ProductPersistencePortStub implements ProductPersistencePort {
+    private static final class ProductPersistenceStub implements ProductLoadPort, ProductSavePort {
 
         private final Product product;
         private final List<Product> saved = new ArrayList<>();
 
-        private ProductPersistencePortStub(Product product) {
+        private ProductPersistenceStub(Product product) {
             this.product = product;
         }
 

@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.partnership.model.PartnershipRequest;
 import com.tastyhouse.domain.partnership.vo.PartnershipRequestId;
-import com.tastyhouse.application.partnership.port.out.write.PartnershipPersistencePort;
+import com.tastyhouse.application.partnership.port.out.write.PartnershipLoadPort;
+import com.tastyhouse.application.partnership.port.out.write.PartnershipSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.partnership.persistence.QPartnershipRequestJpaEntity.partnershipRequestJpaEntity;
 
 @Repository
-class PartnershipPersistenceAdapter implements PartnershipPersistencePort {
+class PartnershipPersistenceAdapter implements PartnershipLoadPort, PartnershipSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final PartnershipRequestJpaRepository partnershipRequestJpaRepository;

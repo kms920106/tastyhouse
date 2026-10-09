@@ -14,11 +14,11 @@ import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.testsupport.review.service.FakeDomainEventPublisher;
-import com.tastyhouse.testsupport.review.service.FakeReviewImagePersistencePort;
-import com.tastyhouse.testsupport.review.service.FakeReviewLikePersistencePort;
-import com.tastyhouse.testsupport.review.service.FakeReviewPersistencePort;
-import com.tastyhouse.testsupport.review.service.FakeReviewTagPersistencePort;
-import com.tastyhouse.testsupport.review.service.FakeTagPersistencePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewImageSavePort;
+import com.tastyhouse.testsupport.review.service.FakeReviewLikePersistence;
+import com.tastyhouse.testsupport.review.service.FakeReviewPersistence;
+import com.tastyhouse.testsupport.review.service.FakeReviewTagSavePort;
+import com.tastyhouse.testsupport.review.service.FakeTagPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,13 +29,18 @@ class ReviewLifecycleServiceTest {
 
     @BeforeEach
     void setUp() {
-        FakeReviewPersistencePort reviewPersistencePort = new FakeReviewPersistencePort();
+        FakeReviewPersistence reviewPersistence = new FakeReviewPersistence();
+        FakeReviewLikePersistence fakeReviewLikePersistence = new FakeReviewLikePersistence();
+        FakeTagPersistence fakeTagPersistence = new FakeTagPersistence();
         reviewLifecycleService = new ReviewLifecycleService(
-            reviewPersistencePort,
-            new FakeReviewImagePersistencePort(),
-            new FakeReviewTagPersistencePort(),
-            new FakeReviewLikePersistencePort(),
-            new FakeTagPersistencePort(),
+            reviewPersistence,
+            reviewPersistence,
+            new FakeReviewImageSavePort(),
+            new FakeReviewTagSavePort(),
+            fakeReviewLikePersistence,
+            fakeReviewLikePersistence,
+            fakeTagPersistence,
+            fakeTagPersistence,
             new FakeDomainEventPublisher()
         );
     }

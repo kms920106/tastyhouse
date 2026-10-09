@@ -20,8 +20,10 @@ import com.tastyhouse.domain.shop.model.ShopMenuCollectionImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImagePersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,7 +40,7 @@ class ShopMenuCollectionImageServiceTest {
 
         Long imageId = fixture.service.register(SHOP_ID, UploadedFileId.of(700L));
 
-        ShopMenuCollectionImage registered = fixture.imagePersistencePort.require(imageId);
+        ShopMenuCollectionImage registered = fixture.imagePersistence.require(imageId);
         assertThat(registered.getStatus()).isEqualTo(ApprovalStatus.PENDING);
         assertThat(registered.getSort()).isEqualTo(2);
         assertThat(registered.getImageFileId()).isEqualTo(UploadedFileId.of(700L));
@@ -51,7 +53,7 @@ class ShopMenuCollectionImageServiceTest {
 
         Long imageId = fixture.service.register(SHOP_ID, UploadedFileId.of(700L));
 
-        assertThat(fixture.imagePersistencePort.require(imageId).getSort()).isZero();
+        assertThat(fixture.imagePersistence.require(imageId).getSort()).isZero();
     }
 
     @Test
@@ -101,7 +103,7 @@ class ShopMenuCollectionImageServiceTest {
 
         Long imageId = fixture.service.register(SHOP_ID, UploadedFileId.of(700L));
 
-        assertThat(fixture.imagePersistencePort.require(imageId).getSort()).isEqualTo(5);
+        assertThat(fixture.imagePersistence.require(imageId).getSort()).isEqualTo(5);
     }
 
     @Test
@@ -113,7 +115,7 @@ class ShopMenuCollectionImageServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue(
                 "errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_LAST_CANNOT_DELETE);
-        assertThat(fixture.imagePersistencePort.idsOf(SHOP_ID)).containsExactly(10L, 11L);
+        assertThat(fixture.imagePersistence.idsOf(SHOP_ID)).containsExactly(10L, 11L);
     }
 
     @Test
@@ -123,7 +125,7 @@ class ShopMenuCollectionImageServiceTest {
 
         fixture.service.delete(SHOP_ID, ShopMenuCollectionImageId.of(11L));
 
-        assertThat(fixture.imagePersistencePort.idsOf(SHOP_ID)).containsExactly(10L);
+        assertThat(fixture.imagePersistence.idsOf(SHOP_ID)).containsExactly(10L);
     }
 
     @Test
@@ -133,7 +135,7 @@ class ShopMenuCollectionImageServiceTest {
 
         fixture.service.delete(SHOP_ID, ShopMenuCollectionImageId.of(11L));
 
-        assertThat(fixture.imagePersistencePort.idsOf(SHOP_ID)).containsExactly(10L);
+        assertThat(fixture.imagePersistence.idsOf(SHOP_ID)).containsExactly(10L);
     }
 
     @Test
@@ -143,7 +145,7 @@ class ShopMenuCollectionImageServiceTest {
 
         fixture.service.delete(SHOP_ID, ShopMenuCollectionImageId.of(10L));
 
-        assertThat(fixture.imagePersistencePort.idsOf(SHOP_ID)).containsExactly(11L);
+        assertThat(fixture.imagePersistence.idsOf(SHOP_ID)).containsExactly(11L);
     }
 
     @Test
@@ -164,7 +166,7 @@ class ShopMenuCollectionImageServiceTest {
 
         fixture.service.delete(SHOP_ID, ShopMenuCollectionImageId.of(11L));
 
-        assertThat(fixture.imagePersistencePort.sortsOf())
+        assertThat(fixture.imagePersistence.sortsOf())
             .containsExactly(entry(10L, 0), entry(12L, 1), entry(13L, 2));
     }
 
@@ -172,12 +174,12 @@ class ShopMenuCollectionImageServiceTest {
     @DisplayName("남의 가게 이미지 삭제는 SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND로 합쳐 존재를 숨긴다")
     void deletingAnotherShopsImageIsNotFound() {
         Fixture fixture = fixture(approved(10L, 0), approved(11L, 1));
-        fixture.imagePersistencePort.put(otherShopApproved());
+        fixture.imagePersistence.put(otherShopApproved());
 
         assertThatThrownBy(() -> fixture.service.delete(SHOP_ID, ShopMenuCollectionImageId.of(20L)))
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue("errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND);
-        assertThat(fixture.imagePersistencePort.idsOf(OTHER_SHOP_ID)).containsExactly(20L);
+        assertThat(fixture.imagePersistence.idsOf(OTHER_SHOP_ID)).containsExactly(20L);
     }
 
     @Test
@@ -187,7 +189,7 @@ class ShopMenuCollectionImageServiceTest {
 
         fixture.service.reorder(SHOP_ID, List.of(12L, 10L, 11L));
 
-        assertThat(fixture.imagePersistencePort.sortsOf())
+        assertThat(fixture.imagePersistence.sortsOf())
             .containsExactly(entry(12L, 0), entry(10L, 1), entry(11L, 2));
     }
 
@@ -198,10 +200,10 @@ class ShopMenuCollectionImageServiceTest {
 
         fixture.service.reorder(SHOP_ID, List.of(11L, 12L, 10L));
 
-        assertThat(fixture.imagePersistencePort.require(10L).getStatus()).isEqualTo(ApprovalStatus.APPROVED);
-        assertThat(fixture.imagePersistencePort.require(11L).getStatus()).isEqualTo(ApprovalStatus.PENDING);
-        assertThat(fixture.imagePersistencePort.require(12L).getStatus()).isEqualTo(ApprovalStatus.REJECTED);
-        assertThat(fixture.imagePersistencePort.require(12L).getRejectReason()).isEqualTo("사진이 어둡습니다.");
+        assertThat(fixture.imagePersistence.require(10L).getStatus()).isEqualTo(ApprovalStatus.APPROVED);
+        assertThat(fixture.imagePersistence.require(11L).getStatus()).isEqualTo(ApprovalStatus.PENDING);
+        assertThat(fixture.imagePersistence.require(12L).getStatus()).isEqualTo(ApprovalStatus.REJECTED);
+        assertThat(fixture.imagePersistence.require(12L).getRejectReason()).isEqualTo("사진이 어둡습니다.");
     }
 
     @Test
@@ -213,7 +215,7 @@ class ShopMenuCollectionImageServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue(
                 "errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
-        assertThat(fixture.imagePersistencePort.sortsOf())
+        assertThat(fixture.imagePersistence.sortsOf())
             .containsExactly(entry(10L, 0), entry(11L, 1), entry(12L, 2));
     }
 
@@ -237,7 +239,7 @@ class ShopMenuCollectionImageServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue(
                 "errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
-        assertThat(fixture.imagePersistencePort.sortsOf())
+        assertThat(fixture.imagePersistence.sortsOf())
             .containsExactly(entry(10L, 0), entry(11L, 1));
     }
 
@@ -245,13 +247,13 @@ class ShopMenuCollectionImageServiceTest {
     @DisplayName("남의 가게 이미지 id로 순서를 바꾸려는 요청도 거부된다 — 남의 행이 내 목록으로 끌려오지 않는다")
     void reorderWithAnotherShopsImageIdIsRejected() {
         Fixture fixture = fixture(approved(10L, 0), approved(11L, 1));
-        fixture.imagePersistencePort.put(otherShopApproved());
+        fixture.imagePersistence.put(otherShopApproved());
 
         assertThatThrownBy(() -> fixture.service.reorder(SHOP_ID, List.of(10L, 20L)))
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue(
                 "errorCode", ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_ORDER_TARGET_MISMATCH);
-        assertThat(fixture.imagePersistencePort.require(20L).getSort()).isZero();
+        assertThat(fixture.imagePersistence.require(20L).getSort()).isZero();
     }
 
     @Test
@@ -261,7 +263,7 @@ class ShopMenuCollectionImageServiceTest {
 
         fixture.service.approve(ShopMenuCollectionImageId.of(11L));
 
-        ShopMenuCollectionImage approved = fixture.imagePersistencePort.require(11L);
+        ShopMenuCollectionImage approved = fixture.imagePersistence.require(11L);
         assertThat(approved.getStatus()).isEqualTo(ApprovalStatus.APPROVED);
         assertThat(approved.getRejectReason()).isNull();
         assertThat(approved.getSort()).isEqualTo(1);
@@ -274,7 +276,7 @@ class ShopMenuCollectionImageServiceTest {
 
         fixture.service.reject(ShopMenuCollectionImageId.of(11L), "메뉴판 글씨가 흐립니다.");
 
-        ShopMenuCollectionImage rejected = fixture.imagePersistencePort.require(11L);
+        ShopMenuCollectionImage rejected = fixture.imagePersistence.require(11L);
         assertThat(rejected.getStatus()).isEqualTo(ApprovalStatus.REJECTED);
         assertThat(rejected.getRejectReason()).isEqualTo("메뉴판 글씨가 흐립니다.");
     }
@@ -297,7 +299,7 @@ class ShopMenuCollectionImageServiceTest {
         assertThatThrownBy(() -> fixture.service.approve(ShopMenuCollectionImageId.of(11L)))
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING);
-        assertThat(fixture.imagePersistencePort.require(11L).getStatus()).isEqualTo(ApprovalStatus.REJECTED);
+        assertThat(fixture.imagePersistence.require(11L).getStatus()).isEqualTo(ApprovalStatus.REJECTED);
     }
 
     @Test
@@ -309,7 +311,7 @@ class ShopMenuCollectionImageServiceTest {
             fixture.service.reject(ShopMenuCollectionImageId.of(10L), "다시 보니 흐립니다."))
             .isInstanceOf(BusinessException.class)
             .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_PENDING);
-        assertThat(fixture.imagePersistencePort.require(10L).getRejectReason()).isNull();
+        assertThat(fixture.imagePersistence.require(10L).getRejectReason()).isNull();
     }
 
     @Test
@@ -355,27 +357,27 @@ class ShopMenuCollectionImageServiceTest {
     }
 
     private static Fixture fixture(ShopMenuCollectionImage... images) {
-        FakeShopMenuCollectionImagePersistencePort imagePersistencePort =
-            new FakeShopMenuCollectionImagePersistencePort(List.of(images));
+        FakeShopMenuCollectionImagePersistence imagePersistence =
+            new FakeShopMenuCollectionImagePersistence(List.of(images));
         return new Fixture(
-            new ShopMenuCollectionImageService(imagePersistencePort, new FakeShopPersistencePort()),
-            imagePersistencePort
+            new ShopMenuCollectionImageService(imagePersistence, imagePersistence, new FakeShopPersistence()),
+            imagePersistence
         );
     }
 
     private record Fixture(
         ShopMenuCollectionImageService service,
-        FakeShopMenuCollectionImagePersistencePort imagePersistencePort
+        FakeShopMenuCollectionImagePersistence imagePersistence
     ) {
     }
 
-    private static final class FakeShopMenuCollectionImagePersistencePort
-        implements ShopMenuCollectionImagePersistencePort {
+    private static final class FakeShopMenuCollectionImagePersistence
+        implements ShopMenuCollectionImageLoadPort, ShopMenuCollectionImageSavePort {
 
         private final Map<Long, ShopMenuCollectionImage> images = new LinkedHashMap<>();
         private long sequence = 900L;
 
-        private FakeShopMenuCollectionImagePersistencePort(List<ShopMenuCollectionImage> images) {
+        private FakeShopMenuCollectionImagePersistence(List<ShopMenuCollectionImage> images) {
             images.forEach(this::put);
         }
 
@@ -448,11 +450,11 @@ class ShopMenuCollectionImageServiceTest {
         }
     }
 
-    private static final class FakeShopPersistencePort implements ShopPersistencePort {
+    private static final class FakeShopPersistence implements ShopLoadPort, ShopSavePort {
 
         private final Map<Long, Shop> shops = new LinkedHashMap<>();
 
-        private FakeShopPersistencePort() {
+        private FakeShopPersistence() {
             shops.put(SHOP_ID.value(), shop(SHOP_ID));
             shops.put(OTHER_SHOP_ID.value(), shop(OTHER_SHOP_ID));
         }

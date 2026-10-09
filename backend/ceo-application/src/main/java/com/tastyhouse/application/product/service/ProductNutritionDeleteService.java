@@ -8,7 +8,7 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductNutritionDeleteCommand;
 import com.tastyhouse.application.product.port.in.ProductNutritionDeleteUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -18,16 +18,16 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 class ProductNutritionDeleteService implements ProductNutritionDeleteUseCase {
 
     private final ProductNutritionService productNutritionService;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductLoadPort productLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductNutritionDeleteService(
         ProductNutritionService productNutritionService,
-        ProductPersistencePort productPersistencePort,
+        ProductLoadPort productLoadPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.productNutritionService = productNutritionService;
-        this.productPersistencePort = productPersistencePort;
+        this.productLoadPort = productLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -44,7 +44,7 @@ class ProductNutritionDeleteService implements ProductNutritionDeleteUseCase {
     }
 
     private void validateProductOwnedByShop(Long shopId, Long productId) {
-        Product product = productPersistencePort.findById(ProductId.of(productId))
+        Product product = productLoadPort.findById(ProductId.of(productId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);

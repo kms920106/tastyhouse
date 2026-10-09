@@ -19,8 +19,8 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.port.in.ShopNoticeOwnerUpdateUseCase;
 import com.tastyhouse.application.shop.port.in.ShopNoticeUpdateCommand;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticeImagePersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopNoticePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeImageSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopNoticeSavePort;
 
 @Service
 @Transactional
@@ -28,8 +28,8 @@ class ShopNoticeOwnerUpdateService implements ShopNoticeOwnerUpdateUseCase {
 
     private static final int MAX_NOTICE_IMAGE_COUNT = 3;
 
-    private final ShopNoticePersistencePort shopNoticePersistencePort;
-    private final ShopNoticeImagePersistencePort shopNoticeImagePersistencePort;
+    private final ShopNoticeSavePort shopNoticeSavePort;
+    private final ShopNoticeImageSavePort shopNoticeImageSavePort;
     private final ShopNoticeOwnerReader shopNoticeOwnerReader;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopImageSpecValidator shopImageSpecValidator;
@@ -38,8 +38,8 @@ class ShopNoticeOwnerUpdateService implements ShopNoticeOwnerUpdateUseCase {
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopNoticeOwnerUpdateService(
-        ShopNoticePersistencePort shopNoticePersistencePort,
-        ShopNoticeImagePersistencePort shopNoticeImagePersistencePort,
+        ShopNoticeSavePort shopNoticeSavePort,
+        ShopNoticeImageSavePort shopNoticeImageSavePort,
         ShopNoticeOwnerReader shopNoticeOwnerReader,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopImageSpecValidator shopImageSpecValidator,
@@ -47,8 +47,8 @@ class ShopNoticeOwnerUpdateService implements ShopNoticeOwnerUpdateUseCase {
         FileOwnerUploadUseCase fileOwnerUploadUseCase,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopNoticePersistencePort = shopNoticePersistencePort;
-        this.shopNoticeImagePersistencePort = shopNoticeImagePersistencePort;
+        this.shopNoticeSavePort = shopNoticeSavePort;
+        this.shopNoticeImageSavePort = shopNoticeImageSavePort;
         this.shopNoticeOwnerReader = shopNoticeOwnerReader;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopImageSpecValidator = shopImageSpecValidator;
@@ -75,12 +75,12 @@ class ShopNoticeOwnerUpdateService implements ShopNoticeOwnerUpdateUseCase {
         if (!Boolean.TRUE.equals(keepExistingImages)) {
             List<MultipartFile> images = normalizeFiles(files);
             validateImageCount(images);
-            shopNoticeImagePersistencePort.deleteByShopNoticeId(noticeId);
+            shopNoticeImageSavePort.deleteByShopNoticeId(noticeId);
             saveImages(noticeId, images);
         }
 
         notice.updateContent(content);
-        shopNoticePersistencePort.save(notice);
+        shopNoticeSavePort.save(notice);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -109,7 +109,7 @@ class ShopNoticeOwnerUpdateService implements ShopNoticeOwnerUpdateUseCase {
             MultipartFile file = images.get(sortOrder);
             noticeImages.add(ShopNoticeImage.of(noticeId, UploadedFileId.of(fileOwnerUploadUseCase.upload(file)), sortOrder));
         }
-        shopNoticeImagePersistencePort.saveAll(noticeImages);
+        shopNoticeImageSavePort.saveAll(noticeImages);
     }
 
     private void validateImageCount(List<MultipartFile> images) {

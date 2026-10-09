@@ -31,16 +31,21 @@ import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.product.vo.ProductPriceId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductImageLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductImageSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
-import com.tastyhouse.testsupport.product.service.FakeProductOptionGroupLinkPersistencePort;
-import com.tastyhouse.testsupport.product.service.StubProductPersistencePort;
+import com.tastyhouse.testsupport.product.service.FakeProductOptionGroupLinkPersistence;
+import com.tastyhouse.testsupport.product.service.StubProductPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -299,19 +304,19 @@ class OrderProductValidationServiceTest {
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final Map<Long, ProductOptionGroup> groups = new LinkedHashMap<>();
         private final Map<Long, ProductOption> options = new LinkedHashMap<>();
-        private final FakeProductOptionGroupLinkPersistencePort links = new FakeProductOptionGroupLinkPersistencePort();
-        private final MapProductPricePersistencePort prices = new MapProductPricePersistencePort();
+        private final FakeProductOptionGroupLinkPersistence links = new FakeProductOptionGroupLinkPersistence();
+        private final MapProductPricePersistence prices = new MapProductPricePersistence();
         private final OrderProductValidationService service;
 
         private Fixture() {
             this.service = new OrderProductValidationService(
-                new StubProductPersistencePort(products),
+                new StubProductPersistence(products),
                 prices,
-                new MapOptionGroupPersistencePort(groups),
-                new MapOptionPersistencePort(options),
-                new NoImagePersistencePort(),
+                new MapOptionGroupPersistence(groups),
+                new MapOptionPersistence(options),
+                new NoImagePersistence(),
                 links,
-                new NoExposureHourPersistencePort(),
+                new NoExposureHourPersistence(),
                 new ProductExposureCalculator(),
                 new CupDepositPolicy()
             );
@@ -380,11 +385,11 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    private static final class MapOptionGroupPersistencePort implements ProductOptionGroupPersistencePort {
+    private static final class MapOptionGroupPersistence implements ProductOptionGroupLoadPort, ProductOptionGroupSavePort {
 
         private final Map<Long, ProductOptionGroup> groups;
 
-        private MapOptionGroupPersistencePort(Map<Long, ProductOptionGroup> groups) {
+        private MapOptionGroupPersistence(Map<Long, ProductOptionGroup> groups) {
             this.groups = groups;
         }
 
@@ -408,11 +413,11 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    private static final class MapOptionPersistencePort implements ProductOptionPersistencePort {
+    private static final class MapOptionPersistence implements ProductOptionLoadPort, ProductOptionSavePort {
 
         private final Map<Long, ProductOption> options;
 
-        private MapOptionPersistencePort(Map<Long, ProductOption> options) {
+        private MapOptionPersistence(Map<Long, ProductOption> options) {
             this.options = options;
         }
 
@@ -448,7 +453,7 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    private static final class NoImagePersistencePort implements ProductImagePersistencePort {
+    private static final class NoImagePersistence implements ProductImageLoadPort, ProductImageSavePort {
 
         @Override
         public UploadedFileId findRepresentativeImageFileId(ProductId productId) {
@@ -476,7 +481,7 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    private static final class NoExposureHourPersistencePort implements ProductExposureHourPersistencePort {
+    private static final class NoExposureHourPersistence implements ProductExposureHourLoadPort, ProductExposureHourSavePort {
 
         @Override
         public List<ProductExposureHour> saveAll(List<ProductExposureHour> hours) {
@@ -494,7 +499,7 @@ class OrderProductValidationServiceTest {
         }
     }
 
-    private static final class MapProductPricePersistencePort implements ProductPricePersistencePort {
+    private static final class MapProductPricePersistence implements ProductPriceLoadPort, ProductPriceSavePort {
 
         private final Map<Long, ProductPrice> prices = new LinkedHashMap<>();
 

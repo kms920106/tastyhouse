@@ -22,10 +22,12 @@ import com.tastyhouse.domain.product.model.ProductOptionSelectionRule;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistoryPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeHistorySavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
@@ -34,24 +36,30 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Service
 public class ProductOptionGroupMergeService {
 
-    private final ProductOptionGroupPersistencePort optionGroupPersistencePort;
-    private final ProductOptionPersistencePort optionPersistencePort;
-    private final ProductOptionGroupLinkPersistencePort linkPersistencePort;
+    private final ProductOptionGroupLoadPort optionGroupLoadPort;
+    private final ProductOptionGroupSavePort optionGroupSavePort;
+    private final ProductOptionLoadPort optionLoadPort;
+    private final ProductOptionSavePort optionSavePort;
+    private final ProductOptionGroupLinkLoadPort linkLoadPort;
     private final ProductOptionGroupLinkService linkService;
-    private final ProductOptionGroupMergeHistoryPersistencePort mergeHistoryPersistencePort;
+    private final ProductOptionGroupMergeHistorySavePort mergeHistorySavePort;
 
     public ProductOptionGroupMergeService(
-        ProductOptionGroupPersistencePort optionGroupPersistencePort,
-        ProductOptionPersistencePort optionPersistencePort,
-        ProductOptionGroupLinkPersistencePort linkPersistencePort,
+        ProductOptionGroupLoadPort optionGroupLoadPort,
+        ProductOptionGroupSavePort optionGroupSavePort,
+        ProductOptionLoadPort optionLoadPort,
+        ProductOptionSavePort optionSavePort,
+        ProductOptionGroupLinkLoadPort linkLoadPort,
         ProductOptionGroupLinkService linkService,
-        ProductOptionGroupMergeHistoryPersistencePort mergeHistoryPersistencePort
+        ProductOptionGroupMergeHistorySavePort mergeHistorySavePort
     ) {
-        this.optionGroupPersistencePort = optionGroupPersistencePort;
-        this.optionPersistencePort = optionPersistencePort;
-        this.linkPersistencePort = linkPersistencePort;
+        this.optionGroupLoadPort = optionGroupLoadPort;
+        this.optionGroupSavePort = optionGroupSavePort;
+        this.optionLoadPort = optionLoadPort;
+        this.optionSavePort = optionSavePort;
+        this.linkLoadPort = linkLoadPort;
         this.linkService = linkService;
-        this.mergeHistoryPersistencePort = mergeHistoryPersistencePort;
+        this.mergeHistorySavePort = mergeHistorySavePort;
     }
 
     public Long merge(
@@ -101,7 +109,7 @@ public class ProductOptionGroupMergeService {
     }
 
     private ProductOptionGroup loadGroup(Long optionGroupId) {
-        return optionGroupPersistencePort.findById(ProductOptionGroupId.of(optionGroupId))
+        return optionGroupLoadPort.findById(ProductOptionGroupId.of(optionGroupId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
     }
 
@@ -120,7 +128,7 @@ public class ProductOptionGroupMergeService {
         targets.forEach(group -> groupIds.add(group.getProductOptionGroupId()));
 
         Map<Long, List<ProductOptionGroupLink>> byGroupId = new LinkedHashMap<>();
-        for (ProductOptionGroupLink link : linkPersistencePort.findAllByOptionGroupIdIn(groupIds)) {
+        for (ProductOptionGroupLink link : linkLoadPort.findAllByOptionGroupIdIn(groupIds)) {
             byGroupId.computeIfAbsent(link.getOptionGroupId().value(), key -> new ArrayList<>()).add(link);
         }
 
@@ -176,7 +184,7 @@ public class ProductOptionGroupMergeService {
 
     private void validateBaseSelectable(ProductOptionGroup base) {
         List<ProductOption> baseOptions =
-            optionPersistencePort.findAllByOptionGroupId(base.getProductOptionGroupId());
+            optionLoadPort.findAllByOptionGroupId(base.getProductOptionGroupId());
         long selectable = baseOptions.stream().filter(ProductOptionSelectionRule::selectable).count();
         if (selectable < ProductOptionSelectionRule.minRemaining(base)) {
             throw new DomainException(DomainErrorCode.PRODUCT_OPTION_MIN_SELECT_VIOLATION);
@@ -199,9 +207,9 @@ public class ProductOptionGroupMergeService {
 
             hideOptionsOf(target);
             target.hide();
-            optionGroupPersistencePort.save(target);
+            optionGroupSavePort.save(target);
 
-            mergeHistoryPersistencePort.save(ProductOptionGroupMergeHistory.of(
+            mergeHistorySavePort.save(ProductOptionGroupMergeHistory.of(
                 shopId,
                 base.getProductOptionGroupId(),
                 target.getProductOptionGroupId(),
@@ -214,12 +222,12 @@ public class ProductOptionGroupMergeService {
     }
 
     private void hideOptionsOf(ProductOptionGroup target) {
-        for (ProductOption option : optionPersistencePort.findAllByOptionGroupId(target.getProductOptionGroupId())) {
+        for (ProductOption option : optionLoadPort.findAllByOptionGroupId(target.getProductOptionGroupId())) {
             if (!option.isVisible()) {
                 continue;
             }
             option.hide();
-            optionPersistencePort.save(option);
+            optionSavePort.save(option);
         }
     }
 }

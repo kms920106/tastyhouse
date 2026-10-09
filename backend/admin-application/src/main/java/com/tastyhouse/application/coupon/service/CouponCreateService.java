@@ -7,16 +7,16 @@ import com.tastyhouse.domain.coupon.model.Coupon;
 import com.tastyhouse.domain.coupon.model.DiscountType;
 import com.tastyhouse.application.coupon.port.in.CouponCreateCommand;
 import com.tastyhouse.application.coupon.port.in.CouponCreateUseCase;
-import com.tastyhouse.application.coupon.port.out.write.CouponPersistencePort;
+import com.tastyhouse.application.coupon.port.out.write.CouponSavePort;
 
 @Service
 @Transactional
 class CouponCreateService implements CouponCreateUseCase {
 
-    private final CouponPersistencePort couponPersistencePort;
+    private final CouponSavePort couponSavePort;
 
-    public CouponCreateService(CouponPersistencePort couponPersistencePort) {
-        this.couponPersistencePort = couponPersistencePort;
+    public CouponCreateService(CouponSavePort couponSavePort) {
+        this.couponSavePort = couponSavePort;
     }
 
     @Override
@@ -35,7 +35,7 @@ class CouponCreateService implements CouponCreateUseCase {
             command.useEndAt(),
             command.visible()
         );
-        Coupon saved = couponPersistencePort.save(coupon);
+        Coupon saved = couponSavePort.save(coupon);
         return saved.getCouponId().value();
     }
 }

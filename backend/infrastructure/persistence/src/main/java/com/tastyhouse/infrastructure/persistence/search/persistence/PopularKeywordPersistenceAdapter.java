@@ -7,12 +7,13 @@ import jakarta.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.search.model.PopularKeyword;
-import com.tastyhouse.application.search.port.out.write.PopularKeywordPersistencePort;
+import com.tastyhouse.application.search.port.out.write.PopularKeywordLoadPort;
+import com.tastyhouse.application.search.port.out.write.PopularKeywordSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.search.persistence.QPopularKeywordJpaEntity.popularKeywordJpaEntity;
 
 @Repository
-class PopularKeywordPersistenceAdapter implements PopularKeywordPersistencePort {
+class PopularKeywordPersistenceAdapter implements PopularKeywordLoadPort, PopularKeywordSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final PopularKeywordJpaRepository jpaRepository;

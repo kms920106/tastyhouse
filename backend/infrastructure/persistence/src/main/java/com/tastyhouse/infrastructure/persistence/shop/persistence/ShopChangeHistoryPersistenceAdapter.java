@@ -3,10 +3,10 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
-import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistorySavePort;
 
 @Repository
-class ShopChangeHistoryPersistenceAdapter implements ShopChangeHistoryPersistencePort {
+class ShopChangeHistoryPersistenceAdapter implements ShopChangeHistorySavePort {
 
     private final ShopChangeHistoryJpaRepository shopChangeHistoryJpaRepository;
 

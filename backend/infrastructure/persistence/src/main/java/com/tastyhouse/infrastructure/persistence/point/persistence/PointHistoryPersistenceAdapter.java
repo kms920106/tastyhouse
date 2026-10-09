@@ -3,10 +3,10 @@ package com.tastyhouse.infrastructure.persistence.point.persistence;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.point.model.PointHistory;
-import com.tastyhouse.application.point.port.out.write.PointHistoryPersistencePort;
+import com.tastyhouse.application.point.port.out.write.PointHistorySavePort;
 
 @Repository
-class PointHistoryPersistenceAdapter implements PointHistoryPersistencePort {
+class PointHistoryPersistenceAdapter implements PointHistorySavePort {
 
     private final PointHistoryJpaRepository pointHistoryJpaRepository;
 

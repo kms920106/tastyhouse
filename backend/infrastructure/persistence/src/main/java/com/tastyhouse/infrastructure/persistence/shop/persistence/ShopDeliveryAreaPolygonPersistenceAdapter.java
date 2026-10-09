@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryAreaPolygonJpaEntity.shopDeliveryAreaPolygonJpaEntity;
 
 @Repository
-class ShopDeliveryAreaPolygonPersistenceAdapter implements ShopDeliveryAreaPolygonPersistencePort {
+class ShopDeliveryAreaPolygonPersistenceAdapter implements ShopDeliveryAreaPolygonLoadPort, ShopDeliveryAreaPolygonSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopDeliveryAreaPolygonJpaRepository shopDeliveryAreaPolygonJpaRepository;

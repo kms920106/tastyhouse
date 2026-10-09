@@ -9,12 +9,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.domain.shop.model.ShopImageChangeRequest;
 import com.tastyhouse.domain.shop.model.ShopImageType;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopImageChangeRequestJpaEntity.shopImageChangeRequestJpaEntity;
 
 @Repository
-class ShopImageChangeRequestPersistenceAdapter implements ShopImageChangeRequestPersistencePort {
+class ShopImageChangeRequestPersistenceAdapter implements ShopImageChangeRequestLoadPort, ShopImageChangeRequestSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopImageChangeRequestJpaRepository shopImageChangeRequestJpaRepository;

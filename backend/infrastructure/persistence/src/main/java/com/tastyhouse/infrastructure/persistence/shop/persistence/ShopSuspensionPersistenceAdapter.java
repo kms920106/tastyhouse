@@ -7,12 +7,13 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopSuspension;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopSuspensionJpaEntity.shopSuspensionJpaEntity;
 
 @Repository
-class ShopSuspensionPersistenceAdapter implements ShopSuspensionPersistencePort {
+class ShopSuspensionPersistenceAdapter implements ShopSuspensionLoadPort, ShopSuspensionSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopSuspensionJpaRepository shopSuspensionJpaRepository;

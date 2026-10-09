@@ -21,39 +21,51 @@ import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shop.model.Tag;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.TagId;
-import com.tastyhouse.application.review.port.out.write.ReviewImagePersistencePort;
-import com.tastyhouse.application.review.port.out.write.ReviewLikePersistencePort;
-import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
-import com.tastyhouse.application.review.port.out.write.ReviewTagPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewImageSavePort;
+import com.tastyhouse.application.review.port.out.write.ReviewLikeLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewLikeSavePort;
+import com.tastyhouse.application.review.port.out.write.ReviewLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewSavePort;
+import com.tastyhouse.application.review.port.out.write.ReviewTagSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.TagPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.TagLoadPort;
+import com.tastyhouse.application.shop.port.out.write.TagSavePort;
 
 @Service
 public class ReviewLifecycleService {
 
-    private final ReviewPersistencePort reviewPersistencePort;
-    private final ReviewImagePersistencePort reviewImagePersistencePort;
-    private final ReviewTagPersistencePort reviewTagPersistencePort;
-    private final ReviewLikePersistencePort reviewLikePersistencePort;
-    private final TagPersistencePort tagPersistencePort;
+    private final ReviewLoadPort reviewLoadPort;
+    private final ReviewSavePort reviewSavePort;
+    private final ReviewImageSavePort reviewImageSavePort;
+    private final ReviewTagSavePort reviewTagSavePort;
+    private final ReviewLikeLoadPort reviewLikeLoadPort;
+    private final ReviewLikeSavePort reviewLikeSavePort;
+    private final TagLoadPort tagLoadPort;
+    private final TagSavePort tagSavePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public ReviewLifecycleService(
-        ReviewPersistencePort reviewPersistencePort,
-        ReviewImagePersistencePort reviewImagePersistencePort,
-        ReviewTagPersistencePort reviewTagPersistencePort,
-        ReviewLikePersistencePort reviewLikePersistencePort,
-        TagPersistencePort tagPersistencePort,
+        ReviewLoadPort reviewLoadPort,
+        ReviewSavePort reviewSavePort,
+        ReviewImageSavePort reviewImageSavePort,
+        ReviewTagSavePort reviewTagSavePort,
+        ReviewLikeLoadPort reviewLikeLoadPort,
+        ReviewLikeSavePort reviewLikeSavePort,
+        TagLoadPort tagLoadPort,
+        TagSavePort tagSavePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.reviewPersistencePort = reviewPersistencePort;
-        this.reviewImagePersistencePort = reviewImagePersistencePort;
-        this.reviewTagPersistencePort = reviewTagPersistencePort;
-        this.reviewLikePersistencePort = reviewLikePersistencePort;
-        this.tagPersistencePort = tagPersistencePort;
+        this.reviewLoadPort = reviewLoadPort;
+        this.reviewSavePort = reviewSavePort;
+        this.reviewImageSavePort = reviewImageSavePort;
+        this.reviewTagSavePort = reviewTagSavePort;
+        this.reviewLikeLoadPort = reviewLikeLoadPort;
+        this.reviewLikeSavePort = reviewLikeSavePort;
+        this.tagLoadPort = tagLoadPort;
+        this.tagSavePort = tagSavePort;
         this.domainEventPublisher = domainEventPublisher;
     }
 
@@ -72,7 +84,7 @@ public class ReviewLifecycleService {
         Integer deliveryRating,
         String deliveryComment
     ) {
-        if (orderId != null && reviewPersistencePort.existsByOrderIdAndProductId(orderId, productId)) {
+        if (orderId != null && reviewLoadPort.existsByOrderIdAndProductId(orderId, productId)) {
             throw new ApplicationException(ApplicationErrorCode.REVIEW_ALREADY_EXISTS);
         }
 
@@ -92,7 +104,7 @@ public class ReviewLifecycleService {
             deliveryComment
         );
 
-        Review saved = reviewPersistencePort.save(review);
+        Review saved = reviewSavePort.save(review);
 
         List<Long> savedFileIds = saveImages(saved.getReviewId(), uploadedFileIds);
         List<String> savedTags = saveTags(saved.getReviewId(), tags);
@@ -120,7 +132,7 @@ public class ReviewLifecycleService {
         Integer deliveryRating,
         String deliveryComment
     ) {
-        Review review = reviewPersistencePort.findByIdAndMemberId(reviewId, memberId)
+        Review review = reviewLoadPort.findByIdAndMemberId(reviewId, memberId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.REVIEW_ACCESS_DENIED));
 
         review.updateContent(
@@ -134,10 +146,10 @@ public class ReviewLifecycleService {
             deliveryComment
         );
 
-        Review saved = reviewPersistencePort.save(review);
+        Review saved = reviewSavePort.save(review);
 
-        reviewImagePersistencePort.deleteByReviewId(reviewId);
-        reviewTagPersistencePort.deleteByReviewId(reviewId);
+        reviewImageSavePort.deleteByReviewId(reviewId);
+        reviewTagSavePort.deleteByReviewId(reviewId);
 
         List<Long> savedFileIds = saveImages(reviewId, uploadedFileIds);
         List<String> savedTags = saveTags(reviewId, tags);
@@ -146,7 +158,7 @@ public class ReviewLifecycleService {
     }
 
     public void removeOwnedBy(ReviewId reviewId, MemberId memberId, ProductId productId) {
-        reviewPersistencePort.findByIdAndMemberId(reviewId, memberId)
+        reviewLoadPort.findByIdAndMemberId(reviewId, memberId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.REVIEW_ACCESS_DENIED));
 
         deleteWithChildren(reviewId);
@@ -160,7 +172,7 @@ public class ReviewLifecycleService {
     }
 
     public void remove(ReviewId reviewId) {
-        Review review = reviewPersistencePort.findById(reviewId)
+        Review review = reviewLoadPort.findById(reviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
 
         deleteWithChildren(reviewId);
@@ -174,21 +186,21 @@ public class ReviewLifecycleService {
     }
 
     public boolean toggleLike(ReviewId reviewId, MemberId memberId) {
-        boolean liked = !reviewLikePersistencePort.existsByReviewIdAndMemberId(reviewId, memberId);
+        boolean liked = !reviewLikeLoadPort.existsByReviewIdAndMemberId(reviewId, memberId);
 
         if (liked) {
-            reviewLikePersistencePort.save(ReviewLike.of(reviewId, memberId));
+            reviewLikeSavePort.save(ReviewLike.of(reviewId, memberId));
         } else {
-            reviewLikePersistencePort.deleteByReviewIdAndMemberId(reviewId, memberId);
+            reviewLikeSavePort.deleteByReviewIdAndMemberId(reviewId, memberId);
         }
 
         return liked;
     }
 
     private void deleteWithChildren(ReviewId reviewId) {
-        reviewImagePersistencePort.deleteByReviewId(reviewId);
-        reviewTagPersistencePort.deleteByReviewId(reviewId);
-        reviewPersistencePort.deleteById(reviewId);
+        reviewImageSavePort.deleteByReviewId(reviewId);
+        reviewTagSavePort.deleteByReviewId(reviewId);
+        reviewSavePort.deleteById(reviewId);
     }
 
     private double averageRating(Integer tasteRating, Integer amountRating, Integer priceRating) {
@@ -204,7 +216,7 @@ public class ReviewLifecycleService {
         for (int i = 0; i < uploadedFileIds.size(); i++) {
             images.add(ReviewImage.of(reviewId, UploadedFileId.of(uploadedFileIds.get(i)), i + 1));
         }
-        reviewImagePersistencePort.saveAll(images);
+        reviewImageSavePort.saveAll(images);
 
         return uploadedFileIds;
     }
@@ -216,12 +228,12 @@ public class ReviewLifecycleService {
 
         List<ReviewTag> reviewTags = tagNames.stream()
             .map(tagName -> {
-                Tag tag = tagPersistencePort.findByTagName(tagName)
-                    .orElseGet(() -> tagPersistencePort.save(Tag.of(tagName)));
+                Tag tag = tagLoadPort.findByTagName(tagName)
+                    .orElseGet(() -> tagSavePort.save(Tag.of(tagName)));
                 return ReviewTag.of(reviewId, TagId.of(tag.getId()));
             })
             .toList();
-        reviewTagPersistencePort.saveAll(reviewTags);
+        reviewTagSavePort.saveAll(reviewTags);
 
         return tagNames;
     }

@@ -19,7 +19,7 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.ProductBbqSyncQueryPort;
 import com.tastyhouse.application.product.port.out.ProductBbqSyncTargetResult;
-import com.tastyhouse.application.product.port.out.write.ProductCategoryPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCategoryLoadPort;
 import com.tastyhouse.application.product.service.ProductRegistrationService;
 
 @Service
@@ -27,22 +27,22 @@ import com.tastyhouse.application.product.service.ProductRegistrationService;
 public class BbqProductSyncService {
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductCategoryPersistencePort productCategoryPersistencePort;
+    private final ProductCategoryLoadPort productCategoryLoadPort;
     private final ProductBbqSyncQueryPort productBbqSyncQueryPort;
 
     public BbqProductSyncService(
         ProductRegistrationService productRegistrationService,
-        ProductCategoryPersistencePort productCategoryPersistencePort,
+        ProductCategoryLoadPort productCategoryLoadPort,
         ProductBbqSyncQueryPort productBbqSyncQueryPort
     ) {
         this.productRegistrationService = productRegistrationService;
-        this.productCategoryPersistencePort = productCategoryPersistencePort;
+        this.productCategoryLoadPort = productCategoryLoadPort;
         this.productBbqSyncQueryPort = productBbqSyncQueryPort;
     }
 
     public Long resolveCategoryId(Long shopId, String name, int sort) {
         ShopId targetShopId = ShopId.of(shopId);
-        List<ProductCategory> existing = productCategoryPersistencePort.findCategoriesByNameAndShopId(name, targetShopId);
+        List<ProductCategory> existing = productCategoryLoadPort.findCategoriesByNameAndShopId(name, targetShopId);
         if (!existing.isEmpty()) {
             return existing.getFirst().getId();
         }

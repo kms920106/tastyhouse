@@ -15,7 +15,7 @@ import com.tastyhouse.domain.shared.geo.GeoPolygon;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveCommand;
 import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveUseCase;
 
@@ -24,16 +24,16 @@ import com.tastyhouse.application.shop.port.in.ShopDeliveryAreaPolygonSaveUseCas
 class ShopDeliveryAreaPolygonSaveService implements ShopDeliveryAreaPolygonSaveUseCase {
 
     private final ShopDeliveryAreaPolygonService shopDeliveryAreaPolygonService;
-    private final AdminDongPersistencePort adminDongPersistencePort;
+    private final AdminDongLoadPort adminDongLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopDeliveryAreaPolygonSaveService(
         ShopDeliveryAreaPolygonService shopDeliveryAreaPolygonService,
-        AdminDongPersistencePort adminDongPersistencePort,
+        AdminDongLoadPort adminDongLoadPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.shopDeliveryAreaPolygonService = shopDeliveryAreaPolygonService;
-        this.adminDongPersistencePort = adminDongPersistencePort;
+        this.adminDongLoadPort = adminDongLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -67,7 +67,7 @@ class ShopDeliveryAreaPolygonSaveService implements ShopDeliveryAreaPolygonSaveU
     }
 
     private List<String> resolveRegionNames(Collection<AdminDongId> adminDongIds) {
-        return adminDongPersistencePort.findAllByIds(adminDongIds).stream()
+        return adminDongLoadPort.findAllByIds(adminDongIds).stream()
             .map(AdminDong::fullName)
             .toList();
     }

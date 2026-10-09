@@ -37,12 +37,15 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryTipSetting;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipTier;
 import com.tastyhouse.domain.shop.model.ShopDeliveryTipTierSpec;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
+import com.tastyhouse.application.region.port.out.write.AdminDongSavePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipPersistencePort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipSavePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistorySavePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -54,13 +57,14 @@ class ShopDeliveryTipServiceTest {
     private static final Long DONG_A = 100L;
     private static final Long DONG_B = 200L;
 
-    private final ShopDeliveryTipPersistencePortFake tipPersistencePort = new ShopDeliveryTipPersistencePortFake();
-    private final ShopDeliveryAreaPersistencePortFake areaPersistencePort = new ShopDeliveryAreaPersistencePortFake();
-    private final AdminDongPersistencePortFake adminDongPersistencePort = new AdminDongPersistencePortFake();
-    private final RecordingShopChangeHistoryPersistencePort historyPersistencePort =
-        new RecordingShopChangeHistoryPersistencePort();
+    private final ShopDeliveryTipPersistenceFake tipPersistence = new ShopDeliveryTipPersistenceFake();
+    private final ShopDeliveryAreaPersistenceFake areaPersistence = new ShopDeliveryAreaPersistenceFake();
+    private final AdminDongPersistenceFake adminDongPersistence = new AdminDongPersistenceFake();
+    private final RecordingShopChangeHistorySavePort historySavePort =
+        new RecordingShopChangeHistorySavePort();
     private final ShopDeliveryTipService service = new ShopDeliveryTipService(
-        tipPersistencePort, areaPersistencePort, adminDongPersistencePort, new ShopChangeHistoryRecorder(historyPersistencePort)
+        tipPersistence,
+        tipPersistence, areaPersistence, adminDongPersistence, new ShopChangeHistoryRecorder(historySavePort)
     );
 
     private static final ShopChangeActor ACTOR = ShopChangeActor.ceo(9L);
@@ -177,7 +181,7 @@ class ShopDeliveryTipServiceTest {
 
             service.replaceTiers(SHOP_ID, List.of(ShopDeliveryTipTierSpec.of(3000, 2500)), ACTOR);
 
-            assertThat(tipPersistencePort.findTiersByShopId(SHOP_ID))
+            assertThat(tipPersistence.findTiersByShopId(SHOP_ID))
                 .extracting(ShopDeliveryTipTier::getMinOrderAmount)
                 .containsExactly(3000);
         }
@@ -218,13 +222,13 @@ class ShopDeliveryTipServiceTest {
         void replaceRegionTips_emptyThenDistanceSucceeds() {
             registerDeliveryArea(DONG_A);
             service.replaceRegionTips(SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)), ACTOR);
-            assertThat(tipPersistencePort.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
+            assertThat(tipPersistence.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
                 .isEqualTo(DeliveryTipExtraType.REGION);
 
             service.replaceRegionTips(SHOP_ID, List.of(), ACTOR);
 
-            assertThat(tipPersistencePort.findRegionTipsByShopId(SHOP_ID)).isEmpty();
-            assertThat(tipPersistencePort.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
+            assertThat(tipPersistence.findRegionTipsByShopId(SHOP_ID)).isEmpty();
+            assertThat(tipPersistence.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
                 .isEqualTo(DeliveryTipExtraType.NONE);
 
             ShopDeliveryTipSetting setting = service.changeDistanceTip(
@@ -248,7 +252,7 @@ class ShopDeliveryTipServiceTest {
             assertThatCode(() -> service.replaceRegionTips(
                 SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)), ACTOR
             )).doesNotThrowAnyException();
-            assertThat(tipPersistencePort.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
+            assertThat(tipPersistence.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
                 .isEqualTo(DeliveryTipExtraType.REGION);
         }
     }
@@ -285,7 +289,7 @@ class ShopDeliveryTipServiceTest {
         @Test
         @DisplayName("가게 배달가능지역이 아니면 SHOP_DELIVERY_TIP_REGION_NOT_IN_DELIVERY_AREA로 거부한다")
         void replaceRegionTips_rejectsRegionOutsideDeliveryArea() {
-            adminDongPersistencePort.add(DONG_B);
+            adminDongPersistence.add(DONG_B);
 
             assertThatThrownBy(() -> service.replaceRegionTips(
                 SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_B, 800)), ACTOR
@@ -309,7 +313,7 @@ class ShopDeliveryTipServiceTest {
             assertThat(saved).extracting(regionTip -> regionTip.getAdminDongId().value())
                 .containsExactly(DONG_A, DONG_B);
             assertThat(saved).extracting(ShopDeliveryTipRegion::getTipAmount).containsExactly(800, 1200);
-            assertThat(tipPersistencePort.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
+            assertThat(tipPersistence.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
                 .isEqualTo(DeliveryTipExtraType.REGION);
         }
 
@@ -321,8 +325,8 @@ class ShopDeliveryTipServiceTest {
 
             service.clearRegionTips(SHOP_ID, ACTOR);
 
-            assertThat(tipPersistencePort.findRegionTipsByShopId(SHOP_ID)).isEmpty();
-            assertThat(tipPersistencePort.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
+            assertThat(tipPersistence.findRegionTipsByShopId(SHOP_ID)).isEmpty();
+            assertThat(tipPersistence.findSettingByShopId(SHOP_ID).orElseThrow().getExtraTipType())
                 .isEqualTo(DeliveryTipExtraType.NONE);
         }
     }
@@ -395,7 +399,7 @@ class ShopDeliveryTipServiceTest {
 
             service.replaceScheduleTips(SHOP_ID, List.of(), ACTOR);
 
-            assertThat(tipPersistencePort.findScheduleTipsByShopId(SHOP_ID)).isEmpty();
+            assertThat(tipPersistence.findScheduleTipsByShopId(SHOP_ID)).isEmpty();
         }
     }
 
@@ -407,13 +411,13 @@ class ShopDeliveryTipServiceTest {
         @DisplayName("0원은 삭제로 해석해 null을 반환하고 저장된 공휴일 팁을 지운다")
         void changeHolidayTip_zeroDeletes() {
             service.changeHolidayTip(SHOP_ID, 1500, ACTOR);
-            assertThat(tipPersistencePort.findHolidayTipByShopId(SHOP_ID)).isPresent();
+            assertThat(tipPersistence.findHolidayTipByShopId(SHOP_ID)).isPresent();
 
             ShopDeliveryTipHoliday result = service.changeHolidayTip(SHOP_ID, 0, ACTOR);
 
             assertThat(result).isNull();
-            assertThat(tipPersistencePort.findHolidayTipByShopId(SHOP_ID)).isEmpty();
-            assertThat(tipPersistencePort.holidayTipDeleteCount).isEqualTo(1);
+            assertThat(tipPersistence.findHolidayTipByShopId(SHOP_ID)).isEmpty();
+            assertThat(tipPersistence.holidayTipDeleteCount).isEqualTo(1);
         }
 
         @Test
@@ -427,7 +431,7 @@ class ShopDeliveryTipServiceTest {
             ShopDeliveryTipHoliday updated = service.changeHolidayTip(SHOP_ID, 2500, ACTOR);
 
             assertThat(updated.getTipAmount()).isEqualTo(2500);
-            assertThat(tipPersistencePort.findHolidayTipByShopId(SHOP_ID).orElseThrow().getTipAmount()).isEqualTo(2500);
+            assertThat(tipPersistence.findHolidayTipByShopId(SHOP_ID).orElseThrow().getTipAmount()).isEqualTo(2500);
         }
     }
 
@@ -447,7 +451,7 @@ class ShopDeliveryTipServiceTest {
             ), ACTOR);
 
             List<ShopChangeHistory> tierHistories =
-                historyPersistencePort.savedOf(ShopChangeType.DELIVERY_TIP_TIER);
+                historySavePort.savedOf(ShopChangeType.DELIVERY_TIP_TIER);
             assertThat(tierHistories).hasSize(2);
 
             ShopChangeHistory second = tierHistories.get(1);
@@ -466,7 +470,7 @@ class ShopDeliveryTipServiceTest {
             service.replaceRegionTips(SHOP_ID, List.of(ShopDeliveryTipRegionSpec.of(DONG_A, 800)), ACTOR);
 
             List<ShopChangeHistory> histories =
-                historyPersistencePort.savedOf(ShopChangeType.DELIVERY_TIP_REGION);
+                historySavePort.savedOf(ShopChangeType.DELIVERY_TIP_REGION);
             assertThat(histories).hasSize(1);
             assertThat(histories.getFirst().getPreviousValue()).isEqualTo("없음");
             assertThat(histories.getFirst().getNewValue()).isEqualTo("역삼1동: +800원");
@@ -480,7 +484,7 @@ class ShopDeliveryTipServiceTest {
             ), ACTOR);
 
             List<ShopChangeHistory> histories =
-                historyPersistencePort.savedOf(ShopChangeType.DELIVERY_TIP_SCHEDULE);
+                historySavePort.savedOf(ShopChangeType.DELIVERY_TIP_SCHEDULE);
             assertThat(histories).hasSize(1);
             assertThat(histories.getFirst().getNewValue()).isEqualTo("평일 18:00~20:00: +1,500원");
         }
@@ -492,7 +496,7 @@ class ShopDeliveryTipServiceTest {
             service.clearDistanceTip(SHOP_ID, ACTOR);
 
             List<ShopChangeHistory> histories =
-                historyPersistencePort.savedOf(ShopChangeType.DELIVERY_TIP_DISTANCE);
+                historySavePort.savedOf(ShopChangeType.DELIVERY_TIP_DISTANCE);
             assertThat(histories).hasSize(2);
             assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
             assertThat(histories.getFirst().getPreviousValue()).isEqualTo("미설정");
@@ -507,7 +511,7 @@ class ShopDeliveryTipServiceTest {
         void clearDistanceTip_withoutSetting_recordsNothing() {
             service.clearDistanceTip(SHOP_ID, ACTOR);
 
-            assertThat(historyPersistencePort.savedOf(ShopChangeType.DELIVERY_TIP_DISTANCE)).isEmpty();
+            assertThat(historySavePort.savedOf(ShopChangeType.DELIVERY_TIP_DISTANCE)).isEmpty();
         }
 
         @Test
@@ -517,7 +521,7 @@ class ShopDeliveryTipServiceTest {
             service.changeHolidayTip(SHOP_ID, 0, ACTOR);
 
             List<ShopChangeHistory> histories =
-                historyPersistencePort.savedOf(ShopChangeType.DELIVERY_TIP_HOLIDAY);
+                historySavePort.savedOf(ShopChangeType.DELIVERY_TIP_HOLIDAY);
             assertThat(histories).hasSize(2);
             assertThat(histories).extracting(ShopChangeHistory::getActionType)
                 .containsExactly(ShopChangeActionType.UPDATE, ShopChangeActionType.UPDATE);
@@ -528,11 +532,11 @@ class ShopDeliveryTipServiceTest {
     }
 
     private void registerDeliveryArea(Long adminDongId) {
-        adminDongPersistencePort.add(adminDongId);
-        areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(adminDongId)));
+        adminDongPersistence.add(adminDongId);
+        areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(adminDongId)));
     }
 
-    private static final class ShopDeliveryTipPersistencePortFake implements ShopDeliveryTipPersistencePort {
+    private static final class ShopDeliveryTipPersistenceFake implements ShopDeliveryTipLoadPort, ShopDeliveryTipSavePort {
 
         private final Map<Long, ShopDeliveryTipSetting> settings = new LinkedHashMap<>();
         private final List<ShopDeliveryTipTier> tiers = new ArrayList<>();
@@ -653,7 +657,7 @@ class ShopDeliveryTipServiceTest {
         }
     }
 
-    private static final class ShopDeliveryAreaPersistencePortFake implements ShopDeliveryAreaPersistencePort {
+    private static final class ShopDeliveryAreaPersistenceFake implements ShopDeliveryAreaLoadPort, ShopDeliveryAreaSavePort {
 
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
@@ -719,7 +723,7 @@ class ShopDeliveryTipServiceTest {
         }
     }
 
-    private static final class AdminDongPersistencePortFake implements AdminDongPersistencePort {
+    private static final class AdminDongPersistenceFake implements AdminDongLoadPort, AdminDongSavePort {
 
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {

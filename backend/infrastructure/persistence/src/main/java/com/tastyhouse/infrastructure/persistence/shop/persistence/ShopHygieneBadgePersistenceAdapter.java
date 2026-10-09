@@ -5,10 +5,11 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
-import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeSavePort;
 
 @Repository
-class ShopHygieneBadgePersistenceAdapter implements ShopHygieneBadgePersistencePort {
+class ShopHygieneBadgePersistenceAdapter implements ShopHygieneBadgeLoadPort, ShopHygieneBadgeSavePort {
 
     private final ShopHygieneBadgeJpaRepository shopHygieneBadgeJpaRepository;
 

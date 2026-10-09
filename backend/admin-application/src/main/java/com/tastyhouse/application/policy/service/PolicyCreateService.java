@@ -7,16 +7,16 @@ import com.tastyhouse.domain.policy.model.PolicyDocument;
 import com.tastyhouse.domain.policy.model.PolicyType;
 import com.tastyhouse.application.policy.port.in.PolicyCreateCommand;
 import com.tastyhouse.application.policy.port.in.PolicyCreateUseCase;
-import com.tastyhouse.application.policy.port.out.write.PolicyDocumentPersistencePort;
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentSavePort;
 
 @Service
 @Transactional
 class PolicyCreateService implements PolicyCreateUseCase {
 
-    private final PolicyDocumentPersistencePort policyDocumentPersistencePort;
+    private final PolicyDocumentSavePort policyDocumentSavePort;
 
-    public PolicyCreateService(PolicyDocumentPersistencePort policyDocumentPersistencePort) {
-        this.policyDocumentPersistencePort = policyDocumentPersistencePort;
+    public PolicyCreateService(PolicyDocumentSavePort policyDocumentSavePort) {
+        this.policyDocumentSavePort = policyDocumentSavePort;
     }
 
     @Override
@@ -30,7 +30,7 @@ class PolicyCreateService implements PolicyCreateUseCase {
             command.effectiveDate(),
             command.createdBy()
         );
-        PolicyDocument saved = policyDocumentPersistencePort.save(policyDocument);
+        PolicyDocument saved = policyDocumentSavePort.save(policyDocument);
         return saved.getPolicyDocumentId().value();
     }
 }

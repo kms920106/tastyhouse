@@ -12,7 +12,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductOwnerCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductOwnerCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductShopLinkItemCommand;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shop.service.OwnedShopIdProvider;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -24,7 +24,7 @@ class ProductOwnerCreateService implements ProductOwnerCreateUseCase {
     private static final boolean DEFAULT_VISIBLE = true;
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductLoadPort productLoadPort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ProductNameValidator productNameValidator;
     private final ProductShopLinkService productShopLinkService;
@@ -33,7 +33,7 @@ class ProductOwnerCreateService implements ProductOwnerCreateUseCase {
 
     public ProductOwnerCreateService(
         ProductRegistrationService productRegistrationService,
-        ProductPersistencePort productPersistencePort,
+        ProductLoadPort productLoadPort,
         ProhibitedWordValidator prohibitedWordValidator,
         ProductNameValidator productNameValidator,
         ProductShopLinkService productShopLinkService,
@@ -41,7 +41,7 @@ class ProductOwnerCreateService implements ProductOwnerCreateUseCase {
         OwnedShopIdProvider ownedShopIdProvider
     ) {
         this.productRegistrationService = productRegistrationService;
-        this.productPersistencePort = productPersistencePort;
+        this.productLoadPort = productLoadPort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.productNameValidator = productNameValidator;
         this.productShopLinkService = productShopLinkService;
@@ -114,7 +114,7 @@ class ProductOwnerCreateService implements ProductOwnerCreateUseCase {
     }
 
     private Integer nextSort(Long shopId, ProductCategoryId productCategoryId) {
-        return productPersistencePort.findAllByShopIdAndCategoryId(ShopId.of(shopId), productCategoryId).size();
+        return productLoadPort.findAllByShopIdAndCategoryId(ShopId.of(shopId), productCategoryId).size();
     }
 
     private ProductCategoryId toProductCategoryId(Long productCategoryId) {

@@ -5,12 +5,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.shop.model.ShopBookmark;
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopBookmarkJpaEntity.shopBookmarkJpaEntity;
 
 @Repository
-class ShopBookmarkPersistenceAdapter implements ShopBookmarkPersistencePort {
+class ShopBookmarkPersistenceAdapter implements ShopBookmarkLoadPort, ShopBookmarkSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopBookmarkJpaRepository shopBookmarkJpaRepository;

@@ -7,7 +7,7 @@ import com.tastyhouse.domain.policy.model.PolicyDocument;
 import com.tastyhouse.domain.policy.vo.PolicyDocumentId;
 import com.tastyhouse.application.policy.port.in.PolicyActivateCommand;
 import com.tastyhouse.application.policy.port.in.PolicyActivateUseCase;
-import com.tastyhouse.application.policy.port.out.write.PolicyDocumentPersistencePort;
+import com.tastyhouse.application.policy.port.out.write.PolicyDocumentLoadPort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,11 +15,11 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class PolicyActivateService implements PolicyActivateUseCase {
 
-    private final PolicyDocumentPersistencePort policyDocumentPersistencePort;
+    private final PolicyDocumentLoadPort policyDocumentLoadPort;
     private final PolicyActivationService policyActivationService;
 
-    public PolicyActivateService(PolicyDocumentPersistencePort policyDocumentPersistencePort, PolicyActivationService policyActivationService) {
-        this.policyDocumentPersistencePort = policyDocumentPersistencePort;
+    public PolicyActivateService(PolicyDocumentLoadPort policyDocumentLoadPort, PolicyActivationService policyActivationService) {
+        this.policyDocumentLoadPort = policyDocumentLoadPort;
         this.policyActivationService = policyActivationService;
     }
 
@@ -32,7 +32,7 @@ class PolicyActivateService implements PolicyActivateUseCase {
     }
 
     private PolicyDocument findPolicyDocumentOrThrow(PolicyDocumentId policyDocumentId) {
-        return policyDocumentPersistencePort.findById(policyDocumentId)
+        return policyDocumentLoadPort.findById(policyDocumentId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.POLICY_NOT_FOUND));
     }
 }

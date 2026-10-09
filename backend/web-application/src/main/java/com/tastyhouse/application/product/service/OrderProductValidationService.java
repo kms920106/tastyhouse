@@ -25,13 +25,13 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.application.product.port.out.write.ProductExposureHourPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductImagePersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductPricePersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductExposureHourLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductImageLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductPriceLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -40,34 +40,34 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 @Service
 public class OrderProductValidationService {
 
-    private final ProductPersistencePort productPersistencePort;
-    private final ProductPricePersistencePort productPricePersistencePort;
-    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
-    private final ProductOptionPersistencePort productOptionPersistencePort;
-    private final ProductImagePersistencePort productImagePersistencePort;
-    private final ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort;
-    private final ProductExposureHourPersistencePort productExposureHourPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductPriceLoadPort productPriceLoadPort;
+    private final ProductOptionGroupLoadPort productOptionGroupLoadPort;
+    private final ProductOptionLoadPort productOptionLoadPort;
+    private final ProductImageLoadPort productImageLoadPort;
+    private final ProductOptionGroupLinkLoadPort productOptionGroupLinkLoadPort;
+    private final ProductExposureHourLoadPort productExposureHourLoadPort;
     private final ProductExposureCalculator productExposureCalculator;
     private final CupDepositPolicy cupDepositPolicy;
 
     public OrderProductValidationService(
-        ProductPersistencePort productPersistencePort,
-        ProductPricePersistencePort productPricePersistencePort,
-        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
-        ProductOptionPersistencePort productOptionPersistencePort,
-        ProductImagePersistencePort productImagePersistencePort,
-        ProductOptionGroupLinkPersistencePort productOptionGroupLinkPersistencePort,
-        ProductExposureHourPersistencePort productExposureHourPersistencePort,
+        ProductLoadPort productLoadPort,
+        ProductPriceLoadPort productPriceLoadPort,
+        ProductOptionGroupLoadPort productOptionGroupLoadPort,
+        ProductOptionLoadPort productOptionLoadPort,
+        ProductImageLoadPort productImageLoadPort,
+        ProductOptionGroupLinkLoadPort productOptionGroupLinkLoadPort,
+        ProductExposureHourLoadPort productExposureHourLoadPort,
         ProductExposureCalculator productExposureCalculator,
         CupDepositPolicy cupDepositPolicy
     ) {
-        this.productPersistencePort = productPersistencePort;
-        this.productPricePersistencePort = productPricePersistencePort;
-        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
-        this.productOptionPersistencePort = productOptionPersistencePort;
-        this.productImagePersistencePort = productImagePersistencePort;
-        this.productOptionGroupLinkPersistencePort = productOptionGroupLinkPersistencePort;
-        this.productExposureHourPersistencePort = productExposureHourPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productPriceLoadPort = productPriceLoadPort;
+        this.productOptionGroupLoadPort = productOptionGroupLoadPort;
+        this.productOptionLoadPort = productOptionLoadPort;
+        this.productImageLoadPort = productImageLoadPort;
+        this.productOptionGroupLinkLoadPort = productOptionGroupLinkLoadPort;
+        this.productExposureHourLoadPort = productExposureHourLoadPort;
         this.productExposureCalculator = productExposureCalculator;
         this.cupDepositPolicy = cupDepositPolicy;
     }
@@ -85,7 +85,7 @@ public class OrderProductValidationService {
     }
 
     private OrderProductSnapshot validateLine(OrderLineSelection line, OrderMethod orderMethod, LocalDateTime now) {
-        Product product = productPersistencePort.findById(ProductId.of(line.productId()))
+        Product product = productLoadPort.findById(ProductId.of(line.productId()))
             .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_PRODUCT_NOT_FOUND,
                 WebErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + line.productId()));
 
@@ -100,7 +100,7 @@ public class OrderProductValidationService {
         }
 
         UploadedFileId representativeImageFileId =
-            productImagePersistencePort.findRepresentativeImageFileId(product.getProductId());
+            productImageLoadPort.findRepresentativeImageFileId(product.getProductId());
 
         ProductPrice price = resolvePrice(product, line);
 
@@ -119,7 +119,7 @@ public class OrderProductValidationService {
     }
 
     private ProductPrice resolvePrice(Product product, OrderLineSelection line) {
-        List<ProductPrice> prices = productPricePersistencePort.findAllByProductId(product.getProductId());
+        List<ProductPrice> prices = productPriceLoadPort.findAllByProductId(product.getProductId());
         if (prices.isEmpty()) {
             return null;
         }
@@ -137,7 +137,7 @@ public class OrderProductValidationService {
             product.isVisible(),
             product.getExposureStartDate(),
             product.getExposureEndDate(),
-            productExposureHourPersistencePort.findAllByProductId(product.getProductId()),
+            productExposureHourLoadPort.findAllByProductId(product.getProductId()),
             now,
             false,
             false
@@ -152,15 +152,15 @@ public class OrderProductValidationService {
         Map<Long, Integer> selectedCountByGroupId = new LinkedHashMap<>();
         for (OrderLineOptionSelection selected : line.selectedOptions()) {
             ProductOptionGroupId groupId = ProductOptionGroupId.of(selected.groupId());
-            ProductOptionGroup optionGroup = productOptionGroupPersistencePort
+            ProductOptionGroup optionGroup = productOptionGroupLoadPort
                 .findById(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_OPTION_GROUP_NOT_FOUND));
 
-            if (!productOptionGroupLinkPersistencePort.existsByProductIdAndOptionGroupId(productId, groupId)) {
+            if (!productOptionGroupLinkLoadPort.existsByProductIdAndOptionGroupId(productId, groupId)) {
                 throw new ResourceNotFoundException(WebErrorCode.ORDER_OPTION_GROUP_NOT_FOUND);
             }
 
-            ProductOption option = productOptionPersistencePort
+            ProductOption option = productOptionLoadPort
                 .findById(ProductOptionId.of(selected.optionId()))
                 .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_OPTION_NOT_FOUND));
 
@@ -206,11 +206,11 @@ public class OrderProductValidationService {
         Map<Long, ProductOptionGroup> selectedGroups,
         Map<Long, Integer> selectedCountByGroupId
     ) {
-        for (ProductOptionGroupLink link : productOptionGroupLinkPersistencePort.findAllByProductId(productId)) {
+        for (ProductOptionGroupLink link : productOptionGroupLinkLoadPort.findAllByProductId(productId)) {
             Long groupId = link.getOptionGroupId().value();
             ProductOptionGroup group = selectedGroups.get(groupId);
             if (group == null) {
-                group = productOptionGroupPersistencePort.findById(ProductOptionGroupId.of(groupId)).orElse(null);
+                group = productOptionGroupLoadPort.findById(ProductOptionGroupId.of(groupId)).orElse(null);
             }
 
             if (group == null || !group.isVisible()) {

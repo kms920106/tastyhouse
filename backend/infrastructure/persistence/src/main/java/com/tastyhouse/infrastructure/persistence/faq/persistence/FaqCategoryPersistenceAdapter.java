@@ -7,13 +7,14 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.faq.model.FaqCategory;
 import com.tastyhouse.domain.faq.vo.FaqCategoryId;
-import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
+import com.tastyhouse.application.faq.port.out.write.FaqCategoryLoadPort;
+import com.tastyhouse.application.faq.port.out.write.FaqCategorySavePort;
 
 import static com.tastyhouse.infrastructure.persistence.faq.persistence.QFaqCategoryJpaEntity.faqCategoryJpaEntity;
 import static com.tastyhouse.infrastructure.persistence.faq.persistence.QFaqJpaEntity.faqJpaEntity;
 
 @Repository
-class FaqCategoryPersistenceAdapter implements FaqCategoryPersistencePort {
+class FaqCategoryPersistenceAdapter implements FaqCategoryLoadPort, FaqCategorySavePort {
 
     private final JPAQueryFactory queryFactory;
     private final FaqCategoryJpaRepository faqCategoryJpaRepository;

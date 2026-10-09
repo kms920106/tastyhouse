@@ -9,12 +9,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.shop.model.DeliveryAreaAdjustmentStatus;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaAdjustmentRequest;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaAdjustmentRequestSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.shop.persistence.QShopDeliveryAreaAdjustmentRequestJpaEntity.shopDeliveryAreaAdjustmentRequestJpaEntity;
 
 @Repository
-class ShopDeliveryAreaAdjustmentRequestPersistenceAdapter implements ShopDeliveryAreaAdjustmentRequestPersistencePort {
+class ShopDeliveryAreaAdjustmentRequestPersistenceAdapter implements ShopDeliveryAreaAdjustmentRequestLoadPort, ShopDeliveryAreaAdjustmentRequestSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ShopDeliveryAreaAdjustmentRequestJpaRepository shopDeliveryAreaAdjustmentRequestJpaRepository;

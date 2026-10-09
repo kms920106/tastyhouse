@@ -7,40 +7,43 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeSavePort;
 
 @Service
 public class ShopOrderNoticeService {
 
     private static final int MAX_CONTENT_LENGTH = 500;
 
-    private final ShopOrderNoticePersistencePort shopOrderNoticePersistencePort;
+    private final ShopOrderNoticeLoadPort shopOrderNoticeLoadPort;
+    private final ShopOrderNoticeSavePort shopOrderNoticeSavePort;
 
-    public ShopOrderNoticeService(ShopOrderNoticePersistencePort shopOrderNoticePersistencePort) {
-        this.shopOrderNoticePersistencePort = shopOrderNoticePersistencePort;
+    public ShopOrderNoticeService(ShopOrderNoticeLoadPort shopOrderNoticeLoadPort, ShopOrderNoticeSavePort shopOrderNoticeSavePort) {
+        this.shopOrderNoticeLoadPort = shopOrderNoticeLoadPort;
+        this.shopOrderNoticeSavePort = shopOrderNoticeSavePort;
     }
 
     public void upsert(ShopId shopId, String content) {
         String validated = validateContent(content);
 
-        shopOrderNoticePersistencePort.findByShopId(shopId)
+        shopOrderNoticeLoadPort.findByShopId(shopId)
             .map(existing -> {
                 existing.updateContent(validated);
-                return shopOrderNoticePersistencePort.save(existing);
+                return shopOrderNoticeSavePort.save(existing);
             })
-            .orElseGet(() -> shopOrderNoticePersistencePort.save(ShopOrderNotice.of(shopId, validated)));
+            .orElseGet(() -> shopOrderNoticeSavePort.save(ShopOrderNotice.of(shopId, validated)));
     }
 
     public void hide(ShopId shopId, String reason) {
         ShopOrderNotice notice = loadByShopId(shopId);
         notice.hide(reason);
-        shopOrderNoticePersistencePort.save(notice);
+        shopOrderNoticeSavePort.save(notice);
     }
 
     public void unhide(ShopId shopId) {
         ShopOrderNotice notice = loadByShopId(shopId);
         notice.unhide();
-        shopOrderNoticePersistencePort.save(notice);
+        shopOrderNoticeSavePort.save(notice);
     }
 
     private String validateContent(String content) {
@@ -56,7 +59,7 @@ public class ShopOrderNoticeService {
     }
 
     private ShopOrderNotice loadByShopId(ShopId shopId) {
-        return shopOrderNoticePersistencePort.findByShopId(shopId)
+        return shopOrderNoticeLoadPort.findByShopId(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_ORDER_NOTICE_NOT_FOUND));
     }
 }

@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.ceo.model.Ceo;
 import com.tastyhouse.domain.ceo.vo.CeoId;
-import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoadPort;
+import com.tastyhouse.application.ceo.port.out.write.CeoSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.ceo.persistence.QCeoJpaEntity.ceoJpaEntity;
 
 @Repository
-class CeoPersistenceAdapter implements CeoPersistencePort {
+class CeoPersistenceAdapter implements CeoLoadPort, CeoSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final CeoJpaRepository ceoJpaRepository;

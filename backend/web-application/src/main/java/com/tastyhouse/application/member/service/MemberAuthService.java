@@ -9,7 +9,7 @@ import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
 import com.tastyhouse.application.auth.token.MemberTokenService;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -18,18 +18,18 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 @Service
 public class MemberAuthService {
 
-    private final MemberPersistencePort memberPersistencePort;
+    private final MemberLoadPort memberLoadPort;
     private final PasswordEncoder passwordEncoder;
     private final MemberJwtTokenProvider jwtTokenProvider;
     private final MemberTokenService tokenService;
 
     public MemberAuthService(
-        MemberPersistencePort memberPersistencePort,
+        MemberLoadPort memberLoadPort,
         PasswordEncoder passwordEncoder,
         MemberJwtTokenProvider jwtTokenProvider,
         MemberTokenService tokenService
     ) {
-        this.memberPersistencePort = memberPersistencePort;
+        this.memberLoadPort = memberLoadPort;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.tokenService = tokenService;
@@ -37,7 +37,7 @@ public class MemberAuthService {
 
     @Transactional(readOnly = true)
     public void verifyPassword(Long memberId, String rawPassword) {
-        Member member = memberPersistencePort.findById(MemberId.of(memberId))
+        Member member = memberLoadPort.findById(MemberId.of(memberId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND));
 
         if (!passwordEncoder.matches(rawPassword, member.getPassword())) {

@@ -7,7 +7,8 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.domain.member.referral.event.ReferralRegisteredEvent;
 import com.tastyhouse.domain.member.referral.model.MemberReferral;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.application.member.referral.port.out.write.MemberReferralPersistencePort;
+import com.tastyhouse.application.member.referral.port.out.write.MemberReferralLoadPort;
+import com.tastyhouse.application.member.referral.port.out.write.MemberReferralSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
@@ -15,14 +16,17 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 @Service
 public class ReferralRegistrationService {
 
-    private final MemberReferralPersistencePort memberReferralPersistencePort;
+    private final MemberReferralLoadPort memberReferralLoadPort;
+    private final MemberReferralSavePort memberReferralSavePort;
     private final DomainEventPublisher domainEventPublisher;
 
     public ReferralRegistrationService(
-        MemberReferralPersistencePort memberReferralPersistencePort,
+        MemberReferralLoadPort memberReferralLoadPort,
+        MemberReferralSavePort memberReferralSavePort,
         DomainEventPublisher domainEventPublisher
     ) {
-        this.memberReferralPersistencePort = memberReferralPersistencePort;
+        this.memberReferralLoadPort = memberReferralLoadPort;
+        this.memberReferralSavePort = memberReferralSavePort;
         this.domainEventPublisher = domainEventPublisher;
     }
 
@@ -31,11 +35,11 @@ public class ReferralRegistrationService {
             throw new ApplicationException(WebErrorCode.REFERRAL_SELF_NOT_ALLOWED);
         }
 
-        if (memberReferralPersistencePort.existsByRefereeId(refereeId)) {
+        if (memberReferralLoadPort.existsByRefereeId(refereeId)) {
             throw new ApplicationException(WebErrorCode.REFERRAL_ALREADY_EXISTS);
         }
 
-        MemberReferral referral = memberReferralPersistencePort.save(
+        MemberReferral referral = memberReferralSavePort.save(
             MemberReferral.register(referrerId, refereeId)
         );
 

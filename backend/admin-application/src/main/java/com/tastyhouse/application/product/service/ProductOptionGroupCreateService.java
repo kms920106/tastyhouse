@@ -11,27 +11,27 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupManagementCreateCommand;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 
 @Service
 @Transactional
 class ProductOptionGroupCreateService implements ProductOptionGroupCreateUseCase {
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductPersistencePort productPersistencePort;
-    private final ShopPersistencePort shopPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ShopLoadPort shopLoadPort;
 
     public ProductOptionGroupCreateService(
         ProductRegistrationService productRegistrationService,
-        ProductPersistencePort productPersistencePort,
-        ShopPersistencePort shopPersistencePort
+        ProductLoadPort productLoadPort,
+        ShopLoadPort shopLoadPort
     ) {
         this.productRegistrationService = productRegistrationService;
-        this.productPersistencePort = productPersistencePort;
-        this.shopPersistencePort = shopPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.shopLoadPort = shopLoadPort;
     }
 
     @Override
@@ -72,9 +72,9 @@ class ProductOptionGroupCreateService implements ProductOptionGroupCreateUseCase
     }
 
     private Shop loadShopOf(ProductId productId) {
-        Product product = productPersistencePort.findById(productId)
+        Product product = productLoadPort.findById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
-        return shopPersistencePort.findById(product.getShopId())
+        return shopLoadPort.findById(product.getShopId())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 }

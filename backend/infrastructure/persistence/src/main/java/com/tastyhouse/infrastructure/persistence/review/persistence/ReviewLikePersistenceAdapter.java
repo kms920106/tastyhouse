@@ -6,12 +6,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.review.model.ReviewLike;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.review.port.out.write.ReviewLikePersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewLikeLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewLikeSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewLikeJpaEntity.reviewLikeJpaEntity;
 
 @Repository
-class ReviewLikePersistenceAdapter implements ReviewLikePersistencePort {
+class ReviewLikePersistenceAdapter implements ReviewLikeLoadPort, ReviewLikeSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewLikeJpaRepository reviewLikeJpaRepository;

@@ -14,52 +14,56 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.domain.shop.vo.ShopMenuCollectionImageId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
-import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImagePersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageSavePort;
 
 @Service
 public class ShopMenuCollectionImageService {
 
     private static final int MAX_IMAGE_COUNT = 6;
 
-    private final ShopMenuCollectionImagePersistencePort imagePersistencePort;
-    private final ShopPersistencePort shopPersistencePort;
+    private final ShopMenuCollectionImageLoadPort imageLoadPort;
+    private final ShopMenuCollectionImageSavePort imageSavePort;
+    private final ShopLoadPort shopLoadPort;
 
     public ShopMenuCollectionImageService(
-        ShopMenuCollectionImagePersistencePort imagePersistencePort,
-        ShopPersistencePort shopPersistencePort
+        ShopMenuCollectionImageLoadPort imageLoadPort,
+        ShopMenuCollectionImageSavePort imageSavePort,
+        ShopLoadPort shopLoadPort
     ) {
-        this.imagePersistencePort = imagePersistencePort;
-        this.shopPersistencePort = shopPersistencePort;
+        this.imageLoadPort = imageLoadPort;
+        this.imageSavePort = imageSavePort;
+        this.shopLoadPort = shopLoadPort;
     }
 
     public Long register(ShopId shopId, UploadedFileId imageFileId) {
         requireShopExists(shopId);
 
-        List<ShopMenuCollectionImage> current = imagePersistencePort.findAllByShopId(shopId);
+        List<ShopMenuCollectionImage> current = imageLoadPort.findAllByShopId(shopId);
         if (current.size() >= MAX_IMAGE_COUNT) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_LIMIT_EXCEEDED);
         }
 
         ShopMenuCollectionImage saved =
-            imagePersistencePort.save(ShopMenuCollectionImage.of(shopId, imageFileId, current.size()));
+            imageSavePort.save(ShopMenuCollectionImage.of(shopId, imageFileId, current.size()));
         return saved.getId();
     }
 
     public void approve(ShopMenuCollectionImageId imageId) {
         ShopMenuCollectionImage image = loadImage(imageId);
         image.approve();
-        imagePersistencePort.save(image);
+        imageSavePort.save(image);
     }
 
     public void reject(ShopMenuCollectionImageId imageId, String rejectReason) {
         ShopMenuCollectionImage image = loadImage(imageId);
         image.reject(rejectReason);
-        imagePersistencePort.save(image);
+        imageSavePort.save(image);
     }
 
     public void reorder(ShopId shopId, List<Long> orderedImageIds) {
-        List<ShopMenuCollectionImage> current = imagePersistencePort.findAllByShopId(shopId);
+        List<ShopMenuCollectionImage> current = imageLoadPort.findAllByShopId(shopId);
         Set<Long> currentIds = current.stream()
             .map(ShopMenuCollectionImage::getId)
             .collect(Collectors.toSet());
@@ -77,12 +81,12 @@ public class ShopMenuCollectionImageService {
                 .findFirst()
                 .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND));
             image.changeSort(index);
-            imagePersistencePort.save(image);
+            imageSavePort.save(image);
         }
     }
 
     public void delete(ShopId shopId, ShopMenuCollectionImageId imageId) {
-        List<ShopMenuCollectionImage> current = imagePersistencePort.findAllByShopId(shopId);
+        List<ShopMenuCollectionImage> current = imageLoadPort.findAllByShopId(shopId);
         ShopMenuCollectionImage target = current.stream()
             .filter(candidate -> candidate.getId().equals(imageId.value()))
             .findFirst()
@@ -91,7 +95,7 @@ public class ShopMenuCollectionImageService {
         if (target.getStatus() == ApprovalStatus.APPROVED && countApproved(current) <= 1) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_LAST_CANNOT_DELETE);
         }
-        imagePersistencePort.delete(target);
+        imageSavePort.delete(target);
 
         renumberSort(current.stream().filter(candidate -> !candidate.getId().equals(imageId.value())).toList());
     }
@@ -105,18 +109,18 @@ public class ShopMenuCollectionImageService {
             ShopMenuCollectionImage image = remaining.get(index);
             if (image.getSort() != index) {
                 image.changeSort(index);
-                imagePersistencePort.save(image);
+                imageSavePort.save(image);
             }
         }
     }
 
     private ShopMenuCollectionImage loadImage(ShopMenuCollectionImageId imageId) {
-        return imagePersistencePort.findById(imageId)
+        return imageLoadPort.findById(imageId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.SHOP_MENU_COLLECTION_IMAGE_NOT_FOUND));
     }
 
     private void requireShopExists(ShopId shopId) {
-        if (shopPersistencePort.findById(shopId).isEmpty()) {
+        if (shopLoadPort.findById(shopId).isEmpty()) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_NOT_FOUND);
         }
     }

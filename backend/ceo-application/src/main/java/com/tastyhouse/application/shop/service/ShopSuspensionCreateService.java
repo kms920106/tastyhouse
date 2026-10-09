@@ -17,22 +17,26 @@ import com.tastyhouse.domain.shop.model.SuspensionReason;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopSuspensionCreateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopSuspensionPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSuspensionSavePort;
 
 @Service
 @Transactional
 class ShopSuspensionCreateService implements ShopSuspensionCreateUseCase {
 
-    private final ShopSuspensionPersistencePort shopSuspensionPersistencePort;
+    private final ShopSuspensionLoadPort shopSuspensionLoadPort;
+    private final ShopSuspensionSavePort shopSuspensionSavePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopSuspensionCreateService(
-        ShopSuspensionPersistencePort shopSuspensionPersistencePort,
+        ShopSuspensionLoadPort shopSuspensionLoadPort,
+        ShopSuspensionSavePort shopSuspensionSavePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopSuspensionPersistencePort = shopSuspensionPersistencePort;
+        this.shopSuspensionLoadPort = shopSuspensionLoadPort;
+        this.shopSuspensionSavePort = shopSuspensionSavePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -65,10 +69,10 @@ class ShopSuspensionCreateService implements ShopSuspensionCreateUseCase {
             : orderMethods.stream().map(OrderMethod::from).toList();
 
         ShopId shopIdVo = ShopId.of(shopId);
-        String previousValue = describeSuspensions(shopSuspensionPersistencePort.findByShopId(shopId));
+        String previousValue = describeSuspensions(shopSuspensionLoadPort.findByShopId(shopId));
 
         List<Long> createdIds = targetOrderMethods.stream()
-            .map(orderMethod -> shopSuspensionPersistencePort
+            .map(orderMethod -> shopSuspensionSavePort
                 .save(ShopSuspension.of(shopIdVo, suspensionReason, orderMethod, startAt, endAt))
                 .getId())
             .toList();
@@ -79,7 +83,7 @@ class ShopSuspensionCreateService implements ShopSuspensionCreateUseCase {
             ShopChangeActionType.CREATE,
             actor,
             previousValue,
-            describeSuspensions(shopSuspensionPersistencePort.findByShopId(shopId))
+            describeSuspensions(shopSuspensionLoadPort.findByShopId(shopId))
         );
         return createdIds;
     }

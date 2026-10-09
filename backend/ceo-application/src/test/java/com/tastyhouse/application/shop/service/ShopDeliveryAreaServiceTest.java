@@ -24,13 +24,15 @@ import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
+import com.tastyhouse.application.region.port.out.write.AdminDongSavePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLoadPort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistorySavePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -48,7 +50,7 @@ class ShopDeliveryAreaServiceTest {
         @Test
         @DisplayName("행정동이 마스터에 없으면 ADMIN_DONG_NOT_FOUND로 거부한다")
         void addArea_rejectsUnknownAdminDong() {
-            ShopDeliveryAreaService service = service(new AdminDongPersistencePortFake(), new ShopDeliveryAreaPersistencePortFake(), new ShopDeliveryTipRegionLookupPortFake());
+            ShopDeliveryAreaService service = service(new AdminDongPersistenceFake(), new ShopDeliveryAreaPersistenceFake(), new ShopDeliveryTipRegionLoadPortFake());
 
             assertThatThrownBy(() -> service.addArea(SHOP_ID, ADMIN_DONG_ID, ACTOR))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -59,9 +61,9 @@ class ShopDeliveryAreaServiceTest {
         @Test
         @DisplayName("같은 가게에 같은 행정동을 다시 등록하면 SHOP_DELIVERY_AREA_DUPLICATED로 거부한다")
         void addArea_rejectsDuplicate() {
-            ShopDeliveryAreaPersistencePortFake areaPersistencePort = new ShopDeliveryAreaPersistencePortFake();
-            areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID));
-            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaPersistencePort, new ShopDeliveryTipRegionLookupPortFake());
+            ShopDeliveryAreaPersistenceFake areaPersistence = new ShopDeliveryAreaPersistenceFake();
+            areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID));
+            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaPersistence, new ShopDeliveryTipRegionLoadPortFake());
 
             assertThatThrownBy(() -> service.addArea(SHOP_ID, ADMIN_DONG_ID, ACTOR))
                 .isInstanceOf(BusinessException.class)
@@ -72,15 +74,15 @@ class ShopDeliveryAreaServiceTest {
         @Test
         @DisplayName("행정동이 실재하고 중복이 아니면 저장 후 생성된 식별자를 반환한다")
         void addArea_savesAndReturnsId() {
-            ShopDeliveryAreaPersistencePortFake areaPersistencePort = new ShopDeliveryAreaPersistencePortFake();
-            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaPersistencePort, new ShopDeliveryTipRegionLookupPortFake());
+            ShopDeliveryAreaPersistenceFake areaPersistence = new ShopDeliveryAreaPersistenceFake();
+            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaPersistence, new ShopDeliveryTipRegionLoadPortFake());
 
             Long deliveryAreaId = service.addArea(SHOP_ID, ADMIN_DONG_ID, ACTOR);
 
             assertThat(deliveryAreaId).isNotNull();
-            assertThat(areaPersistencePort.findByShopId(SHOP_ID)).hasSize(1);
-            assertThat(areaPersistencePort.findById(deliveryAreaId)).isPresent();
-            assertThat(areaPersistencePort.findById(deliveryAreaId).orElseThrow().getAdminDongId()).isEqualTo(ADMIN_DONG_ID);
+            assertThat(areaPersistence.findByShopId(SHOP_ID)).hasSize(1);
+            assertThat(areaPersistence.findById(deliveryAreaId)).isPresent();
+            assertThat(areaPersistence.findById(deliveryAreaId).orElseThrow().getAdminDongId()).isEqualTo(ADMIN_DONG_ID);
         }
     }
 
@@ -91,7 +93,7 @@ class ShopDeliveryAreaServiceTest {
         @Test
         @DisplayName("존재하지 않는 배달가능지역은 SHOP_DELIVERY_AREA_NOT_FOUND로 거부한다")
         void removeArea_rejectsMissingArea() {
-            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), new ShopDeliveryAreaPersistencePortFake(), new ShopDeliveryTipRegionLookupPortFake());
+            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), new ShopDeliveryAreaPersistenceFake(), new ShopDeliveryTipRegionLoadPortFake());
 
             assertThatThrownBy(() -> service.removeArea(999L, ACTOR))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -102,43 +104,43 @@ class ShopDeliveryAreaServiceTest {
         @Test
         @DisplayName("그 행정동을 참조하는 지역별 배달팁이 있으면 SHOP_DELIVERY_AREA_IN_USE로 삭제를 차단한다")
         void removeArea_rejectsWhenReferencedByRegionTip() {
-            ShopDeliveryAreaPersistencePortFake areaPersistencePort = new ShopDeliveryAreaPersistencePortFake();
-            Long deliveryAreaId = areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID)).getId();
-            ShopDeliveryTipRegionLookupPortFake regionLookupPort = new ShopDeliveryTipRegionLookupPortFake();
-            regionLookupPort.addRegionTipOnAdminDong(SHOP_ID);
-            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaPersistencePort, regionLookupPort);
+            ShopDeliveryAreaPersistenceFake areaPersistence = new ShopDeliveryAreaPersistenceFake();
+            Long deliveryAreaId = areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID)).getId();
+            ShopDeliveryTipRegionLoadPortFake regionLoadPort = new ShopDeliveryTipRegionLoadPortFake();
+            regionLoadPort.addRegionTipOnAdminDong(SHOP_ID);
+            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaPersistence, regionLoadPort);
 
             assertThatThrownBy(() -> service.removeArea(deliveryAreaId, ACTOR))
                 .isInstanceOf(BusinessException.class)
                 .extracting(exception -> ((BusinessException) exception).getErrorCode())
                 .isEqualTo(CeoErrorCode.SHOP_DELIVERY_AREA_IN_USE);
-            assertThat(areaPersistencePort.findById(deliveryAreaId)).isPresent();
+            assertThat(areaPersistence.findById(deliveryAreaId)).isPresent();
         }
 
         @Test
         @DisplayName("다른 가게가 같은 행정동에 지역별 배달팁을 뒀어도 내 배달가능지역 삭제는 막지 않는다")
         void removeArea_ignoresOtherShopRegionTip() {
-            ShopDeliveryAreaPersistencePortFake areaPersistencePort = new ShopDeliveryAreaPersistencePortFake();
-            Long deliveryAreaId = areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID)).getId();
-            ShopDeliveryTipRegionLookupPortFake regionLookupPort = new ShopDeliveryTipRegionLookupPortFake();
-            regionLookupPort.addRegionTipOnAdminDong(ShopId.of(2L));
-            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaPersistencePort, regionLookupPort);
+            ShopDeliveryAreaPersistenceFake areaPersistence = new ShopDeliveryAreaPersistenceFake();
+            Long deliveryAreaId = areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID)).getId();
+            ShopDeliveryTipRegionLoadPortFake regionLoadPort = new ShopDeliveryTipRegionLoadPortFake();
+            regionLoadPort.addRegionTipOnAdminDong(ShopId.of(2L));
+            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaPersistence, regionLoadPort);
 
             service.removeArea(deliveryAreaId, ACTOR);
 
-            assertThat(areaPersistencePort.findById(deliveryAreaId)).isEmpty();
+            assertThat(areaPersistence.findById(deliveryAreaId)).isEmpty();
         }
 
         @Test
         @DisplayName("참조하는 지역별 배달팁이 없으면 삭제한다")
         void removeArea_deletesWhenNotReferenced() {
-            ShopDeliveryAreaPersistencePortFake areaPersistencePort = new ShopDeliveryAreaPersistencePortFake();
-            Long deliveryAreaId = areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID)).getId();
-            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaPersistencePort, new ShopDeliveryTipRegionLookupPortFake());
+            ShopDeliveryAreaPersistenceFake areaPersistence = new ShopDeliveryAreaPersistenceFake();
+            Long deliveryAreaId = areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, ADMIN_DONG_ID)).getId();
+            ShopDeliveryAreaService service = service(adminDongRepositoryWith(ADMIN_DONG_ID), areaPersistence, new ShopDeliveryTipRegionLoadPortFake());
 
             service.removeArea(deliveryAreaId, ACTOR);
 
-            assertThat(areaPersistencePort.findByShopId(SHOP_ID)).isEmpty();
+            assertThat(areaPersistence.findByShopId(SHOP_ID)).isEmpty();
         }
     }
 
@@ -149,19 +151,20 @@ class ShopDeliveryAreaServiceTest {
         @Test
         @DisplayName("단건 등록·삭제는 행정동 이름으로 CREATE·DELETE 한 행씩 남긴다")
         void addAndRemoveArea_recordRowLevelHistory() {
-            RecordingShopChangeHistoryPersistencePort historyPersistencePort = new RecordingShopChangeHistoryPersistencePort();
-            ShopDeliveryAreaPersistencePortFake areaPersistencePort = new ShopDeliveryAreaPersistencePortFake();
+            RecordingShopChangeHistorySavePort historySavePort = new RecordingShopChangeHistorySavePort();
+            ShopDeliveryAreaPersistenceFake areaPersistence = new ShopDeliveryAreaPersistenceFake();
             ShopDeliveryAreaService service = new ShopDeliveryAreaService(
-                areaPersistencePort,
+                areaPersistence,
+                areaPersistence,
                 adminDongRepositoryWith(ADMIN_DONG_ID),
-                new ShopDeliveryTipRegionLookupPortFake(),
-                new ShopChangeHistoryRecorder(historyPersistencePort)
+                new ShopDeliveryTipRegionLoadPortFake(),
+                new ShopChangeHistoryRecorder(historySavePort)
             );
 
             Long deliveryAreaId = service.addArea(SHOP_ID, ADMIN_DONG_ID, ACTOR);
             service.removeArea(deliveryAreaId, ACTOR);
 
-            List<ShopChangeHistory> histories = historyPersistencePort.savedOf(ShopChangeType.DELIVERY_AREA);
+            List<ShopChangeHistory> histories = historySavePort.savedOf(ShopChangeType.DELIVERY_AREA);
             assertThat(histories).hasSize(2);
             assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.CREATE);
             assertThat(histories.getFirst().getPreviousValue()).isNull();
@@ -174,18 +177,20 @@ class ShopDeliveryAreaServiceTest {
         @Test
         @DisplayName("일괄 추가는 추가된 동 수와 무관하게 이력 1행만 남기고 전체 스냅샷을 담는다")
         void addAreas_recordsSingleSnapshotRow() {
-            RecordingShopChangeHistoryPersistencePort historyPersistencePort = new RecordingShopChangeHistoryPersistencePort();
+            RecordingShopChangeHistorySavePort historySavePort = new RecordingShopChangeHistorySavePort();
             AdminDongId second = AdminDongId.of(200L);
+            ShopDeliveryAreaPersistenceFake shopDeliveryAreaPersistenceFake = new ShopDeliveryAreaPersistenceFake();
             ShopDeliveryAreaService service = new ShopDeliveryAreaService(
-                new ShopDeliveryAreaPersistencePortFake(),
+                shopDeliveryAreaPersistenceFake,
+                shopDeliveryAreaPersistenceFake,
                 adminDongRepositoryWith(ADMIN_DONG_ID, second),
-                new ShopDeliveryTipRegionLookupPortFake(),
-                new ShopChangeHistoryRecorder(historyPersistencePort)
+                new ShopDeliveryTipRegionLoadPortFake(),
+                new ShopChangeHistoryRecorder(historySavePort)
             );
 
             service.addAreas(SHOP_ID, List.of(ADMIN_DONG_ID, second), ACTOR);
 
-            List<ShopChangeHistory> histories = historyPersistencePort.savedOf(ShopChangeType.DELIVERY_AREA);
+            List<ShopChangeHistory> histories = historySavePort.savedOf(ShopChangeType.DELIVERY_AREA);
             assertThat(histories).hasSize(1);
             assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
             assertThat(histories.getFirst().getPreviousValue()).isEqualTo("없음");
@@ -195,27 +200,28 @@ class ShopDeliveryAreaServiceTest {
     }
 
     private static ShopDeliveryAreaService service(
-        AdminDongPersistencePort adminDongPersistencePort,
-        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
-        ShopDeliveryTipRegionLookupPort shopDeliveryTipRegionLookupPort
+        AdminDongLoadPort adminDongLoadPort,
+        ShopDeliveryAreaPersistenceFake shopDeliveryAreaPersistence,
+        ShopDeliveryTipRegionLoadPort shopDeliveryTipRegionLoadPort
     ) {
         return new ShopDeliveryAreaService(
-            shopDeliveryAreaPersistencePort,
-            adminDongPersistencePort,
-            shopDeliveryTipRegionLookupPort,
-            new ShopChangeHistoryRecorder(new RecordingShopChangeHistoryPersistencePort())
+            shopDeliveryAreaPersistence,
+            shopDeliveryAreaPersistence,
+            adminDongLoadPort,
+            shopDeliveryTipRegionLoadPort,
+            new ShopChangeHistoryRecorder(new RecordingShopChangeHistorySavePort())
         );
     }
 
-    private static AdminDongPersistencePortFake adminDongRepositoryWith(AdminDongId... adminDongIds) {
-        AdminDongPersistencePortFake fake = new AdminDongPersistencePortFake();
+    private static AdminDongPersistenceFake adminDongRepositoryWith(AdminDongId... adminDongIds) {
+        AdminDongPersistenceFake fake = new AdminDongPersistenceFake();
         for (AdminDongId adminDongId : adminDongIds) {
             fake.add(adminDongId);
         }
         return fake;
     }
 
-    private static final class AdminDongPersistencePortFake implements AdminDongPersistencePort {
+    private static final class AdminDongPersistenceFake implements AdminDongLoadPort, AdminDongSavePort {
 
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
@@ -274,7 +280,7 @@ class ShopDeliveryAreaServiceTest {
         }
     }
 
-    private static final class ShopDeliveryAreaPersistencePortFake implements ShopDeliveryAreaPersistencePort {
+    private static final class ShopDeliveryAreaPersistenceFake implements ShopDeliveryAreaLoadPort, ShopDeliveryAreaSavePort {
 
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
@@ -340,7 +346,7 @@ class ShopDeliveryAreaServiceTest {
         }
     }
 
-    private static final class ShopDeliveryTipRegionLookupPortFake implements ShopDeliveryTipRegionLookupPort {
+    private static final class ShopDeliveryTipRegionLoadPortFake implements ShopDeliveryTipRegionLoadPort {
 
         private final List<String> regionTipKeys = new ArrayList<>();
 

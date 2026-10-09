@@ -19,39 +19,51 @@ import com.tastyhouse.domain.shop.vo.StationId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopBookmarkPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.StationPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopBookmarkSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
+import com.tastyhouse.application.shop.port.out.write.StationLoadPort;
 
 @Service
 public class ShopLifecycleService {
 
     private static final int SHOP_INTRODUCTION_MAX_LENGTH = 500;
 
-    private final ShopPersistencePort shopPersistencePort;
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
-    private final ShopBookmarkPersistencePort shopBookmarkPersistencePort;
-    private final StationPersistencePort stationPersistencePort;
+    private final ShopLoadPort shopLoadPort;
+    private final ShopSavePort shopSavePort;
+    private final ShopDetailLoadPort shopDetailLoadPort;
+    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopBookmarkLoadPort shopBookmarkLoadPort;
+    private final ShopBookmarkSavePort shopBookmarkSavePort;
+    private final StationLoadPort stationLoadPort;
     private final ShopImageApprovalService shopImageApprovalService;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopCeoAssignmentRecorder shopCeoAssignmentRecorder;
 
     public ShopLifecycleService(
-        ShopPersistencePort shopPersistencePort,
-        ShopDetailPersistencePort shopDetailPersistencePort,
-        ShopBookmarkPersistencePort shopBookmarkPersistencePort,
-        StationPersistencePort stationPersistencePort,
+        ShopLoadPort shopLoadPort,
+        ShopSavePort shopSavePort,
+        ShopDetailLoadPort shopDetailLoadPort,
+        ShopDetailSavePort shopDetailSavePort,
+        ShopBookmarkLoadPort shopBookmarkLoadPort,
+        ShopBookmarkSavePort shopBookmarkSavePort,
+        StationLoadPort stationLoadPort,
         ShopImageApprovalService shopImageApprovalService,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopCeoAssignmentRecorder shopCeoAssignmentRecorder
     ) {
-        this.shopPersistencePort = shopPersistencePort;
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
-        this.shopBookmarkPersistencePort = shopBookmarkPersistencePort;
-        this.stationPersistencePort = stationPersistencePort;
+        this.shopLoadPort = shopLoadPort;
+        this.shopSavePort = shopSavePort;
+        this.shopDetailLoadPort = shopDetailLoadPort;
+        this.shopDetailSavePort = shopDetailSavePort;
+        this.shopBookmarkLoadPort = shopBookmarkLoadPort;
+        this.shopBookmarkSavePort = shopBookmarkSavePort;
+        this.stationLoadPort = stationLoadPort;
         this.shopImageApprovalService = shopImageApprovalService;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
@@ -82,7 +94,7 @@ public class ShopLifecycleService {
             thumbnailImageFileId == null ? null : UploadedFileId.of(thumbnailImageFileId)
         );
         shop.assignCeo(ceoId == null ? null : CeoId.of(ceoId));
-        Shop savedShop = shopPersistencePort.save(shop);
+        Shop savedShop = shopSavePort.save(shop);
 
         if (ceoId != null) {
             shopCeoAssignmentRecorder.recordGrant(savedShop.getShopId(), CeoId.of(ceoId), adminId);
@@ -113,19 +125,19 @@ public class ShopLifecycleService {
             phoneNumber,
             thumbnailImageFileId == null ? null : UploadedFileId.of(thumbnailImageFileId)
         );
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
     }
 
     public void closeShop(ShopId shopId) {
         Shop shop = loadShop(shopId);
         shop.close();
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
     }
 
     public void changeCupDepositEnabled(ShopId shopId, boolean cupDepositEnabled) {
         Shop shop = loadShop(shopId);
         shop.changeCupDepositEnabled(cupDepositEnabled);
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
     }
 
     public void updateHolidayClosure(ShopId shopId, boolean closedOnPublicHolidays, ShopChangeActor actor) {
@@ -133,7 +145,7 @@ public class ShopLifecycleService {
         String previousValue = describeHolidayClosure(shop.isClosedOnPublicHolidays());
 
         shop.updateHolidayClosure(closedOnPublicHolidays);
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -157,7 +169,7 @@ public class ShopLifecycleService {
         } else {
             shop.show();
         }
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -184,13 +196,13 @@ public class ShopLifecycleService {
         prohibitedWordValidator.validate(message);
 
         String previousValue = describeIntroduction(
-            shopDetailPersistencePort.findLatestOwnerMessage(shopId)
+            shopDetailLoadPort.findLatestOwnerMessage(shopId)
                 .map(ShopOwnerMessageHistory::getMessage)
                 .orElse(null)
         );
 
         ShopOwnerMessageHistory ownerMessageHistory = ShopOwnerMessageHistory.of(ShopId.of(shopId), message);
-        shopDetailPersistencePort.saveOwnerMessage(ownerMessageHistory);
+        shopDetailSavePort.saveOwnerMessage(ownerMessageHistory);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),
@@ -207,22 +219,22 @@ public class ShopLifecycleService {
     }
 
     public boolean toggleBookmark(Long shopId, MemberId memberId) {
-        if (shopBookmarkPersistencePort.existsByShopIdAndMemberId(shopId, memberId)) {
-            shopBookmarkPersistencePort.deleteByShopIdAndMemberId(shopId, memberId);
+        if (shopBookmarkLoadPort.existsByShopIdAndMemberId(shopId, memberId)) {
+            shopBookmarkSavePort.deleteByShopIdAndMemberId(shopId, memberId);
             return false;
         }
         loadShop(ShopId.of(shopId));
-        shopBookmarkPersistencePort.save(ShopBookmark.of(ShopId.of(shopId), memberId));
+        shopBookmarkSavePort.save(ShopBookmark.of(ShopId.of(shopId), memberId));
         return true;
     }
 
     private Shop loadShop(ShopId shopId) {
-        return shopPersistencePort.findById(shopId)
+        return shopLoadPort.findById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
     }
 
     private void validateStationExists(Long stationId) {
-        if (!stationPersistencePort.existsById(stationId)) {
+        if (!stationLoadPort.existsById(stationId)) {
             throw new ResourceNotFoundException(ApplicationErrorCode.STATION_NOT_FOUND);
         }
     }

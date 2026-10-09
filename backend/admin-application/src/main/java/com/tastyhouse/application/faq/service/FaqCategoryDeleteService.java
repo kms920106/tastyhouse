@@ -7,7 +7,8 @@ import com.tastyhouse.domain.faq.model.FaqCategory;
 import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 import com.tastyhouse.application.faq.port.in.FaqCategoryDeleteCommand;
 import com.tastyhouse.application.faq.port.in.FaqCategoryDeleteUseCase;
-import com.tastyhouse.application.faq.port.out.write.FaqCategoryPersistencePort;
+import com.tastyhouse.application.faq.port.out.write.FaqCategoryLoadPort;
+import com.tastyhouse.application.faq.port.out.write.FaqCategorySavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,11 +16,13 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class FaqCategoryDeleteService implements FaqCategoryDeleteUseCase {
 
-    private final FaqCategoryPersistencePort faqCategoryPersistencePort;
+    private final FaqCategoryLoadPort faqCategoryLoadPort;
+    private final FaqCategorySavePort faqCategorySavePort;
     private final FaqCategoryDeletionPolicy faqCategoryDeletionPolicy;
 
-    public FaqCategoryDeleteService(FaqCategoryPersistencePort faqCategoryPersistencePort, FaqCategoryDeletionPolicy faqCategoryDeletionPolicy) {
-        this.faqCategoryPersistencePort = faqCategoryPersistencePort;
+    public FaqCategoryDeleteService(FaqCategoryLoadPort faqCategoryLoadPort, FaqCategorySavePort faqCategorySavePort, FaqCategoryDeletionPolicy faqCategoryDeletionPolicy) {
+        this.faqCategoryLoadPort = faqCategoryLoadPort;
+        this.faqCategorySavePort = faqCategorySavePort;
         this.faqCategoryDeletionPolicy = faqCategoryDeletionPolicy;
     }
 
@@ -29,11 +32,11 @@ class FaqCategoryDeleteService implements FaqCategoryDeleteUseCase {
         FaqCategory faqCategory = findCategoryOrThrow(faqCategoryId);
 
         faqCategoryDeletionPolicy.delete(faqCategory);
-        faqCategoryPersistencePort.save(faqCategory);
+        faqCategorySavePort.save(faqCategory);
     }
 
     private FaqCategory findCategoryOrThrow(FaqCategoryId faqCategoryId) {
-        return faqCategoryPersistencePort.findById(faqCategoryId)
+        return faqCategoryLoadPort.findById(faqCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 }

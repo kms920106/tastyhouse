@@ -9,12 +9,13 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.menureview.model.MenuReview;
 import com.tastyhouse.domain.menureview.vo.MenuReviewId;
 import com.tastyhouse.domain.order.vo.OrderProductId;
-import com.tastyhouse.application.menureview.port.out.write.MenuReviewPersistencePort;
+import com.tastyhouse.application.menureview.port.out.write.MenuReviewLoadPort;
+import com.tastyhouse.application.menureview.port.out.write.MenuReviewSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.menureview.persistence.QMenuReviewJpaEntity.menuReviewJpaEntity;
 
 @Repository
-class MenuReviewPersistenceAdapter implements MenuReviewPersistencePort {
+class MenuReviewPersistenceAdapter implements MenuReviewLoadPort, MenuReviewSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final MenuReviewJpaRepository menuReviewJpaRepository;

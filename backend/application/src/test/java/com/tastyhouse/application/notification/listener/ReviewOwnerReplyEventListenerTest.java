@@ -105,7 +105,7 @@ class ReviewOwnerReplyEventListenerTest {
         private long sequence = 0L;
 
         private RecordingNotificationService() {
-            super(null);
+            super(null, null);
         }
 
         @Override

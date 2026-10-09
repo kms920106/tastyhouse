@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
@@ -16,22 +16,22 @@ public class ProductNameValidator {
     private static final Pattern ALLOWED_NAME =
         Pattern.compile("^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\\s:,./~%&()+\\[\\]™®]*$");
 
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductLoadPort productLoadPort;
 
-    public ProductNameValidator(ProductPersistencePort productPersistencePort) {
-        this.productPersistencePort = productPersistencePort;
+    public ProductNameValidator(ProductLoadPort productLoadPort) {
+        this.productLoadPort = productLoadPort;
     }
 
     public void validateForCreate(Long shopId, String name) {
         validateCharacters(name);
-        if (productPersistencePort.existsByShopIdAndName(ShopId.of(shopId), name)) {
+        if (productLoadPort.existsByShopIdAndName(ShopId.of(shopId), name)) {
             throw new ApplicationException(CeoErrorCode.PRODUCT_NAME_DUPLICATED);
         }
     }
 
     public void validateForUpdate(Long shopId, Long productId, String name) {
         validateCharacters(name);
-        if (productPersistencePort.existsByShopIdAndNameAndIdNot(ShopId.of(shopId), name, ProductId.of(productId))) {
+        if (productLoadPort.existsByShopIdAndNameAndIdNot(ShopId.of(shopId), name, ProductId.of(productId))) {
             throw new ApplicationException(CeoErrorCode.PRODUCT_NAME_DUPLICATED);
         }
     }

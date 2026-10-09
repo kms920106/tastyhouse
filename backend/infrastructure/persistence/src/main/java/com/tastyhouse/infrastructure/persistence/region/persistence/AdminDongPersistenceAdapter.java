@@ -16,13 +16,14 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.region.model.AdminDong;
 import com.tastyhouse.domain.region.vo.AdminDongId;
 import com.tastyhouse.domain.shared.geo.GeoBoundingBox;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
+import com.tastyhouse.application.region.port.out.write.AdminDongSavePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 
 import static com.tastyhouse.infrastructure.persistence.region.persistence.QAdminDongJpaEntity.adminDongJpaEntity;
 
 @Repository
-class AdminDongPersistenceAdapter implements AdminDongPersistencePort {
+class AdminDongPersistenceAdapter implements AdminDongLoadPort, AdminDongSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final AdminDongJpaRepository adminDongJpaRepository;

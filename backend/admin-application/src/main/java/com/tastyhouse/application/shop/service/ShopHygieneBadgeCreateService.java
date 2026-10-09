@@ -10,16 +10,16 @@ import com.tastyhouse.domain.shop.model.ShopHygieneBadge;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopHygieneBadgeCreateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopHygieneBadgeSavePort;
 
 @Service
 @Transactional
 class ShopHygieneBadgeCreateService implements ShopHygieneBadgeCreateUseCase {
 
-    private final ShopHygieneBadgePersistencePort shopHygieneBadgePersistencePort;
+    private final ShopHygieneBadgeSavePort shopHygieneBadgeSavePort;
 
-    public ShopHygieneBadgeCreateService(ShopHygieneBadgePersistencePort shopHygieneBadgePersistencePort) {
-        this.shopHygieneBadgePersistencePort = shopHygieneBadgePersistencePort;
+    public ShopHygieneBadgeCreateService(ShopHygieneBadgeSavePort shopHygieneBadgeSavePort) {
+        this.shopHygieneBadgeSavePort = shopHygieneBadgeSavePort;
     }
 
     @Override
@@ -29,7 +29,7 @@ class ShopHygieneBadgeCreateService implements ShopHygieneBadgeCreateUseCase {
         LocalDate certifiedDate = command.certifiedDate();
         String lastInspectionMonth = command.lastInspectionMonth();
 
-        ShopHygieneBadge saved = shopHygieneBadgePersistencePort.save(
+        ShopHygieneBadge saved = shopHygieneBadgeSavePort.save(
             ShopHygieneBadge.of(
                 ShopId.of(shopId),
                 HygieneBadgeType.from(badgeType),

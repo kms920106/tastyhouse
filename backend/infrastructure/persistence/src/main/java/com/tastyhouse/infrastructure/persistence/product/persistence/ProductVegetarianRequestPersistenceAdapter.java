@@ -10,12 +10,13 @@ import com.tastyhouse.domain.product.model.ProductVegetarianRequest;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductVegetarianRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductVegetarianRequestJpaEntity.productVegetarianRequestJpaEntity;
 
 @Repository
-class ProductVegetarianRequestPersistenceAdapter implements ProductVegetarianRequestPersistencePort {
+class ProductVegetarianRequestPersistenceAdapter implements ProductVegetarianRequestLoadPort, ProductVegetarianRequestSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductVegetarianRequestJpaRepository productVegetarianRequestJpaRepository;

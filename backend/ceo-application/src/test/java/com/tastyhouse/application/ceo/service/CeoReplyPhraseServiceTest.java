@@ -17,10 +17,11 @@ import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
-import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhrasePersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseLoadPort;
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordLoadPort;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,10 +32,10 @@ class CeoReplyPhraseServiceTest {
     private static final Long OWNER_CEO_ID = 1L;
     private static final Long OTHER_CEO_ID = 2L;
 
-    private FakeCeoReplyPhrasePersistencePort ceoReplyPhrasePersistencePort;
+    private FakeCeoReplyPhrasePersistence ceoReplyPhrasePersistence;
     private CeoReplyPhraseService ceoReplyPhraseService;
 
-    private static class FakeCeoReplyPhrasePersistencePort implements CeoReplyPhrasePersistencePort {
+    private static class FakeCeoReplyPhrasePersistence implements CeoReplyPhraseLoadPort, CeoReplyPhraseSavePort {
 
         private final Map<Long, CeoReplyPhrase> phrases = new HashMap<>();
         private long sequence = 0L;
@@ -88,7 +89,7 @@ class CeoReplyPhraseServiceTest {
         }
     }
 
-    private static class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+    private static class FakeProhibitedWordLoadPort implements ProhibitedWordLoadPort {
 
         @Override
         public List<ProhibitedWord> findAll() {
@@ -98,12 +99,13 @@ class CeoReplyPhraseServiceTest {
 
     @BeforeEach
     void setUp() {
-        ceoReplyPhrasePersistencePort = new FakeCeoReplyPhrasePersistencePort();
+        ceoReplyPhrasePersistence = new FakeCeoReplyPhrasePersistence();
 
         ReplyPhraseTextValidator replyPhraseTextValidator =
-            new ProhibitedWordValidator(new FakeProhibitedWordPersistencePort())::validate;
+            new ProhibitedWordValidator(new FakeProhibitedWordLoadPort())::validate;
         ceoReplyPhraseService = new CeoReplyPhraseService(
-            ceoReplyPhrasePersistencePort,
+            ceoReplyPhrasePersistence,
+            ceoReplyPhrasePersistence,
             replyPhraseTextValidator
         );
     }
@@ -115,7 +117,7 @@ class CeoReplyPhraseServiceTest {
             ceoReplyPhraseService.register(OWNER_CEO_ID, "문구" + i, "감사합니다 " + i);
         }
 
-        assertThat(ceoReplyPhrasePersistencePort.countByCeoId(CeoId.of(OWNER_CEO_ID))).isEqualTo(5L);
+        assertThat(ceoReplyPhrasePersistence.countByCeoId(CeoId.of(OWNER_CEO_ID))).isEqualTo(5L);
         assertThatThrownBy(() -> ceoReplyPhraseService.register(OWNER_CEO_ID, "여섯번째", "감사합니다"))
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
@@ -132,7 +134,7 @@ class CeoReplyPhraseServiceTest {
         Long registeredId = ceoReplyPhraseService.register(OWNER_CEO_ID, "내 문구", "감사합니다");
 
         assertThat(registeredId).isNotNull();
-        assertThat(ceoReplyPhrasePersistencePort.countByCeoId(CeoId.of(OWNER_CEO_ID))).isEqualTo(1L);
+        assertThat(ceoReplyPhrasePersistence.countByCeoId(CeoId.of(OWNER_CEO_ID))).isEqualTo(1L);
     }
 
     @Test
@@ -141,7 +143,7 @@ class CeoReplyPhraseServiceTest {
         ceoReplyPhraseService.register(OWNER_CEO_ID, "첫번째", "감사합니다");
         ceoReplyPhraseService.register(OWNER_CEO_ID, "두번째", "또 오세요");
 
-        assertThat(ceoReplyPhrasePersistencePort.findAllByCeoId(CeoId.of(OWNER_CEO_ID)))
+        assertThat(ceoReplyPhrasePersistence.findAllByCeoId(CeoId.of(OWNER_CEO_ID)))
             .extracting(CeoReplyPhrase::getSort)
             .containsExactly(0, 1);
     }
@@ -166,7 +168,7 @@ class CeoReplyPhraseServiceTest {
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
             .isEqualTo(CeoErrorCode.CEO_REPLY_PHRASE_ACCESS_DENIED);
-        assertThat(ceoReplyPhrasePersistencePort.all()).hasSize(1);
+        assertThat(ceoReplyPhrasePersistence.all()).hasSize(1);
     }
 
     @Test
@@ -186,7 +188,7 @@ class CeoReplyPhraseServiceTest {
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
             .isEqualTo(ApplicationErrorCode.SHOP_TEXT_PROHIBITED_WORD);
-        assertThat(ceoReplyPhrasePersistencePort.all()).isEmpty();
+        assertThat(ceoReplyPhrasePersistence.all()).isEmpty();
     }
 
     @Test
@@ -199,7 +201,7 @@ class CeoReplyPhraseServiceTest {
             .isInstanceOf(BusinessException.class)
             .extracting(exception -> ((BusinessException) exception).getErrorCode())
             .isEqualTo(ApplicationErrorCode.SHOP_TEXT_PROHIBITED_WORD);
-        assertThat(ceoReplyPhrasePersistencePort.findById(CeoReplyPhraseId.of(phraseId)))
+        assertThat(ceoReplyPhrasePersistence.findById(CeoReplyPhraseId.of(phraseId)))
             .get()
             .extracting(CeoReplyPhrase::getContent)
             .isEqualTo("감사합니다");
@@ -210,7 +212,7 @@ class CeoReplyPhraseServiceTest {
     void register_allows_whenNameIsNull() {
         Long phraseId = ceoReplyPhraseService.register(OWNER_CEO_ID, null, "소중한 리뷰 감사합니다");
 
-        assertThat(ceoReplyPhrasePersistencePort.findById(CeoReplyPhraseId.of(phraseId)))
+        assertThat(ceoReplyPhrasePersistence.findById(CeoReplyPhraseId.of(phraseId)))
             .get()
             .extracting(CeoReplyPhrase::getName)
             .isNull();
@@ -223,7 +225,7 @@ class CeoReplyPhraseServiceTest {
 
         ceoReplyPhraseService.modify(OWNER_CEO_ID, phraseId, null, "다시 찾아주세요");
 
-        assertThat(ceoReplyPhrasePersistencePort.findById(CeoReplyPhraseId.of(phraseId)))
+        assertThat(ceoReplyPhrasePersistence.findById(CeoReplyPhraseId.of(phraseId)))
             .get()
             .satisfies(phrase -> {
                 assertThat(phrase.getName()).isNull();
@@ -239,7 +241,7 @@ class CeoReplyPhraseServiceTest {
 
         ceoReplyPhraseService.remove(OWNER_CEO_ID, first);
 
-        assertThat(ceoReplyPhrasePersistencePort.findAllByCeoId(CeoId.of(OWNER_CEO_ID)))
+        assertThat(ceoReplyPhrasePersistence.findAllByCeoId(CeoId.of(OWNER_CEO_ID)))
             .extracting(CeoReplyPhrase::getSort)
             .containsExactly(1);
     }

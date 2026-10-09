@@ -13,7 +13,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.file.port.in.FileOwnerUploadUseCase;
 import com.tastyhouse.application.product.port.in.ProductImageChangeRequestCommand;
 import com.tastyhouse.application.product.port.in.ProductImageChangeRequestUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -23,20 +23,20 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 class ProductImageChangeRequestService implements ProductImageChangeRequestUseCase {
 
     private final ProductImageApprovalService productImageApprovalService;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductLoadPort productLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductImageSpecValidator productImageSpecValidator;
     private final FileOwnerUploadUseCase fileOwnerUploadUseCase;
 
     public ProductImageChangeRequestService(
         ProductImageApprovalService productImageApprovalService,
-        ProductPersistencePort productPersistencePort,
+        ProductLoadPort productLoadPort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductImageSpecValidator productImageSpecValidator,
         FileOwnerUploadUseCase fileOwnerUploadUseCase
     ) {
         this.productImageApprovalService = productImageApprovalService;
-        this.productPersistencePort = productPersistencePort;
+        this.productLoadPort = productLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productImageSpecValidator = productImageSpecValidator;
         this.fileOwnerUploadUseCase = fileOwnerUploadUseCase;
@@ -65,7 +65,7 @@ class ProductImageChangeRequestService implements ProductImageChangeRequestUseCa
     }
 
     private boolean notOwnedBy(Long shopId, ProductId productId) {
-        List<Product> found = productPersistencePort.findAllByShopIdAndIdIn(ShopId.of(shopId), List.of(productId));
+        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(ShopId.of(shopId), List.of(productId));
         return found.isEmpty();
     }
 }

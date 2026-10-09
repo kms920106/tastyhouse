@@ -8,16 +8,16 @@ import com.tastyhouse.domain.shop.model.Amenity;
 import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryCreateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 
 @Service
 @Transactional
 class ShopAmenityCategoryCreateService implements ShopAmenityCategoryCreateUseCase {
 
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopDetailSavePort shopDetailSavePort;
 
-    public ShopAmenityCategoryCreateService(ShopDetailPersistencePort shopDetailPersistencePort) {
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+    public ShopAmenityCategoryCreateService(ShopDetailSavePort shopDetailSavePort) {
+        this.shopDetailSavePort = shopDetailSavePort;
     }
 
     @Override
@@ -37,6 +37,6 @@ class ShopAmenityCategoryCreateService implements ShopAmenityCategoryCreateUseCa
             sort,
             visible
         );
-        return shopDetailPersistencePort.saveAmenityCategory(amenityCategory).getId();
+        return shopDetailSavePort.saveAmenityCategory(amenityCategory).getId();
     }
 }

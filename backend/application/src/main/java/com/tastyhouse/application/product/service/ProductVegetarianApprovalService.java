@@ -10,8 +10,10 @@ import com.tastyhouse.domain.product.model.VegetarianType;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.product.vo.ProductVegetarianRequestId;
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductVegetarianRequestSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 
@@ -22,15 +24,21 @@ public class ProductVegetarianApprovalService {
         "돈까스/회/일식", "고기/구이", "찜/탕/찌개", "족발/보쌈", "피자", "치킨", "중식", "야식"
     );
 
-    private final ProductVegetarianRequestPersistencePort requestPersistencePort;
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductVegetarianRequestLoadPort requestLoadPort;
+    private final ProductVegetarianRequestSavePort requestSavePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductSavePort productSavePort;
 
     public ProductVegetarianApprovalService(
-        ProductVegetarianRequestPersistencePort requestPersistencePort,
-        ProductPersistencePort productPersistencePort
+        ProductVegetarianRequestLoadPort requestLoadPort,
+        ProductVegetarianRequestSavePort requestSavePort,
+        ProductLoadPort productLoadPort,
+        ProductSavePort productSavePort
     ) {
-        this.requestPersistencePort = requestPersistencePort;
-        this.productPersistencePort = productPersistencePort;
+        this.requestLoadPort = requestLoadPort;
+        this.requestSavePort = requestSavePort;
+        this.productLoadPort = productLoadPort;
+        this.productSavePort = productSavePort;
     }
 
     public Long requestVegetarian(
@@ -43,11 +51,11 @@ public class ProductVegetarianApprovalService {
         loadProduct(productId);
         validateShopCategoryAllowed(shopCategoryNames);
 
-        if (requestPersistencePort.existsByProductIdAndStatus(productId, ApprovalStatus.PENDING)) {
+        if (requestLoadPort.existsByProductIdAndStatus(productId, ApprovalStatus.PENDING)) {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_VEGETARIAN_REQUEST_ALREADY_PENDING);
         }
 
-        ProductVegetarianRequest saved = requestPersistencePort.save(
+        ProductVegetarianRequest saved = requestSavePort.save(
             ProductVegetarianRequest.of(productId, vegetarianType, ingredients, description));
         return saved.getId();
     }
@@ -55,29 +63,29 @@ public class ProductVegetarianApprovalService {
     public void approve(ProductVegetarianRequestId requestId) {
         ProductVegetarianRequest request = loadRequest(requestId);
         request.approve();
-        requestPersistencePort.save(request);
+        requestSavePort.save(request);
 
         Product product = loadProduct(request.getProductId());
         product.applyVegetarianType(request.getVegetarianType());
-        productPersistencePort.save(product);
+        productSavePort.save(product);
     }
 
     public void reject(ProductVegetarianRequestId requestId, String rejectReason) {
         ProductVegetarianRequest request = loadRequest(requestId);
         request.reject(rejectReason);
-        requestPersistencePort.save(request);
+        requestSavePort.save(request);
     }
 
     public void cancel(ProductVegetarianRequestId requestId) {
         ProductVegetarianRequest request = loadRequest(requestId);
         request.cancel();
-        requestPersistencePort.save(request);
+        requestSavePort.save(request);
     }
 
     public void clearVegetarian(ProductId productId) {
         Product product = loadProduct(productId);
         product.applyVegetarianType(null);
-        productPersistencePort.save(product);
+        productSavePort.save(product);
     }
 
     public boolean isShopCategoryAllowed(Set<String> shopCategoryNames) {
@@ -94,12 +102,12 @@ public class ProductVegetarianApprovalService {
     }
 
     private ProductVegetarianRequest loadRequest(ProductVegetarianRequestId requestId) {
-        return requestPersistencePort.findById(requestId)
+        return requestLoadPort.findById(requestId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_VEGETARIAN_REQUEST_NOT_FOUND));
     }
 
     private Product loadProduct(ProductId productId) {
-        return productPersistencePort.findById(productId)
+        return productLoadPort.findById(productId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 }

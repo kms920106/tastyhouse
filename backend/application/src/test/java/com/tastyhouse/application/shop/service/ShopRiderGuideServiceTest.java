@@ -26,10 +26,12 @@ import com.tastyhouse.domain.shop.model.ShopRiderGuideHistory;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopRiderGuidePersistencePort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistorySavePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -41,11 +43,11 @@ class ShopRiderGuideServiceTest {
     private static final Long CLOSED_SHOP_ID = 2L;
     private static final Long MISSING_SHOP_ID = 99L;
 
-    private FakeShopRiderGuidePersistencePort shopRiderGuidePersistencePort;
-    private RecordingShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort;
+    private FakeShopRiderGuidePersistence shopRiderGuidePersistence;
+    private RecordingShopChangeHistorySavePort shopChangeHistorySavePort;
     private ShopRiderGuideService shopRiderGuideService;
 
-    private static class FakeShopRiderGuidePersistencePort implements ShopRiderGuidePersistencePort {
+    private static class FakeShopRiderGuidePersistence implements ShopRiderGuideLoadPort, ShopRiderGuideSavePort {
 
         private final Map<Long, ShopRiderGuide> guides = new HashMap<>();
         private final List<ShopRiderGuideHistory> histories = new ArrayList<>();
@@ -74,11 +76,11 @@ class ShopRiderGuideServiceTest {
         }
     }
 
-    private static class FakeShopPersistencePort implements ShopPersistencePort {
+    private static class FakeShopPersistence implements ShopLoadPort, ShopSavePort {
 
         private final Map<Long, Shop> shops = new HashMap<>();
 
-        FakeShopPersistencePort() {
+        FakeShopPersistence() {
             shops.put(OPEN_SHOP_ID, shop(OPEN_SHOP_ID, false));
             shops.put(CLOSED_SHOP_ID, shop(CLOSED_SHOP_ID, true));
         }
@@ -109,7 +111,7 @@ class ShopRiderGuideServiceTest {
         }
     }
 
-    private static class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+    private static class FakeProhibitedWordLoadPort implements ProhibitedWordLoadPort {
 
         @Override
         public List<ProhibitedWord> findAll() {
@@ -119,13 +121,14 @@ class ShopRiderGuideServiceTest {
 
     @BeforeEach
     void setUp() {
-        shopRiderGuidePersistencePort = new FakeShopRiderGuidePersistencePort();
-        shopChangeHistoryPersistencePort = new RecordingShopChangeHistoryPersistencePort();
+        shopRiderGuidePersistence = new FakeShopRiderGuidePersistence();
+        shopChangeHistorySavePort = new RecordingShopChangeHistorySavePort();
         shopRiderGuideService = new ShopRiderGuideService(
-            shopRiderGuidePersistencePort,
-            new FakeShopPersistencePort(),
-            new ShopRiderGuideValidator(new ProhibitedWordValidator(new FakeProhibitedWordPersistencePort())),
-            new ShopChangeHistoryRecorder(shopChangeHistoryPersistencePort)
+            shopRiderGuidePersistence,
+            shopRiderGuidePersistence,
+            new FakeShopPersistence(),
+            new ShopRiderGuideValidator(new ProhibitedWordValidator(new FakeProhibitedWordLoadPort())),
+            new ShopChangeHistoryRecorder(shopChangeHistorySavePort)
         );
     }
 
@@ -136,11 +139,11 @@ class ShopRiderGuideServiceTest {
             OPEN_SHOP_ID, "OO 약국 상가 왼쪽 문으로 들어오시면 됩니다.", RiderGuideActorType.CEO, 7L
         );
 
-        ShopRiderGuide saved = shopRiderGuidePersistencePort.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
+        ShopRiderGuide saved = shopRiderGuidePersistence.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
         assertThat(saved.getVisitGuide()).isEqualTo("OO 약국 상가 왼쪽 문으로 들어오시면 됩니다.");
 
-        assertThat(shopRiderGuidePersistencePort.histories).hasSize(1);
-        ShopRiderGuideHistory history = shopRiderGuidePersistencePort.histories.getFirst();
+        assertThat(shopRiderGuidePersistence.histories).hasSize(1);
+        ShopRiderGuideHistory history = shopRiderGuidePersistence.histories.getFirst();
         assertThat(history.getActionType()).isEqualTo(RiderGuideActionType.UPDATE);
         assertThat(history.getActorType()).isEqualTo(RiderGuideActorType.CEO);
         assertThat(history.getActorId()).isEqualTo(7L);
@@ -155,7 +158,7 @@ class ShopRiderGuideServiceTest {
         shopRiderGuideService.updateVisitGuide(OPEN_SHOP_ID, "이전 문구", RiderGuideActorType.CEO, 7L);
         shopRiderGuideService.updateVisitGuide(OPEN_SHOP_ID, "새 문구", RiderGuideActorType.CEO, 7L);
 
-        ShopRiderGuideHistory latest = shopRiderGuidePersistencePort.histories.get(1);
+        ShopRiderGuideHistory latest = shopRiderGuidePersistence.histories.get(1);
         assertThat(latest.getPreviousVisitGuide()).isEqualTo("이전 문구");
         assertThat(latest.getNewVisitGuide()).isEqualTo("새 문구");
     }
@@ -167,7 +170,7 @@ class ShopRiderGuideServiceTest {
 
         shopRiderGuideService.updateVisitGuide(OPEN_SHOP_ID, "", RiderGuideActorType.CEO, 7L);
 
-        ShopRiderGuide saved = shopRiderGuidePersistencePort.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
+        ShopRiderGuide saved = shopRiderGuidePersistence.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
         assertThat(saved.getVisitGuide()).isNull();
     }
 
@@ -190,8 +193,8 @@ class ShopRiderGuideServiceTest {
         ))
             .isInstanceOf(BusinessException.class);
 
-        assertThat(shopRiderGuidePersistencePort.findByShopId(ShopId.of(OPEN_SHOP_ID))).isEmpty();
-        assertThat(shopRiderGuidePersistencePort.histories).isEmpty();
+        assertThat(shopRiderGuidePersistence.findByShopId(ShopId.of(OPEN_SHOP_ID))).isEmpty();
+        assertThat(shopRiderGuidePersistence.histories).isEmpty();
     }
 
     @Test
@@ -206,11 +209,11 @@ class ShopRiderGuideServiceTest {
 
         shopRiderGuideService.deleteVisitGuide(OPEN_SHOP_ID, 3L, "가게 방문과 관련 없는 문구입니다.");
 
-        ShopRiderGuide saved = shopRiderGuidePersistencePort.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
+        ShopRiderGuide saved = shopRiderGuidePersistence.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
         assertThat(saved.getVisitGuide()).isNull();
         assertThat(saved.hasPickupLocation()).isTrue();
 
-        ShopRiderGuideHistory latest = shopRiderGuidePersistencePort.histories.getLast();
+        ShopRiderGuideHistory latest = shopRiderGuidePersistence.histories.getLast();
         assertThat(latest.getActionType()).isEqualTo(RiderGuideActionType.DELETION);
         assertThat(latest.getPreviousVisitGuide()).isEqualTo("부적합 문구");
         assertThat(latest.getNewVisitGuide()).isNull();
@@ -244,10 +247,10 @@ class ShopRiderGuideServiceTest {
 
         assertThat(historyId).isNotNull();
 
-        ShopRiderGuide saved = shopRiderGuidePersistencePort.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
+        ShopRiderGuide saved = shopRiderGuidePersistence.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
         assertThat(saved.getVisitGuide()).isEqualTo("검토 대상 문구");
 
-        ShopRiderGuideHistory latest = shopRiderGuidePersistencePort.histories.getLast();
+        ShopRiderGuideHistory latest = shopRiderGuidePersistence.histories.getLast();
         assertThat(latest.getActionType()).isEqualTo(RiderGuideActionType.REVISION_REQUEST);
         assertThat(latest.getNewVisitGuide()).isEqualTo("검토 대상 문구");
         assertThat(latest.getReason()).isEqualTo("위치 안내로 수정해 주세요.");
@@ -258,7 +261,7 @@ class ShopRiderGuideServiceTest {
     void clearPickupLocation_doesNotCreateRow_whenNeverRegistered() {
         shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID, RiderGuideActorType.CEO, 7L);
 
-        assertThat(shopRiderGuidePersistencePort.findByShopId(ShopId.of(OPEN_SHOP_ID))).isEmpty();
+        assertThat(shopRiderGuidePersistence.findByShopId(ShopId.of(OPEN_SHOP_ID))).isEmpty();
     }
 
     @Test
@@ -273,7 +276,7 @@ class ShopRiderGuideServiceTest {
 
         shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID, RiderGuideActorType.CEO, 7L);
 
-        ShopRiderGuide saved = shopRiderGuidePersistencePort.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
+        ShopRiderGuide saved = shopRiderGuidePersistence.findByShopId(ShopId.of(OPEN_SHOP_ID)).orElseThrow();
         assertThat(saved.hasPickupLocation()).isFalse();
         assertThat(saved.getVisitGuide()).isEqualTo("유지될 문구");
     }
@@ -307,7 +310,7 @@ class ShopRiderGuideServiceTest {
             RiderGuideActorType.CEO, 7L
         );
 
-        assertThat(shopRiderGuidePersistencePort.histories).isEmpty();
+        assertThat(shopRiderGuidePersistence.histories).isEmpty();
     }
 
     @Test
@@ -315,8 +318,8 @@ class ShopRiderGuideServiceTest {
     void updateVisitGuide_recordsExactlyOneShopChangeHistory_whenActorIsCeo() {
         shopRiderGuideService.updateVisitGuide(OPEN_SHOP_ID, "정문 옆 계단으로 올라와 주세요", RiderGuideActorType.CEO, 7L);
 
-        assertThat(shopChangeHistoryPersistencePort.savedOf(ShopChangeType.RIDER_VISIT_GUIDE)).hasSize(1);
-        ShopChangeHistory history = shopChangeHistoryPersistencePort.savedOf(ShopChangeType.RIDER_VISIT_GUIDE).getFirst();
+        assertThat(shopChangeHistorySavePort.savedOf(ShopChangeType.RIDER_VISIT_GUIDE)).hasSize(1);
+        ShopChangeHistory history = shopChangeHistorySavePort.savedOf(ShopChangeType.RIDER_VISIT_GUIDE).getFirst();
         assertThat(history.getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
         assertThat(history.getActorType()).isEqualTo(ShopChangeActorType.CEO);
         assertThat(history.getActorId()).isEqualTo(7L);
@@ -336,7 +339,7 @@ class ShopRiderGuideServiceTest {
             RiderGuideActorType.ADMIN, 3L
         );
 
-        assertThat(shopChangeHistoryPersistencePort.saved()).isEmpty();
+        assertThat(shopChangeHistorySavePort.saved()).isEmpty();
     }
 
     @Test
@@ -350,7 +353,7 @@ class ShopRiderGuideServiceTest {
         shopRiderGuideService.clearPickupLocation(OPEN_SHOP_ID, RiderGuideActorType.CEO, 7L);
 
         List<ShopChangeHistory> histories =
-            shopChangeHistoryPersistencePort.savedOf(ShopChangeType.RIDER_PICKUP_LOCATION);
+            shopChangeHistorySavePort.savedOf(ShopChangeType.RIDER_PICKUP_LOCATION);
         assertThat(histories).hasSize(2);
         assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
         assertThat(histories.getFirst().getPreviousValue()).isEqualTo("미설정");

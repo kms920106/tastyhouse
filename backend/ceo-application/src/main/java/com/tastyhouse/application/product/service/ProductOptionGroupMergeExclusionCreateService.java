@@ -16,8 +16,9 @@ import com.tastyhouse.domain.product.model.ProductOptionGroupSignature;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateCommand;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupMergeExclusionCreateUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionPersistencePort;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupMergeExclusionSavePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -26,19 +27,22 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 class ProductOptionGroupMergeExclusionCreateService implements ProductOptionGroupMergeExclusionCreateUseCase {
 
-    private final ProductOptionGroupMergeExclusionPersistencePort exclusionPersistencePort;
-    private final ProductOptionPersistencePort productOptionPersistencePort;
+    private final ProductOptionGroupMergeExclusionLoadPort exclusionLoadPort;
+    private final ProductOptionGroupMergeExclusionSavePort exclusionSavePort;
+    private final ProductOptionLoadPort productOptionLoadPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator;
 
     public ProductOptionGroupMergeExclusionCreateService(
-        ProductOptionGroupMergeExclusionPersistencePort exclusionPersistencePort,
-        ProductOptionPersistencePort productOptionPersistencePort,
+        ProductOptionGroupMergeExclusionLoadPort exclusionLoadPort,
+        ProductOptionGroupMergeExclusionSavePort exclusionSavePort,
+        ProductOptionLoadPort productOptionLoadPort,
         ShopOwnershipValidator shopOwnershipValidator,
         ProductOptionGroupOwnershipValidator productOptionGroupOwnershipValidator
     ) {
-        this.exclusionPersistencePort = exclusionPersistencePort;
-        this.productOptionPersistencePort = productOptionPersistencePort;
+        this.exclusionLoadPort = exclusionLoadPort;
+        this.exclusionSavePort = exclusionSavePort;
+        this.productOptionLoadPort = productOptionLoadPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.productOptionGroupOwnershipValidator = productOptionGroupOwnershipValidator;
     }
@@ -58,9 +62,9 @@ class ProductOptionGroupMergeExclusionCreateService implements ProductOptionGrou
         }
         validateSignature(shopId, signature, targetIds);
 
-        return exclusionPersistencePort.findByShopIdAndGroupSignature(ShopId.of(shopId), signature)
+        return exclusionLoadPort.findByShopIdAndGroupSignature(ShopId.of(shopId), signature)
             .map(ProductOptionGroupMergeExclusion::getId)
-            .orElseGet(() -> exclusionPersistencePort.save(ProductOptionGroupMergeExclusion.of(
+            .orElseGet(() -> exclusionSavePort.save(ProductOptionGroupMergeExclusion.of(
                 ShopId.of(shopId),
                 signature,
                 CeoId.of(ceoId)
@@ -72,7 +76,7 @@ class ProductOptionGroupMergeExclusionCreateService implements ProductOptionGrou
             ProductOptionGroup group =
                 productOptionGroupOwnershipValidator.loadOwnedOptionGroup(shopId, optionGroupId);
             List<ProductOption> options =
-                productOptionPersistencePort.findAllByOptionGroupId(group.getProductOptionGroupId());
+                productOptionLoadPort.findAllByOptionGroupId(group.getProductOptionGroupId());
 
             if (!Objects.equals(signature, ProductOptionGroupSignature.of(group, options))) {
                 throw new ApplicationException(CeoErrorCode.PRODUCT_OPTION_GROUP_MERGE_SIGNATURE_MISMATCH);

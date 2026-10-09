@@ -9,12 +9,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.product.model.ProductShopLink;
 import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.product.port.out.write.ProductShopLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductShopLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductShopLinkSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductShopLinkJpaEntity.productShopLinkJpaEntity;
 
 @Repository
-class ProductShopLinkPersistenceAdapter implements ProductShopLinkPersistencePort {
+class ProductShopLinkPersistenceAdapter implements ProductShopLinkLoadPort, ProductShopLinkSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductShopLinkJpaRepository productShopLinkJpaRepository;

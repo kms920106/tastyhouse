@@ -15,35 +15,43 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 
 @Service
 public class ShopImageApprovalService {
 
-    private final ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort;
-    private final ShopPersistencePort shopPersistencePort;
+    private final ShopImageChangeRequestLoadPort shopImageChangeRequestLoadPort;
+    private final ShopImageChangeRequestSavePort shopImageChangeRequestSavePort;
+    private final ShopLoadPort shopLoadPort;
+    private final ShopSavePort shopSavePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 
     public ShopImageApprovalService(
-        ShopImageChangeRequestPersistencePort shopImageChangeRequestPersistencePort,
-        ShopPersistencePort shopPersistencePort,
+        ShopImageChangeRequestLoadPort shopImageChangeRequestLoadPort,
+        ShopImageChangeRequestSavePort shopImageChangeRequestSavePort,
+        ShopLoadPort shopLoadPort,
+        ShopSavePort shopSavePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopRequestIndexRecorder shopRequestIndexRecorder
     ) {
-        this.shopImageChangeRequestPersistencePort = shopImageChangeRequestPersistencePort;
-        this.shopPersistencePort = shopPersistencePort;
+        this.shopImageChangeRequestLoadPort = shopImageChangeRequestLoadPort;
+        this.shopImageChangeRequestSavePort = shopImageChangeRequestSavePort;
+        this.shopLoadPort = shopLoadPort;
+        this.shopSavePort = shopSavePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
         this.shopRequestIndexRecorder = shopRequestIndexRecorder;
     }
 
     public Long requestImageChange(Long shopId, ShopImageType imageType, Long imageFileId, ShopChangeActor actor) {
-        if (shopImageChangeRequestPersistencePort.existsByShopIdAndImageTypeAndStatus(shopId, imageType, ApprovalStatus.PENDING)) {
+        if (shopImageChangeRequestLoadPort.existsByShopIdAndImageTypeAndStatus(shopId, imageType, ApprovalStatus.PENDING)) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_IMAGE_CHANGE_REQUEST_ALREADY_PENDING);
         }
 
-        ShopImageChangeRequest saved = shopImageChangeRequestPersistencePort.save(
+        ShopImageChangeRequest saved = shopImageChangeRequestSavePort.save(
             ShopImageChangeRequest.of(ShopId.of(shopId), imageType, UploadedFileId.of(imageFileId))
         );
 
@@ -84,20 +92,20 @@ public class ShopImageApprovalService {
     }
 
     public void approveImageChange(Long id) {
-        ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestPersistencePort.findById(id)
+        ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestLoadPort.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
         shopImageChangeRequest.approve();
-        shopImageChangeRequestPersistencePort.save(shopImageChangeRequest);
+        shopImageChangeRequestSavePort.save(shopImageChangeRequest);
 
         ShopId shopId = shopImageChangeRequest.getShopId();
-        Shop shop = shopPersistencePort.findById(shopId)
+        Shop shop = shopLoadPort.findById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
         if (shopImageChangeRequest.getImageType() == ShopImageType.TRADEMARK) {
             shop.changeTrademarkImage(shopImageChangeRequest.getImageFileId());
         } else {
             shop.changeThumbnailImage(shopImageChangeRequest.getImageFileId());
         }
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
 
         shopRequestIndexRecorder.syncImageChangeStatus(
             requestTypeOf(shopImageChangeRequest.getImageType()),
@@ -108,10 +116,10 @@ public class ShopImageApprovalService {
     }
 
     public void rejectImageChange(Long id, String reason) {
-        ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestPersistencePort.findById(id)
+        ShopImageChangeRequest shopImageChangeRequest = shopImageChangeRequestLoadPort.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_IMAGE_CHANGE_REQUEST_NOT_FOUND));
         shopImageChangeRequest.reject(reason);
-        shopImageChangeRequestPersistencePort.save(shopImageChangeRequest);
+        shopImageChangeRequestSavePort.save(shopImageChangeRequest);
         shopRequestIndexRecorder.syncImageChangeStatus(
             requestTypeOf(shopImageChangeRequest.getImageType()),
             id,
@@ -121,6 +129,6 @@ public class ShopImageApprovalService {
     }
 
     public boolean existsPendingByShopId(Long shopId) {
-        return shopImageChangeRequestPersistencePort.existsByShopIdAndStatus(shopId, ApprovalStatus.PENDING);
+        return shopImageChangeRequestLoadPort.existsByShopIdAndStatus(shopId, ApprovalStatus.PENDING);
     }
 }

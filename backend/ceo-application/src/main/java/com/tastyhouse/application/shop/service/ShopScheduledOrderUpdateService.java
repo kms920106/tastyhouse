@@ -11,22 +11,22 @@ import com.tastyhouse.domain.shop.model.ShopChangeValueFormatter;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.in.ShopScheduledOrderUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopScheduledOrderUpdateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 
 @Service
 @Transactional
 class ShopScheduledOrderUpdateService implements ShopScheduledOrderUpdateUseCase {
 
-    private final ShopPersistencePort shopPersistencePort;
+    private final ShopSavePort shopSavePort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopScheduledOrderUpdateService(
-        ShopPersistencePort shopPersistencePort,
+        ShopSavePort shopSavePort,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopPersistencePort = shopPersistencePort;
+        this.shopSavePort = shopSavePort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
@@ -41,7 +41,7 @@ class ShopScheduledOrderUpdateService implements ShopScheduledOrderUpdateUseCase
         String previousValue = describeScheduledOrder(shop.isScheduledOrderEnabled());
 
         shop.changeScheduledOrderEnabled(enabled);
-        shopPersistencePort.save(shop);
+        shopSavePort.save(shop);
 
         ShopId id = ShopId.of(shopId);
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);

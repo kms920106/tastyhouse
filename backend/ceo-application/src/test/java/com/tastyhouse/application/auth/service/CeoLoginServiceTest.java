@@ -25,7 +25,7 @@ import com.tastyhouse.application.ceo.port.in.CeoLoginFailureRecordUseCase;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistoryFailureCommand;
 import com.tastyhouse.application.ceo.port.in.CeoLoginHistorySuccessCommand;
 import com.tastyhouse.application.ceo.port.in.CeoLoginSuccessRecordUseCase;
-import com.tastyhouse.application.ceo.port.out.write.CeoPersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoLoadPort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -49,7 +49,7 @@ class CeoLoginServiceTest {
 
     private AuthenticationManager authenticationManager;
     private CeoTokenService tokenService;
-    private CeoPersistencePort ceoPersistencePort;
+    private CeoLoadPort ceoLoadPort;
     private CeoLoginSuccessRecordUseCase ceoLoginSuccessRecordUseCase;
     private CeoLoginFailureRecordUseCase ceoLoginFailureRecordUseCase;
     private CeoLoginService ceoLoginService;
@@ -59,13 +59,13 @@ class CeoLoginServiceTest {
     void setUp() {
         authenticationManager = mock(AuthenticationManager.class);
         tokenService = mock(CeoTokenService.class);
-        ceoPersistencePort = mock(CeoPersistencePort.class);
+        ceoLoadPort = mock(CeoLoadPort.class);
         ceoLoginSuccessRecordUseCase = mock(CeoLoginSuccessRecordUseCase.class);
         ceoLoginFailureRecordUseCase = mock(CeoLoginFailureRecordUseCase.class);
         ceoLoginService = new CeoLoginService(
             authenticationManager,
             tokenService,
-            ceoPersistencePort,
+            ceoLoadPort,
             ceoLoginSuccessRecordUseCase,
             ceoLoginFailureRecordUseCase
         );
@@ -84,7 +84,7 @@ class CeoLoginServiceTest {
 
         assertThat(actual).isEqualTo(expected);
         verify(ceoLoginSuccessRecordUseCase).recordSuccess(CeoLoginHistorySuccessCommand.of(CEO_ID, IP, USER_AGENT));
-        verifyNoInteractions(ceoPersistencePort);
+        verifyNoInteractions(ceoLoadPort);
     }
 
     @Test
@@ -138,7 +138,7 @@ class CeoLoginServiceTest {
     void login_unknownUsername_recordsNothing() {
         BadCredentialsException authenticationException = new BadCredentialsException("bad credentials");
         givenAuthenticationFailsWith(authenticationException);
-        when(ceoPersistencePort.findByUsername(USERNAME)).thenReturn(Optional.empty());
+        when(ceoLoadPort.findByUsername(USERNAME)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> ceoLoginService.login(CeoAuthLoginCommand.of(USERNAME, PASSWORD, false, IP, USER_AGENT)))
             .isSameAs(authenticationException);
@@ -207,6 +207,6 @@ class CeoLoginServiceTest {
 
     private void givenCeoExists() {
         Ceo ceo = Ceo.reconstitute(CEO_ID, USERNAME, "encoded", "점주", null, null, null, null);
-        when(ceoPersistencePort.findByUsername(USERNAME)).thenReturn(Optional.of(ceo));
+        when(ceoLoadPort.findByUsername(USERNAME)).thenReturn(Optional.of(ceo));
     }
 }

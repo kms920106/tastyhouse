@@ -26,35 +26,43 @@ import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolicy;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLoadPort;
 
 @Service
 public class ShopDeliveryAreaPolygonService {
 
     private static final BigDecimal CANDIDATE_BOX_MARGIN_DEGREES = new BigDecimal("0.05");
 
-    private final ShopDeliveryAreaPolygonPersistencePort shopDeliveryAreaPolygonPersistencePort;
-    private final ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort;
-    private final AdminDongPersistencePort adminDongPersistencePort;
-    private final ShopDeliveryTipRegionLookupPort shopDeliveryTipRegionLookupPort;
+    private final ShopDeliveryAreaPolygonLoadPort shopDeliveryAreaPolygonLoadPort;
+    private final ShopDeliveryAreaPolygonSavePort shopDeliveryAreaPolygonSavePort;
+    private final ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort;
+    private final ShopDeliveryAreaSavePort shopDeliveryAreaSavePort;
+    private final AdminDongLoadPort adminDongLoadPort;
+    private final ShopDeliveryTipRegionLoadPort shopDeliveryTipRegionLoadPort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopDeliveryAreaPolygonService(
-        ShopDeliveryAreaPolygonPersistencePort shopDeliveryAreaPolygonPersistencePort,
-        ShopDeliveryAreaPersistencePort shopDeliveryAreaPersistencePort,
-        AdminDongPersistencePort adminDongPersistencePort,
-        ShopDeliveryTipRegionLookupPort shopDeliveryTipRegionLookupPort,
+        ShopDeliveryAreaPolygonLoadPort shopDeliveryAreaPolygonLoadPort,
+        ShopDeliveryAreaPolygonSavePort shopDeliveryAreaPolygonSavePort,
+        ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort,
+        ShopDeliveryAreaSavePort shopDeliveryAreaSavePort,
+        AdminDongLoadPort adminDongLoadPort,
+        ShopDeliveryTipRegionLoadPort shopDeliveryTipRegionLoadPort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopDeliveryAreaPolygonPersistencePort = shopDeliveryAreaPolygonPersistencePort;
-        this.shopDeliveryAreaPersistencePort = shopDeliveryAreaPersistencePort;
-        this.adminDongPersistencePort = adminDongPersistencePort;
-        this.shopDeliveryTipRegionLookupPort = shopDeliveryTipRegionLookupPort;
+        this.shopDeliveryAreaPolygonLoadPort = shopDeliveryAreaPolygonLoadPort;
+        this.shopDeliveryAreaPolygonSavePort = shopDeliveryAreaPolygonSavePort;
+        this.shopDeliveryAreaLoadPort = shopDeliveryAreaLoadPort;
+        this.shopDeliveryAreaSavePort = shopDeliveryAreaSavePort;
+        this.adminDongLoadPort = adminDongLoadPort;
+        this.shopDeliveryTipRegionLoadPort = shopDeliveryTipRegionLoadPort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -89,12 +97,12 @@ public class ShopDeliveryAreaPolygonService {
         validateNotReferencedByRegionTip(shopId, closing, adminDongNamesById);
 
         String previousValue = describePolygon(
-            shopDeliveryAreaPolygonPersistencePort.findByShopId(shopId).orElse(null)
+            shopDeliveryAreaPolygonLoadPort.findByShopId(shopId).orElse(null)
         );
 
-        shopDeliveryAreaPersistencePort.deleteByShopIdAndSource(shopId, DeliveryAreaSource.POLYGON);
+        shopDeliveryAreaSavePort.deleteByShopIdAndSource(shopId, DeliveryAreaSource.POLYGON);
         if (!toInsert.isEmpty()) {
-            shopDeliveryAreaPersistencePort.saveAll(
+            shopDeliveryAreaSavePort.saveAll(
                 toInsert.stream()
                     .map(adminDongId -> ShopDeliveryArea.of(shopId, adminDongId, DeliveryAreaSource.POLYGON))
                     .toList()
@@ -121,15 +129,15 @@ public class ShopDeliveryAreaPolygonService {
         Set<AdminDongId> polygonDongIds = adminDongIdsOf(DeliveryAreaSource.POLYGON, shopId);
         validateNotReferencedByRegionTip(shopId, polygonDongIds, adminDongNamesById);
 
-        ShopDeliveryAreaPolygon stored = shopDeliveryAreaPolygonPersistencePort.findByShopId(shopId).orElse(null);
+        ShopDeliveryAreaPolygon stored = shopDeliveryAreaPolygonLoadPort.findByShopId(shopId).orElse(null);
         if (stored == null) {
-            shopDeliveryAreaPersistencePort.deleteByShopIdAndSource(shopId, DeliveryAreaSource.POLYGON);
+            shopDeliveryAreaSavePort.deleteByShopIdAndSource(shopId, DeliveryAreaSource.POLYGON);
             return;
         }
         String previousValue = describePolygon(stored);
 
-        shopDeliveryAreaPersistencePort.deleteByShopIdAndSource(shopId, DeliveryAreaSource.POLYGON);
-        shopDeliveryAreaPolygonPersistencePort.deleteByShopId(shopId);
+        shopDeliveryAreaSavePort.deleteByShopIdAndSource(shopId, DeliveryAreaSource.POLYGON);
+        shopDeliveryAreaPolygonSavePort.deleteByShopId(shopId);
 
         shopChangeHistoryRecorder.record(
             shopId,
@@ -160,24 +168,24 @@ public class ShopDeliveryAreaPolygonService {
 
     public DeliveryAreaProjection.Result project(GeoPolygon polygon) {
         GeoBoundingBox candidateBox = polygon.boundingBox().expand(CANDIDATE_BOX_MARGIN_DEGREES);
-        List<AdminDong> candidates = adminDongPersistencePort.findAllWithinBoundingBox(candidateBox);
+        List<AdminDong> candidates = adminDongLoadPort.findAllWithinBoundingBox(candidateBox);
         return DeliveryAreaProjection.project(polygon, candidates);
     }
 
     private void upsertPolygon(ShopId shopId, GeoPolygon polygon, GeoPoint shopLocation) {
-        ShopDeliveryAreaPolygon stored = shopDeliveryAreaPolygonPersistencePort.findByShopId(shopId)
+        ShopDeliveryAreaPolygon stored = shopDeliveryAreaPolygonLoadPort.findByShopId(shopId)
             .orElse(null);
 
         if (stored == null) {
-            shopDeliveryAreaPolygonPersistencePort.save(ShopDeliveryAreaPolygon.of(shopId, polygon, shopLocation));
+            shopDeliveryAreaPolygonSavePort.save(ShopDeliveryAreaPolygon.of(shopId, polygon, shopLocation));
             return;
         }
         stored.replace(polygon, shopLocation);
-        shopDeliveryAreaPolygonPersistencePort.save(stored);
+        shopDeliveryAreaPolygonSavePort.save(stored);
     }
 
     private Set<AdminDongId> adminDongIdsOf(DeliveryAreaSource source, ShopId shopId) {
-        return shopDeliveryAreaPersistencePort.findByShopIdAndSource(shopId, source).stream()
+        return shopDeliveryAreaLoadPort.findByShopIdAndSource(shopId, source).stream()
             .map(ShopDeliveryArea::getAdminDongId)
             .collect(Collectors.toCollection(LinkedHashSet::new));
     }
@@ -191,7 +199,7 @@ public class ShopDeliveryAreaPolygonService {
             return;
         }
 
-        Set<AdminDongId> referenced = shopDeliveryTipRegionLookupPort.findRegionTipAdminDongIds(shopId);
+        Set<AdminDongId> referenced = shopDeliveryTipRegionLoadPort.findRegionTipAdminDongIds(shopId);
         List<AdminDongId> blocked = closing.stream()
             .filter(referenced::contains)
             .toList();

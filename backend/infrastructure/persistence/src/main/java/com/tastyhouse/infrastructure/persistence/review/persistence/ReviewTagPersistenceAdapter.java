@@ -7,12 +7,12 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.review.model.ReviewTag;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.review.port.out.write.ReviewTagPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewTagSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewTagJpaEntity.reviewTagJpaEntity;
 
 @Repository
-class ReviewTagPersistenceAdapter implements ReviewTagPersistencePort {
+class ReviewTagPersistenceAdapter implements ReviewTagSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewTagJpaRepository reviewTagJpaRepository;

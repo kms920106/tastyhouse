@@ -10,12 +10,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.product.model.ProductOption;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.product.vo.ProductOptionId;
-import com.tastyhouse.application.product.port.out.write.ProductOptionPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductOptionJpaEntity.productOptionJpaEntity;
 
 @Repository
-class ProductOptionPersistenceAdapter implements ProductOptionPersistencePort {
+class ProductOptionPersistenceAdapter implements ProductOptionLoadPort, ProductOptionSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductOptionJpaRepository productOptionJpaRepository;

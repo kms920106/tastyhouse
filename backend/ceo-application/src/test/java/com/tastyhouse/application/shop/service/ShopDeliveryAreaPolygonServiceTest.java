@@ -28,13 +28,16 @@ import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.model.ShopDeliveryArea;
 import com.tastyhouse.domain.shop.model.ShopDeliveryAreaPolygon;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.region.port.out.write.AdminDongPersistencePort;
+import com.tastyhouse.application.region.port.out.write.AdminDongLoadPort;
+import com.tastyhouse.application.region.port.out.write.AdminDongSavePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonPersistencePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLookupPort;
-import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistoryPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaPolygonSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLoadPort;
+import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistorySavePort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -62,7 +65,7 @@ class ShopDeliveryAreaPolygonServiceTest {
             .extracting(e -> ((BusinessException) e).getErrorCode())
             .isEqualTo(CeoErrorCode.SHOP_DELIVERY_AREA_EMPTY_PROJECTION);
 
-        assertThat(fixture.polygonPersistencePort.stored).isNull();
+        assertThat(fixture.polygonPersistence.stored).isNull();
     }
 
     @Test
@@ -74,11 +77,11 @@ class ShopDeliveryAreaPolygonServiceTest {
 
         fixture.savePolygon();
 
-        assertThat(fixture.areaPersistencePort.findByShopIdAndSource(SHOP_ID, DeliveryAreaSource.POLYGON))
+        assertThat(fixture.areaPersistence.findByShopIdAndSource(SHOP_ID, DeliveryAreaSource.POLYGON))
             .extracting(area -> area.getAdminDongId().value())
             .containsExactlyInAnyOrder(10L, 11L);
-        assertThat(fixture.polygonPersistencePort.stored).isNotNull();
-        assertThat(fixture.polygonPersistencePort.stored.getRingCount()).isEqualTo(1);
+        assertThat(fixture.polygonPersistence.stored).isNotNull();
+        assertThat(fixture.polygonPersistence.stored.getRingCount()).isEqualTo(1);
     }
 
     @Test
@@ -87,14 +90,14 @@ class ShopDeliveryAreaPolygonServiceTest {
         Fixture fixture = new Fixture();
         fixture.registerDong(10L, 37.500, 127.000);
         fixture.registerDong(99L, 38.900, 128.900);
-        fixture.areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(99L), DeliveryAreaSource.MANUAL));
+        fixture.areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(99L), DeliveryAreaSource.MANUAL));
 
         fixture.savePolygon();
 
-        assertThat(fixture.areaPersistencePort.findByShopIdAndSource(SHOP_ID, DeliveryAreaSource.MANUAL))
+        assertThat(fixture.areaPersistence.findByShopIdAndSource(SHOP_ID, DeliveryAreaSource.MANUAL))
             .extracting(area -> area.getAdminDongId().value())
             .containsExactly(99L);
-        assertThat(fixture.areaPersistencePort.findByShopIdAndSource(SHOP_ID, DeliveryAreaSource.POLYGON))
+        assertThat(fixture.areaPersistence.findByShopIdAndSource(SHOP_ID, DeliveryAreaSource.POLYGON))
             .extracting(area -> area.getAdminDongId().value())
             .containsExactly(10L);
     }
@@ -104,12 +107,12 @@ class ShopDeliveryAreaPolygonServiceTest {
     void savePolygon_skipsDongAlreadyRegisteredAsManual() {
         Fixture fixture = new Fixture();
         fixture.registerDong(10L, 37.500, 127.000);
-        fixture.areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(10L), DeliveryAreaSource.MANUAL));
+        fixture.areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(10L), DeliveryAreaSource.MANUAL));
 
         fixture.savePolygon();
 
-        assertThat(fixture.areaPersistencePort.findByShopId(SHOP_ID)).hasSize(1);
-        assertThat(fixture.areaPersistencePort.findByShopId(SHOP_ID).getFirst().getSource())
+        assertThat(fixture.areaPersistence.findByShopId(SHOP_ID)).hasSize(1);
+        assertThat(fixture.areaPersistence.findByShopId(SHOP_ID).getFirst().getSource())
             .isEqualTo(DeliveryAreaSource.MANUAL);
     }
 
@@ -119,46 +122,46 @@ class ShopDeliveryAreaPolygonServiceTest {
         Fixture fixture = new Fixture();
         fixture.registerDong(10L, 37.500, 127.000);
         fixture.registerDong(20L, 38.900, 128.900);
-        fixture.areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(20L), DeliveryAreaSource.POLYGON));
-        fixture.regionLookupPort.addRegionTip(AdminDongId.of(20L));
+        fixture.areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(20L), DeliveryAreaSource.POLYGON));
+        fixture.regionLoadPort.addRegionTip(AdminDongId.of(20L));
 
         assertThatThrownBy(fixture::savePolygon)
             .isInstanceOf(BusinessException.class)
             .extracting(e -> ((BusinessException) e).getErrorCode())
             .isEqualTo(CeoErrorCode.SHOP_DELIVERY_AREA_IN_USE);
 
-        assertThat(fixture.areaPersistencePort.findByShopId(SHOP_ID))
+        assertThat(fixture.areaPersistence.findByShopId(SHOP_ID))
             .extracting(area -> area.getAdminDongId().value())
             .containsExactly(20L);
-        assertThat(fixture.polygonPersistencePort.stored).isNull();
+        assertThat(fixture.polygonPersistence.stored).isNull();
     }
 
     @Test
     @DisplayName("도형을 삭제하면 파생 행정동만 지우고 직접 등록분은 남긴다")
     void deletePolygon_removesOnlyDerivedAreas() {
         Fixture fixture = new Fixture();
-        fixture.areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(10L), DeliveryAreaSource.POLYGON));
-        fixture.areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(99L), DeliveryAreaSource.MANUAL));
-        fixture.polygonPersistencePort.stored = ShopDeliveryAreaPolygon.of(SHOP_ID, POLYGON, SHOP_LOCATION);
+        fixture.areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(10L), DeliveryAreaSource.POLYGON));
+        fixture.areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(99L), DeliveryAreaSource.MANUAL));
+        fixture.polygonPersistence.stored = ShopDeliveryAreaPolygon.of(SHOP_ID, POLYGON, SHOP_LOCATION);
 
         fixture.service.deletePolygon(SHOP_ID, ids -> List.of(), ACTOR);
 
-        assertThat(fixture.areaPersistencePort.findByShopId(SHOP_ID))
+        assertThat(fixture.areaPersistence.findByShopId(SHOP_ID))
             .extracting(area -> area.getAdminDongId().value())
             .containsExactly(99L);
-        assertThat(fixture.polygonPersistencePort.stored).isNull();
+        assertThat(fixture.polygonPersistence.stored).isNull();
     }
 
     @Test
     @DisplayName("도형 삭제로 총 0건이 되어도 허용한다(배달지역 전체 해제는 정당한 의도)")
     void deletePolygon_allowsResultingInZeroAreas() {
         Fixture fixture = new Fixture();
-        fixture.areaPersistencePort.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(10L), DeliveryAreaSource.POLYGON));
-        fixture.polygonPersistencePort.stored = ShopDeliveryAreaPolygon.of(SHOP_ID, POLYGON, SHOP_LOCATION);
+        fixture.areaPersistence.save(ShopDeliveryArea.of(SHOP_ID, AdminDongId.of(10L), DeliveryAreaSource.POLYGON));
+        fixture.polygonPersistence.stored = ShopDeliveryAreaPolygon.of(SHOP_ID, POLYGON, SHOP_LOCATION);
 
         fixture.service.deletePolygon(SHOP_ID, ids -> List.of(), ACTOR);
 
-        assertThat(fixture.areaPersistencePort.findByShopId(SHOP_ID)).isEmpty();
+        assertThat(fixture.areaPersistence.findByShopId(SHOP_ID)).isEmpty();
     }
 
     @Test
@@ -171,7 +174,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         fixture.savePolygon();
 
         List<ShopChangeHistory> histories =
-            fixture.historyPersistencePort.savedOf(ShopChangeType.DELIVERY_AREA_POLYGON);
+            fixture.historySavePort.savedOf(ShopChangeType.DELIVERY_AREA_POLYGON);
         assertThat(histories).hasSize(1);
         assertThat(histories.getFirst().getActionType()).isEqualTo(ShopChangeActionType.UPDATE);
         assertThat(histories.getFirst().getPreviousValue()).isEqualTo("미설정");
@@ -187,7 +190,7 @@ class ShopDeliveryAreaPolygonServiceTest {
 
         fixture.savePolygon();
 
-        assertThat(fixture.historyPersistencePort.savedOf(ShopChangeType.DELIVERY_AREA)).isEmpty();
+        assertThat(fixture.historySavePort.savedOf(ShopChangeType.DELIVERY_AREA)).isEmpty();
     }
 
     @Test
@@ -200,7 +203,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         fixture.service.deletePolygon(SHOP_ID, ids -> List.of(), ACTOR);
 
         List<ShopChangeHistory> histories =
-            fixture.historyPersistencePort.savedOf(ShopChangeType.DELIVERY_AREA_POLYGON);
+            fixture.historySavePort.savedOf(ShopChangeType.DELIVERY_AREA_POLYGON);
         assertThat(histories).hasSize(2);
         assertThat(histories.get(1).getActionType()).isEqualTo(ShopChangeActionType.DELETE);
         assertThat(histories.get(1).getPreviousValue())
@@ -215,27 +218,29 @@ class ShopDeliveryAreaPolygonServiceTest {
 
         fixture.service.deletePolygon(SHOP_ID, ids -> List.of(), ACTOR);
 
-        assertThat(fixture.historyPersistencePort.saved()).isEmpty();
+        assertThat(fixture.historySavePort.saved()).isEmpty();
     }
 
     private static final class Fixture {
 
-        private final AdminDongPersistencePortFake adminDongPersistencePort = new AdminDongPersistencePortFake();
-        private final ShopDeliveryAreaPersistencePortFake areaPersistencePort = new ShopDeliveryAreaPersistencePortFake();
-        private final ShopDeliveryAreaPolygonPersistencePortFake polygonPersistencePort = new ShopDeliveryAreaPolygonPersistencePortFake();
-        private final ShopDeliveryTipRegionLookupPortFake regionLookupPort = new ShopDeliveryTipRegionLookupPortFake();
-        private final RecordingShopChangeHistoryPersistencePort historyPersistencePort =
-            new RecordingShopChangeHistoryPersistencePort();
+        private final AdminDongPersistenceFake adminDongPersistence = new AdminDongPersistenceFake();
+        private final ShopDeliveryAreaPersistenceFake areaPersistence = new ShopDeliveryAreaPersistenceFake();
+        private final ShopDeliveryAreaPolygonPersistenceFake polygonPersistence = new ShopDeliveryAreaPolygonPersistenceFake();
+        private final ShopDeliveryTipRegionLoadPortFake regionLoadPort = new ShopDeliveryTipRegionLoadPortFake();
+        private final RecordingShopChangeHistorySavePort historySavePort =
+            new RecordingShopChangeHistorySavePort();
         private final ShopDeliveryAreaPolygonService service = new ShopDeliveryAreaPolygonService(
-            polygonPersistencePort,
-            areaPersistencePort,
-            adminDongPersistencePort,
-            regionLookupPort,
-            new ShopChangeHistoryRecorder(historyPersistencePort)
+            polygonPersistence,
+            polygonPersistence,
+            areaPersistence,
+            areaPersistence,
+            adminDongPersistence,
+            regionLoadPort,
+            new ShopChangeHistoryRecorder(historySavePort)
         );
 
         void registerDong(long id, double latitude, double longitude) {
-            adminDongPersistencePort.add(id, GeoPoint.of(latitude, longitude));
+            adminDongPersistence.add(id, GeoPoint.of(latitude, longitude));
         }
 
         void savePolygon() {
@@ -243,7 +248,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         }
     }
 
-    private static final class AdminDongPersistencePortFake implements AdminDongPersistencePort {
+    private static final class AdminDongPersistenceFake implements AdminDongLoadPort, AdminDongSavePort {
 
         @Override
         public AdminDongSyncResult synchronize(List<AdminDong> adminDongs) {
@@ -295,7 +300,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         }
     }
 
-    private static final class ShopDeliveryAreaPersistencePortFake implements ShopDeliveryAreaPersistencePort {
+    private static final class ShopDeliveryAreaPersistenceFake implements ShopDeliveryAreaLoadPort, ShopDeliveryAreaSavePort {
 
         private final Map<Long, ShopDeliveryArea> areas = new LinkedHashMap<>();
         private long sequence = 0L;
@@ -360,7 +365,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         }
     }
 
-    private static final class ShopDeliveryAreaPolygonPersistencePortFake implements ShopDeliveryAreaPolygonPersistencePort {
+    private static final class ShopDeliveryAreaPolygonPersistenceFake implements ShopDeliveryAreaPolygonLoadPort, ShopDeliveryAreaPolygonSavePort {
 
         private ShopDeliveryAreaPolygon stored;
 
@@ -381,7 +386,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         }
     }
 
-    private static final class ShopDeliveryTipRegionLookupPortFake implements ShopDeliveryTipRegionLookupPort {
+    private static final class ShopDeliveryTipRegionLoadPortFake implements ShopDeliveryTipRegionLoadPort {
 
         private final Set<AdminDongId> referenced = new LinkedHashSet<>();
 

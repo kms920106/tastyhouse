@@ -15,14 +15,16 @@ import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.member.port.out.write.MemberPersistencePort;
-import com.tastyhouse.application.reservation.port.out.write.ReservationPersistencePort;
-import com.tastyhouse.application.reservation.port.out.write.ReservationSlotPersistencePort;
+import com.tastyhouse.application.member.port.out.write.MemberLoadPort;
+import com.tastyhouse.application.reservation.port.out.write.ReservationLoadPort;
+import com.tastyhouse.application.reservation.port.out.write.ReservationSavePort;
+import com.tastyhouse.application.reservation.port.out.write.ReservationSlotLoadPort;
+import com.tastyhouse.application.reservation.port.out.write.ReservationSlotSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ShopPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 import com.tastyhouse.application.shop.service.ShopOrderAvailabilityService;
 
 @Service
@@ -30,23 +32,29 @@ public class ReservationBookingService {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
-    private final ReservationPersistencePort reservationPersistencePort;
-    private final ReservationSlotPersistencePort slotPersistencePort;
-    private final ShopPersistencePort shopPersistencePort;
-    private final MemberPersistencePort memberPersistencePort;
+    private final ReservationLoadPort reservationLoadPort;
+    private final ReservationSavePort reservationSavePort;
+    private final ReservationSlotLoadPort slotLoadPort;
+    private final ReservationSlotSavePort slotSavePort;
+    private final ShopLoadPort shopLoadPort;
+    private final MemberLoadPort memberLoadPort;
     private final ShopOrderAvailabilityService shopOrderAvailabilityService;
 
     public ReservationBookingService(
-        ReservationPersistencePort reservationPersistencePort,
-        ReservationSlotPersistencePort slotPersistencePort,
-        ShopPersistencePort shopPersistencePort,
-        MemberPersistencePort memberPersistencePort,
+        ReservationLoadPort reservationLoadPort,
+        ReservationSavePort reservationSavePort,
+        ReservationSlotLoadPort slotLoadPort,
+        ReservationSlotSavePort slotSavePort,
+        ShopLoadPort shopLoadPort,
+        MemberLoadPort memberLoadPort,
         ShopOrderAvailabilityService shopOrderAvailabilityService
     ) {
-        this.reservationPersistencePort = reservationPersistencePort;
-        this.slotPersistencePort = slotPersistencePort;
-        this.shopPersistencePort = shopPersistencePort;
-        this.memberPersistencePort = memberPersistencePort;
+        this.reservationLoadPort = reservationLoadPort;
+        this.reservationSavePort = reservationSavePort;
+        this.slotLoadPort = slotLoadPort;
+        this.slotSavePort = slotSavePort;
+        this.shopLoadPort = shopLoadPort;
+        this.memberLoadPort = memberLoadPort;
         this.shopOrderAvailabilityService = shopOrderAvailabilityService;
     }
 
@@ -71,9 +79,9 @@ public class ReservationBookingService {
             throw new ApplicationException(WebErrorCode.RESERVATION_PAST_NOT_ALLOWED);
         }
 
-        Shop shop = shopPersistencePort.findVisibleById(shopId)
+        Shop shop = shopLoadPort.findVisibleById(shopId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));
-        if (memberPersistencePort.findById(memberId).isEmpty()) {
+        if (memberLoadPort.findById(memberId).isEmpty()) {
             throw new ResourceNotFoundException(ApplicationErrorCode.MEMBER_NOT_FOUND);
         }
 
@@ -81,19 +89,19 @@ public class ReservationBookingService {
             shop, OrderMethod.RESERVATION, LocalDateTime.of(date, time)
         );
 
-        if (reservationPersistencePort.existsBlockingByMemberShopDate(memberId, shopId, date)) {
+        if (reservationLoadPort.existsBlockingByMemberShopDate(memberId, shopId, date)) {
             throw new ApplicationException(WebErrorCode.DUPLICATE_RESERVATION);
         }
 
-        ReservationSlot slot = slotPersistencePort
+        ReservationSlot slot = slotLoadPort
             .findByShopAndDateAndTime(shopId, date, time)
             .orElseGet(() -> ReservationSlot.of(shopId, date, time, SlotPolicy.CAPACITY_PER_SLOT));
 
         slot.reserve();
-        slotPersistencePort.saveImmediately(slot);
+        slotSavePort.saveImmediately(slot);
 
         Reservation reservation = Reservation.of(memberId, shopId, date, time, partySize, request);
-        Reservation saved = reservationPersistencePort.save(reservation);
+        Reservation saved = reservationSavePort.save(reservation);
 
         return saved.getReservationId();
     }
@@ -102,24 +110,24 @@ public class ReservationBookingService {
         Reservation reservation = getReservation(reservationId);
         reservation.validateOwnership(memberId);
         reservation.cancel();
-        reservationPersistencePort.save(reservation);
+        reservationSavePort.save(reservation);
         releaseSlot(reservation);
     }
 
     public void reject(ReservationId reservationId) {
         Reservation reservation = getReservation(reservationId);
         reservation.reject();
-        reservationPersistencePort.save(reservation);
+        reservationSavePort.save(reservation);
         releaseSlot(reservation);
     }
 
     private Reservation getReservation(ReservationId reservationId) {
-        return reservationPersistencePort.findById(reservationId)
+        return reservationLoadPort.findById(reservationId)
             .orElseThrow(() -> new ApplicationException(WebErrorCode.RESERVATION_NOT_FOUND));
     }
 
     private void releaseSlot(Reservation reservation) {
-        slotPersistencePort
+        slotLoadPort
             .findByShopAndDateAndTime(
                 reservation.getShopId(),
                 reservation.getReservationDate(),
@@ -127,7 +135,7 @@ public class ReservationBookingService {
             )
             .ifPresent(slot -> {
                 slot.release();
-                slotPersistencePort.save(slot);
+                slotSavePort.save(slot);
             });
     }
 }

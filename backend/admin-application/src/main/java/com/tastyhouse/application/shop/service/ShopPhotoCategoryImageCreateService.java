@@ -8,16 +8,16 @@ import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
 import com.tastyhouse.domain.shop.vo.ShopPhotoCategoryId;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageCreateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 
 @Service
 @Transactional
 class ShopPhotoCategoryImageCreateService implements ShopPhotoCategoryImageCreateUseCase {
 
-    private final ShopDetailPersistencePort shopDetailPersistencePort;
+    private final ShopDetailSavePort shopDetailSavePort;
 
-    public ShopPhotoCategoryImageCreateService(ShopDetailPersistencePort shopDetailPersistencePort) {
-        this.shopDetailPersistencePort = shopDetailPersistencePort;
+    public ShopPhotoCategoryImageCreateService(ShopDetailSavePort shopDetailSavePort) {
+        this.shopDetailSavePort = shopDetailSavePort;
     }
 
     @Override
@@ -27,7 +27,7 @@ class ShopPhotoCategoryImageCreateService implements ShopPhotoCategoryImageCreat
         Integer sort = command.sort();
         Boolean visible = command.visible();
 
-        ShopPhotoCategoryImage image = shopDetailPersistencePort.savePhotoCategoryImage(
+        ShopPhotoCategoryImage image = shopDetailSavePort.savePhotoCategoryImage(
             ShopPhotoCategoryImage.of(
                 ShopPhotoCategoryId.of(categoryId),
                 UploadedFileId.of(imageFileId),

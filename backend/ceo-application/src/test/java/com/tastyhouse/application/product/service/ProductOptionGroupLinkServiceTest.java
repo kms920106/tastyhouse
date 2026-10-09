@@ -15,8 +15,8 @@ import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
-import com.tastyhouse.testsupport.product.service.FakeProductOptionGroupLinkPersistencePort;
-import com.tastyhouse.testsupport.product.service.StubProductPersistencePort;
+import com.tastyhouse.testsupport.product.service.FakeProductOptionGroupLinkPersistence;
+import com.tastyhouse.testsupport.product.service.StubProductPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -180,12 +180,12 @@ class ProductOptionGroupLinkServiceTest {
 
     private static final class Fixture {
 
-        private final FakeProductOptionGroupLinkPersistencePort links = new FakeProductOptionGroupLinkPersistencePort();
+        private final FakeProductOptionGroupLinkPersistence links = new FakeProductOptionGroupLinkPersistence();
         private final Map<Long, Product> products = new LinkedHashMap<>();
         private final ProductOptionGroupLinkService service;
 
         private Fixture() {
-            this.service = new ProductOptionGroupLinkService(links, new StubProductPersistencePort(products));
+            this.service = new ProductOptionGroupLinkService(links, links, new StubProductPersistence(products));
         }
 
         private void addProduct(Long id, ShopId shopId) {

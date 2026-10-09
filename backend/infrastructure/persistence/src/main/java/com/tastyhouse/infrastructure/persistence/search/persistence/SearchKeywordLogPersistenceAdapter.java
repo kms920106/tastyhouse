@@ -6,12 +6,12 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.search.model.SearchKeywordLog;
-import com.tastyhouse.application.search.port.out.write.SearchKeywordLogPersistencePort;
+import com.tastyhouse.application.search.port.out.write.SearchKeywordLogSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.search.persistence.QSearchKeywordLogJpaEntity.searchKeywordLogJpaEntity;
 
 @Repository
-class SearchKeywordLogPersistenceAdapter implements SearchKeywordLogPersistencePort {
+class SearchKeywordLogPersistenceAdapter implements SearchKeywordLogSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final SearchKeywordLogJpaRepository jpaRepository;

@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.sms.model.SmsVerification;
 import com.tastyhouse.domain.sms.model.SmsVerificationStatus;
-import com.tastyhouse.application.sms.port.out.write.SmsVerificationPersistencePort;
+import com.tastyhouse.application.sms.port.out.write.SmsVerificationLoadPort;
+import com.tastyhouse.application.sms.port.out.write.SmsVerificationSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.sms.persistence.QSmsVerificationJpaEntity.smsVerificationJpaEntity;
 
 @Repository
-class SmsVerificationPersistenceAdapter implements SmsVerificationPersistencePort {
+class SmsVerificationPersistenceAdapter implements SmsVerificationLoadPort, SmsVerificationSavePort {
 
     private final SmsVerificationJpaRepository jpaRepository;
     private final JPAQueryFactory queryFactory;

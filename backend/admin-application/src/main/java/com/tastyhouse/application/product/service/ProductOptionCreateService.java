@@ -9,7 +9,7 @@ import com.tastyhouse.domain.product.model.ProductOptionGroup;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
 import com.tastyhouse.application.product.port.in.ProductOptionCreateUseCase;
 import com.tastyhouse.application.product.port.in.ProductOptionManagementCreateCommand;
-import com.tastyhouse.application.product.port.out.write.ProductOptionGroupPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductOptionGroupLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -18,16 +18,16 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 class ProductOptionCreateService implements ProductOptionCreateUseCase {
 
     private final ProductRegistrationService productRegistrationService;
-    private final ProductOptionGroupPersistencePort productOptionGroupPersistencePort;
+    private final ProductOptionGroupLoadPort productOptionGroupLoadPort;
     private final CupDepositPolicy cupDepositPolicy;
 
     public ProductOptionCreateService(
         ProductRegistrationService productRegistrationService,
-        ProductOptionGroupPersistencePort productOptionGroupPersistencePort,
+        ProductOptionGroupLoadPort productOptionGroupLoadPort,
         CupDepositPolicy cupDepositPolicy
     ) {
         this.productRegistrationService = productRegistrationService;
-        this.productOptionGroupPersistencePort = productOptionGroupPersistencePort;
+        this.productOptionGroupLoadPort = productOptionGroupLoadPort;
         this.cupDepositPolicy = cupDepositPolicy;
     }
 
@@ -42,7 +42,7 @@ class ProductOptionCreateService implements ProductOptionCreateUseCase {
         Integer cupCount = command.cupCount();
         Integer personalCupDiscountAmount = command.personalCupDiscountAmount();
 
-        ProductOptionGroup optionGroup = productOptionGroupPersistencePort
+        ProductOptionGroup optionGroup = productOptionGroupLoadPort
             .findById(ProductOptionGroupId.of(groupId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND));
         CupDepositOptionRule.validateOptionValues(

@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.event.model.Event;
 import com.tastyhouse.domain.event.vo.EventId;
-import com.tastyhouse.application.event.port.out.write.EventPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventLoadPort;
+import com.tastyhouse.application.event.port.out.write.EventSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.event.persistence.QEventJpaEntity.eventJpaEntity;
 
 @Repository
-class EventPersistenceAdapter implements EventPersistencePort {
+class EventPersistenceAdapter implements EventLoadPort, EventSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final EventJpaRepository eventJpaRepository;

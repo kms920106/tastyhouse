@@ -7,12 +7,12 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.review.model.ReviewImage;
 import com.tastyhouse.domain.review.vo.ReviewId;
-import com.tastyhouse.application.review.port.out.write.ReviewImagePersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewImageSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.review.persistence.QReviewImageJpaEntity.reviewImageJpaEntity;
 
 @Repository
-class ReviewImagePersistenceAdapter implements ReviewImagePersistencePort {
+class ReviewImagePersistenceAdapter implements ReviewImageSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ReviewImageJpaRepository reviewImageJpaRepository;

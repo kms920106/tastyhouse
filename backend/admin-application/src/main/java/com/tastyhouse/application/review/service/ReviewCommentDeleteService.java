@@ -6,7 +6,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.application.review.port.in.ReviewCommentDeleteCommand;
 import com.tastyhouse.application.review.port.in.ReviewCommentDeleteUseCase;
-import com.tastyhouse.application.review.port.out.write.ReviewCommentPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewCommentLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewCommentSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -14,19 +15,21 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class ReviewCommentDeleteService implements ReviewCommentDeleteUseCase {
 
-    private final ReviewCommentPersistencePort reviewCommentPersistencePort;
+    private final ReviewCommentLoadPort reviewCommentLoadPort;
+    private final ReviewCommentSavePort reviewCommentSavePort;
 
-    public ReviewCommentDeleteService(ReviewCommentPersistencePort reviewCommentPersistencePort) {
-        this.reviewCommentPersistencePort = reviewCommentPersistencePort;
+    public ReviewCommentDeleteService(ReviewCommentLoadPort reviewCommentLoadPort, ReviewCommentSavePort reviewCommentSavePort) {
+        this.reviewCommentLoadPort = reviewCommentLoadPort;
+        this.reviewCommentSavePort = reviewCommentSavePort;
     }
 
     @Override
     public void deleteComment(ReviewCommentDeleteCommand command) {
         Long commentId = command.commentId();
         ReviewCommentId reviewCommentId = ReviewCommentId.of(commentId);
-        reviewCommentPersistencePort.findById(reviewCommentId)
+        reviewCommentLoadPort.findById(reviewCommentId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_COMMENT_NOT_FOUND));
 
-        reviewCommentPersistencePort.deleteById(reviewCommentId);
+        reviewCommentSavePort.deleteById(reviewCommentId);
     }
 }

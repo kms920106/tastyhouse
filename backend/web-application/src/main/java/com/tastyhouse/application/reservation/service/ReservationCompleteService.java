@@ -7,7 +7,8 @@ import com.tastyhouse.domain.reservation.model.Reservation;
 import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.application.reservation.port.in.ReservationCompleteCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationCompleteUseCase;
-import com.tastyhouse.application.reservation.port.out.write.ReservationPersistencePort;
+import com.tastyhouse.application.reservation.port.out.write.ReservationLoadPort;
+import com.tastyhouse.application.reservation.port.out.write.ReservationSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
@@ -15,10 +16,12 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 @Transactional
 class ReservationCompleteService implements ReservationCompleteUseCase {
 
-    private final ReservationPersistencePort reservationPersistencePort;
+    private final ReservationLoadPort reservationLoadPort;
+    private final ReservationSavePort reservationSavePort;
 
-    public ReservationCompleteService(ReservationPersistencePort reservationPersistencePort) {
-        this.reservationPersistencePort = reservationPersistencePort;
+    public ReservationCompleteService(ReservationLoadPort reservationLoadPort, ReservationSavePort reservationSavePort) {
+        this.reservationLoadPort = reservationLoadPort;
+        this.reservationSavePort = reservationSavePort;
     }
 
     @Override
@@ -26,11 +29,11 @@ class ReservationCompleteService implements ReservationCompleteUseCase {
         ReservationId reservationId = ReservationId.of(command.reservationId());
         Reservation reservation = getReservation(reservationId);
         reservation.complete();
-        reservationPersistencePort.save(reservation);
+        reservationSavePort.save(reservation);
     }
 
     private Reservation getReservation(ReservationId reservationId) {
-        return reservationPersistencePort.findById(reservationId)
+        return reservationLoadPort.findById(reservationId)
             .orElseThrow(() -> new ApplicationException(WebErrorCode.RESERVATION_NOT_FOUND));
     }
 }

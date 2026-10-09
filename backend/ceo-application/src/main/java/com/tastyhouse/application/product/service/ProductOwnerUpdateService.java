@@ -9,7 +9,8 @@ import com.tastyhouse.domain.product.vo.ProductId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.in.ProductOwnerUpdateCommand;
 import com.tastyhouse.application.product.port.in.ProductOwnerUpdateUseCase;
-import com.tastyhouse.application.product.port.out.write.ProductPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
@@ -19,18 +20,21 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 class ProductOwnerUpdateService implements ProductOwnerUpdateUseCase {
 
-    private final ProductPersistencePort productPersistencePort;
+    private final ProductLoadPort productLoadPort;
+    private final ProductSavePort productSavePort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ProductNameValidator productNameValidator;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOwnerUpdateService(
-        ProductPersistencePort productPersistencePort,
+        ProductLoadPort productLoadPort,
+        ProductSavePort productSavePort,
         ProhibitedWordValidator prohibitedWordValidator,
         ProductNameValidator productNameValidator,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productPersistencePort = productPersistencePort;
+        this.productLoadPort = productLoadPort;
+        this.productSavePort = productSavePort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.productNameValidator = productNameValidator;
         this.shopOwnershipValidator = shopOwnershipValidator;
@@ -78,7 +82,7 @@ class ProductOwnerUpdateService implements ProductOwnerUpdateUseCase {
         if (categoryChanged) {
             product.relocate(categoryId, nextSort(shopId, categoryId));
         }
-        productPersistencePort.save(product);
+        productSavePort.save(product);
     }
 
     private void validateTexts(String name, String composition, String description) {
@@ -88,7 +92,7 @@ class ProductOwnerUpdateService implements ProductOwnerUpdateUseCase {
     }
 
     private Product loadOwnedProduct(Long shopId, Long productId) {
-        Product product = productPersistencePort.findById(ProductId.of(productId))
+        Product product = productLoadPort.findById(ProductId.of(productId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
@@ -97,7 +101,7 @@ class ProductOwnerUpdateService implements ProductOwnerUpdateUseCase {
     }
 
     private Integer nextSort(Long shopId, ProductCategoryId productCategoryId) {
-        return productPersistencePort.findAllByShopIdAndCategoryId(ShopId.of(shopId), productCategoryId).size();
+        return productLoadPort.findAllByShopIdAndCategoryId(ShopId.of(shopId), productCategoryId).size();
     }
 
     private boolean isSameCategory(ProductCategoryId current, ProductCategoryId requested) {

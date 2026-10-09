@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductCommonOptionGroupLink;
 import com.tastyhouse.domain.product.vo.ProductOptionGroupId;
-import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkPersistencePort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkLoadPort;
+import com.tastyhouse.application.product.port.out.write.ProductCommonOptionGroupLinkSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.product.persistence.QProductCommonOptionGroupLinkJpaEntity.productCommonOptionGroupLinkJpaEntity;
 
 @Repository
-class ProductCommonOptionGroupLinkPersistenceAdapter implements ProductCommonOptionGroupLinkPersistencePort {
+class ProductCommonOptionGroupLinkPersistenceAdapter implements ProductCommonOptionGroupLinkLoadPort, ProductCommonOptionGroupLinkSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final ProductCommonOptionGroupLinkJpaRepository productCommonOptionGroupLinkJpaRepository;

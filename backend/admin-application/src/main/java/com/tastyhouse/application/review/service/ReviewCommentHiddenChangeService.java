@@ -7,7 +7,8 @@ import com.tastyhouse.domain.review.model.ReviewComment;
 import com.tastyhouse.domain.review.vo.ReviewCommentId;
 import com.tastyhouse.application.review.port.in.ReviewCommentHiddenChangeCommand;
 import com.tastyhouse.application.review.port.in.ReviewCommentHiddenChangeUseCase;
-import com.tastyhouse.application.review.port.out.write.ReviewCommentPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewCommentLoadPort;
+import com.tastyhouse.application.review.port.out.write.ReviewCommentSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,10 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class ReviewCommentHiddenChangeService implements ReviewCommentHiddenChangeUseCase {
 
-    private final ReviewCommentPersistencePort reviewCommentPersistencePort;
+    private final ReviewCommentLoadPort reviewCommentLoadPort;
+    private final ReviewCommentSavePort reviewCommentSavePort;
 
-    public ReviewCommentHiddenChangeService(ReviewCommentPersistencePort reviewCommentPersistencePort) {
-        this.reviewCommentPersistencePort = reviewCommentPersistencePort;
+    public ReviewCommentHiddenChangeService(ReviewCommentLoadPort reviewCommentLoadPort, ReviewCommentSavePort reviewCommentSavePort) {
+        this.reviewCommentLoadPort = reviewCommentLoadPort;
+        this.reviewCommentSavePort = reviewCommentSavePort;
     }
 
     @Override
@@ -26,7 +29,7 @@ class ReviewCommentHiddenChangeService implements ReviewCommentHiddenChangeUseCa
         Long commentId = command.commentId();
         boolean hidden = command.hidden();
         ReviewCommentId reviewCommentId = ReviewCommentId.of(commentId);
-        ReviewComment comment = reviewCommentPersistencePort.findById(reviewCommentId)
+        ReviewComment comment = reviewCommentLoadPort.findById(reviewCommentId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_COMMENT_NOT_FOUND));
 
         if (hidden) {
@@ -35,6 +38,6 @@ class ReviewCommentHiddenChangeService implements ReviewCommentHiddenChangeUseCa
             comment.unhide();
         }
 
-        reviewCommentPersistencePort.save(comment);
+        reviewCommentSavePort.save(comment);
     }
 }

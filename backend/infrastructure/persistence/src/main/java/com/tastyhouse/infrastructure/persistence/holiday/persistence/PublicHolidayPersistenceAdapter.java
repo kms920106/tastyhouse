@@ -7,12 +7,12 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.holiday.model.PublicHoliday;
-import com.tastyhouse.application.holiday.port.out.write.PublicHolidayPersistencePort;
+import com.tastyhouse.application.holiday.port.out.write.PublicHolidayLoadPort;
 
 import static com.tastyhouse.infrastructure.persistence.holiday.persistence.QPublicHolidayJpaEntity.publicHolidayJpaEntity;
 
 @Repository
-class PublicHolidayPersistenceAdapter implements PublicHolidayPersistencePort {
+class PublicHolidayPersistenceAdapter implements PublicHolidayLoadPort {
 
     private final JPAQueryFactory queryFactory;
 

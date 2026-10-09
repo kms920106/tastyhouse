@@ -3,10 +3,10 @@ package com.tastyhouse.infrastructure.persistence.order.persistence;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.order.model.OrderProductOption;
-import com.tastyhouse.application.order.port.out.write.OrderProductOptionPersistencePort;
+import com.tastyhouse.application.order.port.out.write.OrderProductOptionSavePort;
 
 @Repository
-class OrderProductOptionPersistenceAdapter implements OrderProductOptionPersistencePort {
+class OrderProductOptionPersistenceAdapter implements OrderProductOptionSavePort {
 
     private final OrderProductOptionJpaRepository orderProductOptionJpaRepository;
 

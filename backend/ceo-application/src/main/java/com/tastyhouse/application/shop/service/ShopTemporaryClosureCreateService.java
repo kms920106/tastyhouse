@@ -15,7 +15,8 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopTemporaryClosureCreateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosurePersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureSavePort;
 
 @Service
 @Transactional
@@ -23,16 +24,19 @@ class ShopTemporaryClosureCreateService implements ShopTemporaryClosureCreateUse
 
     private static final long MAX_ACCUMULATED_CLOSURE_DAYS = 30;
 
-    private final ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort;
+    private final ShopTemporaryClosureLoadPort shopTemporaryClosureLoadPort;
+    private final ShopTemporaryClosureSavePort shopTemporaryClosureSavePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopTemporaryClosureCreateService(
-        ShopTemporaryClosurePersistencePort shopTemporaryClosurePersistencePort,
+        ShopTemporaryClosureLoadPort shopTemporaryClosureLoadPort,
+        ShopTemporaryClosureSavePort shopTemporaryClosureSavePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.shopTemporaryClosurePersistencePort = shopTemporaryClosurePersistencePort;
+        this.shopTemporaryClosureLoadPort = shopTemporaryClosureLoadPort;
+        this.shopTemporaryClosureSavePort = shopTemporaryClosureSavePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -49,14 +53,14 @@ class ShopTemporaryClosureCreateService implements ShopTemporaryClosureCreateUse
         ShopId targetShopId = ShopId.of(shopId);
         ShopTemporaryClosure temporaryClosure = ShopTemporaryClosure.of(targetShopId, startDate, endDate);
 
-        long accumulatedDays = shopTemporaryClosurePersistencePort.findByShopId(shopId).stream()
+        long accumulatedDays = shopTemporaryClosureLoadPort.findByShopId(shopId).stream()
             .mapToLong(ShopTemporaryClosure::days)
             .sum();
         if (accumulatedDays + temporaryClosure.days() > MAX_ACCUMULATED_CLOSURE_DAYS) {
             throw new ApplicationException(CeoErrorCode.SHOP_TEMPORARY_CLOSURE_LIMIT_EXCEEDED);
         }
 
-        ShopTemporaryClosure saved = shopTemporaryClosurePersistencePort.save(temporaryClosure);
+        ShopTemporaryClosure saved = shopTemporaryClosureSavePort.save(temporaryClosure);
 
         ShopChangeActor actor = ShopChangeActor.ceo(ceoId);
         shopChangeHistoryRecorder.record(

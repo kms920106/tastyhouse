@@ -8,16 +8,19 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeCommand;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardHiddenChangeUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopContentBoardPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopContentBoardSavePort;
 
 @Service
 @Transactional
 class ShopContentBoardHiddenChangeService implements ShopContentBoardHiddenChangeUseCase {
 
-    private final ShopContentBoardPersistencePort shopContentBoardPersistencePort;
+    private final ShopContentBoardLoadPort shopContentBoardLoadPort;
+    private final ShopContentBoardSavePort shopContentBoardSavePort;
 
-    public ShopContentBoardHiddenChangeService(ShopContentBoardPersistencePort shopContentBoardPersistencePort) {
-        this.shopContentBoardPersistencePort = shopContentBoardPersistencePort;
+    public ShopContentBoardHiddenChangeService(ShopContentBoardLoadPort shopContentBoardLoadPort, ShopContentBoardSavePort shopContentBoardSavePort) {
+        this.shopContentBoardLoadPort = shopContentBoardLoadPort;
+        this.shopContentBoardSavePort = shopContentBoardSavePort;
     }
 
     @Override
@@ -30,11 +33,11 @@ class ShopContentBoardHiddenChangeService implements ShopContentBoardHiddenChang
         } else {
             shopContentBoard.unhide();
         }
-        shopContentBoardPersistencePort.save(shopContentBoard);
+        shopContentBoardSavePort.save(shopContentBoard);
     }
 
     private ShopContentBoard loadContentBoard(Long contentBoardId) {
-        return shopContentBoardPersistencePort.findById(contentBoardId)
+        return shopContentBoardLoadPort.findById(contentBoardId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_CONTENT_BOARD_NOT_FOUND));
     }
 }

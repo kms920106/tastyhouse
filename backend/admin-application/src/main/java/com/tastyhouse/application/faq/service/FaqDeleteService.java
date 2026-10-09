@@ -7,7 +7,8 @@ import com.tastyhouse.domain.faq.model.Faq;
 import com.tastyhouse.domain.faq.vo.FaqId;
 import com.tastyhouse.application.faq.port.in.FaqDeleteCommand;
 import com.tastyhouse.application.faq.port.in.FaqDeleteUseCase;
-import com.tastyhouse.application.faq.port.out.write.FaqPersistencePort;
+import com.tastyhouse.application.faq.port.out.write.FaqLoadPort;
+import com.tastyhouse.application.faq.port.out.write.FaqSavePort;
 import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
@@ -15,10 +16,12 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Transactional
 class FaqDeleteService implements FaqDeleteUseCase {
 
-    private final FaqPersistencePort faqPersistencePort;
+    private final FaqLoadPort faqLoadPort;
+    private final FaqSavePort faqSavePort;
 
-    public FaqDeleteService(FaqPersistencePort faqPersistencePort) {
-        this.faqPersistencePort = faqPersistencePort;
+    public FaqDeleteService(FaqLoadPort faqLoadPort, FaqSavePort faqSavePort) {
+        this.faqLoadPort = faqLoadPort;
+        this.faqSavePort = faqSavePort;
     }
 
     @Override
@@ -27,11 +30,11 @@ class FaqDeleteService implements FaqDeleteUseCase {
         Faq faq = findFaqOrThrow(faqId);
 
         faq.delete();
-        faqPersistencePort.save(faq);
+        faqSavePort.save(faq);
     }
 
     private Faq findFaqOrThrow(FaqId faqId) {
-        return faqPersistencePort.findById(faqId)
+        return faqLoadPort.findById(faqId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_NOT_FOUND));
     }
 }

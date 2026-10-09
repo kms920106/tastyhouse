@@ -12,7 +12,7 @@ import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ProhibitedWordPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ProhibitedWordLoadPort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -23,7 +23,7 @@ class ShopRiderGuideValidatorTest {
     private ShopRiderGuideValidator shopRiderGuideValidator;
     private Shop shop;
 
-    private static class FakeProhibitedWordPersistencePort implements ProhibitedWordPersistencePort {
+    private static class FakeProhibitedWordLoadPort implements ProhibitedWordLoadPort {
 
         @Override
         public List<ProhibitedWord> findAll() {
@@ -34,7 +34,7 @@ class ShopRiderGuideValidatorTest {
     @BeforeEach
     void setUp() {
         shopRiderGuideValidator = new ShopRiderGuideValidator(
-            new ProhibitedWordValidator(new FakeProhibitedWordPersistencePort())
+            new ProhibitedWordValidator(new FakeProhibitedWordLoadPort())
         );
         shop = Shop.reconstitute(
             1L, null, null, "맛있는 분식",

@@ -13,7 +13,7 @@ import com.tastyhouse.domain.member.referral.model.MemberReferralStatus;
 import com.tastyhouse.domain.member.referral.vo.ReferralId;
 import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
-import com.tastyhouse.testsupport.member.referral.service.FakeMemberReferralPersistencePort;
+import com.tastyhouse.testsupport.member.referral.service.FakeMemberReferralPersistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -23,10 +23,10 @@ class ReferralRegistrationServiceTest {
     private static final MemberId REFERRER_ID = MemberId.of(101L);
     private static final MemberId REFEREE_ID = MemberId.of(202L);
 
-    private final FakeMemberReferralPersistencePort referralPersistencePort = new FakeMemberReferralPersistencePort();
+    private final FakeMemberReferralPersistence referralPersistence = new FakeMemberReferralPersistence();
     private final DomainEventPublisherStub eventPublisher = new DomainEventPublisherStub();
     private final ReferralRegistrationService service =
-        new ReferralRegistrationService(referralPersistencePort, eventPublisher);
+        new ReferralRegistrationService(referralPersistence, referralPersistence, eventPublisher);
 
     @Test
     @DisplayName("등록하면 추천 관계는 PENDING으로 저장되고 보상 완료 전이는 일어나지 않는다")
@@ -34,7 +34,7 @@ class ReferralRegistrationServiceTest {
         service.register(REFERRER_ID, REFEREE_ID);
 
         ReferralId referralId = publishedEvent().referralId();
-        MemberReferral saved = referralPersistencePort.findById(referralId).orElseThrow();
+        MemberReferral saved = referralPersistence.findById(referralId).orElseThrow();
 
         assertThat(saved.getStatus())
             .as("보상 적립 전이므로 REWARDED가 아니어야 한다 — 적립 실패 건을 상태로 식별하기 위함")

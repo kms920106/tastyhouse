@@ -7,15 +7,15 @@ import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
 import com.tastyhouse.domain.shop.vo.ShopId;
-import com.tastyhouse.application.shop.port.out.write.ShopChangeHistoryPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.ShopChangeHistorySavePort;
 
 @Service
 public class ShopChangeHistoryRecorder {
 
-    private final ShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort;
+    private final ShopChangeHistorySavePort shopChangeHistorySavePort;
 
-    public ShopChangeHistoryRecorder(ShopChangeHistoryPersistencePort shopChangeHistoryPersistencePort) {
-        this.shopChangeHistoryPersistencePort = shopChangeHistoryPersistencePort;
+    public ShopChangeHistoryRecorder(ShopChangeHistorySavePort shopChangeHistorySavePort) {
+        this.shopChangeHistorySavePort = shopChangeHistorySavePort;
     }
 
     public void record(
@@ -34,6 +34,6 @@ public class ShopChangeHistoryRecorder {
             previousValue,
             newValue
         );
-        shopChangeHistoryPersistencePort.save(history);
+        shopChangeHistorySavePort.save(history);
     }
 }

@@ -2,10 +2,10 @@ package com.tastyhouse.infrastructure.persistence.shop.persistence;
 
 import org.springframework.stereotype.Repository;
 
-import com.tastyhouse.application.shop.port.out.write.StationPersistencePort;
+import com.tastyhouse.application.shop.port.out.write.StationLoadPort;
 
 @Repository
-class StationPersistenceAdapter implements StationPersistencePort {
+class StationPersistenceAdapter implements StationLoadPort {
 
     private final StationJpaRepository stationJpaRepository;
 

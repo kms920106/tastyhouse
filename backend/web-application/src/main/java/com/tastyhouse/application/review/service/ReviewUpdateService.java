@@ -10,10 +10,10 @@ import com.tastyhouse.domain.review.model.Review;
 import com.tastyhouse.domain.review.model.ReviewRegistration;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.domain.shared.model.OrderMethod;
-import com.tastyhouse.application.order.port.out.write.OrderPersistencePort;
+import com.tastyhouse.application.order.port.out.write.OrderLoadPort;
 import com.tastyhouse.application.review.port.in.ReviewUpdateCommand;
 import com.tastyhouse.application.review.port.in.ReviewUpdateUseCase;
-import com.tastyhouse.application.review.port.out.write.ReviewPersistencePort;
+import com.tastyhouse.application.review.port.out.write.ReviewLoadPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -24,17 +24,17 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 class ReviewUpdateService implements ReviewUpdateUseCase {
 
     private final ReviewLifecycleService reviewLifecycleService;
-    private final ReviewPersistencePort reviewPersistencePort;
-    private final OrderPersistencePort orderPersistencePort;
+    private final ReviewLoadPort reviewLoadPort;
+    private final OrderLoadPort orderLoadPort;
 
     public ReviewUpdateService(
         ReviewLifecycleService reviewLifecycleService,
-        ReviewPersistencePort reviewPersistencePort,
-        OrderPersistencePort orderPersistencePort
+        ReviewLoadPort reviewLoadPort,
+        OrderLoadPort orderLoadPort
     ) {
         this.reviewLifecycleService = reviewLifecycleService;
-        this.reviewPersistencePort = reviewPersistencePort;
-        this.orderPersistencePort = orderPersistencePort;
+        this.reviewLoadPort = reviewLoadPort;
+        this.orderLoadPort = orderLoadPort;
     }
 
     @Override
@@ -43,7 +43,7 @@ class ReviewUpdateService implements ReviewUpdateUseCase {
         String deliveryComment = command.deliveryComment();
 
         ReviewId targetReviewId = ReviewId.of(command.reviewId());
-        Review review = reviewPersistencePort.findById(targetReviewId)
+        Review review = reviewLoadPort.findById(targetReviewId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.REVIEW_NOT_FOUND));
         validateDeliveryRating(review.getOrderId(), deliveryRating, deliveryComment);
 
@@ -71,7 +71,7 @@ class ReviewUpdateService implements ReviewUpdateUseCase {
             throw new ApplicationException(WebErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
         }
 
-        Order order = orderPersistencePort.findById(orderId)
+        Order order = orderLoadPort.findById(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         if (order.getOrderMethod() != OrderMethod.DELIVERY) {
             throw new ApplicationException(WebErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);

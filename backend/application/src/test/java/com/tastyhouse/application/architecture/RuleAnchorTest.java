@@ -94,11 +94,11 @@ class RuleAnchorTest {
     void writePortsExist() {
         assertThat(classes.stream()
             .filter(c -> resideInAPackage("..port.out.write..").test(c))
-            .filter(c -> c.isInterface() && c.getSimpleName().endsWith("Port"))
+            .filter(c -> c.isInterface() && (c.getSimpleName().endsWith("LoadPort") || c.getSimpleName().endsWith("SavePort")))
             .count())
-            .as("write 포트(port.out.write의 *Port)가 0건이면 "
+            .as("write 포트(port.out.write의 *LoadPort·*SavePort)가 0건이면 "
                 + "queryServicesShouldNotDependOnWritePorts가 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(107);
+            .isGreaterThanOrEqualTo(192);
     }
 
     @Test

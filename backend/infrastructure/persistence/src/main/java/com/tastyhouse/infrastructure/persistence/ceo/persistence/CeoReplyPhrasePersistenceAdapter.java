@@ -8,12 +8,13 @@ import org.springframework.stereotype.Repository;
 import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
-import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhrasePersistencePort;
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseLoadPort;
+import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.ceo.persistence.QCeoReplyPhraseJpaEntity.ceoReplyPhraseJpaEntity;
 
 @Repository
-class CeoReplyPhrasePersistenceAdapter implements CeoReplyPhrasePersistencePort {
+class CeoReplyPhrasePersistenceAdapter implements CeoReplyPhraseLoadPort, CeoReplyPhraseSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final CeoReplyPhraseJpaRepository ceoReplyPhraseJpaRepository;

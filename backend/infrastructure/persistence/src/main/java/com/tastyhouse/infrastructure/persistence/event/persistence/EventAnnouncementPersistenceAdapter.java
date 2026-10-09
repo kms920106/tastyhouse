@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.event.model.EventAnnouncement;
 import com.tastyhouse.domain.event.vo.EventId;
-import com.tastyhouse.application.event.port.out.write.EventAnnouncementPersistencePort;
+import com.tastyhouse.application.event.port.out.write.EventAnnouncementLoadPort;
+import com.tastyhouse.application.event.port.out.write.EventAnnouncementSavePort;
 
 import static com.tastyhouse.infrastructure.persistence.event.persistence.QEventAnnouncementJpaEntity.eventAnnouncementJpaEntity;
 
 @Repository
-class EventAnnouncementPersistenceAdapter implements EventAnnouncementPersistencePort {
+class EventAnnouncementPersistenceAdapter implements EventAnnouncementLoadPort, EventAnnouncementSavePort {
 
     private final JPAQueryFactory queryFactory;
     private final EventAnnouncementJpaRepository eventAnnouncementJpaRepository;
