@@ -24,23 +24,25 @@ class ShopOrderNoticeQueryAdapter implements ShopOrderNoticeQueryPort, ShopOrder
 
     @Override
     public Optional<ShopOrderNoticeResult> findOrderNotice(Long shopId) {
-        return Optional.ofNullable(queryFactory
+        ShopOrderNoticeResult result = queryFactory
             .select(projection())
             .from(shopOrderNoticeJpaEntity)
             .where(shopOrderNoticeJpaEntity.shopId.eq(shopId))
-            .fetchFirst());
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     @Override
     public Optional<ShopOrderNoticeResult> findVisibleOrderNotice(Long shopId) {
-        return Optional.ofNullable(queryFactory
+        ShopOrderNoticeResult result = queryFactory
             .select(projection())
             .from(shopOrderNoticeJpaEntity)
             .where(
                 shopOrderNoticeJpaEntity.shopId.eq(shopId),
                 shopOrderNoticeJpaEntity.hidden.isFalse()
             )
-            .fetchFirst());
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     private ConstructorExpression<ShopOrderNoticeResult> projection() {

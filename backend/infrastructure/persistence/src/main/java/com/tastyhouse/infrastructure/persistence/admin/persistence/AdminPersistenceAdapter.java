@@ -23,11 +23,11 @@ class AdminPersistenceAdapter implements AdminPersistencePort {
 
     @Override
     public Optional<Admin> findByUsername(String username) {
-        return Optional.ofNullable(queryFactory
-                .selectFrom(adminJpaEntity)
-                .where(adminJpaEntity.username.eq(username))
-                .fetchOne())
-            .map(AdminMapper::toDomain);
+        AdminJpaEntity entity = queryFactory
+            .selectFrom(adminJpaEntity)
+            .where(adminJpaEntity.username.eq(username))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(AdminMapper::toDomain);
     }
 
     @Override

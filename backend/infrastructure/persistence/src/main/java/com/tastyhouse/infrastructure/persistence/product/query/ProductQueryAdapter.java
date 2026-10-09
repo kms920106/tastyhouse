@@ -727,32 +727,31 @@ class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQueryPort, 
 
     @Override
     public Optional<ProductDetailResult> findProductDetailById(Long productId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ProductDetailResult.class,
+        ProductDetailResult result = queryFactory
+            .select(Projections.constructor(ProductDetailResult.class,
                 productJpaEntity.id,
-                    productJpaEntity.shopId,
-                    productJpaEntity.productCategoryId,
-                    productJpaEntity.name,
-                    productJpaEntity.description,
-                    productJpaEntity.originalPrice,
-                    productJpaEntity.discountInfo.discountPrice,
-                    productJpaEntity.discountInfo.discountRate,
-                    productJpaEntity.rating,
-                    productJpaEntity.reviewCount,
-                    productJpaEntity.representative,
-                    productJpaEntity.spiciness,
-                    productJpaEntity.soldOut,
-                    productJpaEntity.visible,
-                    productJpaEntity.sort,
-                    productJpaEntity.weightText,
-                    productJpaEntity.createdAt,
-                    productJpaEntity.updatedAt
-                ))
-                .from(productJpaEntity)
-                .where(productJpaEntity.id.eq(productId), notDeleted())
-                .fetchOne()
-        );
+                productJpaEntity.shopId,
+                productJpaEntity.productCategoryId,
+                productJpaEntity.name,
+                productJpaEntity.description,
+                productJpaEntity.originalPrice,
+                productJpaEntity.discountInfo.discountPrice,
+                productJpaEntity.discountInfo.discountRate,
+                productJpaEntity.rating,
+                productJpaEntity.reviewCount,
+                productJpaEntity.representative,
+                productJpaEntity.spiciness,
+                productJpaEntity.soldOut,
+                productJpaEntity.visible,
+                productJpaEntity.sort,
+                productJpaEntity.weightText,
+                productJpaEntity.createdAt,
+                productJpaEntity.updatedAt
+            ))
+            .from(productJpaEntity)
+            .where(productJpaEntity.id.eq(productId), notDeleted())
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -834,67 +833,65 @@ class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQueryPort, 
 
     @Override
     public Optional<ProductManagementDetailResult> findProductManagementDetailById(Long productId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ProductManagementDetailResult.class,
+        ProductManagementDetailResult result = queryFactory
+            .select(Projections.constructor(ProductManagementDetailResult.class,
                 productJpaEntity.id,
-                    productJpaEntity.shopId,
-                    productJpaEntity.productCategoryId,
-                    productCategoryJpaEntity.name,
-                    productJpaEntity.name,
-                    productJpaEntity.composition,
-                    productJpaEntity.description,
-                    productJpaEntity.originalPrice,
-                    productJpaEntity.discountInfo.discountPrice,
-                    productJpaEntity.singleServing,
-                    productJpaEntity.spiciness,
-                    productJpaEntity.representative,
-                    productJpaEntity.ratingExcluded,
-                    productJpaEntity.soldOut,
-                    productJpaEntity.visible,
-                    fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
-                    productJpaEntity.vegetarianType.stringValue(),
-                    productJpaEntity.weightText,
-                    productJpaEntity.exposureStartDate.isNotNull()
-                        .or(productJpaEntity.exposureEndDate.isNotNull())
-                        .or(existsExposureHours(productJpaEntity.id))
-                ))
-                .from(productJpaEntity)
-                .leftJoin(productCategoryJpaEntity).on(productJpaEntity.productCategoryId.eq(productCategoryJpaEntity.id))
-                .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
-                .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
-                .where(productJpaEntity.id.eq(productId), notDeleted())
-                .fetchOne()
-        );
+                productJpaEntity.shopId,
+                productJpaEntity.productCategoryId,
+                productCategoryJpaEntity.name,
+                productJpaEntity.name,
+                productJpaEntity.composition,
+                productJpaEntity.description,
+                productJpaEntity.originalPrice,
+                productJpaEntity.discountInfo.discountPrice,
+                productJpaEntity.singleServing,
+                productJpaEntity.spiciness,
+                productJpaEntity.representative,
+                productJpaEntity.ratingExcluded,
+                productJpaEntity.soldOut,
+                productJpaEntity.visible,
+                fileUrlResolver.urlOf(uploadedFileJpaEntity.filePath),
+                productJpaEntity.vegetarianType.stringValue(),
+                productJpaEntity.weightText,
+                productJpaEntity.exposureStartDate.isNotNull()
+                    .or(productJpaEntity.exposureEndDate.isNotNull())
+                    .or(existsExposureHours(productJpaEntity.id))
+            ))
+            .from(productJpaEntity)
+            .leftJoin(productCategoryJpaEntity).on(productJpaEntity.productCategoryId.eq(productCategoryJpaEntity.id))
+            .leftJoin(productImageJpaEntity).on(representativeImageOf(productJpaEntity.id))
+            .leftJoin(uploadedFileJpaEntity).on(productImageJpaEntity.imageFileId.eq(uploadedFileJpaEntity.id))
+            .where(productJpaEntity.id.eq(productId), notDeleted())
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     @Override
     public Optional<ProductNutritionResult> findNutrition(Long productId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ProductNutritionResult.class,
-                    productNutritionJpaEntity.id,
-                    productNutritionJpaEntity.productId,
-                    productNutritionJpaEntity.servingSize,
-                    productNutritionJpaEntity.totalAmount,
-                    productNutritionJpaEntity.flavor,
-                    productNutritionJpaEntity.size,
-                    productNutritionJpaEntity.calorie,
-                    productNutritionJpaEntity.sugars,
-                    productNutritionJpaEntity.protein,
-                    productNutritionJpaEntity.saturatedFat,
-                    productNutritionJpaEntity.natrium,
-                    productNutritionJpaEntity.carbohydrate,
-                    productNutritionJpaEntity.cholesterol,
-                    productNutritionJpaEntity.fat,
-                    productNutritionJpaEntity.transFat,
-                    productNutritionJpaEntity.caffeine,
-                    productNutritionJpaEntity.setMenu
-                ))
-                .from(productNutritionJpaEntity)
-                .where(productNutritionJpaEntity.productId.eq(productId))
-                .fetchFirst()
-        );
+        ProductNutritionResult result = queryFactory
+            .select(Projections.constructor(ProductNutritionResult.class,
+                productNutritionJpaEntity.id,
+                productNutritionJpaEntity.productId,
+                productNutritionJpaEntity.servingSize,
+                productNutritionJpaEntity.totalAmount,
+                productNutritionJpaEntity.flavor,
+                productNutritionJpaEntity.size,
+                productNutritionJpaEntity.calorie,
+                productNutritionJpaEntity.sugars,
+                productNutritionJpaEntity.protein,
+                productNutritionJpaEntity.saturatedFat,
+                productNutritionJpaEntity.natrium,
+                productNutritionJpaEntity.carbohydrate,
+                productNutritionJpaEntity.cholesterol,
+                productNutritionJpaEntity.fat,
+                productNutritionJpaEntity.transFat,
+                productNutritionJpaEntity.caffeine,
+                productNutritionJpaEntity.setMenu
+            ))
+            .from(productNutritionJpaEntity)
+            .where(productNutritionJpaEntity.productId.eq(productId))
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -1452,7 +1449,7 @@ class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQueryPort, 
 
     @Override
     public boolean existsProductInShop(Long productId, Long shopId) {
-        Integer found = queryFactory
+        return queryFactory
             .selectOne()
             .from(productJpaEntity)
             .leftJoin(productShopLinkJpaEntity)
@@ -1465,8 +1462,7 @@ class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQueryPort, 
                 notDeleted(),
                 productShopLinkJpaEntity.id.isNotNull().or(productJpaEntity.shopId.eq(shopId))
             )
-            .fetchFirst();
-        return found != null;
+            .fetchFirst() != null;
     }
 
     @Override
@@ -1605,33 +1601,31 @@ class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQueryPort, 
 
     @Override
     public Optional<ProductVegetarianSettingResult> findVegetarianSetting(Long productId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ProductVegetarianSettingResult.class,
-                    productJpaEntity.id,
-                    productJpaEntity.shopId,
-                    productJpaEntity.vegetarianType
-                ))
-                .from(productJpaEntity)
-                .where(productJpaEntity.id.eq(productId), notDeleted())
-                .fetchFirst()
-        );
+        ProductVegetarianSettingResult result = queryFactory
+            .select(Projections.constructor(ProductVegetarianSettingResult.class,
+                productJpaEntity.id,
+                productJpaEntity.shopId,
+                productJpaEntity.vegetarianType
+            ))
+            .from(productJpaEntity)
+            .where(productJpaEntity.id.eq(productId), notDeleted())
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     @Override
     public Optional<ProductExposurePeriodResult> findExposurePeriod(Long productId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ProductExposurePeriodResult.class,
-                    productJpaEntity.id,
-                    productJpaEntity.shopId,
-                    productJpaEntity.exposureStartDate,
-                    productJpaEntity.exposureEndDate
-                ))
-                .from(productJpaEntity)
-                .where(productJpaEntity.id.eq(productId), notDeleted())
-                .fetchFirst()
-        );
+        ProductExposurePeriodResult result = queryFactory
+            .select(Projections.constructor(ProductExposurePeriodResult.class,
+                productJpaEntity.id,
+                productJpaEntity.shopId,
+                productJpaEntity.exposureStartDate,
+                productJpaEntity.exposureEndDate
+            ))
+            .from(productJpaEntity)
+            .where(productJpaEntity.id.eq(productId), notDeleted())
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     private com.querydsl.jpa.JPQLQuery<ProductImageChangeRequestResult> imageChangeRequestProjection() {
@@ -1757,18 +1751,17 @@ class ProductQueryAdapter implements ProductQueryPort, ProductBbqSyncQueryPort, 
 
     @Override
     public Optional<ProductBbqSyncTargetResult> findFirstBbqSyncTarget() {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ProductBbqSyncTargetResult.class,
+        ProductBbqSyncTargetResult result = queryFactory
+            .select(Projections.constructor(ProductBbqSyncTargetResult.class,
                 productBbqJpaEntity.productId,
-                    productBbqJpaEntity.bbqMenuId,
-                    productJpaEntity.name
-                ))
-                .from(productBbqJpaEntity)
-                .innerJoin(productJpaEntity).on(productBbqJpaEntity.productId.eq(productJpaEntity.id))
-                .where(productBbqJpaEntity.optionsSynced.eq(false), notDeleted())
-                .fetchFirst()
-        );
+                productBbqJpaEntity.bbqMenuId,
+                productJpaEntity.name
+            ))
+            .from(productBbqJpaEntity)
+            .innerJoin(productJpaEntity).on(productBbqJpaEntity.productId.eq(productJpaEntity.id))
+            .where(productBbqJpaEntity.optionsSynced.eq(false), notDeleted())
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     private BooleanExpression representativeImageOf(NumberPath<Long> productIdPath) {

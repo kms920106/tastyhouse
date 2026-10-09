@@ -45,12 +45,11 @@ class MenuReviewPersistenceAdapter implements MenuReviewPersistencePort {
 
     @Override
     public boolean existsByOrderProductId(OrderProductId orderProductId) {
-        Integer result = queryFactory
+        return queryFactory
             .selectOne()
             .from(menuReviewJpaEntity)
             .where(menuReviewJpaEntity.orderProductId.eq(orderProductId.value()))
-            .fetchFirst();
-        return result != null;
+            .fetchFirst() != null;
     }
 
     @Override

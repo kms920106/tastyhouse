@@ -735,11 +735,12 @@ class ReviewQueryAdapter implements ReviewQueryPort, ReviewTagQueryPort {
 
     @Override
     public Optional<Long> findProductIdByReviewId(Long reviewId) {
-        return Optional.ofNullable(queryFactory
+        Long result = queryFactory
             .select(reviewJpaEntity.productId)
             .from(reviewJpaEntity)
             .where(reviewJpaEntity.id.eq(reviewId))
-            .fetchOne());
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     @Override

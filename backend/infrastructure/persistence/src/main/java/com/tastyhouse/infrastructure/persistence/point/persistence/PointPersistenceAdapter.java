@@ -24,11 +24,11 @@ class PointPersistenceAdapter implements PointPersistencePort {
 
     @Override
     public Optional<Point> findByMemberId(MemberId memberId) {
-        PointJpaEntity result = queryFactory
+        PointJpaEntity entity = queryFactory
             .selectFrom(pointJpaEntity)
             .where(pointJpaEntity.memberId.eq(memberId.value()))
             .fetchOne();
-        return Optional.ofNullable(result).map(PointMapper::toDomain);
+        return Optional.ofNullable(entity).map(PointMapper::toDomain);
     }
 
     @Override

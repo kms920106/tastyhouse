@@ -24,10 +24,11 @@ class ShopReviewDisplaySettingPersistenceAdapter implements ShopReviewDisplaySet
 
     @Override
     public Optional<ShopReviewDisplaySetting> findByShopId(ShopId shopId) {
-        return Optional.ofNullable(queryFactory.selectFrom(shopReviewDisplaySettingJpaEntity)
+        ShopReviewDisplaySettingJpaEntity entity = queryFactory
+            .selectFrom(shopReviewDisplaySettingJpaEntity)
             .where(shopReviewDisplaySettingJpaEntity.shopId.eq(shopId.value()))
-            .fetchOne())
-            .map(ShopReviewDisplaySettingMapper::toDomain);
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ShopReviewDisplaySettingMapper::toDomain);
     }
 
     @Override

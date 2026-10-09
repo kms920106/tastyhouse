@@ -38,7 +38,7 @@ class ShopDeliveryAreaAdjustmentRequestPersistenceAdapter implements ShopDeliver
         if (statuses.isEmpty()) {
             return false;
         }
-        Integer found = queryFactory
+        return queryFactory
             .selectOne()
             .from(shopDeliveryAreaAdjustmentRequestJpaEntity)
             .where(
@@ -47,8 +47,7 @@ class ShopDeliveryAreaAdjustmentRequestPersistenceAdapter implements ShopDeliver
                     statuses.stream().map(DeliveryAreaAdjustmentStatus::name).toList()
                 )
             )
-            .fetchFirst();
-        return found != null;
+            .fetchFirst() != null;
     }
 
     @Override

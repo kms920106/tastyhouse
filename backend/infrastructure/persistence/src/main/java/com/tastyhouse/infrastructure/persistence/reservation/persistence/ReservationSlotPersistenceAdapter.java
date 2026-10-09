@@ -28,14 +28,15 @@ class ReservationSlotPersistenceAdapter implements ReservationSlotPersistencePor
 
     @Override
     public Optional<ReservationSlot> findByShopAndDateAndTime(ShopId shopId, LocalDate date, LocalTime time) {
-        return Optional.ofNullable(queryFactory.selectFrom(reservationSlotJpaEntity)
+        ReservationSlotJpaEntity entity = queryFactory
+            .selectFrom(reservationSlotJpaEntity)
             .where(
                 reservationSlotJpaEntity.shopId.eq(shopId.value()),
                 reservationSlotJpaEntity.slotDate.eq(date),
                 reservationSlotJpaEntity.slotTime.eq(time)
             )
-            .fetchOne())
-            .map(ReservationSlotMapper::toDomain);
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ReservationSlotMapper::toDomain);
     }
 
     @Override

@@ -327,10 +327,11 @@ class OrderQueryAdapter implements OrderQueryPort, OrderManagementQueryPort {
 
     @Override
     public Optional<Long> findOrderMemberId(Long orderId) {
-        return Optional.ofNullable(queryFactory
+        Long result = queryFactory
             .select(orderJpaEntity.memberId)
             .from(orderJpaEntity)
             .where(orderJpaEntity.id.eq(orderId))
-            .fetchOne());
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 }

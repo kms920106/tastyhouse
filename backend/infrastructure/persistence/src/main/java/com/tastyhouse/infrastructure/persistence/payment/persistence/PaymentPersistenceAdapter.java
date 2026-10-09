@@ -30,11 +30,11 @@ class PaymentPersistenceAdapter implements PaymentPersistencePort {
 
     @Override
     public Optional<Payment> findByPgOrderId(String pgOrderId) {
-        return Optional.ofNullable(
-            queryFactory.selectFrom(paymentJpaEntity)
-                .where(paymentJpaEntity.pgOrderId.eq(pgOrderId))
-                .fetchOne()
-        ).map(PaymentMapper::toDomain);
+        PaymentJpaEntity entity = queryFactory
+            .selectFrom(paymentJpaEntity)
+            .where(paymentJpaEntity.pgOrderId.eq(pgOrderId))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(PaymentMapper::toDomain);
     }
 
     @Override

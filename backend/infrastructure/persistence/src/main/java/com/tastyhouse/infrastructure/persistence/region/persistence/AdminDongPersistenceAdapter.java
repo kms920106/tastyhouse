@@ -106,15 +106,16 @@ class AdminDongPersistenceAdapter implements AdminDongPersistencePort {
 
     @Override
     public Optional<AdminDong> findByDongNameMatch(String sidoName, String sigunguName, String dongName) {
-        return Optional.ofNullable(queryFactory.selectFrom(adminDongJpaEntity)
+        AdminDongJpaEntity entity = queryFactory
+            .selectFrom(adminDongJpaEntity)
             .where(
                 adminDongJpaEntity.sidoName.eq(sidoName),
                 adminDongJpaEntity.sigunguName.eq(sigunguName),
                 adminDongJpaEntity.dongName.eq(dongName),
                 adminDongJpaEntity.active.isTrue()
             )
-            .fetchOne())
-            .map(AdminDongMapper::toDomain);
+            .fetchOne();
+        return Optional.ofNullable(entity).map(AdminDongMapper::toDomain);
     }
 
     @Override

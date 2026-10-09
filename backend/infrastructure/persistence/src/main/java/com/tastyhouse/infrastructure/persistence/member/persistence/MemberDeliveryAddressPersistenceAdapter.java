@@ -50,13 +50,14 @@ class MemberDeliveryAddressPersistenceAdapter implements MemberDeliveryAddressPe
 
     @Override
     public Optional<MemberDeliveryAddress> findDefaultByMemberId(MemberId memberId) {
-        return Optional.ofNullable(queryFactory.selectFrom(memberDeliveryAddressJpaEntity)
+        MemberDeliveryAddressJpaEntity entity = queryFactory
+            .selectFrom(memberDeliveryAddressJpaEntity)
             .where(
                 memberDeliveryAddressJpaEntity.memberId.eq(memberId.value()),
                 memberDeliveryAddressJpaEntity.defaultAddress.isTrue()
             )
-            .fetchOne())
-            .map(MemberDeliveryAddressMapper::toDomain);
+            .fetchOne();
+        return Optional.ofNullable(entity).map(MemberDeliveryAddressMapper::toDomain);
     }
 
     @Override

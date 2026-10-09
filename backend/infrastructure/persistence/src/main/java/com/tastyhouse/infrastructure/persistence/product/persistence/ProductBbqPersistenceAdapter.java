@@ -24,12 +24,11 @@ class ProductBbqPersistenceAdapter implements ProductBbqPersistencePort {
 
     @Override
     public Optional<ProductBbq> findByProductId(ProductId productId) {
-        return Optional.ofNullable(
-            queryFactory
-                .selectFrom(productBbqJpaEntity)
-                .where(productBbqJpaEntity.productId.eq(productId.value()))
-                .fetchOne()
-        ).map(ProductBbqMapper::toDomain);
+        ProductBbqJpaEntity entity = queryFactory
+            .selectFrom(productBbqJpaEntity)
+            .where(productBbqJpaEntity.productId.eq(productId.value()))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(ProductBbqMapper::toDomain);
     }
 
     @Override

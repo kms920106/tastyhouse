@@ -47,7 +47,7 @@ class ShopDeliveryTipQueryAdapter implements ShopDeliveryTipQueryPort {
 
     @Override
     public Optional<ShopDeliveryTipSettingResult> findSetting(Long shopId) {
-        return Optional.ofNullable(queryFactory
+        ShopDeliveryTipSettingResult result = queryFactory
             .select(Projections.constructor(ShopDeliveryTipSettingResult.class,
                 shopDeliveryTipSettingJpaEntity.id,
                 shopDeliveryTipSettingJpaEntity.extraTipType.stringValue(),
@@ -57,7 +57,8 @@ class ShopDeliveryTipQueryAdapter implements ShopDeliveryTipQueryPort {
             ))
             .from(shopDeliveryTipSettingJpaEntity)
             .where(shopDeliveryTipSettingJpaEntity.shopId.eq(shopId))
-            .fetchFirst());
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     @Override

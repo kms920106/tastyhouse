@@ -33,12 +33,11 @@ class EventAnnouncementPersistenceAdapter implements EventAnnouncementPersistenc
 
     @Override
     public boolean existsByEventId(EventId eventId) {
-        Integer result = queryFactory
+        return queryFactory
             .selectOne()
             .from(eventAnnouncementJpaEntity)
             .where(eventAnnouncementJpaEntity.eventId.eq(eventId.value()))
-            .fetchFirst();
-        return result != null;
+            .fetchFirst() != null;
     }
 
     @Override

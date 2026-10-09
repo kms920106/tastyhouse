@@ -23,11 +23,11 @@ class TagPersistenceAdapter implements TagPersistencePort {
 
     @Override
     public Optional<Tag> findByTagName(String tagName) {
-        TagJpaEntity result = queryFactory
+        TagJpaEntity entity = queryFactory
             .selectFrom(tagJpaEntity)
             .where(tagJpaEntity.tagName.eq(tagName))
             .fetchOne();
-        return Optional.ofNullable(result).map(TagMapper::toDomain);
+        return Optional.ofNullable(entity).map(TagMapper::toDomain);
     }
 
     @Override

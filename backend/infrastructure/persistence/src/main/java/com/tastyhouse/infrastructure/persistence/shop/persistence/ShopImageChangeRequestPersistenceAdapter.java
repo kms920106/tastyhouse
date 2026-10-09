@@ -46,7 +46,7 @@ class ShopImageChangeRequestPersistenceAdapter implements ShopImageChangeRequest
 
     @Override
     public boolean existsByShopIdAndImageTypeAndStatus(Long shopId, ShopImageType imageType, ApprovalStatus status) {
-        Integer result = queryFactory
+        return queryFactory
             .selectOne()
             .from(shopImageChangeRequestJpaEntity)
             .where(
@@ -54,21 +54,19 @@ class ShopImageChangeRequestPersistenceAdapter implements ShopImageChangeRequest
                 imageTypeEq(imageType == null ? null : imageType.name()),
                 statusEq(status == null ? null : status.name())
             )
-            .fetchFirst();
-        return result != null;
+            .fetchFirst() != null;
     }
 
     @Override
     public boolean existsByShopIdAndStatus(Long shopId, ApprovalStatus status) {
-        Integer result = queryFactory
+        return queryFactory
             .selectOne()
             .from(shopImageChangeRequestJpaEntity)
             .where(
                 shopImageChangeRequestJpaEntity.shopId.eq(shopId),
                 statusEq(status == null ? null : status.name())
             )
-            .fetchFirst();
-        return result != null;
+            .fetchFirst() != null;
     }
 
     private BooleanExpression statusEq(String status) {

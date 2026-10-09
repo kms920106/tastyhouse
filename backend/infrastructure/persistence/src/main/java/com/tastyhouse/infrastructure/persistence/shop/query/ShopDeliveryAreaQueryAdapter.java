@@ -69,7 +69,7 @@ class ShopDeliveryAreaQueryAdapter implements ShopDeliveryAreaQueryPort {
 
     @Override
     public Optional<ShopLocationResult> findShopLocation(Long ceoId, Long shopId) {
-        return Optional.ofNullable(queryFactory
+        ShopLocationResult result = queryFactory
             .select(Projections.constructor(ShopLocationResult.class,
                 shopJpaEntity.id,
                 shopJpaEntity.latitude,
@@ -77,12 +77,13 @@ class ShopDeliveryAreaQueryAdapter implements ShopDeliveryAreaQueryPort {
             ))
             .from(shopJpaEntity)
             .where(shopJpaEntity.id.eq(shopId), shopJpaEntity.ceoId.eq(ceoId))
-            .fetchOne());
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     @Override
     public Optional<ShopDeliveryAreaPolygonResult> findPolygon(Long shopId) {
-        return Optional.ofNullable(queryFactory
+        ShopDeliveryAreaPolygonResult result = queryFactory
             .select(Projections.constructor(ShopDeliveryAreaPolygonResult.class,
                 shopDeliveryAreaPolygonJpaEntity.id,
                 shopDeliveryAreaPolygonJpaEntity.rings,
@@ -95,7 +96,8 @@ class ShopDeliveryAreaQueryAdapter implements ShopDeliveryAreaQueryPort {
             ))
             .from(shopDeliveryAreaPolygonJpaEntity)
             .where(shopDeliveryAreaPolygonJpaEntity.shopId.eq(shopId))
-            .fetchOne());
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     @Override

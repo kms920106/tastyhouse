@@ -37,7 +37,7 @@ class MailVerificationPersistenceAdapter implements MailVerificationPersistenceP
 
     @Override
     public Optional<MailVerification> findLatestPendingByEmail(String email, MailVerificationStatus status) {
-        MailVerificationJpaEntity result = queryFactory
+        MailVerificationJpaEntity entity = queryFactory
             .selectFrom(mailVerificationJpaEntity)
             .where(
                 mailVerificationJpaEntity.email.eq(email),
@@ -46,7 +46,7 @@ class MailVerificationPersistenceAdapter implements MailVerificationPersistenceP
             .orderBy(mailVerificationJpaEntity.createdAt.desc())
             .limit(1)
             .fetchOne();
-        return Optional.ofNullable(result).map(MailVerificationMapper::toDomain);
+        return Optional.ofNullable(entity).map(MailVerificationMapper::toDomain);
     }
 
     @Override

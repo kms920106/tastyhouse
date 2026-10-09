@@ -25,13 +25,14 @@ class MemberSocialAccountPersistenceAdapter implements MemberSocialAccountPersis
 
     @Override
     public Optional<MemberSocialAccount> findByProviderAndProviderId(MemberSocialProvider provider, String providerId) {
-        return Optional.ofNullable(queryFactory.selectFrom(memberSocialAccountJpaEntity)
+        MemberSocialAccountJpaEntity entity = queryFactory
+            .selectFrom(memberSocialAccountJpaEntity)
             .where(
                 providerEq(provider),
                 providerIdEq(providerId)
             )
-            .fetchOne())
-            .map(MemberSocialAccountMapper::toDomain);
+            .fetchOne();
+        return Optional.ofNullable(entity).map(MemberSocialAccountMapper::toDomain);
     }
 
     @Override

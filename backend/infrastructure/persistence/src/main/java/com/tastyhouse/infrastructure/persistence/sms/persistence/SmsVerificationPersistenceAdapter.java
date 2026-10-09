@@ -37,7 +37,7 @@ class SmsVerificationPersistenceAdapter implements SmsVerificationPersistencePor
 
     @Override
     public Optional<SmsVerification> findLatestPendingByPhoneNumber(String phoneNumber, SmsVerificationStatus status) {
-        SmsVerificationJpaEntity result = queryFactory
+        SmsVerificationJpaEntity entity = queryFactory
             .selectFrom(smsVerificationJpaEntity)
             .where(
                 smsVerificationJpaEntity.phoneNumber.value.eq(phoneNumber),
@@ -46,7 +46,7 @@ class SmsVerificationPersistenceAdapter implements SmsVerificationPersistencePor
             .orderBy(smsVerificationJpaEntity.createdAt.desc())
             .limit(1)
             .fetchOne();
-        return Optional.ofNullable(result).map(SmsVerificationMapper::toDomain);
+        return Optional.ofNullable(entity).map(SmsVerificationMapper::toDomain);
     }
 
     @Override

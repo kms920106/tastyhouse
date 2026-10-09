@@ -108,14 +108,13 @@ class MemberQueryAdapter implements MemberQueryPort, MemberManagementQueryPort {
 
     @Override
     public Optional<MemberWithProfileImageResult> findMemberWithProfileImageById(Long memberId) {
-        return Optional.ofNullable(
-                queryFactory
-                    .select(memberWithProfileImageProjection())
-                    .from(memberJpaEntity)
-                    .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
-                    .where(memberJpaEntity.id.eq(memberId))
-                    .fetchOne()
-            );
+        MemberWithProfileImageResult result = queryFactory
+            .select(memberWithProfileImageProjection())
+            .from(memberJpaEntity)
+            .leftJoin(uploadedFileJpaEntity).on(memberProfileImageFileId().eq(uploadedFileJpaEntity.id))
+            .where(memberJpaEntity.id.eq(memberId))
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -208,27 +207,23 @@ class MemberQueryAdapter implements MemberQueryPort, MemberManagementQueryPort {
 
     @Override
     public boolean existsByNickname(String nickname) {
-        Integer found = queryFactory
+        return queryFactory
             .selectOne()
             .from(memberJpaEntity)
             .where(memberJpaEntity.nickname.eq(nickname))
-            .fetchFirst();
-
-        return found != null;
+            .fetchFirst() != null;
     }
 
     @Override
     public boolean existsByPhoneNumberAndStatusNot(String phoneNumber, String excludedStatus) {
-        Integer found = queryFactory
+        return queryFactory
             .selectOne()
             .from(memberJpaEntity)
             .where(
                 memberJpaEntity.phoneNumber.value.eq(phoneNumber),
                 memberJpaEntity.memberStatus.ne(excludedStatus)
             )
-            .fetchFirst();
-
-        return found != null;
+            .fetchFirst() != null;
     }
 
     @Override

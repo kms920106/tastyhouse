@@ -32,27 +32,26 @@ class ReviewPersistenceAdapter implements ReviewPersistencePort {
 
     @Override
     public Optional<Review> findByIdAndMemberId(ReviewId reviewId, MemberId memberId) {
-        ReviewJpaEntity result = queryFactory
+        ReviewJpaEntity entity = queryFactory
             .selectFrom(reviewJpaEntity)
             .where(
                 reviewJpaEntity.id.eq(reviewId.value()),
                 reviewJpaEntity.memberId.eq(memberId.value())
             )
             .fetchOne();
-        return Optional.ofNullable(result).map(ReviewMapper::toDomain);
+        return Optional.ofNullable(entity).map(ReviewMapper::toDomain);
     }
 
     @Override
     public boolean existsByOrderIdAndProductId(OrderId orderId, ProductId productId) {
-        Integer result = queryFactory
+        return queryFactory
             .selectOne()
             .from(reviewJpaEntity)
             .where(
                 reviewJpaEntity.orderId.eq(orderId.value()),
                 reviewJpaEntity.productId.eq(productId.value())
             )
-            .fetchFirst();
-        return result != null;
+            .fetchFirst() != null;
     }
 
     @Override

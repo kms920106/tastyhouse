@@ -34,12 +34,11 @@ class FaqCategoryPersistenceAdapter implements FaqCategoryPersistencePort {
 
     @Override
     public boolean existsActiveItemsByCategoryId(FaqCategoryId faqCategoryId) {
-        Integer result = queryFactory
+        return queryFactory
             .selectOne()
             .from(faqJpaEntity)
             .where(faqJpaEntity.faqCategoryId.eq(faqCategoryId.value()), faqJpaEntity.deleted.isFalse())
-            .fetchFirst();
-        return result != null;
+            .fetchFirst() != null;
     }
 
     @Override

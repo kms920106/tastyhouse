@@ -49,7 +49,7 @@ class MemberDeliveryAddressQueryAdapter implements MemberDeliveryAddressQueryPor
 
     @Override
     public Optional<Long> findDefaultAdminDongId(Long memberId) {
-        return Optional.ofNullable(queryFactory
+        Long result = queryFactory
             .select(memberDeliveryAddressJpaEntity.adminDongId)
             .from(memberDeliveryAddressJpaEntity)
             .where(
@@ -57,7 +57,8 @@ class MemberDeliveryAddressQueryAdapter implements MemberDeliveryAddressQueryPor
                 memberDeliveryAddressJpaEntity.defaultAddress.isTrue(),
                 memberDeliveryAddressJpaEntity.adminDongId.isNotNull()
             )
-            .fetchFirst());
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     private StringExpression regionNameExpression() {

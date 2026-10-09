@@ -1632,6 +1632,38 @@ if (condition.title() != null) { where.and(noticeJpaEntity.title.containsIgnoreC
 
 reference 구현: `infrastructure:persistence`의 `notice/query/NoticeQueryAdapter`(`titleContains`/`contentContains`/`visibleEq` 헬퍼 + varargs `.where(...)`), `order/query/OrderQueryAdapter`, `shop/query/ShopQueryAdapter`·`ShopSearchQueryAdapter`(과거 `ShopPersistenceAdapter`의 `BooleanBuilder`였다가 통일). 상세 예시는 `infrastructure/persistence/AGENTS.md` 참고.
 
+## QueryDSL 조회 종결 형태 규칙 (`selectFrom` 엔티티 로드 · `selectOne` 존재 확인)
+
+**`selectFrom(x)`와 `selectOne()`은 용도가 다르므로 둘 다 쓴다.** `selectFrom(x)`는 엔티티를 로드하고, `selectOne()`은 행이 있는지만 본다(`select 1 … limit 1`). 통일한 것은 두 함수 중 하나가 아니라 **같은 용도 안에서의 코드 모양**이다. 과거에는 단건 조회를 `Optional.ofNullable(queryFactory …)`로 감싸는 곳과 지역 변수로 받는 곳이 섞여 있었고, 존재 확인도 인라인 `!= null`·지역 변수(`found`/`result`)·`count() > 0` 세 가지였다.
+
+| 항목 | before | after |
+|---|---|---|
+| 단일 소스 엔티티 로드 | `selectFrom(x)` | 그대로. `select(x).from(x)`는 쓰지 않는다. 다중 소스 theta join(`from(a, b, c)` — `ProductPricePersistenceAdapter#findAllByShopId`)만 `select(x).from(...)`을 쓴다 |
+| 단건 → `Optional` | `Optional.ofNullable(queryFactory …fetchOne())` 인라인 40곳 / 지역 변수 69곳 | **지역 변수로 받은 뒤 `return Optional.ofNullable(var)…`**. 변수명은 JpaEntity면 `entity`, 투영·스칼라면 `result`(의미 있는 이름이 이미 있으면 유지). `queryFactory`로 시작하는 체인이 대상이며, 헬퍼 쿼리 빌더(`selectPayment()` 등)로 시작하는 4곳은 대상 밖이다 |
+| 존재 확인 | 인라인 29곳 / 지역 변수 18곳 / `count() > 0` 1곳 | **`return queryFactory.selectOne().from(x).where(…).fetchFirst() != null;` 한 문장**. `count() > 0`은 전 행을 집계하므로 쓰지 않는다 |
+| `selectOne()` 종결 | `fetchFirst()` | `fetchFirst()`만. `fetchOne()`은 2건 이상이면 예외라 존재 확인에 맞지 않는다 |
+| 서브쿼리 `JPAExpressions.selectOne()…exists()` | 13곳 | **변경 없음 — 이 규칙의 대상이 아니다**(where 절 안의 존재 조건) |
+| 동작 | — | 변경 없음. `MemberFollowPersistenceAdapter#existsByFollowerIdAndFollowingId`만 SQL이 `count(*)`에서 `select 1 … limit 1`로 바뀌었고 반환 의미는 같다 |
+
+```java
+// 엔티티 로드
+AdminJpaEntity entity = queryFactory
+    .selectFrom(adminJpaEntity)
+    .where(adminJpaEntity.username.eq(username))
+    .fetchOne();
+return Optional.ofNullable(entity).map(AdminMapper::toDomain);
+
+// 존재 확인
+return queryFactory
+    .selectOne()
+    .from(adminJpaEntity)
+    .where(adminJpaEntity.username.eq(username))
+    .fetchFirst() != null;
+```
+
+- **`fetchOne`과 `fetchFirst`의 선택은 이 규칙의 대상이 아니다.** 단건 조회에서 2건 이상일 때 실패시킬지(`fetchOne`) 첫 건을 쓸지(`fetchFirst`)는 메서드마다 봉인된 결정이다(`infrastructure/persistence/AGENTS.md`의 `OrderQueryAdapter#findPayment` 등). 모양을 바꿀 때 종결 메서드는 글자 그대로 둔다.
+- **가드**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/architecture/QueryFetchShapeConventionTest.java`가 main 소스를 스캔한다. 상세와 강제 범위는 `infrastructure/persistence/AGENTS.md`의 `## 봉인·가드 목록`.
+
 ## 도메인 모델 / JPA 엔티티 분리 규칙 (선별 적용, persistence는 `infrastructure-module`로)
 
 > **모듈명 주석 (챕터 05)**: 이 제목의 `infrastructure-module`은 현재 **`infrastructure:persistence`**(경로 `infrastructure/persistence/`)다. 제목을 그대로 두는 이유는 다른 문서들이 이 앵커(`#도메인-모델--jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로`)를 링크하고 있기 때문이다. 자바 패키지 `com.tastyhouse.infrastructure..`는 불변이므로 본문의 패키지 경로는 그대로 유효하다.

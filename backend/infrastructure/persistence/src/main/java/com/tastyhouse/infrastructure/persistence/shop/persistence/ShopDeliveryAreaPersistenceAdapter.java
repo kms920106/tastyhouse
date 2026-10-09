@@ -56,15 +56,14 @@ class ShopDeliveryAreaPersistenceAdapter implements ShopDeliveryAreaPersistenceP
 
     @Override
     public boolean existsByShopIdAndAdminDongId(ShopId shopId, AdminDongId adminDongId) {
-        Integer found = queryFactory
+        return queryFactory
             .selectOne()
             .from(shopDeliveryAreaJpaEntity)
             .where(
                 shopDeliveryAreaJpaEntity.shopId.eq(shopId.value()),
                 shopDeliveryAreaJpaEntity.adminDongId.eq(adminDongId.value())
             )
-            .fetchFirst();
-        return found != null;
+            .fetchFirst() != null;
     }
 
     @Override

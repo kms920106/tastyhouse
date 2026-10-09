@@ -33,28 +33,27 @@ class ShopRiderGuideQueryAdapter implements ShopRiderGuideQueryPort, ShopRiderGu
 
     @Override
     public Optional<ShopRiderGuideResult> findRiderGuide(Long shopId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ShopRiderGuideResult.class,
-                    shopJpaEntity.id,
-                    shopJpaEntity.name,
-                    shopRiderGuideJpaEntity.visitGuide,
-                    shopRiderGuideJpaEntity.pickupRoadAddress,
-                    shopRiderGuideJpaEntity.pickupLotAddress,
-                    shopRiderGuideJpaEntity.pickupDetailAddress,
-                    shopRiderGuideJpaEntity.pickupLatitude,
-                    shopRiderGuideJpaEntity.pickupLongitude,
-                    shopJpaEntity.roadAddress,
-                    shopJpaEntity.lotAddress,
-                    shopJpaEntity.latitude,
-                    shopJpaEntity.longitude,
-                    shopRiderGuideJpaEntity.updatedAt
-                ))
-                .from(shopJpaEntity)
-                .leftJoin(shopRiderGuideJpaEntity).on(shopRiderGuideJpaEntity.shopId.eq(shopJpaEntity.id))
-                .where(shopJpaEntity.id.eq(shopId))
-                .fetchFirst()
-        );
+        ShopRiderGuideResult result = queryFactory
+            .select(Projections.constructor(ShopRiderGuideResult.class,
+                shopJpaEntity.id,
+                shopJpaEntity.name,
+                shopRiderGuideJpaEntity.visitGuide,
+                shopRiderGuideJpaEntity.pickupRoadAddress,
+                shopRiderGuideJpaEntity.pickupLotAddress,
+                shopRiderGuideJpaEntity.pickupDetailAddress,
+                shopRiderGuideJpaEntity.pickupLatitude,
+                shopRiderGuideJpaEntity.pickupLongitude,
+                shopJpaEntity.roadAddress,
+                shopJpaEntity.lotAddress,
+                shopJpaEntity.latitude,
+                shopJpaEntity.longitude,
+                shopRiderGuideJpaEntity.updatedAt
+            ))
+            .from(shopJpaEntity)
+            .leftJoin(shopRiderGuideJpaEntity).on(shopRiderGuideJpaEntity.shopId.eq(shopJpaEntity.id))
+            .where(shopJpaEntity.id.eq(shopId))
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     @Override

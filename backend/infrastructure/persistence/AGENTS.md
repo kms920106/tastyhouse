@@ -251,6 +251,27 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 원문 주석은 챕터 05에서 제거되므로, 이 문서가 그 금지 지시의 유일한 소재지다.
 
+### `QueryFetchShapeConventionTest` — 단건·존재 확인 쿼리의 모양을 고정한다
+
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/architecture/QueryFetchShapeConventionTest.java`
+→ `src/main/java/com/tastyhouse/infrastructure/persistence` 아래 모든 `.java`의 원문 텍스트
+
+규칙 본문은 `backend/CLAUDE.md`의 "QueryDSL 조회 종결 형태 규칙" 절이다. 이 테스트가 검사하는 것은 다음 6가지다.
+
+| 테스트 | 금지·강제 | 강제 범위 |
+|---|---|---|
+| `singleResultShouldBeAssignedBeforeWrapping` | `Optional.ofNullable(queryFactory` (줄바꿈 포함) 0건 | `queryFactory`로 시작하는 체인만 대상이다. 헬퍼 쿼리 빌더로 시작하는 4곳(`PaymentQueryAdapter#findPaymentByOrderId`·`#findPaymentById`의 `selectPayment()`, `ReservationQueryAdapter#findReservationById`의 `reservationQuery()`, `StorePriceVerificationQueryAdapter#findVerificationById`의 `verificationProjection()`)은 대상 밖이다 |
+| `existsShouldNotAssignSelectOneToLocalVariable` | `Xxx var = queryFactory.selectOne()` 0건 | 존재 확인을 지역 변수로 받지 않는다 |
+| `topLevelSelectOneShouldEndWithFetchFirstNotNull` | `queryFactory.selectOne()` 이후 첫 `;`까지가 `.fetchFirst() != null`로 끝남 | `queryFactory` 접두로 대상을 고르므로 **`JPAExpressions.selectOne()` 서브쿼리는 대상이 아니다**. 검사 대상 ≥ 45 (구현 시점 48) |
+| `existsShouldNotUseCount` | `count != null && count > 0` 0건 | 이 문자열 형태만 잡는다. `count > 0` 같은 변형은 리뷰가 지킨다 |
+| `singleSourceEntityLoadShouldUseSelectFrom` | `.select(xJpaEntity).from(xJpaEntity)` 0건 | `from(a, b, c)` 다중 소스(`ProductPricePersistenceAdapter#findAllByShopId`)는 걸리지 않는다 |
+| `entityLoadVariableShouldBeNamedEntity` | `XxxJpaEntity var = queryFactory.selectFrom(` 의 변수명이 `entity` | 투영·스칼라 변수명 `result`는 강제하지 않는다. `.selectFrom(` ≥ 100 (구현 시점 115) |
+
+- **원문 텍스트를 보므로 문자열 리터럴 안의 패턴도 걸린다.** 반증 probe는 그 성질을 이용해 문자열 리터럴로 위반을 심어 6개 규칙이 모두 실패함을 확인했다.
+- **줄바꿈은 강제하지 않는다.** `return queryFactory.selectOne()`을 한 줄에 쓰는 곳(`PublicHolidayPersistenceAdapter`·`PaymentPersistenceAdapter` 등 6곳)도 통과한다. 새 코드는 `backend/CLAUDE.md` 예시처럼 `queryFactory` 다음 줄에 `.selectOne()`을 둔다.
+- **하한(anchor)이 깨지면 스캔 경로가 틀린 것이다.** 테스트는 `persistence` 모듈 디렉터리를 작업 디렉터리로 가정한다(`ProjectionConstructorMatchingTest`와 같다).
+- **`fetchOne`/`fetchFirst` 선택은 이 가드가 보지 않는다.** 아래 `OrderQueryAdapter#findPayment` 등의 봉인 결정을 모양 정리 중에 바꾸지 않는다.
+
 ### `jpaRepositoriesShouldNotDeclareMethods` — JpaRepository에 메서드를 선언하지 않는다
 
 **대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/architecture/LayerRulesTest.java`

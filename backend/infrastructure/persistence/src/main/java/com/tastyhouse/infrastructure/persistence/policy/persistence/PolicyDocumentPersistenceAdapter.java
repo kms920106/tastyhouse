@@ -25,17 +25,17 @@ class PolicyDocumentPersistenceAdapter implements PolicyDocumentPersistencePort 
 
     @Override
     public Optional<PolicyDocument> findById(PolicyDocumentId id) {
-        PolicyDocumentJpaEntity result = queryFactory
+        PolicyDocumentJpaEntity entity = queryFactory
             .selectFrom(policyDocumentJpaEntity)
             .where(policyDocumentJpaEntity.id.eq(id.value()))
             .fetchOne();
 
-        return Optional.ofNullable(result).map(PolicyDocumentMapper::toDomain);
+        return Optional.ofNullable(entity).map(PolicyDocumentMapper::toDomain);
     }
 
     @Override
     public Optional<PolicyDocument> findCurrentEntityByType(PolicyType type) {
-        PolicyDocumentJpaEntity result = queryFactory
+        PolicyDocumentJpaEntity entity = queryFactory
             .selectFrom(policyDocumentJpaEntity)
             .where(
                 policyDocumentJpaEntity.type.eq(type == null ? null : type.name()),
@@ -43,7 +43,7 @@ class PolicyDocumentPersistenceAdapter implements PolicyDocumentPersistencePort 
             )
             .fetchOne();
 
-        return Optional.ofNullable(result).map(PolicyDocumentMapper::toDomain);
+        return Optional.ofNullable(entity).map(PolicyDocumentMapper::toDomain);
     }
 
     @Override

@@ -44,22 +44,21 @@ class PaymentQueryAdapter implements PaymentQueryPort {
 
     @Override
     public Optional<PaymentRefundResult> findRefundById(Long refundId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(PaymentRefundResult.class,
-                    paymentRefundJpaEntity.id,
-                    paymentRefundJpaEntity.paymentId,
-                    paymentRefundJpaEntity.refundAmount,
-                    paymentRefundJpaEntity.refundReason,
-                    paymentRefundJpaEntity.refundStatus,
-                    paymentRefundJpaEntity.pgRefundId,
-                    paymentRefundJpaEntity.refundedAt,
-                    paymentRefundJpaEntity.createdAt
-                ))
-                .from(paymentRefundJpaEntity)
-                .where(paymentRefundJpaEntity.id.eq(refundId))
-                .fetchOne()
-        );
+        PaymentRefundResult result = queryFactory
+            .select(Projections.constructor(PaymentRefundResult.class,
+                paymentRefundJpaEntity.id,
+                paymentRefundJpaEntity.paymentId,
+                paymentRefundJpaEntity.refundAmount,
+                paymentRefundJpaEntity.refundReason,
+                paymentRefundJpaEntity.refundStatus,
+                paymentRefundJpaEntity.pgRefundId,
+                paymentRefundJpaEntity.refundedAt,
+                paymentRefundJpaEntity.createdAt
+            ))
+            .from(paymentRefundJpaEntity)
+            .where(paymentRefundJpaEntity.id.eq(refundId))
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     private JPAQuery<PaymentResult> selectPayment() {

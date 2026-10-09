@@ -221,15 +221,14 @@ class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePor
 
     @Override
     public boolean existsRegionTipByShopIdAndAdminDongId(ShopId shopId, AdminDongId adminDongId) {
-        Integer found = queryFactory
+        return queryFactory
             .selectOne()
             .from(shopDeliveryTipRegionJpaEntity)
             .where(
                 shopDeliveryTipRegionJpaEntity.shopId.eq(shopId.value()),
                 shopDeliveryTipRegionJpaEntity.adminDongId.eq(adminDongId.value())
             )
-            .fetchFirst();
-        return found != null;
+            .fetchFirst() != null;
     }
 
     @Override

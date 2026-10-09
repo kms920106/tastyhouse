@@ -31,15 +31,14 @@ class MemberCouponPersistenceAdapter implements MemberCouponPersistencePort {
 
     @Override
     public boolean existsByMemberIdAndCouponId(MemberId memberId, CouponId couponId) {
-        Integer found = queryFactory
+        return queryFactory
             .selectOne()
             .from(memberCouponJpaEntity)
             .where(
                 memberCouponJpaEntity.memberId.eq(memberId.value()),
                 memberCouponJpaEntity.couponId.eq(couponId.value())
             )
-            .fetchFirst();
-        return found != null;
+            .fetchFirst() != null;
     }
 
     @Override

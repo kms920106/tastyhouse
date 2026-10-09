@@ -41,12 +41,11 @@ class ReviewOwnerReplyPersistenceAdapter implements ReviewOwnerReplyPersistenceP
 
     @Override
     public boolean existsByReviewId(ReviewId reviewId) {
-        Integer result = queryFactory
+        return queryFactory
             .selectOne()
             .from(reviewOwnerReplyJpaEntity)
             .where(reviewOwnerReplyJpaEntity.reviewId.eq(reviewId.value()))
-            .fetchFirst();
-        return result != null;
+            .fetchFirst() != null;
     }
 
     @Override

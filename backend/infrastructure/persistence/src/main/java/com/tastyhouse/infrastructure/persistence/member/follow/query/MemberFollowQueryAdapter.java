@@ -103,16 +103,14 @@ class MemberFollowQueryAdapter implements MemberFollowQueryPort {
 
     @Override
     public boolean existsFollow(Long followerId, Long followingId) {
-        Integer found = queryFactory
+        return queryFactory
             .selectOne()
             .from(memberFollowJpaEntity)
             .where(
                 memberFollowJpaEntity.followerId.eq(followerId),
                 memberFollowJpaEntity.followingId.eq(followingId)
             )
-            .fetchFirst();
-
-        return found != null;
+            .fetchFirst() != null;
     }
 
     @Override

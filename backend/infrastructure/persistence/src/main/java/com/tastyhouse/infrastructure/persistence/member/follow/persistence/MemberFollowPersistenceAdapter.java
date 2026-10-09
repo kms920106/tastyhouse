@@ -37,16 +37,14 @@ class MemberFollowPersistenceAdapter implements MemberFollowPersistencePort {
 
     @Override
     public boolean existsByFollowerIdAndFollowingId(MemberId followerId, MemberId followingId) {
-        Long count = queryFactory
-            .select(memberFollowJpaEntity.count())
+        return queryFactory
+            .selectOne()
             .from(memberFollowJpaEntity)
             .where(
                 memberFollowJpaEntity.followerId.eq(followerId.value()),
                 memberFollowJpaEntity.followingId.eq(followingId.value())
             )
-            .fetchOne();
-
-        return count != null && count > 0;
+            .fetchFirst() != null;
     }
 
     @Override

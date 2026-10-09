@@ -71,23 +71,24 @@ class ShopNoticeQueryAdapter implements ShopNoticeQueryPort, ShopNoticeOwnerQuer
 
     @Override
     public Optional<ShopNoticeResult> findExposedNotice(Long shopId) {
-        return Optional.ofNullable(queryFactory
-                .select(Projections.constructor(ShopNoticeRow.class,
-                    shopNoticeJpaEntity.id,
-                    shopNoticeJpaEntity.shopId,
-                    shopNoticeJpaEntity.content,
-                    shopNoticeJpaEntity.exposed,
-                    shopNoticeJpaEntity.hidden,
-                    shopNoticeJpaEntity.createdAt,
-                    shopNoticeJpaEntity.updatedAt
-                ))
-                .from(shopNoticeJpaEntity)
-                .where(
-                    shopNoticeJpaEntity.shopId.eq(shopId),
-                    shopNoticeJpaEntity.exposed.isTrue(),
-                    shopNoticeJpaEntity.hidden.isFalse()
-                )
-                .fetchFirst())
+        ShopNoticeRow result = queryFactory
+            .select(Projections.constructor(ShopNoticeRow.class,
+                shopNoticeJpaEntity.id,
+                shopNoticeJpaEntity.shopId,
+                shopNoticeJpaEntity.content,
+                shopNoticeJpaEntity.exposed,
+                shopNoticeJpaEntity.hidden,
+                shopNoticeJpaEntity.createdAt,
+                shopNoticeJpaEntity.updatedAt
+            ))
+            .from(shopNoticeJpaEntity)
+            .where(
+                shopNoticeJpaEntity.shopId.eq(shopId),
+                shopNoticeJpaEntity.exposed.isTrue(),
+                shopNoticeJpaEntity.hidden.isFalse()
+            )
+            .fetchFirst();
+        return Optional.ofNullable(result)
             .map(row -> new ShopNoticeResult(
                 row.id(),
                 row.shopId(),

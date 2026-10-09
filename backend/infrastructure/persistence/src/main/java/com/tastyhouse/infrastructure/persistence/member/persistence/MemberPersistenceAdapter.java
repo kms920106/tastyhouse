@@ -33,12 +33,11 @@ class MemberPersistenceAdapter implements MemberPersistencePort {
 
     @Override
     public Optional<Member> findByUsername(String username) {
-        return Optional.ofNullable(
-            queryFactory
-                .selectFrom(memberJpaEntity)
-                .where(memberJpaEntity.username.eq(username))
-                .fetchOne()
-        ).map(MemberMapper::toDomain);
+        MemberJpaEntity entity = queryFactory
+            .selectFrom(memberJpaEntity)
+            .where(memberJpaEntity.username.eq(username))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(MemberMapper::toDomain);
     }
 
     @Override
@@ -61,12 +60,11 @@ class MemberPersistenceAdapter implements MemberPersistencePort {
 
     @Override
     public Optional<Member> findByNickname(String nickname) {
-        return Optional.ofNullable(
-            queryFactory
-                .selectFrom(memberJpaEntity)
-                .where(memberJpaEntity.nickname.eq(nickname))
-                .fetchOne()
-        ).map(MemberMapper::toDomain);
+        MemberJpaEntity entity = queryFactory
+            .selectFrom(memberJpaEntity)
+            .where(memberJpaEntity.nickname.eq(nickname))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(MemberMapper::toDomain);
     }
 
     @Override
@@ -83,15 +81,14 @@ class MemberPersistenceAdapter implements MemberPersistencePort {
 
     @Override
     public Optional<Member> findByPhoneNumberAndStatusNot(String phoneNumber, MemberStatus memberStatus) {
-        return Optional.ofNullable(
-            queryFactory
-                .selectFrom(memberJpaEntity)
-                .where(
-                    memberJpaEntity.phoneNumber.value.eq(phoneNumber),
-                    memberJpaEntity.memberStatus.ne(memberStatus.name())
-                )
-                .fetchOne()
-        ).map(MemberMapper::toDomain);
+        MemberJpaEntity entity = queryFactory
+            .selectFrom(memberJpaEntity)
+            .where(
+                memberJpaEntity.phoneNumber.value.eq(phoneNumber),
+                memberJpaEntity.memberStatus.ne(memberStatus.name())
+            )
+            .fetchOne();
+        return Optional.ofNullable(entity).map(MemberMapper::toDomain);
     }
 
     @Override

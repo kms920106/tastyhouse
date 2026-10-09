@@ -29,11 +29,11 @@ class CeoPersistenceAdapter implements CeoPersistencePort {
 
     @Override
     public Optional<Ceo> findByUsername(String username) {
-        return Optional.ofNullable(queryFactory
-                .selectFrom(ceoJpaEntity)
-                .where(ceoJpaEntity.username.eq(username))
-                .fetchOne())
-            .map(CeoMapper::toDomain);
+        CeoJpaEntity entity = queryFactory
+            .selectFrom(ceoJpaEntity)
+            .where(ceoJpaEntity.username.eq(username))
+            .fetchOne();
+        return Optional.ofNullable(entity).map(CeoMapper::toDomain);
     }
 
     @Override

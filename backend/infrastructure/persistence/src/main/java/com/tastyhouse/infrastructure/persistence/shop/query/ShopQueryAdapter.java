@@ -96,13 +96,12 @@ class ShopQueryAdapter implements ShopQueryPort, ShopBasicInfoQueryPort, ShopMan
 
     @Override
     public Optional<String> findShopName(Long shopId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(shopJpaEntity.name)
-                .from(shopJpaEntity)
-                .where(shopJpaEntity.id.eq(shopId))
-                .fetchOne()
-        );
+        String result = queryFactory
+            .select(shopJpaEntity.name)
+            .from(shopJpaEntity)
+            .where(shopJpaEntity.id.eq(shopId))
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -123,58 +122,55 @@ class ShopQueryAdapter implements ShopQueryPort, ShopBasicInfoQueryPort, ShopMan
 
     @Override
     public Optional<ShopImageUrlsResult> findShopImageUrls(Long shopId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ShopImageUrlsResult.class,
-                    shopJpaEntity.id,
-                    fileUrlResolver.urlOf(shopThumbnailFile.filePath),
-                    fileUrlResolver.urlOf(shopTrademarkFile.filePath)
-                ))
-                .from(shopJpaEntity)
-                .leftJoin(shopThumbnailFile).on(shopThumbnailFile.id.eq(shopJpaEntity.thumbnailImageFileId))
-                .leftJoin(shopTrademarkFile).on(shopTrademarkFile.id.eq(shopJpaEntity.trademarkImageFileId))
-                .where(shopJpaEntity.id.eq(shopId))
-                .fetchOne()
-        );
+        ShopImageUrlsResult result = queryFactory
+            .select(Projections.constructor(ShopImageUrlsResult.class,
+                shopJpaEntity.id,
+                fileUrlResolver.urlOf(shopThumbnailFile.filePath),
+                fileUrlResolver.urlOf(shopTrademarkFile.filePath)
+            ))
+            .from(shopJpaEntity)
+            .leftJoin(shopThumbnailFile).on(shopThumbnailFile.id.eq(shopJpaEntity.thumbnailImageFileId))
+            .leftJoin(shopTrademarkFile).on(shopTrademarkFile.id.eq(shopJpaEntity.trademarkImageFileId))
+            .where(shopJpaEntity.id.eq(shopId))
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     @Override
     public Optional<ShopConvenienceInfoResult> findConvenienceInfo(Long shopId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ShopConvenienceInfoResult.class,
-                    shopConvenienceInfoJpaEntity.id,
-                    shopConvenienceInfoJpaEntity.shopId,
-                    shopConvenienceInfoJpaEntity.parkingAvailable,
-                    shopConvenienceInfoJpaEntity.parkingPaid,
-                    shopConvenienceInfoJpaEntity.valetAvailable,
-                    shopConvenienceInfoJpaEntity.valetPaid,
-                    shopConvenienceInfoJpaEntity.directionsGuide,
-                    shopConvenienceInfoJpaEntity.displayLatitude,
-                    shopConvenienceInfoJpaEntity.displayLongitude
-                ))
-                .from(shopConvenienceInfoJpaEntity)
-                .where(shopConvenienceInfoJpaEntity.shopId.eq(shopId))
-                .fetchFirst()
-        );
+        ShopConvenienceInfoResult result = queryFactory
+            .select(Projections.constructor(ShopConvenienceInfoResult.class,
+                shopConvenienceInfoJpaEntity.id,
+                shopConvenienceInfoJpaEntity.shopId,
+                shopConvenienceInfoJpaEntity.parkingAvailable,
+                shopConvenienceInfoJpaEntity.parkingPaid,
+                shopConvenienceInfoJpaEntity.valetAvailable,
+                shopConvenienceInfoJpaEntity.valetPaid,
+                shopConvenienceInfoJpaEntity.directionsGuide,
+                shopConvenienceInfoJpaEntity.displayLatitude,
+                shopConvenienceInfoJpaEntity.displayLongitude
+            ))
+            .from(shopConvenienceInfoJpaEntity)
+            .where(shopConvenienceInfoJpaEntity.shopId.eq(shopId))
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     @Override
     public Optional<ShopOriginInfoResult> findOriginInfo(Long shopId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ShopOriginInfoResult.class,
-                    shopOriginInfoJpaEntity.id,
-                    shopOriginInfoJpaEntity.shopId,
-                    shopOriginInfoJpaEntity.sourceType.stringValue(),
-                    shopOriginInfoJpaEntity.content,
-                    shopOriginInfoJpaEntity.url,
-                    shopOriginInfoJpaEntity.updatedAt
-                ))
-                .from(shopOriginInfoJpaEntity)
-                .where(shopOriginInfoJpaEntity.shopId.eq(shopId))
-                .fetchFirst()
-        );
+        ShopOriginInfoResult result = queryFactory
+            .select(Projections.constructor(ShopOriginInfoResult.class,
+                shopOriginInfoJpaEntity.id,
+                shopOriginInfoJpaEntity.shopId,
+                shopOriginInfoJpaEntity.sourceType.stringValue(),
+                shopOriginInfoJpaEntity.content,
+                shopOriginInfoJpaEntity.url,
+                shopOriginInfoJpaEntity.updatedAt
+            ))
+            .from(shopOriginInfoJpaEntity)
+            .where(shopOriginInfoJpaEntity.shopId.eq(shopId))
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -637,17 +633,16 @@ class ShopQueryAdapter implements ShopQueryPort, ShopBasicInfoQueryPort, ShopMan
 
     @Override
     public Optional<ShopOwnerMessageResult> findLatestOwnerMessage(Long shopId) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ShopOwnerMessageResult.class,
-                    shopOwnerMessageHistoryJpaEntity.message,
-                    shopOwnerMessageHistoryJpaEntity.createdAt
-                ))
-                .from(shopOwnerMessageHistoryJpaEntity)
-                .where(shopOwnerMessageHistoryJpaEntity.shopId.eq(shopId))
-                .orderBy(shopOwnerMessageHistoryJpaEntity.createdAt.desc())
-                .fetchFirst()
-        );
+        ShopOwnerMessageResult result = queryFactory
+            .select(Projections.constructor(ShopOwnerMessageResult.class,
+                shopOwnerMessageHistoryJpaEntity.message,
+                shopOwnerMessageHistoryJpaEntity.createdAt
+            ))
+            .from(shopOwnerMessageHistoryJpaEntity)
+            .where(shopOwnerMessageHistoryJpaEntity.shopId.eq(shopId))
+            .orderBy(shopOwnerMessageHistoryJpaEntity.createdAt.desc())
+            .fetchFirst();
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -738,16 +733,14 @@ class ShopQueryAdapter implements ShopQueryPort, ShopBasicInfoQueryPort, ShopMan
 
     @Override
     public boolean existsBookmark(Long shopId, Long memberId) {
-        Integer found = queryFactory
+        return queryFactory
             .selectOne()
             .from(shopBookmarkJpaEntity)
             .where(
                 shopBookmarkJpaEntity.shopId.eq(shopId),
                 shopBookmarkJpaEntity.memberId.eq(memberId)
             )
-            .fetchFirst();
-
-        return found != null;
+            .fetchFirst() != null;
     }
 
     @Override

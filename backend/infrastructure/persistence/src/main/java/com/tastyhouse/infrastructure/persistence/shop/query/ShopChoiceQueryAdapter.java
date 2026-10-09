@@ -104,18 +104,17 @@ class ShopChoiceQueryAdapter implements ShopChoiceQueryPort, ShopChoiceManagemen
 
     @Override
     public Optional<ShopChoiceDetailResult> findShopChoiceById(Long id) {
-        return Optional.ofNullable(
-            queryFactory
-                .select(Projections.constructor(ShopChoiceDetailResult.class,
-                    shopChoiceJpaEntity.id,
-                    shopChoiceJpaEntity.shopId,
-                    shopChoiceJpaEntity.title,
-                    shopChoiceJpaEntity.content
-                ))
-                .from(shopChoiceJpaEntity)
-                .where(shopChoiceJpaEntity.id.eq(id))
-                .fetchOne()
-        );
+        ShopChoiceDetailResult result = queryFactory
+            .select(Projections.constructor(ShopChoiceDetailResult.class,
+                shopChoiceJpaEntity.id,
+                shopChoiceJpaEntity.shopId,
+                shopChoiceJpaEntity.title,
+                shopChoiceJpaEntity.content
+            ))
+            .from(shopChoiceJpaEntity)
+            .where(shopChoiceJpaEntity.id.eq(id))
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     @Override

@@ -41,28 +41,26 @@ class ReviewBlindRequestPersistenceAdapter implements ReviewBlindRequestPersiste
 
     @Override
     public boolean existsByReviewIdAndStatus(ReviewId reviewId, ReviewBlindStatus status) {
-        Integer result = queryFactory
+        return queryFactory
             .selectOne()
             .from(reviewBlindRequestJpaEntity)
             .where(
                 reviewBlindRequestJpaEntity.reviewId.eq(reviewId.value()),
                 reviewBlindRequestJpaEntity.status.eq(status.name())
             )
-            .fetchFirst();
-        return result != null;
+            .fetchFirst() != null;
     }
 
     @Override
     public boolean existsTerminatedByReviewId(ReviewId reviewId) {
-        Integer result = queryFactory
+        return queryFactory
             .selectOne()
             .from(reviewBlindRequestJpaEntity)
             .where(
                 reviewBlindRequestJpaEntity.reviewId.eq(reviewId.value()),
                 reviewBlindRequestJpaEntity.status.in(TERMINATED_STATUSES)
             )
-            .fetchFirst();
-        return result != null;
+            .fetchFirst() != null;
     }
 
     @Override
@@ -83,16 +81,15 @@ class ReviewBlindRequestPersistenceAdapter implements ReviewBlindRequestPersiste
 
     @Override
     public Optional<ReviewBlindRequest> findApprovedByReviewId(ReviewId reviewId) {
-        return Optional.ofNullable(
-            queryFactory
-                .selectFrom(reviewBlindRequestJpaEntity)
-                .where(
-                    reviewBlindRequestJpaEntity.reviewId.eq(reviewId.value()),
-                    reviewBlindRequestJpaEntity.status.eq(ReviewBlindStatus.APPROVED.name())
-                )
-                .orderBy(reviewBlindRequestJpaEntity.id.desc())
-                .fetchFirst()
-        ).map(ReviewBlindRequestMapper::toDomain);
+        ReviewBlindRequestJpaEntity entity = queryFactory
+            .selectFrom(reviewBlindRequestJpaEntity)
+            .where(
+                reviewBlindRequestJpaEntity.reviewId.eq(reviewId.value()),
+                reviewBlindRequestJpaEntity.status.eq(ReviewBlindStatus.APPROVED.name())
+            )
+            .orderBy(reviewBlindRequestJpaEntity.id.desc())
+            .fetchFirst();
+        return Optional.ofNullable(entity).map(ReviewBlindRequestMapper::toDomain);
     }
 
     @Override

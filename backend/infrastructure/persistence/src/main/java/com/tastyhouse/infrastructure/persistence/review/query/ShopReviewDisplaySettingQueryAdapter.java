@@ -23,22 +23,24 @@ class ShopReviewDisplaySettingQueryAdapter implements ShopReviewDisplaySettingQu
 
     @Override
     public Optional<String> findSortTypeByShopId(Long shopId) {
-        return Optional.ofNullable(queryFactory
+        String result = queryFactory
             .select(shopReviewDisplaySettingJpaEntity.sortType)
             .from(shopReviewDisplaySettingJpaEntity)
             .where(shopReviewDisplaySettingJpaEntity.shopId.eq(shopId))
-            .fetchOne());
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     @Override
     public Optional<ShopReviewSortTypeResult> findSortTypeSettingByShopId(Long shopId) {
-        return Optional.ofNullable(queryFactory
+        ShopReviewSortTypeResult result = queryFactory
             .select(Projections.constructor(ShopReviewSortTypeResult.class,
                 shopReviewDisplaySettingJpaEntity.sortType,
                 shopReviewDisplaySettingJpaEntity.updatedAt
             ))
             .from(shopReviewDisplaySettingJpaEntity)
             .where(shopReviewDisplaySettingJpaEntity.shopId.eq(shopId))
-            .fetchOne());
+            .fetchOne();
+        return Optional.ofNullable(result);
     }
 }

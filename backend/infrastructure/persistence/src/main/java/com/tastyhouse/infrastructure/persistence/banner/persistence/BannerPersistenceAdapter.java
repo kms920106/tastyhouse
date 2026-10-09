@@ -24,13 +24,14 @@ class BannerPersistenceAdapter implements BannerPersistencePort {
 
     @Override
     public Optional<Banner> findById(BannerId id) {
-        return Optional.ofNullable(queryFactory.selectFrom(bannerJpaEntity)
+        BannerJpaEntity entity = queryFactory
+            .selectFrom(bannerJpaEntity)
             .where(
                 bannerJpaEntity.id.eq(id.value()),
                 bannerJpaEntity.deleted.isFalse()
             )
-            .fetchOne())
-            .map(BannerMapper::toDomain);
+            .fetchOne();
+        return Optional.ofNullable(entity).map(BannerMapper::toDomain);
     }
 
     @Override
