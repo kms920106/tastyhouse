@@ -4,9 +4,9 @@ import com.tastyhouse.domain.banner.model.Banner;
 import com.tastyhouse.domain.banner.model.BannerType;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
 
-final class BannerMapper {
+final class BannerJpaMapper {
 
-    private BannerMapper() {
+    private BannerJpaMapper() {
     }
 
     static Banner toDomain(BannerJpaEntity entity) {

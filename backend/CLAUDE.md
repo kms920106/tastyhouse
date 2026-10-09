@@ -3,7 +3,7 @@
 
 ## 모듈 지도 (모듈 재편 완료 + application 모듈 통합 + external 분리 + 앱 모듈 재분리)
 
-**모듈은 36개이고(앱 마커 제거로 32 → 36 — `{web,admin,ceo,batch}-application` 4모듈 신설), 경계는 "계층 × 앱" 2차원이다.** 어느 파일을 어디에 둘지 헷갈리면 여기서 시작한다(배치 기준의 근거는 아래 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure)).
+**모듈은 37개이고(앱 마커 제거로 32 → 36 — `{web,admin,ceo,batch}-application` 4모듈 신설, 이후 MyBatis 어댑터 모듈 `infrastructure:mybatis` 신설로 37), 경계는 "계층 × 앱" 2차원이다.** 어느 파일을 어디에 둘지 헷갈리면 여기서 시작한다(배치 기준의 근거는 아래 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure)).
 
 ```
 실행 앱 4 (bootJar)      web-api      admin-api      ceo-api      batch-module
@@ -29,9 +29,11 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
      (패키지는 com.tastyhouse.application..port.out). 챕터 04로 공유 계약 55개가 domain에서
      돌아오면서 split package가 끝났다
    ↑ 구현
-아웃바운드 어댑터 16      infrastructure:persistence  JPA 어댑터(XxxPersistencePort 구현) + QueryPort 구현 DAO
+아웃바운드 어댑터 17      infrastructure:persistence  JPA 어댑터(XxxPersistencePort 구현) + QueryPort 구현 DAO
+                                                     ※ banner 쓰기는 JPA 기본 — persistence.banner.write.provider=mybatis면 아래 :mybatis 구현이 대신 뜬다
                                                      ※ domain은 implementation으로만 의존(앱으로 새지 않음) — query DAO는 domain-free
-(driven)                 infrastructure:redis        Redis 연결·템플릿 + rate limiting
+(driven)                 infrastructure:mybatis      MyBatis 어댑터(파일럿 — banner 쓰기만, admin-api만 의존). 같은 포트를 JPA와 함께 구현하고 provider 속성으로 하나만 등록
+                         infrastructure:redis        Redis 연결·템플릿 + rate limiting
                          infrastructure:restclient   외부 연동 HTTP 코어 — RestClient customizer만 (예외·에러코드 없음, 파일 저장 무관)
                                                      ※ 포트를 구현하지 않지만 벤더가 쓰는 기술 코어라 이 칸에 둔다
                            ├ :firebase   Firebase Storage 파일 저장      (앱이 아니라 :file-storage가 의존)
@@ -63,7 +65,7 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
 - **조립 5모듈은 `infrastructure/` 디렉터리에 있지만 아웃바운드 어댑터가 아니다.** 도메인 포트를 하나도 구현하지 않고, "이 앱에 어떤 벤더를 싣는가"만 결정한다. 스타터(`file-storage`·`oauth`)는 자바 코드가 없고, 채널(`pg`·`mail`·`sms`)은 도메인 서비스 빈이나 라우터를 등록하는 코드만 갖는다. 채널이 왜 그 빈을 등록하는지, 스타터와 무엇이 다른지는 [도메인 모델 / JPA 엔티티 분리 규칙](#도메인-모델--jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)의 "예외 — 포트 구현이 일부 앱에만 있으면 벤더를 조립하는 채널 모듈이 등록한다" 항목이 정본이다. 물리적으로 `backend/starter/`로 옮기지 않은 것은 컴파일·런타임에서 새로 막아 주는 것이 없기 때문이다.
 - **조립 모듈의 벤더 전환은 세 곳을 함께 바꾼다**: 채널/스타터 `build.gradle`의 `runtimeOnly` 대상, 그 모듈 yml의 `spring.config.import`, `provider` 값. 각 모듈은 벤더를 하나만 싣기 때문에 `provider` 값만 바꾸면 켤 수 있는 벤더가 없어 기동이 실패한다. 절차는 `infrastructure/{file-storage,mail,sms}/AGENTS.md`의 "벤더 전환 절차"에 있다.
 - **실행 단위는 여전히 4개다.** 재편으로 늘어난 것도, 챕터 01의 통합으로 줄어든 것도 라이브러리 모듈뿐이라 **bootJar 산출물 이름·경로는 불변**이다(`{web-api,admin-api,ceo-api,batch-module}/build/libs/{모듈}-0.0.1-SNAPSHOT.jar`). 배포 스크립트는 영향받지 않는다.
-- **infrastructure 모듈의 자바 패키지는 모듈명을 따른다**: 코드가 있는 16모듈 모두 루트가 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}`다(`persistence`→`.persistence`, `kakao-oauth`→`.kakao.oauth`). 규칙 전문은 아래 [infrastructure 패키지 규칙](#infrastructure-패키지-규칙-루트--모듈명). **(번복됨 — infrastructure 패키지 루트 통일)** ~~`infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). `infrastructure:{firebase,aws-s3,…,bbq,admdongkor}` 16모듈은 한 걸음 더 나가 `com.tastyhouse.external..` 하나를 나눠 쓴다(코어 `infrastructure:restclient`는 `com.tastyhouse.restclient..`로 옮겨 빠졌다) — `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")` 범위 밖에 남아 있어야 하기 때문이다.~~ persistence를 `com.tastyhouse.infrastructure.persistence`로 내려 그 스캔을 자기 루트로 좁히면서 이 제약이 사라졌다. **`application` 모듈은 자바 패키지가 `com.tastyhouse.application` 단일 루트다** — 챕터 01의 통합 시점에는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`)와 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 나뉘어 있었으나, **챕터 03에서 4개 앱 패키지를 이 하나로 평탄화**했다. 그 결과 이 한 패키지를 **`application` 한 모듈이 단독 소유**하며(챕터 04로 공유 계약 55개가 `domain`에서 돌아와 split package가 끝났다), 패키지만 봐서는 앱 소속을 알 수 없어졌다 — 소속은 이제 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 표현한다. **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
+- **infrastructure 모듈의 자바 패키지는 모듈명을 따른다**: 코드가 있는 17모듈 모두 루트가 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}`다(`persistence`→`.persistence`, `kakao-oauth`→`.kakao.oauth`). 규칙 전문은 아래 [infrastructure 패키지 규칙](#infrastructure-패키지-규칙-루트--모듈명). **(번복됨 — infrastructure 패키지 루트 통일)** ~~`infrastructure:persistence`·`infrastructure:redis` 둘 다 `com.tastyhouse.infrastructure..`를 쓴다(재편은 Gradle 좌표와 디렉터리만 바꿨다). `infrastructure:{firebase,aws-s3,…,bbq,admdongkor}` 16모듈은 한 걸음 더 나가 `com.tastyhouse.external..` 하나를 나눠 쓴다(코어 `infrastructure:restclient`는 `com.tastyhouse.restclient..`로 옮겨 빠졌다) — `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")` 범위 밖에 남아 있어야 하기 때문이다.~~ persistence를 `com.tastyhouse.infrastructure.persistence`로 내려 그 스캔을 자기 루트로 좁히면서 이 제약이 사라졌다. **`application` 모듈은 자바 패키지가 `com.tastyhouse.application` 단일 루트다** — 챕터 01의 통합 시점에는 4개 앱 패키지(`com.tastyhouse.{web|admin|ceo|batch}application..`)와 읽기 계약 패키지(`com.tastyhouse.application..port.out`)가 나뉘어 있었으나, **챕터 03에서 4개 앱 패키지를 이 하나로 평탄화**했다. 그 결과 이 한 패키지를 **`application` 한 모듈이 단독 소유**하며(챕터 04로 공유 계약 55개가 `domain`에서 돌아와 split package가 끝났다), 패키지만 봐서는 앱 소속을 알 수 없어졌다 — 소속은 이제 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 아래 [앱 마커 규칙](#앱-마커-규칙-챕터-03--스캔이-패키지에서-애노테이션으로))이 표현한다. **`security-core`와 `security-module`도 같은 선례를 따라 둘 다 `com.tastyhouse.security..`를 쓴다**(챕터 03 — split package. 이동 대상만 패키지를 유지한 채 모듈을 옮겼다).
 - **application 5모듈 — 어느 모듈에 둘지는 "몇 개 앱이 쓰는가"로 정한다 (앱 마커 제거)**: 앱 하나만 쓰는 UseCase·Command·서비스·SPI 포트는 `{web,admin,ceo,batch}-application`, 2개 앱 이상이 쓰는 도메인 서비스와 리스너·`@Configuration`·`port.out` 계약은 코어 `application`에 둔다. 앱 모듈은 `api project(':application')`로 코어를 노출하고, 실행 앱은 `implementation project(':application')` + `implementation project(':{앱}-application')` 두 줄을 갖는다. 상세는 아래 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다).
 - **어느 모듈의 AGENTS.md를 읽어야 하나**: 컨트롤러·인증 필터를 고치면 `{앱}-api/AGENTS.md`, 유스케이스·서비스를 고치면 `application/AGENTS.md`(5모듈 공통 규칙 정본)와 `{앱}-application/AGENTS.md`(앱 모듈 요약), 쿼리·엔티티는 `infrastructure/persistence/AGENTS.md`, 불변식은 `domain/AGENTS.md`, JWT 토큰 발급/검증·토큰 저장소 **포트**는 `security-core/AGENTS.md`(Redis 구현은 `infrastructure/redis/AGENTS.md`), 서블릿 인증 필터·EntryPoint는 `security-module/AGENTS.md`.
 - **챕터 03 — `security-core` 분리 (application의 서블릿 스택 오염 절단)**: `security-module`이 서블릿 결합 타입(JWT 인증 필터 `OncePerRequestFilter` 상속·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`, `starter-web` 의존)과 서블릿-프리 타입(`JwtTokenProvider`·토큰 저장소 6종)을 함께 갖고 있어, `{web,admin,ceo,batch}-application`이 `security-module`을 의존하면 application 계층의 컴파일 클래스패스가 서블릿 스택으로 오염됐다(ArchUnit `applicationMustBeServletFree`는 소스 import만 검사해 이 클래스패스 오염을 막지 못한다). 서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, 토큰 저장소 6종 — RefreshToken/Blacklist/소셜 임시토큰 4종)을 신설 모듈 `security-core`로 이동하고, `security-module`은 서블릿 결합 타입(`SecurityModuleConfig`(챕터 02에 `SecurityModuleAutoConfiguration`으로 리네임됐다가 imports 제거로 원래 이름으로 돌아왔다)·`JwtAuthenticationFilter`·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`)만 남긴 채 `api project(':security-core')`로 재노출한다. `{web,admin,ceo}-application`은 `security-module` 대신 `security-core`만 의존해 서블릿 스택을 컴파일 클래스패스에서 배제하고(batch-application은 원래 security 의존이 없어 대상 아님), `{admin,ceo}-application`은 `spring-boot-starter-security`를 `spring-security-core`로 축소했다. `{web,admin,ceo}-api`는 기존대로 `security-module`을 의존하며 `security-core`를 전이로 받는다. 자바 패키지(`com.tastyhouse.security..`)·Redis key prefix(`rt:`/`bl:`/`admin:rt:`/`admin:bl:` 등)는 전부 불변이다. **단 토큰 저장소 6종은 챕터 01에서 다시 포트/어댑터로 갈렸다** — 계약만 이 모듈에 남고 구현은 `infrastructure:redis`의 `token` 패키지로 내려갔으므로, 위 "`@Repository` 빈을 `security-module`이 스캔한다"는 배선은 더 이상 이 저장소들에 해당하지 않는다(어댑터는 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 등록한다 — ~~`RedisModuleAutoConfiguration`이 등록한다~~ **(번복됨 — imports 제거)**). API 계약(JWT 토큰 포맷·인증 플로우)도 변경 없음. 상세는 [모듈 경계 규칙](#모듈-경계-규칙-계층--앱-2차원--기술별-infrastructure) 아래 의존 그래프와 `security-core/AGENTS.md`·`security-module/AGENTS.md` 참고.
@@ -76,7 +78,7 @@ application 5            application (코어)  ← 2개 앱 이상이 쓰는 것
 |---|---|---|
 | 라이브러리 모듈을 활성화하는 주체 | 각 모듈의 imports 파일 | 각 앱 부트스트랩의 static 중첩 `ModuleScanConfig` |
 | imports 파일 | 19개 | **0개** |
-| 설정 클래스 | `{Xxx}ModuleAutoConfiguration` (`@AutoConfiguration`, 자기 패키지 `@ComponentScan`) 20개 | `{Xxx}ModuleConfig` (`@Configuration(proxyBeanMethods = false)`, 스캔 없음) 13개 — 등록할 것이 없어진 7개는 삭제 |
+| 설정 클래스 | `{Xxx}ModuleAutoConfiguration` (`@AutoConfiguration`, 자기 패키지 `@ComponentScan`) 20개 | `{Xxx}ModuleConfig` (`@Configuration(proxyBeanMethods = false)`, 스캔 없음) 13개(이후 `MyBatisModuleConfig` 신설로 14개) — 등록할 것이 없어진 7개는 삭제 |
 | 특정 모듈 끄기 | `spring.autoconfigure.exclude` | 소멸 — 그 앱 `ModuleScanConfig`의 목록에서 패키지를 뺀다 |
 | 빈 존재 조건(`@ConditionalOnBean`/`@ConditionalOnMissingBean`) | 사용(예외 핸들러·rate limit aspect·JWT 필터) | **사용 금지** — 일반 `@Configuration`에서는 처리 순서에 좌우돼 조용히 틀린다 |
 | 환경 조건(`@ConditionalOnWebApplication`/`@ConditionalOnProperty`) | 사용 | 유지(환경으로 판정하므로 일반 설정에서도 정확하다) |
@@ -159,6 +161,7 @@ static class ModuleScanConfig {
 | 모듈 | 설정 클래스 | 하는 일 | 조건 |
 |---|---|---|---|
 | `infrastructure:persistence` | 없음(`PersistenceModuleAutoConfiguration` 삭제) | — 빈 발견은 앱의 `com.tastyhouse.infrastructure` 스캔. JPA 스캔·Auditing·트랜잭션은 기존 `InfrastructurePersistenceConfig`가 그대로 갖는다 | — |
+| `infrastructure:mybatis` | `MyBatisModuleConfig` | `@MapperScan(basePackageClasses = MyBatisModuleConfig.class, annotationClass = Mapper.class)` — MyBatis 기본 매퍼 스캔은 앱 패키지만 보므로 필수 | 없음(어댑터의 `@ConditionalOnProperty(persistence.banner.write.provider=mybatis)`는 스캔된 클래스에 있다) |
 | `infrastructure:redis` | `RedisModuleConfig` | `@EnableConfigurationProperties(RedisTokenStoreProperties)` | 없음(`before = RedisAutoConfiguration` 삭제 — 사용자 설정이 언제나 먼저 처리된다) |
 | `security-module` | `SecurityModuleConfig` | `@EnableConfigurationProperties(JwtProperties)` + `@Bean JwtAuthenticationFilter`(POJO라 스캔 대상이 아니다) | `@ConditionalOnWebApplication(SERVLET)`. `@ConditionalOnMissingBean(JwtAuthenticationFilter)`는 삭제 |
 | `logging-module` | 없음(`LoggingModuleAutoConfiguration` 삭제) | — | — |
@@ -222,6 +225,7 @@ static class ModuleScanConfig {
 | AwsS3 | — | — | — | 없음 | jar 없음 |
 | AwsSes | — | — | — | 없음 | jar 없음 |
 | AwsSns | — | — | — | 없음 | jar 없음 |
+| MyBatis | — | ● (admin) / — (ceo) | — | 어댑터만 `@ConditionalOnProperty` | admin-api만 `runtimeOnly :infrastructure:mybatis` — MyBatis 자동 설정·`@MapperScan`·XML 파싱이 admin에서만 일어난다 |
 
 **(번복됨 — imports 제거, 당시 기록)** **실측(2026-09-05, `java -jar ... --debug` 기동의 `CONDITIONS EVALUATION REPORT`)**: web은 `sharedGlobalExceptionHandler` **Negative**(자체 advice 존재)·`rateLimitAspect` **Positive**, admin/ceo는 둘 다 **Positive**(로그인 rate limit 유지 확인), batch는 `ApiCommon*` 2개 **Negative**(non-servlet). Boot `JpaRepositoriesAutoConfiguration`은 4앱 전부 **Negative**(persistence의 `before` 순서가 이긴 결과). admin(8090)·ceo(8100)·web(8080) 로그인 rate limit을 curl로 10회까지 401·11회째 429로 확인해 회귀 없음을 검증했다.
 
@@ -234,7 +238,7 @@ static class ModuleScanConfig {
 | 앱 | `implementation` | `runtimeOnly` | 남는 `@Import` (before) → 마커 스캔 위치 (after) |
 |---|---|---|---|
 | web-api | `:application`, `:web-application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:infrastructure:oauth`, `:infrastructure:pg`, `:infrastructure:mail`, `:infrastructure:sms`, `:logging-module` | before `WebApplicationConfig` → after 없음, 부트스트랩 중첩 `ApplicationLayerScanConfig` |
-| admin-api / ceo-api | `:application`, `:admin-application` / `:ceo-application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:logging-module` | before `AdminApplicationConfig` / `CeoApplicationConfig` → after 없음, 각 부트스트랩 중첩 `ApplicationLayerScanConfig` |
+| admin-api / ceo-api | `:application`, `:admin-application` / `:ceo-application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:logging-module` (+ admin만 `:infrastructure:mybatis`) | before `AdminApplicationConfig` / `CeoApplicationConfig` → after 없음, 각 부트스트랩 중첩 `ApplicationLayerScanConfig` |
 | batch-module | `:application`, `:batch-application` | `:infrastructure:persistence`, `:infrastructure:file-storage`, `:infrastructure:bbq`, `:infrastructure:admdongkor`, `:logging-module` | before `BatchApplicationConfig` → after 없음, 부트스트랩 중첩 `ApplicationLayerScanConfig` |
 
 3앱의 `implementation` 열에 있던 `spring-boot-starter-data-redis`는 **챕터 01에서 삭제됐다** — 앱이 `StringRedisTemplate`을 직접 참조하던 `config/jwt/RedisRepositoryConfig`가 사라져 그 명시 선언의 근거가 소멸했기 때문이다(아래 [함정 2](#후속-작업자가-밟기-쉬운-함정-2가지)). `runtimeOnly` 열은 불변이다.
@@ -322,7 +326,8 @@ static class ModuleScanConfig {
   - 벤더: ~~외부 API의 요청·응답 wire DTO는 `{루트}.dto`에 둔다.~~ **(번복됨 — package-private 적용)** 외부 API의 요청·응답 wire DTO도 `{루트}`에 평면으로 두고 package-private으로 선언한다. package-private 타입은 같은 패키지에서만 보이므로, 그 DTO를 쓰는 `*Client`와 같은 패키지에 있어야 하기 때문이다(16개 이동 — 상세는 아래 [접근 제어자 규칙](#접근-제어자-규칙-내부-구현은-package-private)). Client·Adapter·Properties·Config도 루트에 평면으로 둔다. 결과적으로 **벤더 모듈에는 하위 패키지가 없다.**
   - persistence: `{루트}.{컨텍스트}[.{하위 컨텍스트}].{persistence|query}` + `{루트}.config` + `{루트}.shared.{persistence|query|event}`(현 구조). `persistence.order.persistence`처럼 `persistence`가 두 번 나오는 이름은 감수한다 — 내부의 쓰기(`persistence`)·조회(`query`) 이원 구조가 더 중요하다.
   - redis: 기능 하위 패키지(`ratelimit`·`token`)를 쓴다.
-- **가드**: 각 모듈 아키텍처 테스트의 `shouldResideInModuleRootPackage`가 `build/classes/java/main`의 모든 클래스가 자기 루트 아래 있는지 검사한다 — 벤더 13개는 `VendorLayerRulesTest`, persistence는 `LayerRulesTest`, redis·restclient는 `architecture/PackageRootTest`(이 둘은 이 가드 때문에 `testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'`을 갖는다). 같은 테스트 클래스의 `topLevelClassesShouldNotBePublic`이 최상위 클래스의 `public`을 금지해, wire DTO를 다시 `public`·`dto` 하위 패키지로 되돌리면 빌드가 실패한다([접근 제어자 규칙](#접근-제어자-규칙-내부-구현은-package-private)).
+  - mybatis: `{루트}.{컨텍스트}`(지금은 `banner` 하나 — 쓰기만 있어 `persistence`/`query`로 나누지 않는다. 조회를 추가하면 persistence 모듈처럼 나눈다) + 루트의 `MyBatisModuleConfig`.
+- **가드**: 각 모듈 아키텍처 테스트의 `shouldResideInModuleRootPackage`가 `build/classes/java/main`의 모든 클래스가 자기 루트 아래 있는지 검사한다 — 벤더 13개는 `VendorLayerRulesTest`, persistence는 `LayerRulesTest`, redis·restclient·mybatis는 `architecture/PackageRootTest`(이 셋은 이 가드 때문에 `testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'`을 갖는다). 같은 테스트 클래스의 `topLevelClassesShouldNotBePublic`이 최상위 클래스의 `public`을 금지해, wire DTO를 다시 `public`·`dto` 하위 패키지로 되돌리면 빌드가 실패한다([접근 제어자 규칙](#접근-제어자-규칙-내부-구현은-package-private)).
 - **ArchUnit 패키지 술어 함정**: 루트에 `persistence` 세그먼트가 생겼으므로 `"com.tastyhouse.infrastructure..persistence.."`는 `...persistence.order.query`까지 매칭한다. persistence `LayerRulesTest`의 술어는 `"com.tastyhouse.infrastructure.persistence..persistence.."`·`"com.tastyhouse.infrastructure.persistence..query.."`로 쓰며 줄이지 않는다. 앱(`{web,admin,ceo}-api`·`batch-module`) `LayerRulesTest`의 persistence 금지 술어는 `"com.tastyhouse.infrastructure.persistence.."`다.
 
 ## 접근 제어자 규칙 (내부 구현은 package-private)
@@ -558,8 +563,17 @@ reference 구현: `order` 도메인의 `OrderQueryService#findOrderDetailById`(�
 | 읽기 포트 | `application/<ctx>/port/out/` | `BannerQueryPort` | 유지 |
 | 조회 어댑터 | `infrastructure/persistence/<ctx>/query/` | `BannerQueryDao` | `BannerQueryAdapter` |
 | 그 밖의 포트 구현 | 각 모듈 | `XxxAdapter` | 유지 (예: `ProductReviewStatisticsAdapter` implements `ProductReviewStatisticsPort`) |
-| Spring Data 인터페이스 | `infrastructure/persistence/<ctx>/persistence/` | `BannerJpaRepository` | 유지 |
+| Spring Data 인터페이스 | `infrastructure/persistence/<ctx>/persistence/` | `NoticeJpaRepository` | 유지 |
 
+- **예외 — 같은 포트를 여러 기술 모듈이 구현할 때는 기술 한정어를 붙입니다.** 1:1 대칭(`XxxPersistencePort` ↔ `XxxPersistenceAdapter`)은 구현이 하나일 때의 규칙입니다. 구현이 둘이면 이름만으로 어느 기술인지 구분해야 하므로 `{Ctx}{기술}PersistenceAdapter`로 짓고, 도메인 변환기도 `{Ctx}JpaMapper`(엔티티 ↔ 도메인)·`{Ctx}RowMapper`(MyBatis 행 ↔ 도메인)로 나눕니다. `{Ctx}MyBatisMapper`는 MyBatis SQL 인터페이스 이름이라 변환기에 쓰지 않습니다.
+
+  | 항목 | before (구현 1개) | after (JPA·MyBatis 공존) |
+  |---|---|---|
+  | JPA 어댑터 | `BannerPersistenceAdapter` | `BannerJpaPersistenceAdapter` (`infrastructure:persistence`) |
+  | MyBatis 어댑터 | — | `BannerMyBatisPersistenceAdapter` (`infrastructure:mybatis`) |
+  | 도메인 변환기 | `BannerMapper` | `BannerJpaMapper` / `BannerRowMapper` |
+
+  구현이 하나뿐인 나머지 영속 어댑터는 1:1 대칭 이름을 그대로 씁니다.
 - **변수·필드·파라미터명도 타입을 따릅니다.**
   - `BannerPersistencePort bannerPersistencePort`로 씁니다.
   - 축약형은 접미어만 바꿉니다: `ProductOptionPersistencePort optionPersistencePort`.
@@ -583,6 +597,22 @@ reference 구현: `order` 도메인의 `OrderQueryService#findOrderDetailById`(�
   - `infrastructure/persistence`의 `LayerRulesTest#adaptersShouldNotUseRetiredSuffixes`: `*RepositoryImpl`·`*QueryDao` 금지
   - `application`의 `LayerRulesTest#writePortsShouldBeNamedPort`: `port.out.write`의 인터페이스는 `*Port`
   - 참고로 컨트롤러 가드 `controllersShouldNotDependOnPersistencePorts`는 이름뿐 아니라 `port.out.write` 패키지로도 막습니다.
+
+## 영속 포트 기술 중립 규칙 (포트는 JPA·MyBatis 어느 쪽으로도 구현될 수 있어야 한다)
+
+**write 포트(`application/<ctx>/port/out/write/`)와 그것을 쓰는 application 코드는 영속 기술의 어휘·타입·예외를 모른다.** 포트 계약은 "무엇을 저장·조회하는가"만 말하고, "JPA로 하는가 MyBatis로 하는가"는 영속 어댑터 모듈(`infrastructure:persistence`·`infrastructure:mybatis`) 안에만 둔다. 그래야 어댑터를 바꿀 때 포트와 서비스가 한 줄도 바뀌지 않는다 — banner MyBatis 파일럿(`docs/tasks/mybatis-banner-pilot/`)이 이것을 실제로 확인했다(`BannerPersistencePort`와 admin 서비스 3개 무변경).
+
+| 항목 | before | after |
+|---|---|---|
+| 즉시 기록 포트 메서드 | `ReservationSlotPersistencePort#saveAndFlush` — "flush"는 JPA 영속성 컨텍스트 용어 | `#saveImmediately` — 의도("지금 기록해 충돌을 메서드 안에서 드러낸다")를 이름에 담는다. 구현은 그대로 `save` + `slotJpaRepository.flush()` |
+| 유니크 충돌 | `ReservationCreateService`가 `org.springframework.dao.DataIntegrityViolationException` catch | 어댑터가 `application/shared/port/out/UniqueConstraintConflictException`으로 번역해 던지고 서비스는 그것을 catch |
+| 가드 | 없음 | application `LayerRulesTest#applicationShouldNotDependOnPersistenceTechnology` — application 5모듈은 `org.springframework.dao..`·`org.springframework.orm..`·`org.springframework.data..`·`jakarta.persistence..`·`org.apache.ibatis..`·`org.mybatis..`에 의존하지 않는다(기존 `shouldNotDependOnQuerydsl`이 `com.querydsl..`을 막는다). **catch 절의 예외 타입은 ArchUnit 의존 그래프에 잡히지 않으므로**(반증 probe로 확인 — `catch (DataIntegrityViolationException e)`만 있고 `e`를 쓰지 않으면 규칙이 통과했다) 같은 테스트가 `getTryCatchBlocks()`의 잡는 타입을 따로 검사한다 |
+| 동작 | — | 변경 없음 — 재시도 대상 예외 집합이 같고, 유니크 충돌은 `uk_reservation_slot`에서만 나며(`RESERVATION`에는 UNIQUE가 없다) IDENTITY insert라 `saveImmediately` 안에서 즉시 발생한다 |
+
+- **포트 이름·시그니처에 영속 기술 어휘를 쓰지 않는다** — flush·persist·merge·detach·entity·session·mapper. 즉시 기록이 필요하면 `saveImmediately`처럼 의도를 쓴다.
+- **영속 기술의 예외는 어댑터가 `application/shared/port/out/`의 포트 예외로 번역한다** — 낙관적 락은 `OptimisticLockConflictException`, 유니크 충돌은 `UniqueConstraintConflictException`. 새 경합 유형이 생기면 같은 자리에 포트 예외를 추가한다. 번역은 커밋 전에 그 예외가 메서드 안에서 터지는 지점(즉시 기록 메서드)에서만 가능하다 — 커밋 시점 예외는 어댑터가 잡을 수 없다.
+- **같은 포트를 여러 모듈이 구현하면 provider 속성으로 하나만 등록한다** — 각 구현 클래스에 `@ConditionalOnProperty(name = "persistence.{ctx}.write.provider", havingValue = "{기술}")`를 달고, `matchIfMissing = true`는 **기본 구현에만** 둔다(둘 다 두면 속성이 없을 때 구현이 2개 등록돼 `NoUniqueBeanDefinitionException`). 잘못된 값이면 구현이 0개가 되어 그 포트를 주입하는 앱이 기동에 실패한다 — 조용히 틀린 쪽이 켜지는 것보다 낫다. 선례: banner(`persistence.banner.write.provider=jpa|mybatis`, 기본 jpa). `@ConditionalOnBean`류는 쓰지 않는다(위 모듈 등록 컨벤션).
+- **`save(domain)`의 "id가 null이면 insert, 아니면 update" 계약은 기술 중립이다** — JPA는 load-copy-save로, MyBatis는 `INSERT`(`useGeneratedKeys`)/`UPDATE`(영향 행 0이면 `IllegalStateException`)로 구현한다. 서비스의 명시적 save 규칙도 그대로다.
 
 ## 결과 DTO 접미어 규칙 (`Result`로 통일, `Dto` 금지)
 
@@ -1596,9 +1626,9 @@ public class AdminPersistenceAdapter implements AdminPersistencePort {
 - **QueryAdapter로 일원화하지 않는 이유**: `..query..`는 domain을 볼 수 없고(`queryShouldNotDependOnDomain`), persistence → query 의존은 금지이며(`persistenceShouldNotDependOnQuery`), CommandService는 QueryPort를 주입하지 못한다(`commandServicesShouldNotDependOnQueryPorts`). 그래서 같은 행을 읽는 메서드가 write 포트와 QueryPort에 하나씩 있을 수 있다(목적이 다르므로 허용 — [write 포트 잔류 판정 기준](#write-포트-잔류-판정-기준-domain-repository에-남길-조회의-경계)).
 - **변환 시 의미를 보존한다** — 파생 `Optional findBy`는 `fetchOne`(다건이면 예외로 같은 의미), `findFirst…`만 `fetchFirst`. 파생 `deleteBy…`는 bulk delete가 아니라 `fetch()` 후 `jpaRepository.deleteAll(rows)`(로드 후 `em.remove`). `@Modifying(flushAutomatically, clearAutomatically)`는 `entityManager.flush()` → `queryFactory.delete(..).execute()` → `entityManager.clear()`. `In(Collection)`은 빈 입력이면 쿼리 없이 빈 결과.
 - **대가**: 파생 쿼리는 부팅 때 검증됐지만 QueryDSL은 실행 시점에만 검증된다. 조건을 고치면 해당 엔드포인트를 한 번 호출해 확인한다.
-- **상속 메서드 `flush()` 호출은 허용된다** — 선언 금지 규칙은 메서드 **선언**만 막는다. flush만 필요하면 `jpaRepository.flush()`를 쓴다. 리포지토리 프록시를 거치므로 예외가 Spring 예외로 번역된다(`ReservationSlotPersistenceAdapter#saveAndFlush`가 이 차이로 재시도 결함을 고친 사례).
+- **상속 메서드 `flush()` 호출은 허용된다** — 선언 금지 규칙은 메서드 **선언**만 막는다. flush만 필요하면 `jpaRepository.flush()`를 쓴다. 리포지토리 프록시를 거치므로 예외가 Spring 예외로 번역된다(`ReservationSlotPersistenceAdapter#saveImmediately`(당시 이름 `saveAndFlush`)가 이 차이로 재시도 결함을 고친 사례).
 - **`EntityManager`는 생성자 주입으로 받는다** — `clear()`·`createNativeQuery`처럼 `JpaRepository`에 대응 메서드가 없을 때만 쓰고, `@PersistenceContext` 필드 주입 대신 `private final EntityManager entityManager`를 생성자로 받는다(Spring이 주는 것은 트랜잭션 바인딩 shared proxy라 `final` 보관이 안전하다). 가드는 persistence `LayerRulesTest#entityManagerShouldBeConstructorInjected`.
-- **가드**: persistence `LayerRulesTest#jpaRepositoriesShouldNotDeclareMethods`(Spring Data `Repository`를 상속한 인터페이스의 선언 메서드 0개) + `#jpaRepositoriesExist`(≥123). 근거와 의미 보존 규칙 상세는 `infrastructure/persistence/AGENTS.md`의 `## 봉인·가드 목록`.
+- **가드**: persistence `LayerRulesTest#jpaRepositoriesShouldNotDeclareMethods`(Spring Data `Repository`를 상속한 인터페이스의 선언 메서드 0개) + `#jpaRepositoriesExist`(≥123 — banner JPA 쓰기는 MyBatis 구현과 공존한다). 근거와 의미 보존 규칙 상세는 `infrastructure/persistence/AGENTS.md`의 `## 봉인·가드 목록`.
 
 ## QueryDSL 동적 where 조건 조립 규칙 (`BooleanBuilder` 대신 `BooleanExpression` varargs 헬퍼)
 
@@ -1806,7 +1836,7 @@ reference 구현: `notice` 도메인 — `com.tastyhouse.application.notice.port
 
 - **반환 타입이 1차 신호다**: 도메인 모델(`Optional<Notice>`)·VO·`boolean`/`long` 같은 원시값을 반환하면 write 포트 후보이고, `XxxResult`·`PageResult<T>`를 반환하면 query DAO다. 도메인 모델을 반환하더라도 그것을 **화면에 뿌리기 위해** 로드하는 목록 조회는 query DAO로 내린다(도메인 모델 컬렉션을 표현 목적으로 로드하는 것은 불변식과 무관하다).
 - **`existsByX`·`countByX`는 용도로 갈린다**: "이미 존재하면 생성 불가" 같은 **불변식 검증**이면 write 포트에 남기고(예: 같은 가게·같은 이미지 타입에 PENDING 요청이 2건 생기지 않게 막는 검사), 화면에 개수를 표시하려는 집계라면 query DAO로 내린다.
-- **락 획득 조회는 반드시 write 포트**: 낙관적 락 `@Version` 검증·`saveAndFlush`로 충돌을 커밋 전에 노출시키는 경로는 상태 전이의 일부이므로 write 포트에 남긴다([낙관적 락 재시도 배치 규칙](#낙관적-락-재시도-배치-규칙-재시도-루프는-트랜잭션-경계-밖-별도-executor-빈) 참고).
+- **락 획득 조회는 반드시 write 포트**: 낙관적 락 `@Version` 검증·`saveImmediately`로 충돌을 커밋 전에 노출시키는 경로는 상태 전이의 일부이므로 write 포트에 남긴다([낙관적 락 재시도 배치 규칙](#낙관적-락-재시도-배치-규칙-재시도-루프는-트랜잭션-경계-밖-별도-executor-빈) 참고).
 - **양쪽에 같은 데이터를 읽는 메서드가 생기는 것을 허용한다**: write 포트의 `findById`(도메인 모델 로드)와 query DAO의 `findXxxDetail`(투영)이 같은 행을 읽어도 중복이 아니다 — 목적(불변식 vs 표현)과 반환 타입이 다르므로 통합하지 않는다.
 - **호출부가 없는 write 포트 조회는 지운다**: 포트 메서드는 쓰는 쪽이 있어야 존재한다. 테스트 더블만 구현하는 메서드도 지우고, 테스트가 그 메서드로 단언하고 있었다면 fake의 `@Override`만 떼어 헬퍼로 남긴다.
 
@@ -1831,7 +1861,7 @@ reference 구현: `notice` 도메인 — `com.tastyhouse.application.notice.port
 - **소유 검증의 의미를 바꾸지 않는다.** 가격 목록은 원래 `product.shopId` 일치 + 미삭제가 아니면 404였다. 같은 조건을 갖는 `ProductOwnerQueryPort#findExposurePeriod`의 `shopId`를 비교해 재현했고, shop **링크** 기준인 `existsProductInShop`은 의미가 달라 쓰지 않았다.
 - **이 판정은 ArchUnit으로 강제하지 못한다.** "서비스가 write 포트를 읽은 값이 화면으로 나가는가"는 정적으로 판정할 수 없어 리뷰가 지킨다. 조회 유스케이스에 도메인 서비스를 새로 주입할 때 이 표로 확인한다.
 
-reference 구현: `domain/.../notice/repository/NoticePersistencePort`(`findById`/`save` 둘만 노출 — 목록·검색·페이징은 전부 `com.tastyhouse.application.notice.port.out.NoticeQueryPort`(구현은 `infrastructure-module/.../notice/query/NoticeQueryAdapter`)가 담당하며, 그 의도를 인터페이스 Javadoc에 명시). 락 획득 조회 사례: `reservation` 도메인의 `ReservationSlotPersistencePort`(`saveAndFlush`로 `@Version` 충돌을 커밋 전에 노출). 기준 위반을 사후 교정한 사례: `file` 도메인의 `UploadedFilePersistencePort`가 응답 URL 변환용으로 `findFilePath`(단건 default)·`findFilePaths`(배치)를 갖고 있었으나, 둘 다 "화면에 뿌릴 값"을 얻는 조회여서 이 기준에 맞지 않았고 조회를 DAO join으로 옮긴 뒤 호출부가 0이 되어 제거했다(현재는 `save`/`findById`만 노출). 애그리거트를 로드해 그 fileId를 표현용으로만 쓰던 5개 경로도 같은 기준으로 `ShopQueryAdapter#findShopImageUrls`·`MemberQueryAdapter#findProfileImageUrl` 투영으로 이관했다 — 다만 그 경로들은 응답의 다른 필드나 소유권 검증(ceo-api `validateOwnership`) 때문에 애그리거트 로드 자체는 계속 필요하므로, **이미지 URL만** 투영으로 분리했다.
+reference 구현: `domain/.../notice/repository/NoticePersistencePort`(`findById`/`save` 둘만 노출 — 목록·검색·페이징은 전부 `com.tastyhouse.application.notice.port.out.NoticeQueryPort`(구현은 `infrastructure-module/.../notice/query/NoticeQueryAdapter`)가 담당하며, 그 의도를 인터페이스 Javadoc에 명시). 락 획득 조회 사례: `reservation` 도메인의 `ReservationSlotPersistencePort`(`saveImmediately`로 `@Version` 충돌을 커밋 전에 노출). 기준 위반을 사후 교정한 사례: `file` 도메인의 `UploadedFilePersistencePort`가 응답 URL 변환용으로 `findFilePath`(단건 default)·`findFilePaths`(배치)를 갖고 있었으나, 둘 다 "화면에 뿌릴 값"을 얻는 조회여서 이 기준에 맞지 않았고 조회를 DAO join으로 옮긴 뒤 호출부가 0이 되어 제거했다(현재는 `save`/`findById`만 노출). 애그리거트를 로드해 그 fileId를 표현용으로만 쓰던 5개 경로도 같은 기준으로 `ShopQueryAdapter#findShopImageUrls`·`MemberQueryAdapter#findProfileImageUrl` 투영으로 이관했다 — 다만 그 경로들은 응답의 다른 필드나 소유권 검증(ceo-api `validateOwnership`) 때문에 애그리거트 로드 자체는 계속 필요하므로, **이미지 URL만** 투영으로 분리했다.
 
 ## 도메인 컨텍스트 경계 규칙 (ArchUnit 강제 — 봉인 목록 방식)
 
@@ -2368,12 +2398,12 @@ reference 구현: `infrastructure:persistence`의 `file/query/FileUrlResolver`·
 - **3단 구조와 각 층의 책임**:
   1. **`{도메인}CommandService`** (소비 모듈, `@Transactional` **없음**) — 재시도 루프(`MAX_RETRY`)와 경합 예외 판별만. 재시도 소진 시 도메인 의미의 실패로 변환(예: `RESERVATION_SLOT_FULL`).
   2. **`{도메인}{동작}Executor`** (소비 모듈, `@Component` + `@Transactional`) — 한 번의 시도를 독립 트랜잭션으로 감싸는 얇은 위임. 비즈니스 로직을 갖지 않습니다.
-  3. **도메인 서비스** (domain, 순수 POJO) — 불변식 본체. 경합을 **재시도하지 않고**, 충돌이 커밋 전에 드러나도록 `saveAndFlush`로 노출만 시킵니다.
-- **경합 예외 판별**: 프레임워크-프리 `OptimisticLockConflictException`(기존 행 동시 update — infra 어댑터가 `ObjectOptimisticLockingFailureException`을 catch해 번역)과 `DataIntegrityViolationException`(신규 행 동시 insert 시 유니크 충돌) **두 가지만** 재시도합니다. 비즈니스 예외(정원 마감·중복·약관 미동의 등)는 재시도하지 않고 즉시 전파합니다 — 재시도해도 결과가 같으므로 지연만 늘어납니다.
-- **커밋 전 노출이 필수**: 충돌이 트랜잭션 커밋 시점에야 터지면 이미 루프를 벗어나 재시도 루프가 잡을 수 없습니다. 그래서 경합 지점의 write 포트에 `saveAndFlush`를 두어 **메서드 내부에서** 충돌을 유발합니다(일반 `save`와 구분되는 존재 이유).
+  3. **도메인 서비스** (domain, 순수 POJO) — 불변식 본체. 경합을 **재시도하지 않고**, 충돌이 커밋 전에 드러나도록 `saveImmediately`로 노출만 시킵니다.
+- **경합 예외 판별**: 프레임워크-프리 `OptimisticLockConflictException`(기존 행 동시 update — infra 어댑터가 `ObjectOptimisticLockingFailureException`을 catch해 번역)과 `UniqueConstraintConflictException`(신규 행 동시 insert 시 유니크 충돌 — 같은 어댑터가 `DataIntegrityViolationException`을 catch해 번역) **두 가지만** 재시도합니다. 둘 다 `application/shared/port/out/`의 포트 예외이므로 application은 Spring DAO 예외를 모른다([영속 포트 기술 중립 규칙](#영속-포트-기술-중립-규칙-포트는-jpamybatis-어느-쪽으로도-구현될-수-있어야-한다)). 비즈니스 예외(정원 마감·중복·약관 미동의 등)는 재시도하지 않고 즉시 전파합니다 — 재시도해도 결과가 같으므로 지연만 늘어납니다.
+- **커밋 전 노출이 필수**: 충돌이 트랜잭션 커밋 시점에야 터지면 이미 루프를 벗어나 재시도 루프가 잡을 수 없습니다. 그래서 경합 지점의 write 포트에 `saveImmediately`를 두어 **메서드 내부에서** 충돌을 유발합니다(일반 `save`와 구분되는 존재 이유).
 - **응답 조립은 재조회로**: CommandService가 트랜잭션을 열지 않으므로 명령 결과를 그대로 응답에 쓸 수 없습니다. 명령은 식별자(`Long`)만 반환하고, 컨트롤러가 커밋 완료 후 `{도메인}QueryService`로 재조회해 Response를 조립합니다(CQRS 분리와도 일관 — 응답 조립은 QueryService 책임).
 
-reference 구현: `reservation` 도메인 — `backend/web-application/src/main/java/com/tastyhouse/application/reservation/service/ReservationCreateService.java` → `createReservation`(재시도 루프, 트랜잭션 없음 — 유스케이스 분리 전 이름은 `ReservationCommandService`) → 같은 패키지의 `ReservationBookingExecutor#bookInNewTx`(`@Transactional`) → `core/.../reservation/service/ReservationBookingService#book`(정원 차감 + 예약 저장 원자 연산, `slotRepository.saveAndFlush`로 충돌 노출), 예외 번역은 `infrastructure/reservation/persistence/ReservationSlotPersistenceAdapter`. 이 프로젝트에서 재시도 루프를 가진 유일한 경로입니다.
+reference 구현: `reservation` 도메인 — `backend/web-application/src/main/java/com/tastyhouse/application/reservation/service/ReservationCreateService.java` → `createReservation`(재시도 루프, 트랜잭션 없음 — 유스케이스 분리 전 이름은 `ReservationCommandService`) → 같은 패키지의 `ReservationBookingExecutor#bookInNewTx`(`@Transactional`) → `core/.../reservation/service/ReservationBookingService#book`(정원 차감 + 예약 저장 원자 연산, `slotPersistencePort.saveImmediately`로 충돌 노출), 예외 번역은 `infrastructure/reservation/persistence/ReservationSlotPersistenceAdapter`. 이 프로젝트에서 재시도 루프를 가진 유일한 경로입니다.
 
 ## 등록(POST) API 응답 본문 규칙 (생성된 `Long` id만 반환)
 

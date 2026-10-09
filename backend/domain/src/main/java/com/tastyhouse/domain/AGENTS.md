@@ -88,7 +88,7 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 - **domain 계층에 프레임워크 import 금지**: `org.springframework.*`·`jakarta.persistence.*`·`com.querydsl.*`를 넣지 않는다. build.gradle에 해당 의존이 없으므로 시도하면 컴파일이 깨진다 — 그 관심사는 `infrastructure-module` 소관이다.
 - **`@Entity`는 이 패키지에 없다**: 도메인 모델은 전 도메인 순수 POJO다. `@OneToMany`/`@ManyToOne`/`@ElementCollection`은 애초에 표현할 수 없으며, 외부 애그리거트 참조는 ID VO로만 한다.
 - **BC 간 통신**: 도메인 서비스 호출 또는 `DomainEventPublisher` 포트를 통한 DomainEvent로만 한다(다른 BC의 model 직접 조작 금지). 리스너는 `application`의 `<ctx>/listener/`에 둔다. 03a 이후 이 패키지 안에서는 컨텍스트 간 참조가 ID VO·이벤트 타입으로만 허용된다(`ContextBoundaryTest` — 서비스 간 경계는 `application`의 `ServiceContextBoundaryTest`).
-- **표현 목적 조회는 이 패키지에 두지 않는다**: Repository 인터페이스에는 write 포트만 남긴다(`findById`/`save`/`saveAndFlush`/`delete`/`existsByX`/`findByNaturalKey`/검증용 `countByX`/락 획득용 조회). Result DTO·`PageResult` 반환·조인 투영·목록·검색·페이징은 infrastructure-module의 `<ctx>/query/{도메인}QueryAdapter`가 소유한다.
+- **표현 목적 조회는 이 패키지에 두지 않는다**: Repository 인터페이스에는 write 포트만 남긴다(`findById`/`save`/`saveImmediately`/`delete`/`existsByX`/`findByNaturalKey`/검증용 `countByX`/락 획득용 조회). Result DTO·`PageResult` 반환·조인 투영·목록·검색·페이징은 infrastructure-module의 `<ctx>/query/{도메인}QueryAdapter`가 소유한다.
 
 **ID 참조 규칙**:
 - 외부 BC의 애그리거트는 ID VO로만 참조한다(예: `Order.memberId : MemberId`, `Payment.orderId : OrderId`).

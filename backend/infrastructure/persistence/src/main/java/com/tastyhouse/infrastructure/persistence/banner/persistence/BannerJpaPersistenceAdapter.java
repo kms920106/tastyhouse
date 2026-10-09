@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.persistence.banner.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.banner.model.Banner;
@@ -12,12 +13,13 @@ import com.tastyhouse.application.banner.port.out.write.BannerPersistencePort;
 import static com.tastyhouse.infrastructure.persistence.banner.persistence.QBannerJpaEntity.bannerJpaEntity;
 
 @Repository
-class BannerPersistenceAdapter implements BannerPersistencePort {
+@ConditionalOnProperty(name = "persistence.banner.write.provider", havingValue = "jpa", matchIfMissing = true)
+class BannerJpaPersistenceAdapter implements BannerPersistencePort {
 
     private final JPAQueryFactory queryFactory;
     private final BannerJpaRepository bannerJpaRepository;
 
-    public BannerPersistenceAdapter(JPAQueryFactory queryFactory, BannerJpaRepository bannerJpaRepository) {
+    public BannerJpaPersistenceAdapter(JPAQueryFactory queryFactory, BannerJpaRepository bannerJpaRepository) {
         this.queryFactory = queryFactory;
         this.bannerJpaRepository = bannerJpaRepository;
     }
@@ -31,19 +33,19 @@ class BannerPersistenceAdapter implements BannerPersistencePort {
                 bannerJpaEntity.deleted.isFalse()
             )
             .fetchOne();
-        return Optional.ofNullable(entity).map(BannerMapper::toDomain);
+        return Optional.ofNullable(entity).map(BannerJpaMapper::toDomain);
     }
 
     @Override
     public Banner save(Banner banner) {
         if (banner.getId() == null) {
-            BannerJpaEntity saved = bannerJpaRepository.save(BannerMapper.toEntity(banner));
-            return BannerMapper.toDomain(saved);
+            BannerJpaEntity saved = bannerJpaRepository.save(BannerJpaMapper.toEntity(banner));
+            return BannerJpaMapper.toDomain(saved);
         }
 
         BannerJpaEntity entity = bannerJpaRepository.findById(banner.getId())
             .orElseThrow(() -> new IllegalStateException("존재하지 않는 배너입니다: " + banner.getId()));
-        BannerMapper.applyChanges(entity, banner);
-        return BannerMapper.toDomain(entity);
+        BannerJpaMapper.applyChanges(entity, banner);
+        return BannerJpaMapper.toDomain(entity);
     }
 }

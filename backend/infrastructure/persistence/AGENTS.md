@@ -83,7 +83,7 @@ com.tastyhouse.infrastructure.persistence/
 - **JPA 엔티티(`XxxJpaEntity`)는 영속 전용**: 행위 메서드를 두지 않고, 신규 생성용 정적 팩토리 `create(...)`와 update 복사용 `applyChanges(...)`만 둔다(update 경로가 없는 애그리거트는 `applyChanges`도 두지 않는다). 감사 필드는 `shared/persistence/BaseEntity`(`@MappedSuperclass`)에서 상속한다 — 단 `mail`·`sms` 인증 도메인처럼 `updated_at` 컬럼이 없는 테이블은 `BaseEntity`를 상속하지 않는다.
 - **`@Embedded` VO 컬럼 매핑은 이 모듈이 소유한다**: domain의 VO(`PhoneNumber`·`ProductDiscountInfo`·`VerificationCode`)는 어노테이션 없는 순수 `record`이므로, 컬럼 매핑을 각 JpaEntity에서 `@Embedded` + `@AttributeOverride`(복수 필드는 `@AttributeOverrides`)로 재선언한다. `@AttributeOverride(name = ...)`의 `name`은 record 컴포넌트명과 정확히 일치해야 한다(reference: `MemberJpaEntity`/`EventWinnerJpaEntity`/`SmsVerificationJpaEntity`의 `PhoneNumber` 매핑, `ProductJpaEntity`의 `ProductDiscountInfo`). **(번복됨 — 03b) `@Embedded` 대상은 domain VO가 아니라 이 모듈의 `@Embeddable` record다** — `shared/persistence/PhoneNumberEmbeddable(String value)`·`shared/persistence/VerificationCodeEmbeddable`·`product/persistence/ProductDiscountInfoEmbeddable`·`order/persistence/OrderDeliveryDestinationEmbeddable`·`order/persistence/OrderScheduleEmbeddable`. 이름 규칙은 `<domain VO 이름>Embeddable`, 위치는 쓰는 엔티티와 같은 패키지(여러 컨텍스트가 쓰면 `shared/persistence/`). 컴포넌트 이름은 domain VO와 같게 두어 `@AttributeOverride(name = ...)`를 한 글자도 바꾸지 않았고, **컴포넌트 선언 순서는 알파벳순**(`EmbeddedRecordComponentOrderTest`), 그 안의 enum·VO 컴포넌트는 원시 타입(`String`·`Long`·`Integer`·`BigDecimal`)이다. ~~State 쪽에서는 이 값이 `XxxSnapshot` record(예: `OrderDeliveryDestinationSnapshot`)나 원시 컴포넌트로 온다.~~ **(번복됨 — persistence domain 재허용)** `XxxSnapshot`은 삭제됐고 `XxxMapper`가 domain VO ↔ `XxxEmbeddable`을 직접 변환한다(예: `OrderDeliveryDestination` ↔ `OrderDeliveryDestinationEmbeddable`). domain을 다시 볼 수 있게 됐지만 **`@Embedded` 대상을 domain VO로 되돌리지 않는다** — 엔티티 `String` 컬럼을 유지하는 것과 같은 이유다.
 - **저장 시맨틱은 load-copy-save**: ~~**(03b — 위치만)** 아래 `save(domain)`은 지금 `XxxStatePortImpl#save(XxxState)`다.~~ **(번복됨 — persistence domain 재허용)** 다시 `XxxPersistenceAdapter#save(domain)`이다(`domain.getId() == null`이면 `XxxMapper.toEntity(domain)` insert, 아니면 PK 조회 후 `XxxMapper.applyChanges(entity, domain)`, 반환은 `XxxMapper.toDomain(entity)`). `save(domain)`에서 id null이면 insert, id 있으면 managed 엔티티를 PK로 조회 후 `Mapper.applyChanges` 복사(동일 트랜잭션 1차 캐시 히트 — 추가 쿼리 없음). detached `save()`(merge)는 `@CreatedDate(updatable = false)` 감사 필드 파손·전 필드 UPDATE 문제로 금지한다.
-- **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(**03a로 `application`의 `shared/port/out/`으로 이동** — 과거 domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotPersistenceAdapter` — 03b 동안은 `ReservationSlotStatePortImpl`, 번복됨). 예외 타입은 `application/shared/port/out/`에 그대로 있다(03a가 03b를 위해 옮겨 둔 것 — persistence domain 재허용 후에도 되돌리지 않았다). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveAndFlush`를 둔다.
+- **낙관적 락 예외 번역은 이 모듈 책임**: 스프링 `ObjectOptimisticLockingFailureException`을 catch해 프레임워크-프리 `OptimisticLockConflictException`(**03a로 `application`의 `shared/port/out/`으로 이동** — 과거 domain `shared/exception/`)으로 번역한다(reference: `reservation/persistence/ReservationSlotPersistenceAdapter` — 03b 동안은 `ReservationSlotStatePortImpl`, 번복됨). 예외 타입은 `application/shared/port/out/`에 그대로 있다(03a가 03b를 위해 옮겨 둔 것 — persistence domain 재허용 후에도 되돌리지 않았다). 경합을 커밋 전에 노출시켜야 하는 지점은 write 포트에 `saveImmediately`(당시 이름 `saveAndFlush`)를 둔다. 같은 자리에서 `DataIntegrityViolationException`(유니크 충돌)도 `UniqueConstraintConflictException`으로 번역한다 — application은 Spring DAO 예외를 import할 수 없다(`applicationShouldNotDependOnPersistenceTechnology`).
 - **`getReferenceById`/`getOne` 사용 시 주의**: 이 프로젝트는 현재 두 메서드를 어디서도 쓰지 않는다. 쓰게 되면 lazy proxy 접근 시 `jakarta.persistence.EntityNotFoundException`(`com.tastyhouse.application.shared.exception.ResourceNotFoundException`과 무관한 JPA 예외 — 이 예외는 에러코드 모듈 분할로 domain에서 application으로 이동했다)이 던져질 수 있는데, `GlobalExceptionHandler`는 도메인 `BusinessException` 계층만 처리하므로 이 예외는 `Exception` 핸들러에 잡혀 404가 아닌 500이 된다. 사용한다면 호출부에서 반드시 도메인 예외로 번역할 것.
 - **엔티티 enum 매핑**: ~~항상 `@Enumerated(EnumType.STRING)` + `@Column(length = n, columnDefinition = "VARCHAR(n)")`. `columnDefinition`을 빼면 Hibernate 6 `MySQLDialect`가 네이티브 `ENUM`을 기대해 `ddl-auto=validate`가 실패한다. `EnumType.ORDINAL` 금지.~~ **(번복됨 — 03b)** 엔티티는 domain enum을 모르므로 **enum 컬럼은 `String` 필드 + `@Column(length = n, columnDefinition = "VARCHAR(n)")`**이다(`@Enumerated` 0건). 저장값은 여전히 **상수명 문자열**이다 — 강등(`name()`)·승격(`valueOf`)은 ~~`application/<ctx>/store/XxxStateMapper`~~ 이 모듈의 `XxxMapper`가 한다(ORDINAL 금지 취지의 승계, **(번복됨 — persistence domain 재허용: 위치만)**). **domain을 다시 볼 수 있게 됐지만 엔티티 필드를 enum으로 되돌리지 않는다** — 조회 DAO 31개 파일·193곳이 `String` 컬럼을 투영하고, 되돌리면 `Projections.constructor`가 런타임에만 깨진다. 필드가 `String`이라 Hibernate는 `VARCHAR`를 기대하므로 `columnDefinition`은 validate 통과에 필수가 아니지만, 03b가 `@Column`을 글자 하나 바꾸지 않았고 `n`이 `schema.sql` 길이의 문서이므로 **떼지 않는다**. DAO에서 enum 상수와 비교할 때는 리터럴도 복제 상수도 쓰지 않고, **비교값을 포트 인자로 받는다**(~~`XxxCodes` 복제 상수~~ 번복됨 — `application/AGENTS.md` "enum 비교값 전달 규칙"). ~~이 모듈에는 enum 어휘가 없다.~~ 조회 DAO에는 enum 어휘가 없다. write 어댑터 `XxxPersistenceAdapter`은 도메인 enum을 `name()`으로 풀어 쓴다(예: `ReservationPersistenceAdapter`의 `ReservationStatus.blockingStatuses()`). DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 `backend/CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙"의 번복 표기.
 - **(번복됨 — 덩어리 03a) 이 모듈에는 도메인 서비스 빈 등록이 없다.** `<ctx>/config/<Ctx>DomainConfig` 18개는 전부 `application`의 `<ctx>/config/<Ctx>ServiceConfig`(`@SharedApp` — 등록 앱 불변)로 옮겨졌고(`PaymentDomainConfig`는 기존 `PaymentServiceConfig`에 합쳐짐), 그 설정이 등록하던 서비스도 `application/<ctx>/service/`의 마커 없는 POJO가 됐다. **(번복됨 — application `*ServiceConfig` 삭제)** 그 `<Ctx>ServiceConfig`들도 이후 전부 삭제됐고, 지금 서비스는 클래스에 앱 마커만 달아 application의 마커 스캔으로 등록된다(domain 계산기 등 10개만 `application/shared/config/SharedBeanConfig`의 `@Bean`). **(번복됨 — 앱 마커 제거)** 지금은 `@Service`를 달고 코어 `application` 또는 `{앱}-application` 모듈에서 스캔으로 등록된다. 이 모듈에 `*DomainConfig.java`는 0개다. 같은 이유로 서비스 연결 어댑터 2개(`ShopRequestIndexSyncAdapter`·`ReplyPhraseProhibitedWordValidatorAdapter`)·금칙어 캐시 데코레이터 `CachingProhibitedWordPersistencePort`·발행 구현 `SpringDomainEventPublisher`도 떠났다 — 남기면 이 모듈이 `application`의 `port.out` 밖 타입(서비스·`shared/event`)을 봐야 해 `LayerRulesTest#shouldNotDependOnApiModules`에 걸린다. 근거와 옮긴 설계 근거 항목은 `../../application/AGENTS.md`의 "덩어리 03a" 절. **새 도메인 서비스를 만들 때 이 모듈에 설정을 되살리지 않는다.** 아래는 과거 서술이다. **도메인 서비스 빈 등록은 컨텍스트별 `<ctx>/config/<Ctx>DomainConfig`가 담당**: domain의 `<ctx>/service/` 클래스들은 `@Service`/`@Component`가 없는 순수 POJO이므로 컴포넌트 스캔에 잡히지 않는다. 각 컨텍스트의 `@Configuration(proxyBeanMethods = false)`이 write 포트·출력 포트를 주입해 `@Bean`으로 조립한다. **domain에 새 도메인 서비스를 추가하면 해당 컨텍스트의 `<Ctx>DomainConfig`에 `@Bean` 메서드를 추가한다(그 config가 없으면 신설)** — 누락 시 부팅 시 주입 실패.
@@ -243,6 +243,22 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 - `spring-boot-starter-data-jpa` (api), `mysql-connector-j`
 - QueryDSL `io.github.openfeign.querydsl:querydsl-jpa:6.11` (**implementation** — 소비 모듈 전이 차단. OpenFeign 포크는 CVE-2024-49203 대응이며 패키지명 `com.querydsl.*` 유지, 6.x부터 jpa는 `:jakarta` classifier 없이 jakarta 기본·apt만 `:jakarta` 유지) + `querydsl-apt` annotationProcessor
 
+## banner 쓰기 — JPA 구현과 MyBatis 구현의 공존
+
+`BannerPersistencePort`(banner 쓰기 포트)는 이 모듈의 `banner/persistence/BannerJpaPersistenceAdapter`(JPA)와 `infrastructure:mybatis`의 `BannerMyBatisPersistenceAdapter`(MyBatis)가 **둘 다 완전히 구현**한다. 어느 쪽이 빈으로 뜨는지는 속성 `persistence.banner.write.provider`(이 모듈의 `application-infrastructure.yml`, 기본 `${BANNER_WRITE_PROVIDER:jpa}`)가 정한다.
+
+| 항목 | before (MyBatis 파일럿 직후) | after (공존 + 전환) |
+|---|---|---|
+| 이 모듈의 banner 쓰기 | MyBatis 어댑터·XML이 이 모듈 안에 있었고 JPA 쓰기 코드는 삭제됨 | JPA 어댑터 복원: `BannerJpaPersistenceAdapter`·`BannerJpaMapper`·`BannerJpaRepository`·`BannerJpaEntity#create/applyChanges` |
+| MyBatis 코드 위치 | 이 모듈 | 신설 모듈 `infrastructure:mybatis`(`backend/infrastructure/mybatis/AGENTS.md`) |
+| `mybatis-spring-boot-starter`·`@MapperScan` | 이 모듈(4앱 전부에서 MyBatis 자동 설정이 켜짐) | mybatis 모듈로 이동 — admin-api에서만 켜진다 |
+| 선택 | — | `BannerJpaPersistenceAdapter`에 `@ConditionalOnProperty(name = "persistence.banner.write.provider", havingValue = "jpa", matchIfMissing = true)` |
+
+- **`matchIfMissing = true`는 JPA 쪽에만 둔다.** MyBatis 쪽에도 두면 속성이 없을 때 admin-api에 구현이 2개 등록돼 `NoUniqueBeanDefinitionException`이 난다.
+- **속성을 이 모듈 yml이 소유하는 이유**: 기본 구현(JPA)을 가진 모듈이 기본값도 갖는다. 4앱이 모두 이 yml을 import하므로 어디서나 기본은 jpa다.
+- **mybatis 모듈이 없는 앱(web·ceo·batch)에서 `provider=mybatis`로 두면** banner 쓰기 구현이 0개가 되지만, 이 포트를 주입하는 모듈은 `admin-application`뿐이라 그 앱들은 영향이 없다.
+- **JPA 1차 캐시와 섞이지 않는다** — 스위치로 둘 중 하나만 등록되므로 같은 행을 두 기술이 동시에 쓰는 일이 없다. 조회(`banner/query/BannerQueryAdapter`, QueryDSL)는 어느 설정에서도 JPA다.
+
 <!-- MANUAL: -->
 
 ## 봉인·가드 목록
@@ -250,6 +266,12 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
 
 원문 주석은 챕터 05에서 제거되므로, 이 문서가 그 금지 지시의 유일한 소재지다.
+
+### `BannerJpaProviderConditionTest` — banner 쓰기 JPA 구현의 등록 조건
+
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/banner/persistence/BannerJpaProviderConditionTest.java` · `backend/infrastructure/persistence/src/main/java/com/tastyhouse/infrastructure/persistence/banner/persistence/BannerJpaPersistenceAdapter.java` → 클래스의 `@ConditionalOnProperty`
+
+원문 취지: 속성이 없거나 `jpa`이면 등록, `mybatis`·알 수 없는 값이면 미등록. mybatis 모듈의 `BannerMyBatisProviderConditionTest`와 짝을 이뤄 "어떤 값이든 구현은 최대 1개, 기본은 JPA"를 증명한다. `matchIfMissing = true`를 지우거나 MyBatis 쪽으로 옮기지 않는다.
 
 ### `QueryFetchShapeConventionTest` — 단건·존재 확인 쿼리의 모양을 고정한다
 
@@ -298,7 +320,7 @@ Spring Data `Repository`를 상속한 인터페이스(`XxxJpaRepository` 123개)
 | 항목 | before | after |
 |---|---|---|
 | 주입 방식 | `@PersistenceContext private EntityManager entityManager;`(필드 주입, non-final) — 어댑터 7개 + `QueryDslConfig` | 생성자 주입 `private final EntityManager entityManager` — 어댑터 6개, `QueryDslConfig`는 `@Bean` 메서드 파라미터 |
-| `ReservationSlotPersistenceAdapter#saveAndFlush` | `entityManager.flush()` | `slotJpaRepository.flush()` — EntityManager 의존 삭제(**동작 변경**, 아래 "예약 슬롯의 낙관적 락 배선" 항목) |
+| `ReservationSlotPersistenceAdapter#saveImmediately`(당시 이름 `saveAndFlush`) | `entityManager.flush()` | `slotJpaRepository.flush()` — EntityManager 의존 삭제(**동작 변경**, 아래 "예약 슬롯의 낙관적 락 배선" 항목) |
 | 가드 | 없음 | `entityManagerShouldBeConstructorInjected` |
 
 - **생성자 주입이 안전한 근거**: Spring이 주입하는 `EntityManager`는 트랜잭션에 바인딩된 shared proxy다. 싱글톤 빈이 `final`로 들고 있어도 호출마다 현재 트랜잭션의 영속성 컨텍스트로 위임되므로 스레드 안전하다. `@PersistenceContext`로 받은 것과 같은 객체다. `query/ProductQueryAdapter`가 이 형태의 선례다.
@@ -1015,7 +1037,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 `@Version`만으로 동시 차감 충돌을 감지하므로 **별도 `@Lock`을 두지 않는다.** `save`·`flush`를 함께 감싸 `OptimisticLockConflictException`으로 번역하는 자리도 유지한다 — **도메인의 재시도 판별이 spring-orm 예외에 의존하지 않게** 하기 위함이다.
 
-**`saveAndFlush`의 flush는 `slotJpaRepository.flush()`로 부른다. `EntityManager.flush()`로 되돌리지 않는다.** shared EntityManager proxy는 예외를 번역하지 않는다. 그래서 `entityManager.flush()`에서 버전 충돌이 나면 `jakarta.persistence.OptimisticLockException`이 그대로 던져지고, 메서드 안의 `catch (ObjectOptimisticLockingFailureException)`가 잡지 못한다. 예외는 `@Repository` 프록시 경계에서야 번역돼 나가므로, `ReservationCreateService`의 `catch (OptimisticLockConflictException | DataIntegrityViolationException)`도 잡지 못하고 재시도 없이 실패했다. Spring Data 리포지토리 프록시는 `flush()` 안에서 예외를 번역하므로 catch가 동작하고 재시도 루프가 산다.
+**`saveImmediately`(당시 이름 `saveAndFlush`)의 flush는 `slotJpaRepository.flush()`로 부른다. `EntityManager.flush()`로 되돌리지 않는다.** shared EntityManager proxy는 예외를 번역하지 않는다. 그래서 `entityManager.flush()`에서 버전 충돌이 나면 `jakarta.persistence.OptimisticLockException`이 그대로 던져지고, 메서드 안의 `catch (ObjectOptimisticLockingFailureException)`가 잡지 못한다. 예외는 `@Repository` 프록시 경계에서야 번역돼 나가므로, `ReservationCreateService`의 catch(당시 `OptimisticLockConflictException | DataIntegrityViolationException`, 지금은 `OptimisticLockConflictException | UniqueConstraintConflictException`)도 잡지 못하고 재시도 없이 실패했다. Spring Data 리포지토리 프록시는 `flush()` 안에서 예외를 번역하므로 catch가 동작하고 재시도 루프가 산다.
 
 | 항목 | before | after |
 |---|---|---|

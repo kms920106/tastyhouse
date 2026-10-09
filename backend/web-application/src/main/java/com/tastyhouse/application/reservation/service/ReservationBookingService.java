@@ -90,7 +90,7 @@ public class ReservationBookingService {
             .orElseGet(() -> ReservationSlot.of(shopId, date, time, SlotPolicy.CAPACITY_PER_SLOT));
 
         slot.reserve();
-        slotPersistencePort.saveAndFlush(slot);
+        slotPersistencePort.saveImmediately(slot);
 
         Reservation reservation = Reservation.of(memberId, shopId, date, time, partySize, request);
         Reservation saved = reservationPersistencePort.save(reservation);

@@ -20,6 +20,11 @@ spring:
     init:
       mode: always
 
+persistence:
+  banner:
+    write:
+      provider: ${BANNER_WRITE_PROVIDER:jpa}
+
 logging:
   level:
     org.hibernate.SQL: OFF

@@ -5,6 +5,7 @@ import java.time.LocalTime;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
@@ -12,6 +13,7 @@ import com.tastyhouse.domain.reservation.model.ReservationSlot;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.reservation.port.out.write.ReservationSlotPersistencePort;
 import com.tastyhouse.application.shared.port.out.OptimisticLockConflictException;
+import com.tastyhouse.application.shared.port.out.UniqueConstraintConflictException;
 
 import static com.tastyhouse.infrastructure.persistence.reservation.persistence.QReservationSlotJpaEntity.reservationSlotJpaEntity;
 
@@ -57,12 +59,14 @@ class ReservationSlotPersistenceAdapter implements ReservationSlotPersistencePor
     }
 
     @Override
-    public void saveAndFlush(ReservationSlot slot) {
+    public void saveImmediately(ReservationSlot slot) {
         try {
             save(slot);
             slotJpaRepository.flush();
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new OptimisticLockConflictException("예약 슬롯 낙관적 락 충돌", e);
+        } catch (DataIntegrityViolationException e) {
+            throw new UniqueConstraintConflictException("예약 슬롯 유니크 제약 충돌", e);
         }
     }
 }

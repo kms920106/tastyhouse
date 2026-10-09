@@ -13,5 +13,5 @@ public interface ReservationSlotPersistencePort {
 
     ReservationSlot save(ReservationSlot slot);
 
-    void saveAndFlush(ReservationSlot slot);
+    void saveImmediately(ReservationSlot slot);
 }

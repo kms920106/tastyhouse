@@ -5,7 +5,6 @@ import java.time.LocalTime;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.exception.DomainErrorCode;
@@ -16,6 +15,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.reservation.port.in.ReservationCreateCommand;
 import com.tastyhouse.application.reservation.port.in.ReservationCreateUseCase;
 import com.tastyhouse.application.shared.port.out.OptimisticLockConflictException;
+import com.tastyhouse.application.shared.port.out.UniqueConstraintConflictException;
 
 @Service
 class ReservationCreateService implements ReservationCreateUseCase {
@@ -50,7 +50,7 @@ class ReservationCreateService implements ReservationCreateUseCase {
                     command.agreedRequiredTerms()
                 );
                 return reservationId.value();
-            } catch (OptimisticLockConflictException | DataIntegrityViolationException e) {
+            } catch (OptimisticLockConflictException | UniqueConstraintConflictException e) {
                 log.warn("예약 생성 동시성 경합 재시도 {}/{}: shopId={}, date={}, time={}",
                     attempt + 1, MAX_RETRY, shopId, reservationDate, reservationTime);
                 if (attempt == MAX_RETRY - 1) {

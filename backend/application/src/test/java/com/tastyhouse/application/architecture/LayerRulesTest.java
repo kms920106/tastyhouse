@@ -50,6 +50,15 @@ class LayerRulesTest {
 
     private static final int RESOLVED_FLOOR = 43;
 
+    private static final List<String> PERSISTENCE_TECHNOLOGY_PACKAGES = List.of(
+        "org.springframework.dao",
+        "org.springframework.orm",
+        "org.springframework.data",
+        "jakarta.persistence",
+        "org.apache.ibatis",
+        "org.mybatis"
+    );
+
     private static final DescribedPredicate<JavaClass> DECLARE_TRANSACTIONAL_EVENT_LISTENER =
         new DescribedPredicate<>("@TransactionalEventListener 메서드를 가진 클래스") {
             @Override
@@ -259,6 +268,29 @@ class LayerRulesTest {
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure..");
 
         rule.check(classes);
+    }
+
+    @Test
+    void applicationShouldNotDependOnPersistenceTechnology() {
+        ArchRule rule = noClasses()
+            .should().dependOnClassesThat().resideInAnyPackage(
+                PERSISTENCE_TECHNOLOGY_PACKAGES.stream().map(name -> name + "..").toArray(String[]::new))
+            .because("영속 기술의 예외·타입은 어댑터가 application/shared/port/out의 포트 예외로 번역한다 — 포트 계약은 JPA·MyBatis 어느 구현으로도 바뀔 수 있어야 한다");
+
+        rule.check(classes);
+
+        List<String> caughtViolations = classes.stream()
+            .flatMap(javaClass -> javaClass.getCodeUnits().stream())
+            .flatMap(codeUnit -> codeUnit.getTryCatchBlocks().stream()
+                .flatMap(block -> block.getCaughtThrowables().stream())
+                .filter(caught -> PERSISTENCE_TECHNOLOGY_PACKAGES.stream().anyMatch(caught.getPackageName()::startsWith))
+                .map(caught -> codeUnit.getFullName() + " catches " + caught.getName()))
+            .sorted()
+            .toList();
+
+        assertThat(caughtViolations)
+            .as("catch 절의 예외 타입은 ArchUnit 의존 그래프에 잡히지 않으므로 try-catch 블록을 직접 검사한다")
+            .isEmpty();
     }
 
     @Test

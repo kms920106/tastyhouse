@@ -698,6 +698,12 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 
 원문 주석은 챕터 04에서 제거되므로, 이 문서가 그 금지 지시의 유일한 소재지다.
 
+### 영속 기술 중립 가드 — application은 영속 기술의 타입·예외를 모른다
+
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `applicationShouldNotDependOnPersistenceTechnology`
+
+원문 취지: application 5모듈은 `org.springframework.dao..`·`org.springframework.orm..`·`org.springframework.data..`·`jakarta.persistence..`·`org.apache.ibatis..`·`org.mybatis..`에 의존하지 않는다. 도입 시점 위반은 `web-application`의 `ReservationCreateService`가 `DataIntegrityViolationException`을 catch하던 1건이었고, 어댑터가 `UniqueConstraintConflictException`(`application/shared/port/out/`)으로 번역하도록 바꿔 0건이 됐다. 같은 테스트의 두 번째 단정(try-catch 블록의 잡는 타입 검사)을 지우지 않는다 — ArchUnit 1.2.1은 catch 절 타입을 의존으로 기록하지 않아, 그 단정 없이는 도입 시점 위반(`catch (… | DataIntegrityViolationException e)`)도 통과했다(반증 probe로 확인). 패키지 목록은 `PERSISTENCE_TECHNOLOGY_PACKAGES` 상수 한 곳에 있고 두 단정이 함께 쓴다. 규칙에서 패키지를 빼지 않는다 — 빼면 어댑터를 MyBatis 등으로 바꿀 때 서비스까지 고쳐야 하는 결합이 조용히 되살아난다. 근거는 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙" 절.
+
 ### 앱 모듈 경계 가드 — 마커를 되살리지 않고, 다른 앱 모듈을 클래스패스에 올리지 않는다 (앱 마커 제거)
 
 **대상**:
@@ -1966,7 +1972,7 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 예약 생성은 "슬롯 정원 검증 → 정원 차감 → 예약 저장"이, 취소·거절은 "예약 상태 전이 → 슬롯 정원 반납"이 반드시 함께 일어나야 하는 원자 연산이다. 도메인 계층에 두어 **트리거 액터(회원 취소 · 점주 거절)가 달라도 "예약 건수와 슬롯 점유 수는 항상 함께 움직인다"는 규칙이 갈리지 않게** 한다.
 
-**동시성**: 정원 차감은 슬롯의 낙관적 락(`@Version`)으로 보호한다. 이 서비스는 차감 직후 `saveAndFlush`로 **충돌을 트랜잭션 커밋 전에 노출시키기만 하고 재시도는 하지 않는다** — 재시도는 매 시도마다 새 트랜잭션이 필요하므로 트랜잭션 경계 **바깥**(소비 모듈의 command 서비스)에서 수행해야 한다. 충돌 예외는 프레임워크-프리 `OptimisticLockConflictException`으로 번역되어 올라간다(infrastructure 어댑터가 번역).
+**동시성**: 정원 차감은 슬롯의 낙관적 락(`@Version`)으로 보호한다. 이 서비스는 차감 직후 `saveImmediately`(당시 이름 `saveAndFlush`)로 **충돌을 트랜잭션 커밋 전에 노출시키기만 하고 재시도는 하지 않는다** — 재시도는 매 시도마다 새 트랜잭션이 필요하므로 트랜잭션 경계 **바깥**(소비 모듈의 command 서비스)에서 수행해야 한다. 충돌 예외는 프레임워크-프리 `OptimisticLockConflictException`(낙관적 락)·`UniqueConstraintConflictException`(유니크 충돌)으로 번역되어 올라간다(infrastructure 어댑터가 번역).
 
 #### 자주 쓰는 문구 — 5개 상한은 완전하지 않다 (의도된 감수)
 
