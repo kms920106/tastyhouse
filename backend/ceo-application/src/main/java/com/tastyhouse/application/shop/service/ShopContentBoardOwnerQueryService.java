@@ -7,17 +7,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopContentBoardOwnerQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
-import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopMediaOwnerQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class ShopContentBoardOwnerQueryService implements ShopContentBoardOwnerQueryUseCase {
 
-    private final ShopOwnerQueryPort shopOwnerQueryPort;
+    private final ShopMediaOwnerQueryPort shopMediaOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopContentBoardOwnerQueryService(ShopOwnerQueryPort shopOwnerQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
-        this.shopOwnerQueryPort = shopOwnerQueryPort;
+    public ShopContentBoardOwnerQueryService(ShopMediaOwnerQueryPort shopMediaOwnerQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+        this.shopMediaOwnerQueryPort = shopMediaOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -25,7 +25,7 @@ class ShopContentBoardOwnerQueryService implements ShopContentBoardOwnerQueryUse
     public List<ShopContentBoardResult> getContentBoards(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return shopOwnerQueryPort.findContentBoards(shopId);
+        return shopMediaOwnerQueryPort.findContentBoards(shopId);
     }
 
 }

@@ -127,16 +127,23 @@ reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`
   | 무엇인가 | 애플리케이션이 외부에 약속하는 **기능 목록** | 애플리케이션이 자기에게 필요한 만큼 선언하는 **요구 계약** + 그 뒤에 숨은 구현 세부 |
   | 크기 기준 | 연산 1개 (트랜잭션 경계도 유스케이스 단위) | 포트는 **쓰는 쪽 기준(ISP)**, 어댑터는 **응집도**(함께 바뀌는 쿼리 묶음) |
   | 1:1로 쪼갤 때 얻는 것 | 트랜잭션 속성·주입 의존이 연산별로 분리됨 | **없음** — 어댑터는 무상태 `@Repository`이고 트랜잭션은 서비스가 연다. 의존 방향·포트 계약도 그대로다 |
-  | 1:1로 쪼갤 때 드는 비용 | — | public 조회 메서드 267개(2026-10-08 실측, 생성자 제외)가 어댑터 267개가 되고, 공유 술어·서브쿼리 `Q*` 별칭·SQL 상수(예: `ProductQueryAdapter`의 `exposedNow`·`soldQuantityOf`·`MERGE_CANDIDATE_SQL`)를 다시 모을 헬퍼 클래스가 필요해 응집도가 떨어진다 |
+  | 1:1로 쪼갤 때 드는 비용 | — | public 조회 메서드 267개(2026-10-08 실측, 생성자 제외)가 어댑터 267개가 되고, 공유 술어·서브쿼리 `Q*` 별칭·SQL 상수(예: `ProductStorefrontQueryAdapter`의 `exposedNow`·`soldQuantityOf`, `ProductOptionGroupQueryAdapter`의 `MERGE_CANDIDATE_SQL`)를 다시 모을 헬퍼 클래스가 필요해 응집도가 떨어진다 |
 
-  - **분할은 허용이지 의무가 아니다.** 위 "대략 400줄 초과" 기준을 크게 넘는 어댑터(2026-10-08 실측: `ProductQueryAdapter` 2,016줄 · `ReviewQueryAdapter` 943줄 · `ShopQueryAdapter` 777줄)는 "함께 바뀌는 쿼리 묶음" 단위로 나눌 수 있다. 공유 술어는 같은 패키지의 package-private 클래스로 뽑는다. 메서드 1개 단위로는 나누지 않는다.
+  - **분할은 허용이지 의무가 아니다.** 위 "대략 400줄 초과" 기준을 크게 넘는 어댑터(2026-10-08 실측: `ReviewQueryAdapter` 943줄 — 아래 표대로 분할 완료)는 "함께 바뀌는 쿼리 묶음" 단위로 나눌 수 있다. 공유 술어는 같은 패키지의 package-private 클래스로 뽑는다(선례: `product/query/ProductQueryPredicates` — `final class` + static 메서드 `notDeleted()`·`representativeImageOf(...)`·`nameContains(...)`와 별칭 `subProductImage`, `review/query/ReviewQueryPredicates` — 같은 형태의 static 메서드 `visibleToCustomer()`·`shopStationId()`·`memberProfileImageFileId()`). 메서드 1개 단위로는 나누지 않는다.
+
+    | 대상 | before | after |
+    |---|---|---|
+    | `ProductQueryAdapter` | 2,042줄(2026-10-08 실측 2,016줄), 쿼리 묶음 6개·포트 4개 | **분할 완료(large-class-split 덩어리 01)** — 기본 정보 묶음만 남고(포트 4개 구현은 그대로) 나머지 5묶음은 형제 어댑터 5개로 갈렸다. 결과 표는 아래 [`ProductQueryAdapter` — 쿼리 전략](#productqueryadapter--쿼리-전략) 절 |
+    | `ShopQueryAdapter` | 770줄(2026-10-08 실측 777줄), 쿼리 묶음 3개·포트 4개(메서드 35개) | **분할 완료(large-class-split 덩어리 02)** — 가게 기본 정보·운영 설정 묶음(16개)만 남고(포트 4개 구현은 그대로) 분류 묶음(8개)·미디어 묶음(11개)은 형제 어댑터 2개로 갈렸다. 묶음 사이에 공유하는 private 헬퍼·별칭이 없어 공유 술어 클래스는 만들지 않았다. 결과 표는 아래 [`ShopQueryAdapter` — 가게 설정·관리 화면 조회 전략](#shopqueryadapter--가게-설정관리-화면-조회-전략) 절 |
+    | `ReviewQueryAdapter` | 944줄(2026-10-08 실측 943줄), public 19개·포트 2개(`ReviewQueryPort` 17 + `ReviewTagQueryPort` 2). 피드 7개(437줄)에 같은 투영·조인이 6벌 복제 | **중복 제거 후 분할 완료(large-class-split 덩어리 04)** — 먼저 같은 클래스 안에서 중복을 걷어 약 699줄로 줄이고(4a), 피드 7개를 `ReviewFeedQueryAdapter`(316줄, `ReviewFeedQueryPort`)로 떼었다(4b). `ReviewQueryAdapter`는 411줄·12개(상세·댓글 3 + 회원·검색 3 + 작성·좋아요 판정 4 + 태그 2)가 남았다. 두 어댑터가 함께 쓰는 술어는 `ReviewQueryPredicates`. 결과 표는 아래 [`ReviewQueryAdapter` — 쿼리 전략](#reviewqueryadapter--쿼리-전략) 절 |
+    | `ReviewStatisticsQueryAdapter` | 342줄(2026-10-09 실측), public 23개·포트 2개(`ReviewStatisticsQueryPort` web 15 + `ShopReviewStatisticsQueryPort` ceo 8) | **분할하지 않음(덩어리 04 판정)** — 포트 2개가 이미 소비자 경계와 일치한다(ceo 포트는 서비스 1개가 8개를 전부 쓴다. web 포트를 쪼개면 1개짜리 포트가 생긴다). 400줄 기준 아래이고, 아래 "`ownerOnly` 축은 오버로드마다 정반대다" 절이 한 클래스를 전제로 쓰여 있으며, 상품 통계를 떼면 MENU_REVIEW용 `ProductReviewStatisticsPort`와 이름이 겹친다. 최소 조치로 기간 오버로드 2개(`getRatingCounts(Long, LocalDateTime, LocalDateTime)`·`getMonthlyReviewCounts(Long, LocalDateTime, LocalDateTime)`)에 빠져 있던 `@Override`를 달았다(`@Override` 21/23 → 23/23, 동작 변경 없음) |
   - **아웃바운드 포트를 나눌 때도 쓰는 쪽 기준이다.** 메서드별로 실제 호출하는 서비스를 실측한 뒤, 서비스가 일부만 쓰는 두꺼운 포트만 나눈다. 함께 쓰이는 조회 묶음은 포트 하나로 둔다. 연산 1개 = 포트 1개까지 내려가지 않는다.
   - **강제하는 가드를 두지 않는다.** 어댑터 1:1이나 줄 수 상한을 ArchUnit으로 강제하지 않는다. 응집도는 기계로 판정하기 어렵기 때문이다. `LayerRulesTest#queryAdaptersShouldImplementQueryPorts`는 계속 "포트 1개 이상 구현"만 검사한다.
 - **포트에 없는 public 메서드도 있을 수 있다**: application 소비자가 없고 infra 내부에서만 쓰는 조회는 포트에 선언하지 않는다. `MemberReviewCountQueryPort`와 같은 취지이며, `LayerRulesTest#queryAdaptersShouldImplementQueryPorts`는 DAO가 포트를 하나라도 구현하면 통과하므로 이 형태를 막지 않는다. 과거 사례였던 `ShopQueryAdapter#findShopName`은 유일한 소비처 `ReviewOwnerReplyEventListener`가 `application`으로 이동하면서 `ShopBasicInfoQueryPort`에 선언됐다(DAO는 `@Override`만 추가).
 - **Result 접미어는 `Result`로 통일하고 `Dto`는 쓰지 않는다**. admin 전용 Result가 비-admin 형제와 같은 패키지에 공존해 충돌하면 `Management` 한정어를 부여한다(`NoticeManagementListItemResult` vs `NoticeListItemResult`). 필드 셋이 다른 admin/web Result는 통합하지 않는다(과잉 노출 방지). 타입명에 역할 마커 `Admin`은 붙이지 않는다.
 - **write 포트 잔류 판정**: "이 조회가 없으면 불변식 검증이나 상태 전이가 불가능한가?" — 그렇다면 write 포트에 남기고(`findById`/`existsByX`/락 획득용 조회), 화면 조립용이면 이 DAO로 보낸다.
 - **소비 모듈이 실제 쓰는 메서드·필드만 이관**한다(미사용은 삭제).
-- **소비 모듈은 web/admin/ceo-api만이 아니다**: `batch-module`도 이 DAO를 포트 인터페이스로 직접 소비한다(reference: `product` 도메인의 `ProductQueryPort#findFirstBbqSyncTarget` — BBQ 옵션 동기화 대상 조회). batch 역시 QueryDSL도 `com.tastyhouse.infrastructure..`도 알지 않는다.
+- **소비 모듈은 web/admin/ceo-api만이 아니다**: `batch-module`도 이 DAO를 포트 인터페이스로 직접 소비한다(reference: `product` 도메인의 `ProductBbqSyncQueryPort#findFirstBbqSyncTarget` — BBQ 옵션 동기화 대상 조회). batch 역시 QueryDSL도 `com.tastyhouse.infrastructure..`도 알지 않는다.
 - **Result record는 반드시 `public`이고 select 절과 생성자가 일치해야 한다**: `Projections.constructor`는 리플렉션으로 런타임에 생성자를 찾으므로, record가 package-private이거나 select 절 인자 개수·타입·순서가 생성자와 어긋나면 컴파일은 통과하고 **호출 시점에만 500**이 난다. `ProjectionConstructorMatchingTest`(이 모듈)가 select 절 인자 개수와 대상 record의 public 생성자 파라미터 개수 일치를 소스 스캔으로 검증한다. 전환·신규 작성한 쿼리는 반드시 한 번 호출해 확인한다.
 
 ### 읽기 계약 가드 2종은 이 모듈이 소유한다 (챕터 09 — `application-common-module`에서 이관)
@@ -229,17 +236,32 @@ if (condition.title() != null) { where.and(noticeJpaEntity.title.containsIgnoreC
 
 reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.notice.port.out.NoticeQueryPort` implements).
 
-**대형 도메인 용도별 DAO 분리 reference: `shop`** — 소비 모듈 3개(web/admin/ceo)가 함께 쓰는 최대 도메인이라 DAO를 용도별로 3개로 나눴다.
+**대형 도메인 용도별 DAO 분리 reference: `shop`** — 소비 모듈 3개(web/admin/ceo)가 함께 쓰는 최대 도메인이라 DAO를 용도별로 5개로 나눴다. 가게별 설정·관리 조회를 혼자 담던 `ShopQueryAdapter`(770줄)를 large-class-split 덩어리 02에서 **함께 바뀌는 쿼리 묶음** 3개로 다시 나눈 결과다(포트도 같은 경계로 다시 잘랐다).
 
 | DAO | 담당 |
 |---|---|
-| `ShopQueryAdapter` | 가게별 설정·관리 조회(전화번호·편의정보·콘텐츠보드·위생뱃지·이미지 변경요청·편의시설/음식유형 카테고리·배정·배너·사진) |
+| `ShopQueryAdapter` | 가게 기본 정보·운영 설정(가게명·이미지 URL·노출/관리 상세·즐겨찾기 여부·전화번호·편의정보·원산지·위생뱃지·사장님 한마디·주문방식·영업시간·휴게시간·휴무일·임시중지·임시휴무) — 포트 4개 |
+| `ShopClassificationQueryAdapter` | 분류 — 편의시설·음식 종류 카테고리와 가게별 배정 |
+| `ShopMediaQueryAdapter` | 가게 미디어 — 콘텐츠보드·이미지 변경요청·메뉴모음컷·배너·사진 |
 | `ShopSearchQueryAdapter` | 목록·검색 대형 조인(지도 마커·베스트·최신·키워드 검색·즐겨찾기·관리 목록) |
 | `ShopChoiceQueryAdapter` | 가게에 종속되지 않는 독립 조회(에디터 추천 목록·전역 태그·역 목록) |
 
 - 목록 조회는 페이지 대상 가게를 먼저 뽑고 역·썸네일·음식유형·리뷰수·즐겨찾기수를 shopId 일괄 조회(in절)로 채운다 — 컬렉션 필드(음식유형 다건)가 있어 단일 조인 투영은 카티전 곱이 생기기 때문이다.
 - **필드 셋이 달라 Result를 통합하지 않은 사례**: 사진 카테고리 이미지 조회는 회원용 `ShopPhotoCategoryImageResult`(노출분 표시용)와 관리용 `ShopPhotoCategoryImageManagementResult`(`visible` 포함 — 관리 화면은 미노출 이미지도 상태와 함께 보여줘야 함)로 나뉜다. 같은 패키지에 공존해 충돌하므로 `Management` 한정어를 부여했다.
-- **write 포트 잔류 판정이 갈린 사례**: `findBusinessHoursByShopId`·`findBreakTimesByShopId`·`findClosedDaysByShopId`·`findByShopId`(임시중지·임시휴무)는 표현용으로도 쓰이지만 **휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정**이라는 불변식에 필요하므로 write 포트(`ShopDetailLoadPort` 등)에 남겼다. 반면 Result DTO를 반환하던 카테고리·배정·배너·사진 목록은 전부 DAO로 보냈다.
+- **write 포트 잔류 판정이 갈린 사례**: `findBusinessHoursByShopId`·`findBreakTimesByShopId`·`findClosedDaysByShopId`·`findByShopId`(임시중지·임시휴무)는 표현용으로도 쓰이지만 **휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정**이라는 불변식에 필요하므로 write 포트(`ShopBusinessHourLoadPort` 등)에 남겼다. 반면 Result DTO를 반환하던 카테고리·배정·배너·사진 목록은 전부 DAO로 보냈다.
+
+**대형 도메인 용도별 DAO 분리 reference: `product`** (large-class-split 덩어리 01) — 2,042줄 `ProductQueryAdapter`를 **함께 바뀌는 쿼리 묶음** 6개로 나눴다. 포트도 같은 경계로 다시 잘랐다(포트 하나의 메서드는 전부 스프링 빈 하나가 구현해야 하므로 어댑터만 나눌 수 없다). shop과 달리 **여러 어댑터가 공유하는 술어를 package-private `final class` `ProductQueryPredicates`(static 메서드)로 뺀 첫 사례**다.
+
+| DAO | 담당 |
+|---|---|
+| `ProductQueryAdapter` | 상품 기본 정보(상세·이미지·카테고리·가격·영양·노출 설정·BBQ) — 포트 4개 |
+| `ProductStorefrontQueryAdapter` | 노출·판매 목록(오늘의 할인·키워드 검색·가게 메뉴·인기 메뉴) |
+| `ProductOptionQueryAdapter` | 옵션 조회 + 주문 일괄 검증(`findProductsBatch`) |
+| `ProductOptionGroupQueryAdapter` | 옵션그룹 관리·병합 후보(ceo, 네이티브 SQL) |
+| `ProductAvailabilityQueryAdapter` | 품절·숨김 관리(ceo) |
+| `ProductApprovalRequestQueryAdapter` | 승인 요청 3종(이미지 변경·채식·대표 메뉴) |
+
+상세(메서드 배치·별칭 위치)는 아래 [`ProductQueryAdapter` — 쿼리 전략](#productqueryadapter--쿼리-전략) 절.
 
 ## 설정 파일 (`src/main/resources/application-jpa.yml` — datasource·provider 키는 `infrastructure:persistence`의 `application-infrastructure.yml`)
 
@@ -349,8 +371,8 @@ Spring Data `Repository`를 상속한 인터페이스(`XxxJpaRepository` 123개)
 | `ReservationSlotPersistenceAdapter#saveImmediately`(당시 이름 `saveAndFlush`) | `entityManager.flush()` | `slotJpaRepository.flush()` — EntityManager 의존 삭제(**동작 변경**, 아래 "예약 슬롯의 낙관적 락 배선" 항목) |
 | 가드 | 없음 | `entityManagerShouldBeConstructorInjected` |
 
-- **생성자 주입이 안전한 근거**: Spring이 주입하는 `EntityManager`는 트랜잭션에 바인딩된 shared proxy다. 싱글톤 빈이 `final`로 들고 있어도 호출마다 현재 트랜잭션의 영속성 컨텍스트로 위임되므로 스레드 안전하다. `@PersistenceContext`로 받은 것과 같은 객체다. `query/ProductQueryAdapter`가 이 형태의 선례다.
-- **EntityManager 자체는 없앨 수 없다**: 쓰임새는 bulk delete 앞뒤의 `flush()`/`clear()`(위 `@Modifying(flushAutomatically, clearAutomatically)` 재현)와 `ProductQueryAdapter#findOptionGroupMergeCandidates`의 `createNativeQuery`다. `clear()`는 `JpaRepository`에 대응 메서드가 없다. delete 메서드에서는 flush도 `jpaRepository.flush()`로 섞지 않고 `EntityManager` 한 경로로 쓴다.
+- **생성자 주입이 안전한 근거**: Spring이 주입하는 `EntityManager`는 트랜잭션에 바인딩된 shared proxy다. 싱글톤 빈이 `final`로 들고 있어도 호출마다 현재 트랜잭션의 영속성 컨텍스트로 위임되므로 스레드 안전하다. `@PersistenceContext`로 받은 것과 같은 객체다. `product/query/ProductOptionGroupQueryAdapter`가 이 형태의 선례다(분할 전에는 `ProductQueryAdapter`가 들고 있었다).
+- **EntityManager 자체는 없앨 수 없다**: 쓰임새는 bulk delete 앞뒤의 `flush()`/`clear()`(위 `@Modifying(flushAutomatically, clearAutomatically)` 재현)와 `ProductOptionGroupQueryAdapter#findOptionGroupMergeCandidates`의 `createNativeQuery`다. `clear()`는 `JpaRepository`에 대응 메서드가 없다. delete 메서드에서는 flush도 `jpaRepository.flush()`로 섞지 않고 `EntityManager` 한 경로로 쓴다.
 - **flush만 필요하면 `JpaRepository.flush()`를 쓴다**: 상속 메서드라 `jpaRepositoriesShouldNotDeclareMethods`와 충돌하지 않는다. 리포지토리 프록시를 거치므로 예외가 Spring 예외로 번역된다.
 
 ### `SEALED_PERSISTENCE_TO_QUERY` 3건 — read→write 단방향 위반 봉인
@@ -445,9 +467,9 @@ infrastructure 패키지 루트 통일로 이 모듈의 루트가 `com.tastyhous
 
 정렬 규칙: 건수 내림차순 → 마지막 작성 이른 순 → 회원 ID 오름차순.
 
-### `ProductQueryAdapter#soldQuantityOf` — `Expressions.asNumber(서브쿼리)` 금지
+### `ProductStorefrontQueryAdapter#soldQuantityOf` — `Expressions.asNumber(서브쿼리)` 금지
 
-**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/product/query/ProductQueryAdapter.java`
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/product/query/ProductStorefrontQueryAdapter.java`
 → `soldQuantityOf(...)`
 
 **`numberTemplate(Long.class, "{0}", ...)`으로 감싼 것을 `Expressions.asNumber(subquery)`로 되돌리지 않는다.** `asNumber`는 반환 타입을 `Object`로 지워버린다 — 서브쿼리 자체는 `Long`을 보고하지만 `asNumber`를 거치면 `getType()`이 `Object`가 되고, `Projections.constructor`는 리플렉션으로 생성자를 찾으므로 **컴파일은 통과한 뒤 조회 시점에** 아래로 터진다.
@@ -458,7 +480,7 @@ com.querydsl.core.types.ExpressionException: No constructor found for ... class 
 
 `popular-products` 500 장애가 실제로 이 계열이었고, `numberTemplate`으로 대상 타입을 명시적으로 고정해 수정했다. `@QueryProjection` → `Projections.constructor` 전환으로 **컴파일 게이트가 이미 사라진 상태**라(위 [읽기 계약 가드 2종](#읽기-계약-가드-2종은-이-모듈이-소유한다-챕터-09--application-common-module에서-이관) 절) 이 자리를 되돌리면 다시 런타임에만 드러난다.
 
-### `ProductQueryAdapter#soldQuantityOf` — 수량 합은 `sumLong()`이다
+### `ProductStorefrontQueryAdapter#soldQuantityOf` — 수량 합은 `sumLong()`이다
 
 **대상**: 위와 같음 → `soldQuantityOf(...)`의 `orderProductJpaEntity.quantity.sumLong()`
 
@@ -536,26 +558,28 @@ DAO와 같은 `<ctx>/query/` 패키지의 Row·Result는 `import`가 없어서 �
 - **Java에서 Result를 조립하는 경로**(DAO 투영이 아닌 QueryService)는 그 서비스가 `.name()`·`getDescription()`으로 채운다 — 이 모듈의 규칙이 아니라 `application/AGENTS.md` 소관이다.
 - **`ProjectionConstructorMatchingTest#trailingPropertyName`은 꼬리 `.stringValue()`를 벗겨 낸다**(상수 `STRING_VALUE_SUFFIX`). before: `x.status.stringValue()`는 dotted path 패턴에 맞지 않아 `null`(이름 추출 불가)로 처리돼 **순서 검출이 그 인자에서 조용히 건너뛰어졌다.** after: `status`라는 이름으로 판정해 인접 슬롯 뒤바뀜을 계속 잡는다. **`labelOf(...)` 래퍼는 언랩하지 않는다** — 그 인자는 이름 판정에서 빠지므로(`null`), 라벨 컴포넌트의 위치는 "필드 바로 뒤" 규칙과 리뷰로 지킨다.
 
-### `ShopQueryAdapter` 파일 별칭 4종 — 공용 별칭 재사용 금지
+### shop 조회 어댑터 파일 별칭 7종 — 공용 별칭 재사용 금지
 
-**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/shop/query/ShopQueryAdapter.java`
-→ `activeFile` · `contentBoardImageFile` · `menuCollectionImageFile` · `shopThumbnailFile`
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/shop/query/ShopQueryAdapter.java` · `ShopClassificationQueryAdapter.java` · `ShopMediaQueryAdapter.java`
+→ `ShopQueryAdapter.shopThumbnailFile`·`ShopQueryAdapter.shopTrademarkFile` · `ShopClassificationQueryAdapter.activeFile`·`ShopClassificationQueryAdapter.inactiveFile` · `ShopMediaQueryAdapter.contentBoardImageFile`·`ShopMediaQueryAdapter.imageChangeRequestImageFile`·`ShopMediaQueryAdapter.menuCollectionImageFile`
 
-`UPLOADED_FILE`을 목적별로 조인하므로 별칭 인스턴스를 목적마다 새로 만든다. **공용 `uploadedFileJpaEntity` 별칭을 재사용하면 다른 목적의 조인과 서로를 덮는다** — 메뉴모음컷 검수 목록은 `SHOP`도 함께 조인하는 경로라 특히 그렇다. 예외도 로그도 없이 값만 틀어지므로 이 별칭들을 공용 인스턴스로 되돌리지 않는다.
+`UPLOADED_FILE`을 목적별로 조인하므로 별칭 인스턴스를 목적마다 새로 만든다. **공용 `uploadedFileJpaEntity` 별칭을 재사용하면 다른 목적의 조인과 서로를 덮는다** — 메뉴모음컷 검수 목록은 `SHOP`도 함께 조인하는 경로라 특히 그렇다. 예외도 로그도 없이 값만 틀어지므로 이 별칭들을 공용 인스턴스로 되돌리지 않는다. 별칭은 그것을 쓰는 어댑터가 `private static final`로 갖는다(large-class-split 덩어리 02에서 3분할하며 각 소유 어댑터로 옮겼다 — 이 절의 이전 제목 "4종"은 실측 7종을 덜 센 것이었다). 공용 `uploadedFileJpaEntity`는 파일 조인이 하나뿐인 배너·사진 투영(`ShopMediaQueryAdapter#findBannerImages`·`#findPhotoCategoryImages`·`photoCategoryImageProjection`)만 쓴다.
 
-### `ShopQueryAdapter#findFoodTypeCategoryNames` — 아이콘 조인을 붙이지 않는다
+### `ShopClassificationQueryAdapter#findFoodTypeCategoryNames` — 아이콘 조인을 붙이지 않는다
 
-**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/shop/query/ShopQueryAdapter.java`
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/shop/query/ShopClassificationQueryAdapter.java`
 → `findFoodTypeCategoryNames(Long)`
 
 정책 판정(채식 메뉴 등록 불가 카테고리 — product 컨텍스트)에 쓰이는 이름 집합만 뽑는다. 형제 메서드 `findFoodTypeAssignments`처럼 아이콘 파일을 조인하도록 "통일"하지 않는다 — **`activeImageFileId` 결측 시 inner join으로 카테고리가 조용히 누락돼 거절해야 할 요청이 통과한다.**
 
-### `ShopQueryAdapter#findExposedMenuCollectionImages` — 승인 상태 필터를 호출부로 올리지 않는다
+### `ShopMediaQueryAdapter#findMenuCollectionImagesByStatus` — 상태 술어를 투영에서 빼거나 선택 조건으로 바꾸지 않는다
 
-**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/shop/query/ShopQueryAdapter.java`
-→ `findExposedMenuCollectionImages(Long)`
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/shop/query/ShopMediaQueryAdapter.java`
+→ `findMenuCollectionImagesByStatus(Long, String)` · 호출부 `backend/web-application/src/main/java/com/tastyhouse/application/shop/service/ShopMenuCollectionImageQueryService.java`의 `getMenuCollectionImages`
 
-손님 화면용 메뉴모음컷의 승인 상태 필터는 이 투영이 소유한다. **필터를 소비 측(api 모듈)에 맡기면 새 소비 경로가 생길 때 조용히 빠져 대기·반려 이미지가 손님에게 노출된다.**
+손님 화면용 메뉴모음컷의 상태 술어(`shopMenuCollectionImageJpaEntity.status.eq(status)`)는 이 투영이 **필수 조건**으로 소유한다. 비교값은 `../../application/AGENTS.md`의 "enum 비교값 전달 규칙"대로 포트 인자로 받고(조회 DAO는 domain enum을 모른다), 승인 상수는 application `ShopMenuCollectionImageQueryService`가 `ApprovalStatus.APPROVED.name()`으로 넘긴다. 즉 **"어느 상태를 보일지"는 호출부가, "상태로 거른다"는 사실은 이 투영이** 정한다. 형제 술어 `menuCollectionImageStatusEq(String)`(관리 화면용 — `null`이면 술어 없음 = 전체)처럼 null 허용 선택 조건으로 바꾸거나, 술어를 빼고 소비 측이 결과를 거르게 하지 않는다 — **그러면 새 소비 경로가 생길 때 필터가 조용히 빠져 대기·반려 이미지가 손님에게 노출된다.**
+
+> 이 절의 이전 앵커 `ShopQueryAdapter#findExposedMenuCollectionImages(Long)`는 존재하지 않는 메서드였고, 금지 문구도 "승인 상태 필터를 호출부로 올리지 않는다"였다. 실제 형태는 위처럼 비교값을 호출부가 넘기므로 그 문구는 현재 코드와 맞지 않아 근거 문장까지 고쳤다(large-class-split 덩어리 02 — 코드·동작 변경 없음).
 
 ### `ShopSearchQueryAdapter#reviewCountsByShopId` — 두 필터를 함께 유지하고 짝 조회와 일치시킨다
 
@@ -586,7 +610,8 @@ DAO와 같은 `<ctx>/query/` 패키지의 Row·Result는 `import`가 없어서 �
 ### `ReviewQueryAdapter#findMyReviews` ↔ `#findReviewsByMemberId` — 정책이 정반대인 쌍둥이 쿼리
 
 **대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/review/query/ReviewQueryAdapter.java`
-→ `findMyReviews(Long, PageQuery)` · `findReviewsByMemberId(Long, PageQuery)` · `visibleToCustomer()`
+→ `findMyReviews(Long, PageQuery)` · `findReviewsByMemberId(Long, PageQuery)`
+→ `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/review/query/ReviewQueryPredicates.java` → `visibleToCustomer()`(large-class-split 덩어리 04에서 `ReviewQueryAdapter`의 private 헬퍼가 이 공유 술어로 옮겨졌다. 두 쌍둥이 메서드는 `ReviewQueryAdapter`에 그대로 있다)
 
 두 메서드는 쿼리가 거의 같지만 **사장님만보기(`ownerOnly`) 처리가 정반대다.**
 
@@ -601,8 +626,9 @@ DAO와 같은 `<ctx>/query/` 패키지의 Row·Result는 `import`가 없어서 �
 
 ### `visibleToCustomer()` — where절과 count절 양쪽에 걸어야 한다
 
-**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/review/query/ReviewQueryAdapter.java`
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/review/query/ReviewQueryPredicates.java`
 → `visibleToCustomer()`
+— 이 술어를 where절과 count절에 함께 거는 곳은 `.../review/query/ReviewFeedQueryAdapter.java`(피드 목록 — `countLatestReviews(Predicate)`·`countBestReviews()`)와 `.../review/query/ReviewQueryAdapter.java`(`findReviewsByMemberId`·`searchByKeyword`)다. large-class-split 덩어리 04 이전에는 둘 다 `ReviewQueryAdapter` 한 클래스의 private 헬퍼였다.
 
 목록의 where절과 count절이 분리된 곳에서는 **양쪽 모두**에 걸어야 한다. **한쪽만 고치면 `totalElements`와 실제 목록 길이가 어긋나 프론트 무한스크롤이 빈 페이지로 깨진다.**
 
@@ -1173,41 +1199,50 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 ### `ProductQueryAdapter` — 쿼리 전략
 
-**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/product/query/ProductQueryAdapter.java`
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/product/query/` 아래 어댑터 6개와 공유 술어 `ProductQueryPredicates`(아래 표)
 
-이 저장소에서 주석이 가장 많던 파일(497줄)이며, 아래 규칙들은 대부분 **한 번씩 사고를 내고 확정된 것**이다.
+이 저장소에서 주석이 가장 많던 파일(497줄)이며, 아래 규칙들은 대부분 **한 번씩 사고를 내고 확정된 것**이다. 원래 2,042줄짜리 `ProductQueryAdapter` 한 클래스였고, large-class-split 덩어리 01에서 **서로 무관하게 바뀌는 쿼리 묶음 6개**로 나눴다. 쿼리 본문은 글자 그대로 옮겼고 공유 술어 호출부에 `ProductQueryPredicates.` 접두만 붙었다 — **동작 변경 없음**(public `@Override` 37개 이름 집합·메서드 본문 동치 확인). 아래 하위 절의 `→` 줄은 메서드가 지금 사는 클래스를 함께 적는다.
 
-#### `ProductQueryAdapter` 클래스 역할
+#### 6분할 결과 (`product/query/`)
 
-`product` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ProductLoadPort` 등)와 역할이 겹치지 않는다. 소비 모듈(web/admin-api·batch-module)의 조회 서비스(당시 `ProductQueryService` — web은 유스케이스 분리로 `ProductDetailQueryService`·`ProductBatchQueryService` 등 per-op 서비스)가 주입해 쓰며, 소비 모듈은 QueryDSL을 알지 않는다. 소비자별 메서드 분리는 아래와 같다.
+| 클래스 | before | after — 담당 묶음 | 구현 포트 |
+|---|---|---|---|
+| `ProductQueryAdapter` | 2,042줄, 포트 4개, `EntityManager` 주입 | ⑥ 상품 기본 정보(상세·이미지·카테고리·가격·영양·노출 설정·BBQ) — `findProductDetailById` · `findProductImageUrls` · `findProductCategories` · `findProductPrices` · `findProductPricesByProductIds` · `findShopProductPrices` · `countVisibleProducts` · `findNutrition` · `findAllergenTypes` · `findProducts` · `findProductManagementDetailById` · `findProductCategoriesForManagement` · `findProductImagesForManagement` · `existsProductInShop` · `findVegetarianSetting` · `findExposurePeriod` · `findExposureHours` · `findPrices` · `findFirstBbqSyncTarget` (19개). `EntityManager` 주입은 사라졌다 | `ProductQueryPort` · `ProductBbqSyncQueryPort` · `ProductManagementQueryPort` · `ProductOwnerQueryPort` |
+| `ProductStorefrontQueryAdapter` | 없음 | ① 노출·판매 목록 — `findTodayDiscountProducts` · `searchByKeyword` · `findShopProducts` · `findPopularProducts` + `exposedNow`·`orderableNow`·`soldQuantityOf`·`coversTime`·`POPULAR_*` | `ProductStorefrontQueryPort` |
+| `ProductOptionQueryAdapter` | 없음 | ② 옵션 조회 + 주문 일괄 검증 — `findProductOptions` · `findProductsBatch` + `BatchOptionInfo`·`findRepresentativeImagePaths` | `ProductOptionQueryPort`(web+admin 공용) · `ProductBatchQueryPort` |
+| `ProductOptionGroupQueryAdapter` | 없음 | ③ 옵션그룹 관리·병합 후보(ceo) — `findProductOptionGroupsForManagement` · `findLinkedProductsByOptionGroupId` · `findLinkedProductsByShop` · `findOptionGroupMergeCandidates` · `findOptionGroupMergeExcludedSignatures` + `MERGE_CANDIDATE_SQL`·`EntityManager`(생성자 주입)·`@SuppressWarnings("unchecked")` 1곳 | `ProductOptionGroupQueryPort` |
+| `ProductAvailabilityQueryAdapter` | 없음 | ④ 품절·숨김(ceo) — `findProductAvailability` · `findProductOptionAvailability` + 술어 7개(`soldOutOrHidden`·`normalOptionMatchExists` …) | `ProductAvailabilityQueryPort` |
+| `ProductApprovalRequestQueryAdapter` | 없음 | ⑤ 승인 요청 3종(이미지 변경·채식·대표 메뉴) — `findImageChangeRequests` · `findVegetarianRequests` · `findImageChangeRequestPage` · `findVegetarianRequestPage` · `findRepresentativeRequestPage` | `ProductApprovalRequestManagementQueryPort`(admin) · `ProductApprovalRequestOwnerQueryPort`(ceo) |
+| `ProductQueryPredicates` | 없음 | 공유 술어 — package-private `final class`, static `notDeleted()` · `representativeImageOf(NumberPath<Long>)` · `nameContains(String)`와 별칭 `subProductImage` | — |
 
-| 소비자 | 메서드 |
-|---|---|
-| web | `findTodayDiscountProducts` · `findProductOptions` · `findProductsBatch` · `findProductImageUrls` · `findShopProducts` · `searchByKeyword` |
-| admin | `findProducts`(관리 목록) · `findProductDetailById` · `findProductCategories` |
-| ceo | `findProductManagementDetailById` · `findProductAvailability` |
-| batch | `findFirstBbqSyncTarget` |
+- **서브쿼리 별칭은 쓰는 어댑터가 `private static final`로 갖는다.** `subExposureHour`는 ①·⑥ 두 곳에 각각 선언돼 있다 — 상태 없는 Q 인스턴스라 두 벌이어도 의미가 같다. `subProductImage`만 `representativeImageOf`(공유)와 ②의 `findRepresentativeImagePaths`가 함께 쓰므로 `ProductQueryPredicates`에 둔다.
+- **새 조회를 추가할 때는 위 묶음 중 어디에 속하는지로 클래스를 고른다.** 묶음끼리 공유하는 것은 `ProductQueryPredicates`와 `FileUrlResolver`뿐이다. 둘 이상의 어댑터가 쓰게 된 술어만 `ProductQueryPredicates`로 올린다.
+- 포트 재절단(서비스 19개 주입 교체)은 `../../CLAUDE.md`의 [조회 포트 소비자별 분할 규칙](../../CLAUDE.md#조회-포트-소비자별-분할-규칙-포트명은-반환-result-계열을-승계--챕터-04)을 따른다.
 
-상품 대표 이미지 경로를 위해 file 도메인, 가게명을 위해 shop 도메인의 Q타입을 조인한다(같은 모듈 내 참조). 조인으로 얻은 저장 경로는 투영식에서 `fileUrlResolver.urlOf(...)`로 감싸 표시용 URL로 Result에 담는다. **예외 — `findProductBatch`의 `resolve(imagePathByProductId.get(...))`는 대상이 아니다**: 대표 이미지 경로를 별도 쿼리로 모은 Map에서 꺼낸 뒤 변환하므로, 투영 슬롯을 재나열하는 재조립이 아니라 값 변환이다.
+#### 클래스 역할
+
+`product` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ProductLoadPort` 등)와 역할이 겹치지 않는다. 소비 모듈(web/admin/ceo-application·batch-application)의 조회 서비스가 위 포트를 주입해 쓰며, 소비 모듈은 QueryDSL을 알지 않는다.
+
+상품 대표 이미지 경로를 위해 file 도메인, 가게명을 위해 shop 도메인의 Q타입을 조인한다(같은 모듈 내 참조). 조인으로 얻은 저장 경로는 투영식에서 `fileUrlResolver.urlOf(...)`로 감싸 표시용 URL로 Result에 담는다. **예외 — `ProductOptionQueryAdapter#findProductsBatch`의 `resolve(imagePathByProductId.get(...))`는 대상이 아니다**: 대표 이미지 경로를 별도 쿼리로 모은 Map에서 꺼낸 뒤 변환하므로, 투영 슬롯을 재나열하는 재조립이 아니라 값 변환이다.
 
 #### 서브쿼리 별칭을 새로 만드는 이유 — 별칭 재사용은 조인을 조용히 망가뜨린다
 
-→ `subProductImage` · `imageChangeRequestFile` · `productImageFile` · `subExposureHour` · `subCategoryProduct` · `subOptionGroupLink`
+→ `ProductQueryPredicates.subProductImage` · `ProductApprovalRequestQueryAdapter.imageChangeRequestFile` · `ProductQueryAdapter.productImageFile` · `ProductStorefrontQueryAdapter.subExposureHour`·`ProductQueryAdapter.subExposureHour` · `ProductQueryAdapter.subCategoryProduct` · `ProductOptionGroupQueryAdapter.subOptionGroupLink`
 
 본 쿼리가 이미 쓰고 있는 Q타입 인스턴스를 서브쿼리에서 재사용하면 **조인이 서로를 덮거나 카운트가 조인된 1건으로 좁혀진다.** 예외도 로그도 없이 값만 틀리므로 반드시 별칭 인스턴스를 새로 만든다.
 
 - `imageChangeRequestFile` — 본 쿼리가 `uploadedFileJpaEntity`를 대표 이미지 목적으로 이미 쓴다
 - `subOptionGroupLink` — 본 쿼리가 링크 테이블을 조인하므로, 재사용하면 연결 메뉴 수가 항상 1이 된다
 
-#### 판정 시각은 애플리케이션이 정한다 (`SERVICE_ZONE`)
+#### 판정 시각은 애플리케이션이 정한다 (`ProductExposureWindow`)
 
-→ `SERVICE_ZONE` · `nowInServiceZone()` · `exposedNow(LocalDateTime)`
+→ `ProductStorefrontQueryAdapter#exposedNow(ProductExposureWindow)` · `application/product/port/out/ProductExposureWindow`(`now`·`todayDayTypes`·`previousDayDayTypes`) · `web-application/.../product/service/ProductExposureWindows#now()`(`SERVICE_ZONE = Asia/Seoul`)
 
-노출 판정 술어가 `CURRENT_DATE`/`CURRENT_TIME`를 쓰지 않는 이유는 **DB 서버 타임존에 판정이 좌우되지 않게** 하기 위함이다. 호출부가 `LocalDateTime.now(ZoneId.of("Asia/Seoul"))`를 넣는다.
+노출 판정 술어가 `CURRENT_DATE`/`CURRENT_TIME`를 쓰지 않는 이유는 **DB 서버 타임존에 판정이 좌우되지 않게** 하기 위함이다. 호출부(web 조회 서비스)가 `ProductExposureWindows.now()`로 서울 시각과 오늘·전일에 걸리는 요일 묶음(`DayType` 상수명 집합)을 미리 계산해 `ProductExposureWindow`로 넘긴다. 과거 문서가 가리키던 어댑터 안의 `SERVICE_ZONE`·`nowInServiceZone()`은 지금 코드에 없다 — 시각과 요일 계산은 application이 소유한다.
 
 #### 인기 메뉴 (`findPopularProducts`)
 
-→ `findPopularProducts` · `popularProductProjection` · `soldQuantityOf` · `orderableNow` · `POPULAR_PRODUCT_LIMIT` · `POPULAR_PRODUCT_WINDOW_DAYS`
+→ `ProductStorefrontQueryAdapter`: `findPopularProducts` · `popularProductProjection` · `soldQuantityOf` · `orderableNow` · `POPULAR_PRODUCT_LIMIT` · `POPULAR_PRODUCT_WINDOW_DAYS`
 
 **집계 테이블·배치를 두지 않고 실시간 조회로 처리한다.** 상품 판매량 집계 자산이 없었고(`POPULAR_KEYWORD`는 검색어 전용), 가게 단위·30일 창이면 `idx_orders_shop_id`·`idx_orders_created_at`로 좁혀지는 범위라 집계 자산을 새로 만들어 동기화 책임을 늘릴 이유가 없다.
 
@@ -1225,13 +1260,13 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### 페이징 술어는 count와 content가 공유한다
 
-→ `todayDiscountSearchable(LocalDateTime)` · `findTodayDiscountProducts` · 그 count 쿼리
+→ `ProductStorefrontQueryAdapter`: `todayDiscountSearchable(ProductExposureWindow)` · `findTodayDiscountProducts` · 그 count 쿼리 `countTodayDiscountProducts`
 
 따로 두면 한쪽만 고쳐져 페이징 `totalElements`가 어긋나고 마지막 페이지가 비는 사고가 난다. 오늘의 할인 count 쿼리는 목록 쿼리와 **같은 `innerJoin`(shop)·같은 where를 재현**한다 — 대표 이미지·파일 `leftJoin`은 "노출 중 최소 sort 1장"으로 좁혀져 상품당 최대 1행이라 행이 늘지 않으므로 count에서 생략하지만, 가게 조인은 `innerJoin`이라 짝이 없는 상품을 제외해 총 건수에 영향을 주므로 그대로 재현한다.
 
 #### 노출 판정은 후처리가 아니라 술어여야 한다 (`exposedNow`)
 
-→ `exposedNow(LocalDateTime)` · `dayTypeMatches` · `coversTime` · `coversAsOvernightTail`
+→ `ProductStorefrontQueryAdapter`: `exposedNow(ProductExposureWindow)` · `coversTime` · `coversAsOvernightTail`
 
 **애플리케이션 후처리로 할 수 없다.** 목록에 페이징이 걸려 있어 20건을 fetch한 뒤 5건을 걸러내면 `totalElements`가 틀어지고 마지막 페이지가 비게 된다.
 
@@ -1240,7 +1275,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 - 기간: `start <= today`이고 `today <= end`. NULL이면 그 방향 제약 없음. 종료일은 **당일 포함**이다.
 - 요일·시간대: 행이 **0건이면 제약 없음**(`notExists`).
 - 행이 있으면 오늘 요일에 걸리는 행이 지금 시각을 덮거나, **전일 행이 자정을 넘겨** 지금 시각을 덮어야 한다. 전일 확인(`coversAsOvernightTail`)을 빠뜨리면 **01:00에 야식 메뉴가 사라진다.**
-- `dayTypeMatches`는 요일 묶음과 개별 요일을 모두 보되 `HOLIDAY`는 **제외**한다 — 공휴일 판정이 이 술어에 없으므로, 공휴일 전용 메뉴는 계산기를 타는 상세 경로에서만 정확하다.
+- 요일 매칭은 `subExposureHour.dayType.in(window.todayDayTypes())`(전일은 `previousDayDayTypes()`)로 한다. 그 집합을 만드는 `ProductExposureWindows`가 `DayType#appliesTo(dayOfWeek, false)`로 요일 묶음과 개별 요일을 모두 담되 `HOLIDAY`는 **제외**한다 — 공휴일 판정이 이 술어에 없으므로, 공휴일 전용 메뉴는 계산기를 타는 상세 경로에서만 정확하다. (과거 문서의 `dayTypeMatches`는 지금 코드에 없다.)
 
 `visible`은 이 술어에 넣지 않는다 — 기존 쿼리들이 이미 각자 `visible.eq(true)`를 걸고 있고, 관리 화면은 숨김도 봐야 하므로 축을 분리해 둔다.
 
@@ -1248,7 +1283,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### `notDeleted()` — 모든 조회에 거는 것이 정답이 아니다
 
-→ `notDeleted()`
+→ `ProductQueryPredicates#notDeleted()`(6개 어댑터 공용)
 
 **정적 고정 조건**이라 동적 필터 헬퍼와 달리 절대 `null`을 반환하지 않는다 — null을 돌려주면 QueryDSL이 조건을 통째로 무시해 필터가 조용히 사라진다.
 
@@ -1256,7 +1291,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### 메뉴-가게 N:M — 진실원은 `PRODUCT_SHOP_LINK`다
 
-→ `findShopProducts` · `findProductAvailability` · `existsProductInShop` · `findShopProductPrices` · `findProductOptionGroupsForManagement`
+→ `ProductStorefrontQueryAdapter#findShopProducts` · `ProductAvailabilityQueryAdapter#findProductAvailability` · `ProductQueryAdapter#existsProductInShop` · `ProductQueryAdapter#findShopProductPrices` · `ProductOptionGroupQueryAdapter#findProductOptionGroupsForManagement`
 
 **`PRODUCT.shop_id`가 아니라 `PRODUCT_SHOP_LINK`로 조회한다.** 한 메뉴가 여러 가게 메뉴판에 노출될 수 있으므로 "이 가게 메뉴판에 무엇이 걸려 있는가"의 진실원은 링크 테이블이다. `shop_id`는 원본 소유 가게로 남아 다른 판정(메뉴명 중복·옵션그룹 소유권)에 계속 쓰이지만, **메뉴판 구성에는 쓰지 않는다.**
 
@@ -1267,7 +1302,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 ##### `existsProductInShop` — 소유권 판정은 동등 비교가 아니라 포함 관계다
 
-→ `existsProductInShop(Long, Long)`
+→ `ProductQueryAdapter#existsProductInShop(Long, Long)`
 
 **메뉴의 가게와 대상 가게를 단순 동등 비교하던 방식을 이것으로 대체했다.** N:M 도입 전에는 "메뉴의 가게 == 내 가게"로 판정할 수 있었지만, 이제 한 메뉴가 여러 가게에 걸리므로 그 비교는 **포함 관계**여야 한다. 동등 비교를 남기면 연결된 가게의 점주가 자기 메뉴판의 메뉴를 열지 못한다. **컴파일러가 잡지 못하는 결함**이다.
 
@@ -1276,7 +1311,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### IDOR을 여는 반환 형태들
 
-→ `findLinkedProductIdsByOptionGroup`(소유 상품 맵) · `findLinkedProductsByOptionGroupId` · `findVegetarianSetting`
+→ `ProductOptionQueryAdapter#findLinkedProductIdsByOptionGroup`(소유 상품 맵) · `ProductOptionGroupQueryAdapter#findLinkedProductsByOptionGroupId` · `ProductQueryAdapter#findVegetarianSetting`
 
 - **소유 상품 맵의 값이 `Long`이 아니라 `Set<Long>`인 것이 핵심이다.** 링크 테이블 도입으로 한 그룹이 여러 메뉴에 연결되므로, 소유 상품을 단건으로 보면 "그 그룹의 임의의 한 메뉴"만 통과하고 나머지 메뉴의 옵션은 **예외도 로그도 없이 사라져** 장바구니 금액만 조용히 틀어진다. 개별·공통 그룹의 id 공간이 서로 겹칠 수 있으므로 결과 키는 `BatchOptionInfo#groupKey()`(공통 여부를 함께 인코딩한 키)다.
 - `findLinkedProductsByOptionGroupId`가 메뉴의 `shopId`를 함께 반환하는 것은 **의도**다 — 옵션그룹은 자기 가게를 모르므로 호출부가 이 값으로 소유권을 역판정한다. **결과가 비면 소유 가게를 판정할 수 없다는 뜻이므로 호출부는 이를 "접근 불가"로 다뤄야 한다**(빈 목록을 "허용"으로 읽으면 IDOR이 열린다).
@@ -1284,7 +1319,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### 관리 화면에는 `visible` 필터를 걸지 않는다
 
-→ `findProductCategoriesForManagement` · `findProductOptionGroupsForManagement` · `findOptionsForManagement` · `findProductAvailability` · `findProductOptionAvailability` · `findProductImagesForManagement`
+→ `ProductQueryAdapter#findProductCategoriesForManagement` · `ProductOptionGroupQueryAdapter#findProductOptionGroupsForManagement`·`#findOptionsForManagement` · `ProductAvailabilityQueryAdapter#findProductAvailability`·`#findProductOptionAvailability` · `ProductQueryAdapter#findProductImagesForManagement`
 
 관리 화면이 **숨김 상태 자체를 조작하는 화면**이기 때문이다. 필터를 걸면 감춘(소프트 삭제된) 그룹·옵션을 다시 켤 방법이 영구히 사라진다. 손님 화면 조회(`findProductCategories` 등)와 쌍을 이루며, 손님 쪽만 `visible.eq(true)`를 건다.
 
@@ -1294,7 +1329,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### 품절·숨김 필터는 그룹이 아니라 옵션 단위로 적용한다
 
-→ `findNormalOptionsForAvailability` · `findCommonOptionsForAvailability` · `normalOptionMatchExists` · `commonOptionMatchExists` · `optionNameContains` · `soldOutOrHidden`
+→ `ProductAvailabilityQueryAdapter`: `findNormalOptionsForAvailability` · `findCommonOptionsForAvailability` · `normalOptionMatchExists` · `commonOptionMatchExists` · `optionNameContains` · `soldOutOrHidden`
 
 검색어·품절보기·숨김보기를 **그룹 단위로만 걸면** "치즈"를 검색했을 때 치즈 옵션을 가진 그룹의 **모든** 옵션이 함께 나와 검색이 사실상 무의미해진다. 반대로 **항목 단위 필터만 걸면** 옵션이 0개인 빈 그룹이 화면에 남는다. 그래서 두 겹으로 건다 — `*MatchExists` EXISTS 서브쿼리가 조건에 맞는 옵션을 하나라도 가진 그룹만 남기고, 그 안에서 `optionNameContains` 계열이 실제로 일치하는 항목만 남긴다.
 
@@ -1302,21 +1337,21 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### 공통 옵션그룹은 구조상 보증금 유형이 될 수 없다
 
-→ `findCommonOptionGroups` · `findProductsBatch`(공통 옵션 분기) · `groupTypeNameOf`
+→ `ProductOptionQueryAdapter`: `findCommonOptionGroups` · `findProductsBatch`(공통 옵션 분기)
 
 공통 옵션그룹은 점주 CRUD 대상이 아니고 주문 검증 경로도 일반 옵션만 보므로, **구조상 보증금 유형이 될 수 없다.** 미러 테이블에 죽은 컬럼을 추가하는 대신 `NORMAL`을 하드코딩해 그 사실을 코드에 남긴다(`common=true`를 하드코딩하는 방식과 동일). 따라서 공통 옵션의 컵 보증금 관련 값은 항상 null이다.
 
-`groupTypeNameOf`는 `null`을 `NORMAL`로 본다 — 기존 행은 DDL `DEFAULT 'NORMAL'`로 채워지지만 방어적으로 같은 기본값을 여기서도 쓴다.
+공통 옵션그룹의 유형은 `findProductOptions(productId, commonOptionGroupType)`의 인자로 호출부가 넘긴다(web·admin 조회 서비스가 `ProductOptionGroupType.NORMAL.name()`). 과거 문서의 `groupTypeNameOf`는 지금 코드에 없다.
 
 #### 컵 보증금 금액은 저장값이 아니라 매번 계산한다
 
-→ `findProductOptions` · `findProductsBatch` · `CupDepositPolicy`
+→ `ProductOptionQueryAdapter`: `findProductOptions` · `findProductsBatch` · (계산은 application의 `CupDepositPolicy`)
 
 `findProductOptions`와 `findProductsBatch`가 **같은 원천(`CupDepositPolicy`)으로 컵 개수에서 매번 계산**해야 메뉴판과 결제화면의 보증금이 갈리지 않는다.
 
 #### 배치 조회 (N+1 회피)
 
-→ `findProductOptions` · `findProductsBatch` · `findOptionsForManagement` · `findLinkedProductsByShop` · `findProductPricesByProductIds`
+→ `ProductOptionQueryAdapter#findProductOptions`·`#findProductsBatch` · `ProductOptionGroupQueryAdapter#findOptionsForManagement`·`#findLinkedProductsByShop` · `ProductQueryAdapter#findProductPricesByProductIds`
 
 그룹·옵션·가격 행을 각각 배치(`in`) 조회해 N+1을 방지한다.
 
@@ -1327,7 +1362,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### 조인 fan-out을 접는 자리
 
-→ `findProductOptionGroupsForManagement`(그룹당 1건 접기) · `findProductOptionAvailability`(메뉴명 모으기) · `findNutrition`
+→ `ProductOptionGroupQueryAdapter#findProductOptionGroupsForManagement`(그룹당 1건 접기) · `ProductAvailabilityQueryAdapter#findProductOptionAvailability`(메뉴명 모으기) · `ProductQueryAdapter#findNutrition`
 
 - 같은 그룹이 여러 메뉴에 연결돼 있으면 링크 `sort`가 달라 행이 여럿 나온다. **먼저 만난 행(= 가장 작은 sort)만 남겨** 그룹당 1건으로 접는다.
 - 같은 옵션 그룹 id라도 연결 메뉴가 여러 건일 수 있어(1:N) 그룹 단위로 메뉴명을 모은다.
@@ -1335,19 +1370,19 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### 옵션 정렬은 그룹이 아니라 링크가 갖는다
 
-→ `findProductOptions` · `findCommonOptionGroups`
+→ `ProductOptionQueryAdapter`: `findProductOptions` · `findCommonOptionGroups`
 
 같은 그룹도 메뉴마다 진열 순서가 다를 수 있으므로, 정렬 키는 그룹 행이 아니라 링크 행에서 읽는다.
 
 #### 알레르기 성분 정렬은 id 순이다 (알파벳순이 아니다)
 
-→ `findAllergenTypes(Long)`
+→ `ProductQueryAdapter#findAllergenTypes(Long)`
 
 성분 코드 알파벳순이 **법령 열거 순서와 무관**해 화면 나열 순서가 고지 순서와 어긋나기 때문이다. 저장 순서(id 순)를 유지하면 점주가 체크한 순서(= 화면의 법령 순서)가 그대로 보인다.
 
 #### 지역 변수로 뽑은 표현식(`optionGroupId`·`commonOptionGroupId`·`imageProductId`)
 
-→ `findNormalOptionGroups` · `findBatchOptions` · `findOptionsForManagement` · `findRepresentativeImagePaths` 주변 조회
+→ `ProductOptionQueryAdapter#findNormalOptionGroups`·`#findBatchOptions`·`#findRepresentativeImagePaths` · `ProductOptionGroupQueryAdapter#findOptionsForManagement` 주변 조회
 
 > **(번복됨 — QueryDSL Tuple 전면 제거)** 이 절의 이전 제목은 "`select`와 `Tuple.get`은 같은 표현식 인스턴스를 참조해야 한다"였다. `Tuple.get(expr)`은 `equals`로 select 목록에서 값을 찾으므로, 새로 만든 동등 표현식을 넘기면 값을 못 찾았다. Row record로 바꾼 뒤에는 값이 생성자 위치로 들어가므로 이 제약이 사라졌다.
 
@@ -1355,7 +1390,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### `findOptionGroupMergeCandidates` — 이 메서드만 네이티브 쿼리다
 
-→ `findOptionGroupMergeCandidates(Long)` · `MERGE_CANDIDATE_SQL`
+→ `ProductOptionGroupQueryAdapter`: `findOptionGroupMergeCandidates(Long)` · `MERGE_CANDIDATE_SQL`
 
 판정 기준(그룹명 + min/max + 옵션명·가격 집합 동일)이 파생 키 `GROUP BY`인데 **QueryDSL이 `GROUP_CONCAT`을 표현하지 못한다.** self-join으로 바꾸면 O(n²)이라 옵션그룹이 수십 개인 가게에서 급격히 느려진다.
 
@@ -1368,7 +1403,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### CQRS 교차 주입 금지가 조회 위치를 정한다
 
-→ `findOptionGroupMergeExcludedSignatures` · `findProductPrices` · `findShopProductPrices` · `countVisibleProducts`
+→ `ProductOptionGroupQueryAdapter#findOptionGroupMergeExcludedSignatures` · `ProductQueryAdapter#findProductPrices`·`#findShopProductPrices`·`#countVisibleProducts`
 
 아래 조회들은 write 포트가 같은 데이터를 읽을 수 있는데도 이 DAO에 있다. 조회 서비스(`*QueryService`)가 write 포트를 주입하는 것을 ArchUnit `queryServicesShouldNotDependOnWritePorts`가 금지하기 때문이며, **표현 목적 경로는 이 DAO를 쓴다.**
 
@@ -1383,13 +1418,13 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 #### 노출기간의 요일·시간 축은 write 포트로 읽는다
 
-→ `findExposurePeriod(Long)`
+→ `ProductQueryAdapter#findExposurePeriod(Long)`
 
 요일·시간대 축은 판정 계산기가 **도메인 모델을 필요로 하므로** write 포트(`ProductExposureHourLoadPort`)를 통해 별도로 읽는다. 이 투영은 기간 축과 소유 가게만 담는다.
 
 #### `BatchOptionInfo`는 DAO 밖으로 나가지 않는다
 
-→ `BatchOptionInfo` · `BatchOptionInfo#groupKey()`
+→ `ProductOptionQueryAdapter`: `BatchOptionInfo` · `BatchOptionInfo#groupKey()`
 
 배치 조회 내부 계산용 `private` 중첩 record다. `new`로 직접 조립하는 내부 계산용이라 `Projections.constructor` 리플렉션 탐색을 거치지 않으므로 **투영 가드 2종의 대상이 아니다**(위 [읽기 계약 가드 2종](#읽기-계약-가드-2종은-이-모듈이-소유한다-챕터-09--application-common-module에서-이관) 절). 투영에 쓰려면 애초에 독립 파일로 분리해야 하고, 그 시점에 가드 대상이 된다.
 
@@ -1437,7 +1472,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 | 관용구 | 이유 |
 |---|---|
 | `@Convert` VO 컬럼의 raw `Long` path 헬퍼 (`shopThumbnailImageFileId()` · `memberProfileImageFileId()` · `shopStationId()` 등) | VO로 변환되는 컬럼을 QueryDSL에서 원시 타입으로 비교·조인하기 위해 별도 path를 만든다 |
-| 같은 테이블 두 번 조인 시 **별칭 분리** (`replyToMember` 등) | 별칭을 재사용하면 조인이 서로를 덮는다. `ProductQueryAdapter`의 서브쿼리 별칭과 같은 사유다 |
+| 같은 테이블 두 번 조인 시 **별칭 분리** (`replyToMember` 등) | 별칭을 재사용하면 조인이 서로를 덮는다. `product/query/*QueryAdapter`·`ProductQueryPredicates`의 서브쿼리 별칭과 같은 사유다 |
 | **count와 content의 술어·조인 공유** | 따로 두면 한쪽만 고쳐져 페이징 `totalElements`가 어긋나고 마지막 페이지가 빈다. **`innerJoin`은 count에서도 재현**해야 하고(짝이 없는 행을 제외하므로), 1:1 조인이라 행이 늘지 않으면 `countDistinct`는 필요 없다 |
 | **파일 조인은 `leftJoin`** | 파일 미등록 행이 목록에서 통째로 누락되지 않게 한다 |
 
@@ -1462,7 +1497,7 @@ fetch 뒤 wither(`withImageUrls`·`withOptions`·`withTipRange` 등)로 record�
 
 **대상**: `.../review/query/ReviewManagementQueryAdapter.java`
 
-web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 전용 조회만 둔다. **관리 화면은 숨김 처리된 리뷰·댓글·답글까지 모두 봐야 하므로 `hidden` 필터를 걸지 않는다.**
+web/공용 조회는 `ReviewQueryAdapter`(상세·댓글·회원·검색)와 `ReviewFeedQueryAdapter`(피드 목록)에 있고 여기에는 관리 화면 전용 조회만 둔다. **관리 화면은 숨김 처리된 리뷰·댓글·답글까지 모두 봐야 하므로 `hidden` 필터를 걸지 않는다.**
 
 `ownerOnlyEq`·`hidden` 두 축 모두 **필터를 강제하지 않고 검색 수단으로만 제공한다**(`null`이면 조건 없음 = 전체). 관리자에게는 전량 열람이 기본이기 때문이다.
 
@@ -1502,32 +1537,42 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 ### `ShopQueryAdapter` — 가게 설정·관리 화면 조회 전략
 
-**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/shop/query/ShopQueryAdapter.java`
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/shop/query/` 아래 `ShopQueryAdapter.java` · `ShopClassificationQueryAdapter.java` · `ShopMediaQueryAdapter.java`(아래 표)
 
-#### 클래스 역할과 DAO 이분할
+#### 클래스 역할과 3분할 결과
 
-→ `ShopQueryAdapter`(클래스 선언)
+→ `ShopQueryAdapter` · `ShopClassificationQueryAdapter` · `ShopMediaQueryAdapter`(클래스 선언)
 
-`shop` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ShopLoadPort`·`ShopDetailLoadPort` 등)와 역할이 겹치지 않는다. 소비 모듈(web/admin/ceo-api)의 `Shop*QueryService`가 주입해 쓰며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다. 구현하는 읽기 계약은 `ShopQueryPort`·`ShopBasicInfoQueryPort`·`ShopManagementQueryPort`·`ShopOwnerQueryPort` 4종이다.
+`shop` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ShopLoadPort`·`ShopBusinessHourLoadPort` 등)와 역할이 겹치지 않는다. 소비 모듈(web/admin/ceo-application)의 `Shop*QueryService`가 아래 포트를 주입해 쓰며, 그 덕분에 소비 모듈은 QueryDSL을 알지 않는다.
 
-**shop은 대형 도메인이라 공통 지침의 용도별 분리 허용에 따라 DAO를 둘로 나눈다.** 이 클래스는 *가게별 설정·관리 화면 조회*(전화번호·편의정보·콘텐츠보드·위생뱃지·이미지 변경요청·편의시설/음식유형 배정·배너·사진)를 담당하고, 목록·검색·베스트 등 **대형 조인은 `ShopSearchQueryAdapter`가 담당한다.**
+**shop은 대형 도메인이라 공통 지침의 용도별 분리 허용에 따라 DAO를 나눈다.** 가게별 설정·관리 화면 조회는 원래 770줄짜리 `ShopQueryAdapter` 한 클래스(포트 4개·메서드 35개)였고, large-class-split 덩어리 02에서 **함께 바뀌는 쿼리 묶음 3개**로 나눴다. 쿼리 본문은 글자 그대로 옮겼다 — **동작 변경 없음**(public `@Override` 35개 이름 집합·메서드 본문 동치 확인). 묶음 사이에 공유하는 private 헬퍼·별칭이 없어 공유 술어 클래스는 만들지 않았다(product의 `ProductQueryPredicates`와 다른 점). 목록·검색·베스트 등 **대형 조인은 `ShopSearchQueryAdapter`가 담당한다.**
+
+| 클래스 | before | after — 담당 묶음 | 구현 포트 |
+|---|---|---|---|
+| `ShopQueryAdapter` | 770줄, 포트 4개, 메서드 35개 | A. 가게 기본 정보·운영 설정 — `findShopName` · `findShopImageUrls` · `findVisibleDetailById` · `findManagementDetailById` · `existsBookmark` · `findPhoneNumbers` · `findConvenienceInfo` · `findOriginInfo` · `findHygieneBadges` · `findLatestOwnerMessage` · `findOrderMethods` · `findBusinessHours` · `findBreakTimes` · `findClosedDays` · `findSuspensions` · `findTemporaryClosures` (16개) + 별칭 `shopThumbnailFile`·`shopTrademarkFile` | `ShopQueryPort`(web, 7→2) · `ShopBasicInfoQueryPort`(공용, 14→11) · `ShopManagementQueryPort`(admin, 8→1) · `ShopOwnerQueryPort`(ceo, 6→2) |
+| `ShopClassificationQueryAdapter` | 없음 | B. 분류(편의시설·음식 종류 카테고리와 배정) — `findVisibleFoodTypeCategories` · `findVisibleAmenityCategories` · `findAllAmenityCategories` · `findAllFoodTypeCategories` · `findAmenityAssignments` · `findAmenitiesWithCategory` · `findFoodTypeAssignments` · `findFoodTypeCategoryNames` (8개) + 별칭 `activeFile`·`inactiveFile` | `ShopClassificationQueryPort`(web, 3) · `ShopClassificationManagementQueryPort`(admin, 4) · `ShopClassificationOwnerQueryPort`(ceo, 2) |
+| `ShopMediaQueryAdapter` | 없음 | C. 가게 미디어(콘텐츠보드·이미지 변경요청·메뉴모음컷·배너·사진) — `findContentBoards` · `findContentBoardPage` · `findImageChangeRequests` · `findImageChangeRequestPage` · `findMenuCollectionImages` · `findMenuCollectionImagesByStatus` · `findMenuCollectionImageRequestPage` · `findBannerImages` · `findAllPhotoCategoryImages` · `findPhotoCategoryImages` · `findPhotoCategories` (11개) + 별칭 `contentBoardImageFile`·`imageChangeRequestImageFile`·`menuCollectionImageFile`, 헬퍼 `contentBoardProjection`·`imageChangeRequestProjection`·`photoCategoryImageProjection`·`*StatusEq`·`*TypeEq` 등 | `ShopMediaQueryPort`(web, 4) · `ShopMediaManagementQueryPort`(admin, 6) · `ShopMediaOwnerQueryPort`(ceo, 3) |
+
+- **같은 메서드를 두 포트가 선언하는 쌍이 3개다** — `findAmenityAssignments`(`ShopClassificationManagementQueryPort`·`ShopClassificationOwnerQueryPort`), `findBannerImages`·`findPhotoCategories`(`ShopMediaQueryPort`·`ShopMediaManagementQueryPort`). 쌍마다 구현 빈이 같아 허용된다(`../../CLAUDE.md`의 조회 포트 소비자별 분할 규칙). 그래서 포트 선언은 38개, 구현 `@Override`는 35개 그대로다.
+- **`ShopBasicInfoQueryPort`는 쓰는 쪽 기준으로 나누지 않았다** — 남은 11개가 전부 2개 이상 앱(코어 리스너 포함)에서 쓰여 "겹침이 압도적이면 쪼개지 않는다"에 해당한다. 다른 어댑터로 간 3개(`findAmenityAssignments`·`findBannerImages`·`findPhotoCategories`)만 빈 경계 때문에 뺐다.
+- **새 조회를 추가할 때는 위 묶음 중 어디에 속하는지로 클래스를 고른다.** 포트 하나의 메서드는 전부 스프링 빈 하나가 구현해야 하므로, 다른 묶음의 조회를 기존 포트에 얹지 않는다.
 
 소비자별 메서드는 CLAUDE.md 규칙대로 admin 마커 없이 순수 동작명을 쓰고, 비-admin 형제와 충돌할 때만 시그니처·`ById` 한정어로 구별한다.
 
 #### 파일 테이블 별칭을 목적마다 새로 만드는 이유
 
-→ `activeFile` · `contentBoardImageFile` · `menuCollectionImageFile` · `shopThumbnailFile`
+→ `ShopClassificationQueryAdapter.activeFile`·`inactiveFile` · `ShopMediaQueryAdapter.contentBoardImageFile`·`imageChangeRequestImageFile`·`menuCollectionImageFile` · `ShopQueryAdapter.shopThumbnailFile`·`shopTrademarkFile`
 
-`UPLOADED_FILE`을 여러 목적으로 조인하므로 목적별 별칭 인스턴스를 따로 둔다.
+`UPLOADED_FILE`을 여러 목적으로 조인하므로 목적별 별칭 인스턴스를 따로 두고, 그 별칭을 쓰는 어댑터가 갖는다.
 
-- `activeFile` — 카테고리의 활성/비활성 아이콘을 한 쿼리에서 함께 투영하기 위한 별칭
-- `contentBoardImageFile` — 콘텐츠보드/이미지 변경요청의 이미지 조인용
-- `menuCollectionImageFile` — 메뉴모음컷 조회용. **검수 목록은 `SHOP`도 함께 조인하므로 공용 `uploadedFileJpaEntity` 별칭을 재사용하면 다른 목적의 조인과 서로를 덮는다.**
-- `shopThumbnailFile` — 가게 상세 조립 시 썸네일/상표 이미지 조회용
+- `activeFile`·`inactiveFile` (`ShopClassificationQueryAdapter`) — 카테고리의 활성/비활성 아이콘을 한 쿼리에서 함께 투영하기 위한 별칭 쌍
+- `contentBoardImageFile`·`imageChangeRequestImageFile` (`ShopMediaQueryAdapter`) — 콘텐츠보드/이미지 변경요청의 이미지 조인용
+- `menuCollectionImageFile` (`ShopMediaQueryAdapter`) — 메뉴모음컷 조회용. **검수 목록은 `SHOP`도 함께 조인하므로 공용 `uploadedFileJpaEntity` 별칭을 재사용하면 다른 목적의 조인과 서로를 덮는다.**
+- `shopThumbnailFile`·`shopTrademarkFile` (`ShopQueryAdapter`) — 가게 상세 조립 시 썸네일/상표 이미지 조회용
 
 #### 가게명 단건 조회 (`findShopName`) — `ShopBasicInfoQueryPort` 구현
 
-→ `findShopName(Long)`
+→ `ShopQueryAdapter#findShopName(Long)`
 
 가게명 한 필드만 필요한 소비처(알림 본문 조립 등)를 위해 도메인 모델(`Shop`)을 통째로 로드하지 않는다. 그 소비처가 애그리거트 경계 밖(알림 리스너)이라 도메인 모델을 넘기면 컨텍스트가 결합되기 때문이다.
 
@@ -1535,7 +1580,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 #### 도메인 모델 로드를 대체하지 않고 보완하는 조회
 
-→ `findShopImageUrls(Long)` · `findVisibleDetailById(Long)` · `existsBookmark(Long, Long)`
+→ `ShopQueryAdapter#findShopImageUrls(Long)` · `#findVisibleDetailById(Long)` · `#existsBookmark(Long, Long)` · `#findManagementDetailById(Long)`
 
 - `findShopImageUrls` — 도메인 모델(`Shop`)은 다른 필드를 위해 계속 로드하되 **이미지 URL만 이 조회로 대체해 파일 단건 재조회를 없앤다.**
 - `findVisibleDetailById` — 회원 노출용 가게 단건. 폐업·노출정지 가게는 투영되지 않으며, 가시성 조건(`permanentlyClosed=false`·`hidden=false`)은 write 포트 `ShopLoadPort#findVisibleById`와 **동일하게 유지한다.** 애그리거트를 로드해 표시 필드를 꺼내던 기존 형태를 한 번의 투영으로 대체한 것이다.
@@ -1544,33 +1589,33 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 #### write 포트의 목록 조회와 공존하는 표현용 조회
 
-→ `findBusinessHours(Long)` · `findBreakTimes(Long)` · `findClosedDays(Long)`
+→ `ShopQueryAdapter#findBusinessHours(Long)` · `#findBreakTimes(Long)` · `#findClosedDays(Long)`
 
 같은 데이터를 도메인 서비스도 읽지만 그쪽은 write 포트로 도메인 모델을 로드한다. **목적(불변식 검증 vs 화면 표현)과 반환 타입이 다르므로 중복이 아니다.**
 
 #### 미설정 상태의 판정은 소비 측에 맡긴다
 
-→ `findOriginInfo(Long)` · `findConvenienceInfo(Long)` · `findLatestOwnerMessage(Long)`
+→ `ShopQueryAdapter#findOriginInfo(Long)` · `#findConvenienceInfo(Long)` · `#findLatestOwnerMessage(Long)`
 
 가게당 1건이며 미설정이면 `Optional.empty()`다. 원산지의 경우 점주 화면은 그때 빈 폼을, 손님 화면은 원산지 영역 숨김을 택하므로 **판정을 DAO가 하지 않는다.**
 
 #### 이미지 변경요청은 유형 필터가 필수다
 
-→ `findImageChangeRequests(Long, ShopImageType)`
+→ `ShopMediaQueryAdapter#findImageChangeRequests(Long, String)` — 유형 비교값은 ceo `ShopThumbnailStatusQueryService`·`ShopTrademarkStatusQueryService`가 `ShopImageType.THUMBNAIL.name()`·`ShopImageType.TRADEMARK.name()`으로 넘긴다
 
 이미지 유형별로 걸러 최근 요청 순으로 반환한다. **상표·대표이미지는 화면에서 각각 독립된 항목으로 "검수 대기 중" 배지를 표시하므로, 유형 필터 없이 반환하면 한쪽 유형의 PENDING 요청이 다른 쪽 배지까지 켠다.**
 
 #### 관리 화면에는 노출 필터를 걸지 않는다
 
-→ `findAllAmenityCategories()` · `findAllFoodTypeCategories()` · `findPhotoCategoryImages(Long)` · `findContentBoardPage(...)` · `findImageChangeRequestPage(...)` · `findMenuCollectionImageRequestPage(...)`
+→ `ShopClassificationQueryAdapter#findAllAmenityCategories()` · `#findAllFoodTypeCategories()` · `ShopMediaQueryAdapter#findPhotoCategoryImages(Long)` · `#findContentBoardPage(...)` · `#findImageChangeRequestPage(...)` · `#findMenuCollectionImageRequestPage(...)`
 
 관리 화면은 미노출분까지 봐야 하므로 `visible` 필터를 걸지 않으며, 회원 화면용 `findVisibleFoodTypeCategories()`·`findVisibleAmenityCategories()`와 쌍을 이룬다. 사진 카테고리 이미지의 관리 목록은 **미노출 이미지도 함께 보여주고 그 상태를 표시해야 하므로** `visible`을 담은 `ShopPhotoCategoryImageManagementResult`를 돌려준다.
 
-`menuCollectionImageStatusEq(ApprovalStatus)`처럼 상태 미지정(`null`)은 "전체"를 뜻하므로 술어를 붙이지 않는다.
+`ShopMediaQueryAdapter`의 `menuCollectionImageStatusEq(String)`처럼 상태 미지정(`null`)은 "전체"를 뜻하므로 술어를 붙이지 않는다.
 
 #### 배정 목록은 소비 화면마다 투영이 다르다
 
-→ `findAmenityAssignments(Long)` · `findAmenitiesWithCategory(Long)` · `findFoodTypeAssignments(Long)` · `findFoodTypeCategoryNames(Long)`
+→ `ShopClassificationQueryAdapter#findAmenityAssignments(Long)` · `#findAmenitiesWithCategory(Long)` · `#findFoodTypeAssignments(Long)` · `#findFoodTypeCategoryNames(Long)`
 
 - `findAmenityAssignments` — 관리·설정 화면용. 카테고리 정보 포함
 - `findAmenitiesWithCategory` — 회원 상세 화면용. **배정 식별자 없이 표시용 필드만**
@@ -1580,16 +1625,16 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 #### 메뉴모음컷 — 상태 필터를 투영에 둔다
 
-→ `findMenuCollectionImages(Long)` · `findExposedMenuCollectionImages(Long)`
+→ `ShopMediaQueryAdapter#findMenuCollectionImages(Long)` · `#findMenuCollectionImagesByStatus(Long, String)`
 
 - 점주 화면(`findMenuCollectionImages`)은 `sort` 순 **상태 무관 전량**이다. 대기·반려 건까지 내려보내는 이유는 원문 규격이 점주 화면에 검수 진행 상태를 보여주도록 규정하기 때문이다.
-- 손님 화면(`findExposedMenuCollectionImages`)은 **승인분만** 본다. **상태 필터를 소비 측(api 모듈)이 아니라 이 투영에 두는 이유는, 필터를 호출부에 맡기면 새 소비 경로가 생길 때 조용히 빠져 대기·반려 이미지가 손님에게 노출될 수 있기 때문이다.**
+- 손님 화면(`findMenuCollectionImagesByStatus`)은 **승인분만** 본다. 비교값은 enum 비교값 전달 규칙대로 web `ShopMenuCollectionImageQueryService`가 `ApprovalStatus.APPROVED.name()`으로 넘기고, **상태 술어 자체는 이 투영에 필수 조건으로 둔다.** 술어를 빼고 소비 측이 결과를 거르게 하면 새 소비 경로가 생길 때 조용히 빠져 대기·반려 이미지가 손님에게 노출될 수 있기 때문이다(봉인 절 [`ShopMediaQueryAdapter#findMenuCollectionImagesByStatus`](#shopmediaqueryadapterfindmenucollectionimagesbystatus--상태-술어를-투영에서-빼거나-선택-조건으로-바꾸지-않는다)).
 
 #### 표시용 URL 변환은 투영식 안에서 한다 — 아이콘 쌍은 슬롯마다 `urlOf`
 
-→ `findVisibleFoodTypeCategories` · `findAllFoodTypeCategories` · `findVisibleAmenityCategories` · `findAllAmenityCategories`
+→ `ShopClassificationQueryAdapter#findVisibleFoodTypeCategories` · `#findAllFoodTypeCategories` · `#findVisibleAmenityCategories` · `#findAllAmenityCategories`
 
-파일 alias마다 `fileUrlResolver.urlOf(alias.filePath)`로 감싼다. `ShopFoodTypeCategoryResult`·`ShopAmenityCategoryResult`의 `activeIconUrl`/`inactiveIconUrl`은 **인접한 `String` 쌍**이라, `urlOf(activeFile.filePath)`·`urlOf(inactiveFile.filePath)`의 **슬롯 순서를 바꿔 써도 컴파일·가드를 통과하고 아이콘만 교차한다.** 두 alias는 서로 다른 `QUploadedFileJpaEntity` 인스턴스라 래퍼끼리는 충돌하지 않지만, 순서 보장은 record 컴포넌트 순서(active → inactive)와 인자 순서를 대조하는 것뿐이다. `findShopImageUrls`의 썸네일·상표(`shopThumbnailFile`·`shopTrademarkFile`)도 같은 형태다.
+파일 alias마다 `fileUrlResolver.urlOf(alias.filePath)`로 감싼다. `ShopFoodTypeCategoryResult`·`ShopAmenityCategoryResult`의 `activeIconUrl`/`inactiveIconUrl`은 **인접한 `String` 쌍**이라, `urlOf(activeFile.filePath)`·`urlOf(inactiveFile.filePath)`의 **슬롯 순서를 바꿔 써도 컴파일·가드를 통과하고 아이콘만 교차한다.** 두 alias는 서로 다른 `QUploadedFileJpaEntity` 인스턴스라 래퍼끼리는 충돌하지 않지만, 순서 보장은 record 컴포넌트 순서(active → inactive)와 인자 순서를 대조하는 것뿐이다. `ShopQueryAdapter#findShopImageUrls`의 썸네일·상표(`shopThumbnailFile`·`shopTrademarkFile`)도 같은 형태다.
 
 ---
 
@@ -1601,7 +1646,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 → `ShopSearchQueryAdapter`(클래스 선언) · `stationNamesByShopId` 이하 일괄 보강 조회
 
-가게 목록·검색 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하므로 write 포트(`ShopLoadPort`)와 역할이 겹치지 않으며, 소비 모듈은 QueryDSL을 알지 않는다. `ShopSearchQueryPort`·`ShopSearchManagementQueryPort`를 구현한다. 이 클래스는 *목록·검색·베스트·즐겨찾기 등 대형 조인*을 담당하고, 가게별 설정·관리 화면 조회는 `ShopQueryAdapter`가 담당한다.
+가게 목록·검색 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하므로 write 포트(`ShopLoadPort`)와 역할이 겹치지 않으며, 소비 모듈은 QueryDSL을 알지 않는다. `ShopSearchQueryPort`·`ShopSearchManagementQueryPort`를 구현한다. 이 클래스는 *목록·검색·베스트·즐겨찾기 등 대형 조인*을 담당하고, 가게별 설정·관리 화면 조회는 `ShopQueryAdapter`·`ShopClassificationQueryAdapter`·`ShopMediaQueryAdapter`가 담당한다.
 
 **목록 조회는 페이지 대상 가게를 먼저 뽑고 역·썸네일·음식유형·리뷰수·즐겨찾기수를 shopId 일괄 조회(in절)로 채우는 방식을 유지한다** — 컬렉션 필드(음식유형 다건)가 있어 단일 조인 투영으로는 카티전 곱이 생기기 때문이다.
 
@@ -1698,23 +1743,43 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 ### `ReviewQueryAdapter` — 쿼리 전략
 
-**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/review/query/ReviewQueryAdapter.java`
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/review/query/` 아래 `ReviewQueryAdapter`·`ReviewFeedQueryAdapter`와 공유 술어 `ReviewQueryPredicates`(아래 표)
+
+원래 944줄짜리 `ReviewQueryAdapter` 한 클래스(public 19개, 포트 2개)였고, large-class-split 덩어리 04에서 **두 단계**로 나눴다. 피드 7개를 쓰는 서비스 4개와 나머지 10개를 쓰는 서비스 8개가 한 곳도 겹치지 않아, 쓰는 쪽 기준 경계가 깨끗했다.
+
+| 단계 | 한 일 | 동작 |
+|---|---|---|
+| 4a — 같은 클래스 안에서 중복 제거 | `LatestReviewListItemResult` 14인자 투영 + from + 조인 6개(6벌)를 `selectLatestReviews()`로, 평점 밴드(4벌)를 `ratingBand(int)`로, 사진 유무 exists/notExists(2벌)를 `imageExists(boolean)`로, 이미지 목록 보강(6벌)을 `attachImageUrls(List)`로 모았다. 가게/상품 쌍둥이 본문 2쌍은 `findLatestReviewsPage(BooleanExpression scope, …)`·`findReviewsByRating(BooleanExpression scope, int, int)`로 공통화하고 public 4개는 위임 한 줄이 됐다. 944줄 → 699줄 | 변경 없음 — 7개 피드 경로가 만드는 JPQL·바인딩 파라미터·offset/limit·결과를 HEAD와 대조해 같음을 확인 |
+| 4b — 피드 묶음 분리 + 포트 재절단 | 피드 7개와 그 전용 자원(`subReviewLike`·`subReviewComment`·`sortReviewLike`, `countBestReviews`·`countLatestReviews`, `applySort`, `findImageUrlsByReviewIds`, 4a 헬퍼)을 `ReviewFeedQueryAdapter`로 잘라 붙였다. 두 어댑터가 함께 쓰는 술어는 `ReviewQueryPredicates`로 뽑았다 | 변경 없음 — `@Override` 이름 집합 19개(7 + 12)가 같고, 메서드 본문은 공백과 `ReviewQueryPredicates.` 접두 외 차이 0 |
+
+| 클래스/포트 | before | after |
+|---|---|---|
+| `ReviewQueryAdapter` | 944줄, 19개, `ReviewQueryPort`·`ReviewTagQueryPort` 구현 | 411줄, 12개(상세·댓글 3 + 회원·검색 3 + 작성·좋아요 판정 4 + 태그 2). 포트 2개 구현은 그대로 |
+| `ReviewFeedQueryAdapter` | 없음 | 316줄, 피드 7개(`findBestReviews`·`findLatestReviews`·`findLatestReviewsByFollowing`·`findLatestReviewsByShopId`·`findLatestReviewsByProductId`·`findReviewsByShopIdAndRating`·`findReviewsByProductIdAndRating`). `ReviewFeedQueryPort` 구현 |
+| `ReviewQueryPredicates` | 없음 | package-private `final class`, static `visibleToCustomer()`·`shopStationId()`·`memberProfileImageFileId()`(`ProductQueryPredicates` 형식) |
+| `ReviewQueryPort` (web) | 17 | 10 |
+| `ReviewFeedQueryPort` (web) | 없음 | 7. 주입처는 web-application `ReviewBestListQueryService`·`ReviewLatestListQueryService`·`ReviewShopByRatingQueryService`·`ProductReviewsByRatingQueryService`(필드명 `reviewFeedQueryPort`) |
+| `ReviewTagQueryPort` (web+admin 공용) | 2 | 변경 없음 |
+
+- **별칭 `subReviewImage`는 두 어댑터에 각각 선언한다.** 피드는 대표 이미지·사진 유무 판정에, `ReviewQueryAdapter`는 검색 대표 이미지·마이리뷰 첫 이미지에 쓴다. 상태 없는 Q 인스턴스라 두 벌이어도 의미가 같다(`ProductStorefrontQueryAdapter`·`ProductQueryAdapter`의 `subExposureHour` 선례). `visibleToViewer(Long)`는 상세만 쓰므로 `ReviewQueryAdapter`에 남았다.
+- **새 조회를 추가할 때는 쓰는 서비스로 클래스를 고른다.** 피드 목록(베스트·최신·팔로잉·가게/상품별·평점대별)이면 `ReviewFeedQueryAdapter`, 상세·댓글·회원·검색·작성 판정이면 `ReviewQueryAdapter`다. 두 어댑터가 함께 쓰게 된 술어만 `ReviewQueryPredicates`로 올린다.
+- **이름에 Result 계열을 쓰지 않은 이유**: 반환 Result가 `Best*`·`Latest*` 두 계열이고, 후보였던 `ReviewList*`는 admin `ReviewListItemResult`와 헷갈린다. 그래서 성격명 `Feed`를 쓴다(`backend/CLAUDE.md`의 "조회 포트 소비자별 분할 규칙" 성격명 보완).
 
 #### `ReviewQueryAdapter` 클래스 역할
 
 `review` 도메인 read 어댑터(CQRS query 측). 표현 목적 조회를 JPA 엔티티에서 Result DTO로 직접 투영하며 도메인 모델을 거치지 않으므로 write 포트(`ReviewLoadPort`)와 역할이 겹치지 않는다. 소비 모듈(web-api)의 리뷰 조회 서비스가 이 DAO를 주입해 쓰며, 그 덕분에 api 모듈은 QueryDSL을 알지 않는다.
 
-**도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** admin(관리) 화면 전용 조회는 `ReviewManagementQueryAdapter`, 집계·통계 조회는 `ReviewStatisticsQueryAdapter`가 담당하고, 여기에는 web/공용 목록·상세 조회만 둔다.
+**도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** admin(관리) 화면 전용 조회는 `ReviewManagementQueryAdapter`, 집계·통계 조회는 `ReviewStatisticsQueryAdapter`, 피드 목록은 `ReviewFeedQueryAdapter`가 담당하고, `ReviewQueryAdapter`에는 web/공용 상세·댓글·회원·검색·작성 판정 조회만 둔다.
 
 #### 별칭을 새로 만드는 이유 — 같은 테이블을 두 번 조인한다
 
-→ `replyToMember`
+→ `ReviewQueryAdapter.replyToMember`
 
 답글의 "누구에게 단 답글인지"(replyTo) 회원은 작성자 조인과 **같은 회원 테이블**이라 별칭을 분리해야 한다. 기본 별칭 하나로는 두 조인이 충돌한다.
 
 #### 노출 조건 헬퍼 두 종 — 목록/집계용과 상세용이 다르다
 
-→ `visibleToCustomer()` · `visibleToViewer(Long)`
+→ `ReviewQueryPredicates#visibleToCustomer()` · `ReviewQueryAdapter#visibleToViewer(Long)`
 
 `visibleToCustomer()`는 고객 목록·집계에 노출되는 리뷰 조건으로, 숨김(관리자 게시중단)과 사장님만보기를 **둘 다** 제외한다. **목록의 where절과 count절이 분리된 곳에서는 양쪽 모두에 걸어야 한다** — 한쪽만 고치면 `totalElements`와 실제 목록 길이가 어긋나 프론트 무한스크롤이 빈 페이지로 깨진다.
 
@@ -1722,9 +1787,23 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 조건이 OR이라 varargs `.where(a, b)`(AND)로는 표현할 수 없어 `BooleanExpression` 헬퍼로 만든다(`BooleanBuilder`는 프로젝트 금지 규약).
 
+#### 피드 투영은 한 곳에서 만든다
+
+→ `ReviewFeedQueryAdapter#selectLatestReviews()` · `#ratingBand(int)` · `#imageExists(boolean)` · `#attachImageUrls(List)` · `#findLatestReviewsPage(...)` · `#findReviewsByRating(...)`
+
+`LatestReviewListItemResult` 피드 6개(베스트 제외)는 투영 + from + 조인 6개를 `selectLatestReviews()` 한 곳에서 받고, 호출부는 `.where(...)`부터 붙인다(`PaymentQueryAdapter#selectPayment`·`CouponQueryAdapter#selectMemberCoupons` 선례). 이 헬퍼들을 고칠 때 지켜야 하는 동작 보존 조건은 다음과 같다.
+
+- **`ratingBand`는 `int`를 받는다.** 그래서 `findReviewsBy*AndRating`에 `rating`이 null로 오면 지금처럼 언박싱 `NullPointerException`이 난다. `Integer`로 넓혀 null을 허용하지 않는다.
+- **null 분기(`if (rating != null)`·`if (hasImage != null)`)는 호출부(`findLatestReviewsPage`)에 남긴다.** 헬퍼 안으로 옮겨 null을 돌려주게 만들지 않는다.
+- **`.and` 결합 순서는 범위(`shopId`/`productId`) → `visibleToCustomer()` → 평점 → 이미지다.** 순서를 바꾸면 결과는 같아도 SQL과 바인딩 순서가 달라져 p6spy 대조가 깨진다.
+- **count 쿼리는 목록과 같은 `whereClause` 변수를 쓴다.**
+- **`attachImageUrls`는 빈 목록이면 받은 리스트를 그대로 돌려준다**(이미지 쿼리를 내지 않는다).
+- **`applySort`의 `groupBy` 컬럼은 투영 컬럼과 같게 유지한다**(아래 정렬 정책).
+- 헬퍼 이름에 `withResolved*` 접두를 쓰지 않는다 — `ProjectionConstructorMatchingTest#reassemblyHelpersShouldNotGrow`의 봉인 패턴이다. `attachImageUrls`는 URL 슬롯을 다시 채우는 재조립이 아니라 별도 쿼리 컬렉션을 wither로 붙이는 정상 형태다.
+
 #### count 쿼리는 목록 쿼리의 조인을 재현한다
 
-→ `countBestReviews()` · `countLatestReviews(Predicate)`
+→ `ReviewFeedQueryAdapter#countBestReviews()` · `#countLatestReviews(Predicate)`
 
 목록 쿼리와 **동일한 `innerJoin`(shop·station·member)을 재현해야 총 건수가 일치한다** — inner join은 짝이 없는 리뷰를 제외하므로 리뷰 테이블만 세면 값이 달라진다. 반면 프로필 이미지 `leftJoin`과 좋아요·댓글 수 스칼라 서브쿼리는 행 수를 바꾸지 않아 재현하지 않는다.
 
@@ -1734,13 +1813,13 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 #### 정렬 정책
 
-→ `applySort(JPAQuery, ReviewSortType)`
+→ `ReviewFeedQueryAdapter#applySort(JPAQuery, ReviewSortSpec)`
 
-가게별·상품별 목록이 공유한다. 추천순은 좋아요 수 집계가 필요해 **별칭 조인 + `groupBy`가 따라붙고, 동수일 때는 최신순으로 갈린다.** 정렬 후보는 도메인 enum(`ReviewSortType`)이 소유하며 승격은 소비 모듈 Service가 한다.
+가게별·상품별 목록이 공유한다(`findLatestReviewsPage`가 부른다). 추천순은 좋아요 수 집계가 필요해 **별칭 조인 + `groupBy`가 따라붙고, 동수일 때는 최신순으로 갈린다.** 정렬 후보는 도메인 enum(`ReviewSortType`)이 소유하며, 소비 모듈 Service가 그것을 스펙 record `ReviewSortSpec`으로 바꿔 넘긴다.
 
 #### N+1 회피 — 식별자를 모아 한 번에 조회한다
 
-→ `findReviewedProductIds` · `findImageUrlsByReviewIds` · `findFirstImageUrlsByReviewIds`
+→ `ReviewQueryAdapter#findReviewedProductIds` · `ReviewFeedQueryAdapter#findImageUrlsByReviewIds` · `ReviewQueryAdapter#findFirstImageUrlsByReviewIds`
 
 주문 상세의 주문상품마다 `existsByOrderIdAndProductIdAndMemberId`를 호출하면 상품 수만큼 쿼리가 나가므로(N+1), 상품 식별자를 모아 `IN` 한 번으로 조회하고 소비 모듈이 메모리에서 판정하도록 한다. **입력이 비어 있으면 조회하지 않는다**(`findTagNamesByIds`·`findVisibleReplies`도 같다 — 빈 목록을 그대로 돌려준다).
 
@@ -1748,13 +1827,13 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 #### URL 슬롯은 투영식, 이미지 목록은 fetch 뒤 보강
 
-→ `searchByKeyword` · `findLatestReviews` 계열 · `findReviewDetail`
+→ `ReviewQueryAdapter#searchByKeyword` · `ReviewFeedQueryAdapter#selectLatestReviews`·`#attachImageUrls` · `ReviewQueryAdapter#findReviewDetail`
 
-단일 URL 슬롯(대표 이미지·작성자 프로필)은 투영식에서 `fileUrlResolver.urlOf(...)`로 변환한다. 리뷰 이미지 **목록**은 별도 쿼리(`findImageUrlsByReviewIds`·`findImageUrlsByReviewId`)로 모아 `withImageUrls(list)`로 붙이며, 이 보강은 컬럼 표현식이 될 수 없어 fetch 뒤가 정상 형태다.
+단일 URL 슬롯(대표 이미지·작성자 프로필)은 투영식에서 `fileUrlResolver.urlOf(...)`로 변환한다. 리뷰 이미지 **목록**은 별도 쿼리(`findImageUrlsByReviewIds`·`findImageUrlsByReviewId`)로 모아 `withImageUrls(list)`로 붙이며, 이 보강은 컬럼 표현식이 될 수 없어 fetch 뒤가 정상 형태다. 피드는 이 보강을 `attachImageUrls` 한 곳에서 한다.
 
 #### 댓글·답글 조회
 
-→ `findComments(ReviewId)` · `findVisibleReplies(List<ReviewCommentId>)`
+→ `ReviewQueryAdapter#findComments(Long)` · `#findVisibleReplies(List<Long>)`
 
 댓글 목록은 **숨김을 포함**해 최신순으로 돌려준다 — 기존 web 동작을 보존하기 위함이며, **답글만 숨김을 제외한다.** 관리 화면용 `ReviewManagementQueryAdapter#findCommentsIncludingHidden`과 달리 작성자 프로필 이미지 경로까지 함께 투영한다(web 응답이 프로필 이미지 URL을 포함하기 때문).
 
@@ -1762,9 +1841,9 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 #### 크로스 도메인 `@Convert` VO 컬럼 우회
 
-→ `shopStationId()` · `memberProfileImageFileId()`
+→ `ReviewQueryPredicates#shopStationId()` · `#memberProfileImageFileId()`
 
-`SHOP.station_id`(shop 도메인)·`MEMBER.profile_image_file_id`(member 도메인)는 `@Convert` VO 컬럼이라 QueryDSL이 VO path를 생성한다. raw `Long`으로 비교하기 위해 별도 path를 만들어 우회한다.
+`SHOP.station_id`(shop 도메인)·`MEMBER.profile_image_file_id`(member 도메인)는 `@Convert` VO 컬럼이라 QueryDSL이 VO path를 생성한다. raw `Long`으로 비교하기 위해 별도 path를 만들어 우회한다. 두 어댑터가 모두 쓰므로 공유 술어 클래스에 둔다.
 
 ---
 
@@ -1776,9 +1855,16 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 리뷰 집계·통계 전용 read 어댑터(CQRS query 측). 가게/상품/회원 단위의 리뷰 수·평균 평점·평점 분포·월별 추이를 JPA 엔티티에서 직접 투영하며, 도메인 모델을 거치지 않으므로 write 포트(`ReviewLoadPort`)와 역할이 겹치지 않는다.
 
-**도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** 목록·상세 조회는 `ReviewQueryAdapter`, 관리(admin) 화면 전용 조회는 `ReviewManagementQueryAdapter`가 담당하고, 여기에는 집계·통계만 둔다.
+**도메인당 DAO 1개가 원칙이나 review는 대형 도메인이라 용도별로 분리했다.** 피드 목록은 `ReviewFeedQueryAdapter`, 상세·댓글 조회는 `ReviewQueryAdapter`, 관리(admin) 화면 전용 조회는 `ReviewManagementQueryAdapter`가 담당하고, 여기에는 집계·통계만 둔다. 이 클래스는 large-class-split 덩어리 04에서 분할하지 않기로 판정했다(근거는 위 "분할은 허용이지 의무가 아니다" 표).
 
-소비자: web-application `ReviewShopStatisticsQueryService`·`ReviewShopByRatingQueryService`(가게 리뷰 통계 조합)·`ReviewMemberCountQueryService`(회원 리뷰 수)·`ProductDetailQueryService`·`ProductReviewStatisticsQueryService`·`ProductReviewCountQueryService`·`ProductReviewsByRatingQueryService`(상품 상세의 매장 리뷰 통계) — 유스케이스 분리 전에는 `ReviewQueryService`·`ProductQueryService` 두 클래스였다, ceo-application `ShopReviewStatisticsQueryService`(점주 통계 대시보드 — 기간 오버로드 사용. 유스케이스 분리 전 `ShopReviewQueryService`).
+소비자(2026-10-09 실측):
+
+| 포트 | 소비자 |
+|---|---|
+| `ReviewStatisticsQueryPort`(web, 15개) | web-application `ReviewShopStatisticsQueryService`(가게 리뷰 통계)·`ReviewMemberCountQueryService`(회원 리뷰 수)·`ProductReviewStatisticsQueryService`·`ProductReviewCountQueryService`(상품 상세의 매장 리뷰 통계). `ReviewShopByRatingQueryService`·`ProductReviewsByRatingQueryService`는 평점대별 목록의 총 건수용으로 `countVisibleByShopId`·`countVisibleByProductId` **1개씩만** 쓴다(목록 자체는 `ReviewFeedQueryPort`) |
+| `ShopReviewStatisticsQueryPort`(ceo, 8개) | ceo-application `ShopReviewStatisticsQueryService`(점주 통계 대시보드 — 기간 오버로드 사용) 하나가 8개를 전부 쓴다 |
+
+`ProductDetailQueryService`는 이 DAO의 소비자가 아니다 — 상품 상세의 메뉴 평가 수는 `MenuReviewStatisticsQueryPort`만 주입해 읽는다(정정: 이전 판은 소비자로 적었다). 유스케이스 분리 전에는 web 소비자가 `ReviewQueryService`·`ProductQueryService` 두 클래스, ceo 소비자가 `ShopReviewQueryService`였다.
 
 #### 기간 오버로드는 기존 오버로드의 한계 때문에 신설됐다
 
@@ -1820,7 +1906,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 #### 클래스 역할 — `ReviewQueryAdapter`와 분리한 이유
 
-점주 리뷰 관리(ceo) 전용 read 어댑터(CQRS query 측). 기존 `ReviewQueryAdapter`(web 소비)와 조회 용도가 다르다. **가장 큰 차이는 `hidden` 필터를 끄지 않는다는 점이다** — 점주는 차단 탭에서 숨겨진 리뷰를 봐야 하므로 web 목록(`hidden = false` 고정)과 같은 쿼리를 쓸 수 없다.
+점주 리뷰 관리(ceo) 전용 read 어댑터(CQRS query 측). 기존 `ReviewQueryAdapter`·`ReviewFeedQueryAdapter`(web 소비)와 조회 용도가 다르다. **가장 큰 차이는 `hidden` 필터를 끄지 않는다는 점이다** — 점주는 차단 탭에서 숨겨진 리뷰를 봐야 하므로 web 목록(`hidden = false` 고정)과 같은 쿼리를 쓸 수 없다.
 
 동적 조건은 `BooleanExpression` 헬퍼 + varargs `.where(...)`로 조립한다(`BooleanBuilder` 금지 — 프로젝트 공통 규약).
 
@@ -1856,7 +1942,7 @@ web/공용 조회는 `ReviewQueryAdapter`에 있고 여기에는 관리 화면 �
 
 → `applySort(JPAQuery, ReviewSortType)`
 
-기존 `ReviewQueryAdapter#applySort`와 같은 정책이다(추천순은 좋아요 desc, 동수는 최신순). 추천순은 좋아요 수 집계가 필요해 `group by`가 붙는데, **투영에 든 모든 비집계 컬럼을 함께 묶어야 한다** — MySQL의 `ONLY_FULL_GROUP_BY`에서 하나라도 빠지면 쿼리가 거부된다.
+기존 `ReviewFeedQueryAdapter#applySort`(덩어리 04 이전 `ReviewQueryAdapter#applySort`)와 같은 정책이다(추천순은 좋아요 desc, 동수는 최신순). 추천순은 좋아요 수 집계가 필요해 `group by`가 붙는데, **투영에 든 모든 비집계 컬럼을 함께 묶어야 한다** — MySQL의 `ONLY_FULL_GROUP_BY`에서 하나라도 빠지면 쿼리가 거부된다.
 
 #### 날짜 필터는 반열림 구간이다 — 함수를 컬럼에 씌우지 않는다
 
@@ -1954,7 +2040,7 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 
 **대상**: `.../product/query/StorePriceVerificationQueryAdapter.java` · `.../product/query/ProductFeedbackQueryAdapter.java` · `.../product/query/ProductShopLinkQueryAdapter.java`
 
-**`ProductQueryAdapter`에 메서드를 더하지 않고 DAO를 새로 둔다.** 그 클래스는 이미 2000줄이 넘고 메뉴·옵션·카테고리·승인요청 3종을 한 클래스가 떠맡고 있다. 아래 셋은 각각 **자체 테이블과 자체 조인 그래프**를 갖는 독립 조회 대상이라 별 파일로 두면 그 그래프가 한눈에 보인다. `ShopDeliveryAreaQueryAdapter`·`ShopDeliveryAreaAdjustmentQueryAdapter`가 shop 쪽에서 같은 이유로 분리돼 있다.
+**`ProductQueryAdapter`에 메서드를 더하지 않고 DAO를 새로 둔다.** 이 셋을 만들 당시 그 클래스는 2000줄이 넘고 메뉴·옵션·카테고리·승인요청 3종을 한 클래스가 떠맡고 있었다. 그 뒤 `ProductQueryAdapter` 자체도 쿼리 묶음 6개로 **분할을 마쳤다**(large-class-split 덩어리 01 — 결과는 [`ProductQueryAdapter` — 쿼리 전략](#productqueryadapter--쿼리-전략) 절). 이 셋은 그 6개 묶음 어디에도 속하지 않는 독립 조회 대상이라 그대로 둔다. 아래 셋은 각각 **자체 테이블과 자체 조인 그래프**를 갖는 독립 조회 대상이라 별 파일로 두면 그 그래프가 한눈에 보인다. `ShopDeliveryAreaQueryAdapter`·`ShopDeliveryAreaAdjustmentQueryAdapter`가 shop 쪽에서 같은 이유로 분리돼 있다.
 
 | DAO | 자체 조회 형태 |
 |---|---|
@@ -1992,11 +2078,11 @@ URL 변환은 두 이미지 모두 투영식에서 `fileUrlResolver.urlOf(...)`�
 - 연결 링크와 그 링크가 가리키는 메뉴그룹을 **`left join`으로 붙인다** — 연결되지 않은 가게는 링크가 없고, 연결됐더라도 메뉴그룹이 비어 있을 수 있어 어느 쪽도 행을 떨어뜨려서는 안 된다.
 - `findOwnedShopIds`는 연결 변경이 **본인 소유 가게에만** 허용되는지 판정하는 근거다. 도메인 서비스는 `ceoId`를 알지 못하므로(소유권은 ceo-api의 인가 관심사다) 호출부가 이 집합을 구해 넘긴다. **가게마다 `ShopOwnershipValidator`를 반복 호출하지 않는다** — 연결 목록이 여러 건이라 그만큼 가게 조회가 늘기 때문에 한 번에 읽어 집합으로 대조한다.
 
-#### `ShopChoiceQueryAdapter` — shop의 세 번째 용도별 DAO, 가게에 종속되지 않는 조회
+#### `ShopChoiceQueryAdapter` — shop의 용도별 DAO 중 가게에 종속되지 않는 조회
 
 **대상**: `.../shop/query/ShopChoiceQueryAdapter.java`
 
-- `ShopQueryAdapter`(가게별 설정·관리)·`ShopSearchQueryAdapter`(목록·검색)와 함께 shop 도메인의 **세 번째 용도별 DAO**다 — 가게에 종속되지 않는 **독립 조회**(에디터 추천 목록, 전역 태그·역 목록)를 담당한다.
+- `ShopQueryAdapter`·`ShopClassificationQueryAdapter`·`ShopMediaQueryAdapter`(가게별 설정·관리 — large-class-split 덩어리 02에서 3분할)·`ShopSearchQueryAdapter`(목록·검색)와 함께 shop 도메인의 **용도별 DAO 5개** 중 하나다 — 가게에 종속되지 않는 **독립 조회**(에디터 추천 목록, 전역 태그·역 목록)를 담당한다.
 - 에디터 추천 목록에서 **폐업·노출정지 가게의 추천은 제외한다.**
 - 대표 상품 그룹핑 키는 `PRODUCT.shop_id`가 아니라 **`PRODUCT_SHOP_LINK`의 `shop_id`**다. 메뉴-가게 N:M 도입으로 "이 가게 메뉴판에 무엇이 걸려 있는가"의 진실원이 링크 테이블로 옮겨갔으므로, 원본 컬럼으로 묶으면 **다른 가게에서 불러온 메뉴가 그 가게 목록에 나타나지 않는다.**
 - 상품 대표 이미지는 **노출 중 최소 `sort`** 이미지를 서브쿼리 별칭 `subProductImage`로 고른다.
@@ -2177,7 +2263,7 @@ admin 목록(`findAllCoupons`)과 web 내 쿠폰 목록(`findMemberCoupons`/`fin
 
 | DAO | 판단 |
 |---|---|
-| `ShopDeliveryAreaAdjustmentQueryAdapter` | 가게별 신청 이력은 **가게당 건수가 적고 화면이 시트 안 목록이라 페이징하지 않는다.** 검수 화면 목록만 페이징한다. 동의서 파일은 `UPLOADED_FILE`을 `left join`해 URL까지 완성하므로 소비 Service가 fileId로 재조회하지 않으며 **응답에 `~FileId`가 노출되지 않는다.** `ShopQueryAdapter`에 합치지 않은 것은 그 DAO가 이미 가게 설정 전반과 이미지 변경요청까지 담아 비대하기 때문이며, `ShopDeliveryAreaQueryAdapter` 선례를 따른다. |
+| `ShopDeliveryAreaAdjustmentQueryAdapter` | 가게별 신청 이력은 **가게당 건수가 적고 화면이 시트 안 목록이라 페이징하지 않는다.** 검수 화면 목록만 페이징한다. 동의서 파일은 `UPLOADED_FILE`을 `left join`해 URL까지 완성하므로 소비 Service가 fileId로 재조회하지 않으며 **응답에 `~FileId`가 노출되지 않는다.** `ShopQueryAdapter`에 합치지 않은 것은 작성 당시 그 DAO가 가게 설정 전반과 이미지 변경요청까지 담아 비대했기 때문이며(그 뒤 large-class-split 덩어리 02에서 3분할됐고 이미지 변경요청은 지금 `ShopMediaQueryAdapter`에 있다), `ShopDeliveryAreaQueryAdapter` 선례를 따른다. |
 | `MemberReferralQueryAdapter` | 내가 추천한 회원 목록은 **최근 등록순**이다. |
 | `FaqQueryAdapter` | **도메인당 DAO 1개 원칙에 따라 항목·카테고리 두 애그리거트를 한 클래스에 둔다.** 관리 조회(`findAllCategories`·`findAllFaqs`·상세)는 비노출분을 포함하고, 회원 조회(`findVisibleCategories`·`findVisibleFaqs`)는 노출분만 본다. `findVisibleFaqs`는 `categoryId`가 null이면 전체 카테고리 대상이다. |
 | `NoticeQueryAdapter` | 소비 모듈은 이 DAO가 아니라 계약 `NoticeQueryPort`를 주입하므로 **api 모듈은 QueryDSL도 이 어댑터의 존재도 알지 않는다.** 관리 조회는 비노출 공지를 포함한다. |
@@ -2233,7 +2319,7 @@ id가 없으면 insert, 있으면 **PK로 managed 엔티티를 조회(같은 트
 
 CQRS 분리(공통 지침 패턴 4)로 목록·검색·상세 같은 **표현 목적 read는 전부 같은 모듈의 `<ctx>/query/*QueryAdapter`로 이관**됐고, write 어댑터에는 도메인 모델 단건 로드·중복 검증·저장·삭제만 남는다. 그 결과 대부분의 `*PersistenceAdapter`은 QueryDSL이 필요 없어 `JPAQueryFactory`를 주입하지 않는다.
 
-**write 포트에 남은 조회는 "불변식 판정에 필요한 것"이라는 기준으로 남긴 것이다.** `FaqCategoryPersistenceAdapter#existsActiveItemsByCategoryId`(삭제 불변식), `ShopDetailPersistenceAdapter`의 영업시간·휴게시간·정기휴무 목록(휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정), `ProductPricePersistenceAdapter`의 가격 교체·인증 반영 판정, `ShopDeliveryTipPersistenceAdapter#findRegionTipAdminDongIds`(일괄 삭제의 원자적 차단)가 그 예다. 표현용으로도 쓰인다는 이유만으로 DAO로 옮기지 않는다.
+**write 포트에 남은 조회는 "불변식 판정에 필요한 것"이라는 기준으로 남긴 것이다.** `FaqCategoryPersistenceAdapter#existsActiveItemsByCategoryId`(삭제 불변식), `ShopBusinessHourPersistenceAdapter`의 영업시간·휴게시간·정기휴무 목록(휴게시간 범위 검증·정기휴무 개수 제한·영업 상태 판정), `ProductPricePersistenceAdapter`의 가격 교체·인증 반영 판정, `ShopDeliveryTipPersistenceAdapter#findRegionTipAdminDongIds`(일괄 삭제의 원자적 차단)가 그 예다. 표현용으로도 쓰인다는 이유만으로 DAO로 옮기지 않는다.
 
 `FaqCategoryPersistenceAdapter#existsActiveItemsByCategoryId`의 메서드명 "Active"는 **노출 여부가 아니라 미삭제**를 뜻한다 — 삭제되지 않은 항목이면 비노출이어도 존재로 본다(전환 이전 동작 보존).
 
@@ -2477,7 +2563,7 @@ write 포트 `ShopDeliveryTipLoadPort`·`ShopDeliveryTipSavePort`가 5종을 묶
 
 ### 투영 중간 record `ProductSummaryRow`·`ShopTipAggregateRow` — public 최상위로 둔다
 
-**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/product/query/ProductSummaryRow.java`(소비처 `ProductQueryAdapter#findActiveProductSummaries`·`findProductsBatch`), `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/shop/query/ShopTipAggregateRow.java`(소비처 `ShopDeliveryTipQueryAdapter#findTipRanges`·`collectAmounts`)
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/product/query/ProductSummaryRow.java`(소비처 `ProductOptionQueryAdapter#findActiveProductSummaries`·`findProductsBatch`), `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/shop/query/ShopTipAggregateRow.java`(소비처 `ShopDeliveryTipQueryAdapter#findTipRanges`·`collectAmounts`)
 
 DAO 안에서만 쓰는 중간 투영이라도 **package-private이나 DAO 중첩 record로 두지 않는다.**
 

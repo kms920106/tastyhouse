@@ -5,22 +5,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopBannerImageDeleteCommand;
 import com.tastyhouse.application.shop.port.in.ShopBannerImageDeleteUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopBannerImageSavePort;
 
 @Service
 @Transactional
 class ShopBannerImageDeleteService implements ShopBannerImageDeleteUseCase {
 
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopBannerImageSavePort shopBannerImageSavePort;
 
-    public ShopBannerImageDeleteService(ShopDetailSavePort shopDetailSavePort) {
-        this.shopDetailSavePort = shopDetailSavePort;
+    public ShopBannerImageDeleteService(ShopBannerImageSavePort shopBannerImageSavePort) {
+        this.shopBannerImageSavePort = shopBannerImageSavePort;
     }
 
     @Override
     public void deleteBannerImage(ShopBannerImageDeleteCommand command) {
         Long bannerImageId = command.bannerImageId();
 
-        shopDetailSavePort.deleteBannerImageById(bannerImageId);
+        shopBannerImageSavePort.deleteBannerImageById(bannerImageId);
     }
 }

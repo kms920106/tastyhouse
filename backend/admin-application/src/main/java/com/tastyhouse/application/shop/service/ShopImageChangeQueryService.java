@@ -9,16 +9,16 @@ import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopImageChangeQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
-import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopMediaManagementQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class ShopImageChangeQueryService implements ShopImageChangeQueryUseCase {
 
-    private final ShopManagementQueryPort shopManagementQueryPort;
+    private final ShopMediaManagementQueryPort shopMediaManagementQueryPort;
 
-    public ShopImageChangeQueryService(ShopManagementQueryPort shopManagementQueryPort) {
-        this.shopManagementQueryPort = shopManagementQueryPort;
+    public ShopImageChangeQueryService(ShopMediaManagementQueryPort shopMediaManagementQueryPort) {
+        this.shopMediaManagementQueryPort = shopMediaManagementQueryPort;
     }
 
     @Override
@@ -31,6 +31,6 @@ class ShopImageChangeQueryService implements ShopImageChangeQueryUseCase {
         String approvalStatus = status == null ? null : ApprovalStatus.valueOf(status).name();
         String type = imageType == null ? null : ShopImageType.from(imageType).name();
 
-        return shopManagementQueryPort.findImageChangeRequestPage(approvalStatus, type, PageQuery.of(page, size));
+        return shopMediaManagementQueryPort.findImageChangeRequestPage(approvalStatus, type, PageQuery.of(page, size));
     }
 }

@@ -9,7 +9,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.application.member.follow.port.out.MemberFollowQueryPort;
 import com.tastyhouse.application.review.port.in.ReviewLatestListQueryUseCase;
 import com.tastyhouse.application.review.port.out.LatestReviewListItemResult;
-import com.tastyhouse.application.review.port.out.ReviewQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewFeedQueryPort;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -17,14 +17,14 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 @Transactional(readOnly = true)
 class ReviewLatestListQueryService implements ReviewLatestListQueryUseCase {
 
-    private final ReviewQueryPort reviewQueryPort;
+    private final ReviewFeedQueryPort reviewFeedQueryPort;
     private final MemberFollowQueryPort memberFollowQueryPort;
 
     public ReviewLatestListQueryService(
-        ReviewQueryPort reviewQueryPort,
+        ReviewFeedQueryPort reviewFeedQueryPort,
         MemberFollowQueryPort memberFollowQueryPort
     ) {
-        this.reviewQueryPort = reviewQueryPort;
+        this.reviewFeedQueryPort = reviewFeedQueryPort;
         this.memberFollowQueryPort = memberFollowQueryPort;
     }
 
@@ -38,7 +38,7 @@ class ReviewLatestListQueryService implements ReviewLatestListQueryUseCase {
         if (ReviewListType.from(type) == ReviewListType.FOLLOWING && memberId != null) {
             return findLatestReviewsByFollowing(MemberId.of(memberId), page, size);
         }
-        return reviewQueryPort.findLatestReviews(PageQuery.of(page, size));
+        return reviewFeedQueryPort.findLatestReviews(PageQuery.of(page, size));
     }
 
     private PageResult<LatestReviewListItemResult> findLatestReviewsByFollowing(MemberId memberId, int page, int size) {
@@ -48,6 +48,6 @@ class ReviewLatestListQueryService implements ReviewLatestListQueryUseCase {
             return PageResult.empty(page, size);
         }
 
-        return reviewQueryPort.findLatestReviewsByFollowing(followingMemberIds, PageQuery.of(page, size));
+        return reviewFeedQueryPort.findLatestReviewsByFollowing(followingMemberIds, PageQuery.of(page, size));
     }
 }

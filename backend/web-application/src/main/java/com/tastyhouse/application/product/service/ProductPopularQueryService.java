@@ -8,21 +8,21 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.order.model.OrderStatus;
 import com.tastyhouse.application.product.port.in.ProductPopularQueryUseCase;
 import com.tastyhouse.application.product.port.out.PopularProductItemResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductStorefrontQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class ProductPopularQueryService implements ProductPopularQueryUseCase {
 
-    private final ProductQueryPort productQueryPort;
+    private final ProductStorefrontQueryPort productStorefrontQueryPort;
 
-    public ProductPopularQueryService(ProductQueryPort productQueryPort) {
-        this.productQueryPort = productQueryPort;
+    public ProductPopularQueryService(ProductStorefrontQueryPort productStorefrontQueryPort) {
+        this.productStorefrontQueryPort = productStorefrontQueryPort;
     }
 
     @Override
     public List<PopularProductItemResult> findPopularProducts(Long shopId) {
-        return productQueryPort.findPopularProducts(
+        return productStorefrontQueryPort.findPopularProducts(
             shopId,
             OrderStatus.COMPLETED.name(),
             ProductExposureWindows.now()

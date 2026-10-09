@@ -4,18 +4,18 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopClassificationOwnerQueryPort;
 
 @Component
 public class ShopFoodTypeCategoryReader {
 
-    private final ShopOwnerQueryPort shopOwnerQueryPort;
+    private final ShopClassificationOwnerQueryPort shopClassificationOwnerQueryPort;
 
-    public ShopFoodTypeCategoryReader(ShopOwnerQueryPort shopOwnerQueryPort) {
-        this.shopOwnerQueryPort = shopOwnerQueryPort;
+    public ShopFoodTypeCategoryReader(ShopClassificationOwnerQueryPort shopClassificationOwnerQueryPort) {
+        this.shopClassificationOwnerQueryPort = shopClassificationOwnerQueryPort;
     }
 
     public Set<String> readCategoryNames(Long shopId) {
-        return Set.copyOf(shopOwnerQueryPort.findFoodTypeCategoryNames(shopId));
+        return Set.copyOf(shopClassificationOwnerQueryPort.findFoodTypeCategoryNames(shopId));
     }
 }

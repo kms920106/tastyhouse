@@ -7,20 +7,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopBannerListQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopBannerImageResult;
-import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopMediaQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class ShopBannerListQueryService implements ShopBannerListQueryUseCase {
 
-    private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
+    private final ShopMediaQueryPort shopMediaQueryPort;
 
-    public ShopBannerListQueryService(ShopBasicInfoQueryPort shopBasicInfoQueryPort) {
-        this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
+    public ShopBannerListQueryService(ShopMediaQueryPort shopMediaQueryPort) {
+        this.shopMediaQueryPort = shopMediaQueryPort;
     }
 
     @Override
     public List<ShopBannerImageResult> getShopBanners(Long shopId) {
-        return shopBasicInfoQueryPort.findBannerImages(shopId);
+        return shopMediaQueryPort.findBannerImages(shopId);
     }
 }

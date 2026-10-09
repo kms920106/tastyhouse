@@ -20,10 +20,10 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
+import com.tastyhouse.application.shop.port.out.write.ShopAmenityLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopAmenitySavePort;
 import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoSavePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 
 @Service
@@ -34,8 +34,8 @@ public class ShopConvenienceInfoService {
     private final ShopConvenienceInfoLoadPort shopConvenienceInfoLoadPort;
     private final ShopConvenienceInfoSavePort shopConvenienceInfoSavePort;
     private final ShopLoadPort shopLoadPort;
-    private final ShopDetailLoadPort shopDetailLoadPort;
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopAmenityLoadPort shopAmenityLoadPort;
+    private final ShopAmenitySavePort shopAmenitySavePort;
     private final ProhibitedWordValidator prohibitedWordValidator;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
@@ -43,16 +43,16 @@ public class ShopConvenienceInfoService {
         ShopConvenienceInfoLoadPort shopConvenienceInfoLoadPort,
         ShopConvenienceInfoSavePort shopConvenienceInfoSavePort,
         ShopLoadPort shopLoadPort,
-        ShopDetailLoadPort shopDetailLoadPort,
-        ShopDetailSavePort shopDetailSavePort,
+        ShopAmenityLoadPort shopAmenityLoadPort,
+        ShopAmenitySavePort shopAmenitySavePort,
         ProhibitedWordValidator prohibitedWordValidator,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
         this.shopConvenienceInfoLoadPort = shopConvenienceInfoLoadPort;
         this.shopConvenienceInfoSavePort = shopConvenienceInfoSavePort;
         this.shopLoadPort = shopLoadPort;
-        this.shopDetailLoadPort = shopDetailLoadPort;
-        this.shopDetailSavePort = shopDetailSavePort;
+        this.shopAmenityLoadPort = shopAmenityLoadPort;
+        this.shopAmenitySavePort = shopAmenitySavePort;
         this.prohibitedWordValidator = prohibitedWordValidator;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
@@ -117,10 +117,10 @@ public class ShopConvenienceInfoService {
     }
 
     public Long assignAmenity(Long shopId, Long amenityCategoryId, ShopChangeActor actor) {
-        ShopAmenityCategory amenityCategory = shopDetailLoadPort.findAmenityCategoryById(amenityCategoryId)
+        ShopAmenityCategory amenityCategory = shopAmenityLoadPort.findAmenityCategoryById(amenityCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
 
-        ShopAmenity amenity = shopDetailSavePort.saveAmenity(
+        ShopAmenity amenity = shopAmenitySavePort.saveAmenity(
             ShopAmenity.of(ShopId.of(shopId), ShopAmenityCategoryId.of(amenityCategoryId))
         );
 
@@ -136,10 +136,10 @@ public class ShopConvenienceInfoService {
     }
 
     public void unassignAmenity(Long shopId, Long amenityCategoryId, ShopChangeActor actor) {
-        ShopAmenityCategory amenityCategory = shopDetailLoadPort.findAmenityCategoryById(amenityCategoryId)
+        ShopAmenityCategory amenityCategory = shopAmenityLoadPort.findAmenityCategoryById(amenityCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
 
-        shopDetailSavePort.deleteAmenityByShopIdAndCategoryId(shopId, amenityCategoryId);
+        shopAmenitySavePort.deleteAmenityByShopIdAndCategoryId(shopId, amenityCategoryId);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),

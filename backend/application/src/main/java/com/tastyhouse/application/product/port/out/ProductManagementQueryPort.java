@@ -10,14 +10,6 @@ public interface ProductManagementQueryPort {
 
     PageResult<ProductListItemResult> findProducts(ProductSearchCondition condition, PageQuery pageQuery);
 
-    PageResult<ProductImageChangeRequestResult> findImageChangeRequestPage(String status, PageQuery pageQuery);
-
-    PageResult<ProductVegetarianRequestResult> findVegetarianRequestPage(String status, PageQuery pageQuery);
-
-    PageResult<ProductRepresentativeRequestResult> findRepresentativeRequestPage(String status, PageQuery pageQuery);
-
-    ProductOptionsResult findProductOptions(Long productId, String commonOptionGroupType);
-
     List<String> findProductImageUrls(Long productId);
 
     Optional<ProductDetailResult> findProductDetailById(Long productId);

@@ -9,21 +9,21 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupLinkedProductsByShopQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductsResult;
-import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupQueryPort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
 class ProductOptionGroupLinkedProductsByShopQueryService implements ProductOptionGroupLinkedProductsByShopQueryUseCase {
 
-    private final ProductOwnerQueryPort productOwnerQueryPort;
+    private final ProductOptionGroupQueryPort productOptionGroupQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionGroupLinkedProductsByShopQueryService(
-        ProductOwnerQueryPort productOwnerQueryPort,
+        ProductOptionGroupQueryPort productOptionGroupQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productOwnerQueryPort = productOwnerQueryPort;
+        this.productOptionGroupQueryPort = productOptionGroupQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -32,7 +32,7 @@ class ProductOptionGroupLinkedProductsByShopQueryService implements ProductOptio
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         Map<Long, List<ProductOptionGroupLinkedProductResult>> linkedByGroupId =
-            productOwnerQueryPort.findLinkedProductsByShop(shopId);
+            productOptionGroupQueryPort.findLinkedProductsByShop(shopId);
 
         return linkedByGroupId.entrySet().stream()
             .map(entry -> new ProductOptionGroupLinkedProductsResult(entry.getKey(), entry.getValue()))

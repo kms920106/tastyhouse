@@ -22,7 +22,7 @@ import com.tastyhouse.application.product.port.in.ProductOptionTargetCommand;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityChangeView;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopBusinessHourLoadPort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
@@ -33,22 +33,22 @@ class ProductOptionSoldOutService implements ProductOptionSoldOutUseCase {
 
     private static final long HOLIDAY_LOOKUP_DAYS = 7L;
 
-    private final ProductAvailabilityService productAvailabilityService;
+    private final ProductOptionAvailabilityService productOptionAvailabilityService;
     private final ShopNextOpenTimeCalculator shopNextOpenTimeCalculator;
-    private final ShopDetailLoadPort shopDetailLoadPort;
+    private final ShopBusinessHourLoadPort shopBusinessHourLoadPort;
     private final PublicHolidayCalendar publicHolidayCalendar;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionSoldOutService(
-        ProductAvailabilityService productAvailabilityService,
+        ProductOptionAvailabilityService productOptionAvailabilityService,
         ShopNextOpenTimeCalculator shopNextOpenTimeCalculator,
-        ShopDetailLoadPort shopDetailLoadPort,
+        ShopBusinessHourLoadPort shopBusinessHourLoadPort,
         PublicHolidayCalendar publicHolidayCalendar,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productAvailabilityService = productAvailabilityService;
+        this.productOptionAvailabilityService = productOptionAvailabilityService;
         this.shopNextOpenTimeCalculator = shopNextOpenTimeCalculator;
-        this.shopDetailLoadPort = shopDetailLoadPort;
+        this.shopBusinessHourLoadPort = shopBusinessHourLoadPort;
         this.publicHolidayCalendar = publicHolidayCalendar;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -65,7 +65,7 @@ class ProductOptionSoldOutService implements ProductOptionSoldOutUseCase {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime resolved = resolveSoldOutUntil(shopId, soldOutUntil, now);
 
-        return toChangeView(productAvailabilityService.markOptionsSoldOut(
+        return toChangeView(productOptionAvailabilityService.markOptionsSoldOut(
             ShopId.of(shopId), toOptionIds(optionIds, optionTypes), toCommonOptionIds(optionIds, optionTypes),
             resolved, now));
     }
@@ -81,8 +81,8 @@ class ProductOptionSoldOutService implements ProductOptionSoldOutUseCase {
 
         ShopNextOpenTimeContext context = ShopNextOpenTimeContext.of(
             now,
-            shopDetailLoadPort.findBusinessHoursByShopId(shopId),
-            shopDetailLoadPort.findClosedDaysByShopId(shopId),
+            shopBusinessHourLoadPort.findBusinessHoursByShopId(shopId),
+            shopBusinessHourLoadPort.findClosedDaysByShopId(shopId),
             publicHolidays
         );
 

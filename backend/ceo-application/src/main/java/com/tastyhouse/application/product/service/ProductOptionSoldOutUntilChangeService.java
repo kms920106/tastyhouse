@@ -23,14 +23,14 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 class ProductOptionSoldOutUntilChangeService implements ProductOptionSoldOutUntilChangeUseCase {
 
-    private final ProductAvailabilityService productAvailabilityService;
+    private final ProductOptionAvailabilityService productOptionAvailabilityService;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionSoldOutUntilChangeService(
-        ProductAvailabilityService productAvailabilityService,
+        ProductOptionAvailabilityService productOptionAvailabilityService,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productAvailabilityService = productAvailabilityService;
+        this.productOptionAvailabilityService = productOptionAvailabilityService;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -43,7 +43,7 @@ class ProductOptionSoldOutUntilChangeService implements ProductOptionSoldOutUnti
         LocalDateTime soldOutUntil = command.soldOutUntil();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toChangeView(productAvailabilityService.changeOptionsSoldOutUntil(
+        return toChangeView(productOptionAvailabilityService.changeOptionsSoldOutUntil(
             ShopId.of(shopId), toOptionIds(optionIds, optionTypes), toCommonOptionIds(optionIds, optionTypes),
             soldOutUntil, LocalDateTime.now()));
     }

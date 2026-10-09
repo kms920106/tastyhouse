@@ -12,10 +12,10 @@ import com.tastyhouse.application.shop.port.out.ShopAmenityWithCategoryResult;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopBreakTimeResult;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
+import com.tastyhouse.application.shop.port.out.ShopClassificationQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopClosedDayResult;
 import com.tastyhouse.application.shop.port.out.ShopConvenienceInfoResult;
 import com.tastyhouse.application.shop.port.out.ShopInfoViewResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 
 @Service
 @Transactional(readOnly = true)
@@ -23,16 +23,16 @@ class ShopInfoQueryService implements ShopInfoQueryUseCase {
 
     private final ShopVisibleReader shopVisibleReader;
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
-    private final ShopQueryPort shopQueryPort;
+    private final ShopClassificationQueryPort shopClassificationQueryPort;
 
     public ShopInfoQueryService(
         ShopVisibleReader shopVisibleReader,
         ShopBasicInfoQueryPort shopBasicInfoQueryPort,
-        ShopQueryPort shopQueryPort
+        ShopClassificationQueryPort shopClassificationQueryPort
     ) {
         this.shopVisibleReader = shopVisibleReader;
         this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
-        this.shopQueryPort = shopQueryPort;
+        this.shopClassificationQueryPort = shopClassificationQueryPort;
     }
 
     @Override
@@ -42,7 +42,7 @@ class ShopInfoQueryService implements ShopInfoQueryUseCase {
             ShopCodeDescriptions.ofBusinessHours(shopBasicInfoQueryPort.findBusinessHours(shopId));
         List<ShopBreakTimeResult> breakTimes = ShopCodeDescriptions.ofBreakTimes(shopBasicInfoQueryPort.findBreakTimes(shopId));
         List<ShopClosedDayResult> closedDays = ShopCodeDescriptions.ofClosedDays(shopBasicInfoQueryPort.findClosedDays(shopId));
-        List<ShopAmenityWithCategoryResult> shopAmenities = shopQueryPort.findAmenitiesWithCategory(shopId);
+        List<ShopAmenityWithCategoryResult> shopAmenities = shopClassificationQueryPort.findAmenitiesWithCategory(shopId);
 
         String ownerMessage = null;
         LocalDateTime ownerMessageCreatedAt = null;

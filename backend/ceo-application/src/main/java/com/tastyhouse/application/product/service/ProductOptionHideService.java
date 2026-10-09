@@ -22,14 +22,14 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 class ProductOptionHideService implements ProductOptionHideUseCase {
 
-    private final ProductAvailabilityService productAvailabilityService;
+    private final ProductOptionAvailabilityService productOptionAvailabilityService;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionHideService(
-        ProductAvailabilityService productAvailabilityService,
+        ProductOptionAvailabilityService productOptionAvailabilityService,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productAvailabilityService = productAvailabilityService;
+        this.productOptionAvailabilityService = productOptionAvailabilityService;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -41,7 +41,7 @@ class ProductOptionHideService implements ProductOptionHideUseCase {
         List<String> optionTypes = command.options().stream().map(ProductOptionTargetCommand::optionType).toList();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toChangeView(productAvailabilityService.hideOptions(
+        return toChangeView(productOptionAvailabilityService.hideOptions(
             ShopId.of(shopId), toOptionIds(optionIds, optionTypes), toCommonOptionIds(optionIds, optionTypes)));
     }
 

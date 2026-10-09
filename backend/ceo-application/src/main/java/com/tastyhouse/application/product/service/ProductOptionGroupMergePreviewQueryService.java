@@ -16,8 +16,8 @@ import com.tastyhouse.application.product.port.in.ProductOptionGroupMergePreview
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergePreviewResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupQueryPort;
 import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
-import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
@@ -33,14 +33,14 @@ class ProductOptionGroupMergePreviewQueryService implements ProductOptionGroupMe
 
     private static final String DIFF_PRICE_DIFFERS = "PRICE_DIFFERS";
 
-    private final ProductOwnerQueryPort productOwnerQueryPort;
+    private final ProductOptionGroupQueryPort productOptionGroupQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionGroupMergePreviewQueryService(
-        ProductOwnerQueryPort productOwnerQueryPort,
+        ProductOptionGroupQueryPort productOptionGroupQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productOwnerQueryPort = productOwnerQueryPort;
+        this.productOptionGroupQueryPort = productOptionGroupQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -54,7 +54,7 @@ class ProductOptionGroupMergePreviewQueryService implements ProductOptionGroupMe
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         Map<Long, ProductOptionGroupManagementResult> groupById =
-            productOwnerQueryPort.findProductOptionGroupsForManagement(shopId).stream()
+            productOptionGroupQueryPort.findProductOptionGroupsForManagement(shopId).stream()
                 .collect(Collectors.toMap(ProductOptionGroupManagementResult::id, group -> group,
                     (first, second) -> first, LinkedHashMap::new));
 
@@ -76,7 +76,7 @@ class ProductOptionGroupMergePreviewQueryService implements ProductOptionGroupMe
         }
 
         Map<Long, List<ProductOptionGroupLinkedProductResult>> linkedByGroupId =
-            productOwnerQueryPort.findLinkedProductsByShop(shopId);
+            productOptionGroupQueryPort.findLinkedProductsByShop(shopId);
 
         String blockedReason = findBlockedReason(base, candidates, linkedByGroupId);
         return new ProductOptionGroupMergePreviewResult(

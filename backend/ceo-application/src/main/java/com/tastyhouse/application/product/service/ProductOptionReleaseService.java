@@ -23,14 +23,14 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional
 class ProductOptionReleaseService implements ProductOptionReleaseUseCase {
 
-    private final ProductAvailabilityService productAvailabilityService;
+    private final ProductOptionAvailabilityService productOptionAvailabilityService;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionReleaseService(
-        ProductAvailabilityService productAvailabilityService,
+        ProductOptionAvailabilityService productOptionAvailabilityService,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productAvailabilityService = productAvailabilityService;
+        this.productOptionAvailabilityService = productOptionAvailabilityService;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -43,7 +43,7 @@ class ProductOptionReleaseService implements ProductOptionReleaseUseCase {
         String target = command.target();
 
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        return toChangeView(productAvailabilityService.releaseOptions(
+        return toChangeView(productOptionAvailabilityService.releaseOptions(
             ShopId.of(shopId), toOptionIds(optionIds, optionTypes), toCommonOptionIds(optionIds, optionTypes),
             ReleaseTarget.from(target)));
     }

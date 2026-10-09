@@ -16,6 +16,7 @@ import com.tastyhouse.application.product.port.in.ProductBatchQuery;
 import com.tastyhouse.application.product.port.in.ProductBatchQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductBatchItem;
 import com.tastyhouse.application.product.port.out.ProductBatchItemView;
+import com.tastyhouse.application.product.port.out.ProductBatchQueryPort;
 import com.tastyhouse.application.product.port.out.ProductBatchResult;
 import com.tastyhouse.application.product.port.out.ProductPriceResult;
 import com.tastyhouse.application.product.port.out.ProductPriceView;
@@ -25,10 +26,16 @@ import com.tastyhouse.application.product.port.out.ProductQueryPort;
 @Transactional(readOnly = true)
 class ProductBatchQueryService implements ProductBatchQueryUseCase {
 
+    private final ProductBatchQueryPort productBatchQueryPort;
     private final ProductQueryPort productQueryPort;
     private final CupDepositPolicy cupDepositPolicy;
 
-    public ProductBatchQueryService(ProductQueryPort productQueryPort, CupDepositPolicy cupDepositPolicy) {
+    public ProductBatchQueryService(
+        ProductBatchQueryPort productBatchQueryPort,
+        ProductQueryPort productQueryPort,
+        CupDepositPolicy cupDepositPolicy
+    ) {
+        this.productBatchQueryPort = productBatchQueryPort;
         this.productQueryPort = productQueryPort;
         this.cupDepositPolicy = cupDepositPolicy;
     }
@@ -41,7 +48,7 @@ class ProductBatchQueryService implements ProductBatchQueryUseCase {
 
         OrderMethod orderMethod = OrderMethod.from(query.orderMethod());
         List<ProductBatchResult> results =
-            ProductOptionDepositAmounts.of(productQueryPort.findProductsBatch(items), cupDepositPolicy);
+            ProductOptionDepositAmounts.of(productBatchQueryPort.findProductsBatch(items), cupDepositPolicy);
         Map<Long, List<ProductPriceView>> pricesByProductId =
             findBatchPricesByProductId(results, orderMethod);
 

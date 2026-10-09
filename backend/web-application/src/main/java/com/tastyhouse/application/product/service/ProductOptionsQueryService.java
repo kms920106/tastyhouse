@@ -6,23 +6,23 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.product.model.CupDepositPolicy;
 import com.tastyhouse.domain.product.model.ProductOptionGroupType;
 import com.tastyhouse.application.product.port.in.ProductOptionsQueryUseCase;
+import com.tastyhouse.application.product.port.out.ProductOptionQueryPort;
 import com.tastyhouse.application.product.port.out.ProductOptionsResult;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class ProductOptionsQueryService implements ProductOptionsQueryUseCase {
 
-    private final ProductQueryPort productQueryPort;
+    private final ProductOptionQueryPort productOptionQueryPort;
     private final CupDepositPolicy cupDepositPolicy;
     private final ProductDetailReader productDetailReader;
 
     public ProductOptionsQueryService(
-        ProductQueryPort productQueryPort,
+        ProductOptionQueryPort productOptionQueryPort,
         CupDepositPolicy cupDepositPolicy,
         ProductDetailReader productDetailReader
     ) {
-        this.productQueryPort = productQueryPort;
+        this.productOptionQueryPort = productOptionQueryPort;
         this.cupDepositPolicy = cupDepositPolicy;
         this.productDetailReader = productDetailReader;
     }
@@ -31,7 +31,7 @@ class ProductOptionsQueryService implements ProductOptionsQueryUseCase {
     public ProductOptionsResult findProductOptions(Long productId) {
         productDetailReader.read(productId);
         return ProductOptionDepositAmounts.of(
-            productQueryPort.findProductOptions(productId, ProductOptionGroupType.NORMAL.name()),
+            productOptionQueryPort.findProductOptions(productId, ProductOptionGroupType.NORMAL.name()),
             cupDepositPolicy
         );
     }

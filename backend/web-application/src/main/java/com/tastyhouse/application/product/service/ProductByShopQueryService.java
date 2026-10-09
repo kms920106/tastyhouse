@@ -6,21 +6,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.product.port.in.ProductByShopQueryUseCase;
-import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.ProductStorefrontQueryPort;
 import com.tastyhouse.application.product.port.out.ShopProductItemResult;
 
 @Service
 @Transactional(readOnly = true)
 class ProductByShopQueryService implements ProductByShopQueryUseCase {
 
-    private final ProductQueryPort productQueryPort;
+    private final ProductStorefrontQueryPort productStorefrontQueryPort;
 
-    public ProductByShopQueryService(ProductQueryPort productQueryPort) {
-        this.productQueryPort = productQueryPort;
+    public ProductByShopQueryService(ProductStorefrontQueryPort productStorefrontQueryPort) {
+        this.productStorefrontQueryPort = productStorefrontQueryPort;
     }
 
     @Override
     public List<ShopProductItemResult> findShopProducts(Long shopId) {
-        return productQueryPort.findShopProducts(shopId, ProductExposureWindows.now());
+        return productStorefrontQueryPort.findShopProducts(shopId, ProductExposureWindows.now());
     }
 }

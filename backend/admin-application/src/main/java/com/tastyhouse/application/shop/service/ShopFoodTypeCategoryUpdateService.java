@@ -9,19 +9,19 @@ import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryUpdateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopFoodTypeLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopFoodTypeSavePort;
 
 @Service
 @Transactional
 class ShopFoodTypeCategoryUpdateService implements ShopFoodTypeCategoryUpdateUseCase {
 
-    private final ShopDetailLoadPort shopDetailLoadPort;
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopFoodTypeLoadPort shopFoodTypeLoadPort;
+    private final ShopFoodTypeSavePort shopFoodTypeSavePort;
 
-    public ShopFoodTypeCategoryUpdateService(ShopDetailLoadPort shopDetailLoadPort, ShopDetailSavePort shopDetailSavePort) {
-        this.shopDetailLoadPort = shopDetailLoadPort;
-        this.shopDetailSavePort = shopDetailSavePort;
+    public ShopFoodTypeCategoryUpdateService(ShopFoodTypeLoadPort shopFoodTypeLoadPort, ShopFoodTypeSavePort shopFoodTypeSavePort) {
+        this.shopFoodTypeLoadPort = shopFoodTypeLoadPort;
+        this.shopFoodTypeSavePort = shopFoodTypeSavePort;
     }
 
     @Override
@@ -33,7 +33,7 @@ class ShopFoodTypeCategoryUpdateService implements ShopFoodTypeCategoryUpdateUse
         Integer sort = command.sort();
         Boolean visible = command.visible();
 
-        ShopFoodTypeCategory foodTypeCategory = shopDetailLoadPort.findFoodTypeCategoryById(categoryId)
+        ShopFoodTypeCategory foodTypeCategory = shopFoodTypeLoadPort.findFoodTypeCategoryById(categoryId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_FOOD_TYPE_CATEGORY_NOT_FOUND));
         foodTypeCategory.update(
             displayName,
@@ -42,6 +42,6 @@ class ShopFoodTypeCategoryUpdateService implements ShopFoodTypeCategoryUpdateUse
             sort,
             visible
         );
-        shopDetailSavePort.saveFoodTypeCategory(foodTypeCategory);
+        shopFoodTypeSavePort.saveFoodTypeCategory(foodTypeCategory);
     }
 }

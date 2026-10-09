@@ -8,16 +8,16 @@ import com.tastyhouse.domain.shop.model.FoodType;
 import com.tastyhouse.domain.shop.model.ShopFoodTypeCategory;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryCreateCommand;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryCreateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopFoodTypeSavePort;
 
 @Service
 @Transactional
 class ShopFoodTypeCategoryCreateService implements ShopFoodTypeCategoryCreateUseCase {
 
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopFoodTypeSavePort shopFoodTypeSavePort;
 
-    public ShopFoodTypeCategoryCreateService(ShopDetailSavePort shopDetailSavePort) {
-        this.shopDetailSavePort = shopDetailSavePort;
+    public ShopFoodTypeCategoryCreateService(ShopFoodTypeSavePort shopFoodTypeSavePort) {
+        this.shopFoodTypeSavePort = shopFoodTypeSavePort;
     }
 
     @Override
@@ -37,6 +37,6 @@ class ShopFoodTypeCategoryCreateService implements ShopFoodTypeCategoryCreateUse
             sort,
             visible
         );
-        return shopDetailSavePort.saveFoodTypeCategory(foodTypeCategory).getId();
+        return shopFoodTypeSavePort.saveFoodTypeCategory(foodTypeCategory).getId();
     }
 }

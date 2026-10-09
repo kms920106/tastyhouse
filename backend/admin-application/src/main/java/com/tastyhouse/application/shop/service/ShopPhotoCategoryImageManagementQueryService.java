@@ -6,21 +6,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryImageManagementQueryUseCase;
-import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopMediaManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopPhotoCategoryImageManagementResult;
 
 @Service
 @Transactional(readOnly = true)
 class ShopPhotoCategoryImageManagementQueryService implements ShopPhotoCategoryImageManagementQueryUseCase {
 
-    private final ShopManagementQueryPort shopManagementQueryPort;
+    private final ShopMediaManagementQueryPort shopMediaManagementQueryPort;
 
-    public ShopPhotoCategoryImageManagementQueryService(ShopManagementQueryPort shopManagementQueryPort) {
-        this.shopManagementQueryPort = shopManagementQueryPort;
+    public ShopPhotoCategoryImageManagementQueryService(ShopMediaManagementQueryPort shopMediaManagementQueryPort) {
+        this.shopMediaManagementQueryPort = shopMediaManagementQueryPort;
     }
 
     @Override
     public List<ShopPhotoCategoryImageManagementResult> getPhotoCategoryImages(Long categoryId) {
-        return shopManagementQueryPort.findPhotoCategoryImages(categoryId);
+        return shopMediaManagementQueryPort.findPhotoCategoryImages(categoryId);
     }
 }

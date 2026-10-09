@@ -17,25 +17,25 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopBusinessHourLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopBusinessHourSavePort;
 
 @Service
 public class ShopBusinessHourService {
 
     private static final int MAX_REGULAR_CLOSED_DAY_COUNT = 15;
 
-    private final ShopDetailLoadPort shopDetailLoadPort;
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopBusinessHourLoadPort shopBusinessHourLoadPort;
+    private final ShopBusinessHourSavePort shopBusinessHourSavePort;
     private final ShopChangeHistoryRecorder shopChangeHistoryRecorder;
 
     public ShopBusinessHourService(
-        ShopDetailLoadPort shopDetailLoadPort,
-        ShopDetailSavePort shopDetailSavePort,
+        ShopBusinessHourLoadPort shopBusinessHourLoadPort,
+        ShopBusinessHourSavePort shopBusinessHourSavePort,
         ShopChangeHistoryRecorder shopChangeHistoryRecorder
     ) {
-        this.shopDetailLoadPort = shopDetailLoadPort;
-        this.shopDetailSavePort = shopDetailSavePort;
+        this.shopBusinessHourLoadPort = shopBusinessHourLoadPort;
+        this.shopBusinessHourSavePort = shopBusinessHourSavePort;
         this.shopChangeHistoryRecorder = shopChangeHistoryRecorder;
     }
 
@@ -51,7 +51,7 @@ public class ShopBusinessHourService {
         ShopBusinessHour businessHour = ShopBusinessHour.of(
             ShopId.of(shopId), dayType, openTime, closeTime, isClosed, is24Hours
         );
-        ShopBusinessHour saved = shopDetailSavePort.saveBusinessHour(businessHour);
+        ShopBusinessHour saved = shopBusinessHourSavePort.saveBusinessHour(businessHour);
 
         shopChangeHistoryRecorder.record(
             saved.getShopId(),
@@ -73,12 +73,12 @@ public class ShopBusinessHourService {
         Boolean is24Hours,
         ShopChangeActor actor
     ) {
-        ShopBusinessHour businessHour = shopDetailLoadPort.findBusinessHourById(id)
+        ShopBusinessHour businessHour = shopBusinessHourLoadPort.findBusinessHourById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_BUSINESS_HOUR_NOT_FOUND));
         String previousValue = describeBusinessHour(businessHour);
 
         businessHour.update(dayType, openTime, closeTime, isClosed, is24Hours);
-        shopDetailSavePort.saveBusinessHour(businessHour);
+        shopBusinessHourSavePort.saveBusinessHour(businessHour);
 
         shopChangeHistoryRecorder.record(
             businessHour.getShopId(),
@@ -91,13 +91,13 @@ public class ShopBusinessHourService {
     }
 
     public void deleteBusinessHour(Long id, ShopChangeActor actor) {
-        ShopBusinessHour businessHour = shopDetailLoadPort.findBusinessHourById(id).orElse(null);
+        ShopBusinessHour businessHour = shopBusinessHourLoadPort.findBusinessHourById(id).orElse(null);
         if (businessHour == null) {
             return;
         }
         String previousValue = describeBusinessHour(businessHour);
 
-        shopDetailSavePort.deleteBusinessHourById(id);
+        shopBusinessHourSavePort.deleteBusinessHourById(id);
 
         shopChangeHistoryRecorder.record(
             businessHour.getShopId(),
@@ -118,7 +118,7 @@ public class ShopBusinessHourService {
     ) {
         validateBreakTimeWithinBusinessHours(shopId, dayType, startTime, endTime);
         ShopBreakTime breakTime = ShopBreakTime.of(ShopId.of(shopId), dayType, startTime, endTime);
-        ShopBreakTime saved = shopDetailSavePort.saveBreakTime(breakTime);
+        ShopBreakTime saved = shopBusinessHourSavePort.saveBreakTime(breakTime);
 
         shopChangeHistoryRecorder.record(
             saved.getShopId(),
@@ -138,13 +138,13 @@ public class ShopBusinessHourService {
         LocalTime endTime,
         ShopChangeActor actor
     ) {
-        ShopBreakTime breakTime = shopDetailLoadPort.findBreakTimeById(id)
+        ShopBreakTime breakTime = shopBusinessHourLoadPort.findBreakTimeById(id)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_BREAK_TIME_NOT_FOUND));
         validateBreakTimeWithinBusinessHours(breakTime.getShopId().value(), dayType, startTime, endTime);
         String previousValue = describeBreakTime(breakTime);
 
         breakTime.update(dayType, startTime, endTime);
-        shopDetailSavePort.saveBreakTime(breakTime);
+        shopBusinessHourSavePort.saveBreakTime(breakTime);
 
         shopChangeHistoryRecorder.record(
             breakTime.getShopId(),
@@ -157,13 +157,13 @@ public class ShopBusinessHourService {
     }
 
     public void deleteBreakTime(Long id, ShopChangeActor actor) {
-        ShopBreakTime breakTime = shopDetailLoadPort.findBreakTimeById(id).orElse(null);
+        ShopBreakTime breakTime = shopBusinessHourLoadPort.findBreakTimeById(id).orElse(null);
         if (breakTime == null) {
             return;
         }
         String previousValue = describeBreakTime(breakTime);
 
-        shopDetailSavePort.deleteBreakTimeById(id);
+        shopBusinessHourSavePort.deleteBreakTimeById(id);
 
         shopChangeHistoryRecorder.record(
             breakTime.getShopId(),
@@ -176,11 +176,11 @@ public class ShopBusinessHourService {
     }
 
     public ShopClosedDay createClosedDay(Long shopId, ClosedDayType closedDayType, ShopChangeActor actor) {
-        if (shopDetailLoadPort.findClosedDaysByShopId(shopId).size() >= MAX_REGULAR_CLOSED_DAY_COUNT) {
+        if (shopBusinessHourLoadPort.findClosedDaysByShopId(shopId).size() >= MAX_REGULAR_CLOSED_DAY_COUNT) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_REGULAR_CLOSED_DAY_LIMIT_EXCEEDED);
         }
         ShopClosedDay closedDay = ShopClosedDay.of(ShopId.of(shopId), closedDayType);
-        ShopClosedDay saved = shopDetailSavePort.saveClosedDay(closedDay);
+        ShopClosedDay saved = shopBusinessHourSavePort.saveClosedDay(closedDay);
 
         shopChangeHistoryRecorder.record(
             saved.getShopId(),
@@ -194,13 +194,13 @@ public class ShopBusinessHourService {
     }
 
     public void deleteClosedDay(Long id, ShopChangeActor actor) {
-        ShopClosedDay closedDay = shopDetailLoadPort.findClosedDayById(id).orElse(null);
+        ShopClosedDay closedDay = shopBusinessHourLoadPort.findClosedDayById(id).orElse(null);
         if (closedDay == null) {
             return;
         }
         String previousValue = describeClosedDay(closedDay);
 
-        shopDetailSavePort.deleteClosedDayById(id);
+        shopBusinessHourSavePort.deleteClosedDayById(id);
 
         shopChangeHistoryRecorder.record(
             closedDay.getShopId(),
@@ -236,7 +236,7 @@ public class ShopBusinessHourService {
         if (breakStart == null || breakEnd == null) {
             throw new ApplicationException(ApplicationErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS);
         }
-        ShopBusinessHour businessHour = shopDetailLoadPort.findBusinessHoursByShopId(shopId).stream()
+        ShopBusinessHour businessHour = shopBusinessHourLoadPort.findBusinessHoursByShopId(shopId).stream()
             .filter(bh -> bh.getDayType() == dayType)
             .findFirst()
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.SHOP_BREAK_TIME_OUT_OF_BUSINESS_HOURS));

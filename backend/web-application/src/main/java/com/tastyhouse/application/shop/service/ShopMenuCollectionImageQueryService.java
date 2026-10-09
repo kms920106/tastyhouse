@@ -7,21 +7,21 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.shop.port.in.ShopMenuCollectionImageQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopMediaQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopMenuCollectionImageExposureResult;
-import com.tastyhouse.application.shop.port.out.ShopQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class ShopMenuCollectionImageQueryService implements ShopMenuCollectionImageQueryUseCase {
 
-    private final ShopQueryPort shopQueryPort;
+    private final ShopMediaQueryPort shopMediaQueryPort;
 
-    public ShopMenuCollectionImageQueryService(ShopQueryPort shopQueryPort) {
-        this.shopQueryPort = shopQueryPort;
+    public ShopMenuCollectionImageQueryService(ShopMediaQueryPort shopMediaQueryPort) {
+        this.shopMediaQueryPort = shopMediaQueryPort;
     }
 
     @Override
     public List<ShopMenuCollectionImageExposureResult> getMenuCollectionImages(Long shopId) {
-        return shopQueryPort.findMenuCollectionImagesByStatus(shopId, ApprovalStatus.APPROVED.name());
+        return shopMediaQueryPort.findMenuCollectionImagesByStatus(shopId, ApprovalStatus.APPROVED.name());
     }
 }

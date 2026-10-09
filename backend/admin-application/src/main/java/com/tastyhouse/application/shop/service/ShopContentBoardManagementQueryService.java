@@ -8,16 +8,16 @@ import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 import com.tastyhouse.application.shop.port.in.ShopContentBoardManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopContentBoardResult;
-import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopMediaManagementQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class ShopContentBoardManagementQueryService implements ShopContentBoardManagementQueryUseCase {
 
-    private final ShopManagementQueryPort shopManagementQueryPort;
+    private final ShopMediaManagementQueryPort shopMediaManagementQueryPort;
 
-    public ShopContentBoardManagementQueryService(ShopManagementQueryPort shopManagementQueryPort) {
-        this.shopManagementQueryPort = shopManagementQueryPort;
+    public ShopContentBoardManagementQueryService(ShopMediaManagementQueryPort shopMediaManagementQueryPort) {
+        this.shopMediaManagementQueryPort = shopMediaManagementQueryPort;
     }
 
     @Override
@@ -30,6 +30,6 @@ class ShopContentBoardManagementQueryService implements ShopContentBoardManageme
     ) {
         String type = contentType == null ? null : ShopContentType.from(contentType).name();
 
-        return shopManagementQueryPort.findContentBoardPage(shopId, hidden, type, PageQuery.of(page, size));
+        return shopMediaManagementQueryPort.findContentBoardPage(shopId, hidden, type, PageQuery.of(page, size));
     }
 }

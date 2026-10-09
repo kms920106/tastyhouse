@@ -7,23 +7,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.product.model.ProductOptionType;
 import com.tastyhouse.application.product.port.in.ProductOptionAvailabilityListQueryUseCase;
+import com.tastyhouse.application.product.port.out.ProductAvailabilityQueryPort;
 import com.tastyhouse.application.product.port.out.ProductAvailabilitySearchCondition;
 import com.tastyhouse.application.product.port.out.ProductOptionAvailabilityGroupResult;
-import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
 class ProductOptionAvailabilityListQueryService implements ProductOptionAvailabilityListQueryUseCase {
 
-    private final ProductOwnerQueryPort productOwnerQueryPort;
+    private final ProductAvailabilityQueryPort productAvailabilityQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionAvailabilityListQueryService(
-        ProductOwnerQueryPort productOwnerQueryPort,
+        ProductAvailabilityQueryPort productAvailabilityQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productOwnerQueryPort = productOwnerQueryPort;
+        this.productAvailabilityQueryPort = productAvailabilityQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -40,7 +40,7 @@ class ProductOptionAvailabilityListQueryService implements ProductOptionAvailabi
         ProductAvailabilitySearchCondition condition =
             ProductAvailabilitySearchCondition.of(shopId, keyword, soldOutOnly, hiddenOnly);
 
-        return productOwnerQueryPort.findProductOptionAvailability(
+        return productAvailabilityQueryPort.findProductOptionAvailability(
             condition,
             ProductOptionType.NORMAL.name(),
             ProductOptionType.COMMON.name()

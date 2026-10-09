@@ -16,22 +16,22 @@ import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProdu
 import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeCandidateResult;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupMergeSuggestionResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupQueryPort;
 import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
-import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
 class ProductOptionGroupMergeSuggestionListQueryService implements ProductOptionGroupMergeSuggestionListQueryUseCase {
 
-    private final ProductOwnerQueryPort productOwnerQueryPort;
+    private final ProductOptionGroupQueryPort productOptionGroupQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionGroupMergeSuggestionListQueryService(
-        ProductOwnerQueryPort productOwnerQueryPort,
+        ProductOptionGroupQueryPort productOptionGroupQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productOwnerQueryPort = productOwnerQueryPort;
+        this.productOptionGroupQueryPort = productOptionGroupQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -40,16 +40,16 @@ class ProductOptionGroupMergeSuggestionListQueryService implements ProductOption
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         List<ProductOptionGroupMergeCandidateResult> candidates =
-            productOwnerQueryPort.findOptionGroupMergeCandidates(shopId);
+            productOptionGroupQueryPort.findOptionGroupMergeCandidates(shopId);
         if (candidates.isEmpty()) {
             return List.of();
         }
 
-        Set<String> excluded = productOwnerQueryPort.findOptionGroupMergeExcludedSignatures(shopId);
+        Set<String> excluded = productOptionGroupQueryPort.findOptionGroupMergeExcludedSignatures(shopId);
         Map<Long, List<ProductOptionGroupLinkedProductResult>> linkedByGroupId =
-            productOwnerQueryPort.findLinkedProductsByShop(shopId);
+            productOptionGroupQueryPort.findLinkedProductsByShop(shopId);
         Map<Long, ProductOptionGroupManagementResult> groupById =
-            productOwnerQueryPort.findProductOptionGroupsForManagement(shopId).stream()
+            productOptionGroupQueryPort.findProductOptionGroupsForManagement(shopId).stream()
                 .collect(Collectors.toMap(ProductOptionGroupManagementResult::id, group -> group,
                     (first, second) -> first, LinkedHashMap::new));
 

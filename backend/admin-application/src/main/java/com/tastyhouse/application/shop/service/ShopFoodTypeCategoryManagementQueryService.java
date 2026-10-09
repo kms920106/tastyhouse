@@ -6,21 +6,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeCategoryManagementQueryUseCase;
+import com.tastyhouse.application.shop.port.out.ShopClassificationManagementQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopFoodTypeCategoryResult;
-import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class ShopFoodTypeCategoryManagementQueryService implements ShopFoodTypeCategoryManagementQueryUseCase {
 
-    private final ShopManagementQueryPort shopManagementQueryPort;
+    private final ShopClassificationManagementQueryPort shopClassificationManagementQueryPort;
 
-    public ShopFoodTypeCategoryManagementQueryService(ShopManagementQueryPort shopManagementQueryPort) {
-        this.shopManagementQueryPort = shopManagementQueryPort;
+    public ShopFoodTypeCategoryManagementQueryService(ShopClassificationManagementQueryPort shopClassificationManagementQueryPort) {
+        this.shopClassificationManagementQueryPort = shopClassificationManagementQueryPort;
     }
 
     @Override
     public List<ShopFoodTypeCategoryResult> getFoodTypeCategories() {
-        return shopManagementQueryPort.findAllFoodTypeCategories();
+        return shopClassificationManagementQueryPort.findAllFoodTypeCategories();
     }
 }

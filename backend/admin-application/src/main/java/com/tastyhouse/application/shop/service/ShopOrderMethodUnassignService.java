@@ -6,16 +6,16 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodUnassignCommand;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodUnassignUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderMethodSavePort;
 
 @Service
 @Transactional
 class ShopOrderMethodUnassignService implements ShopOrderMethodUnassignUseCase {
 
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopOrderMethodSavePort shopOrderMethodSavePort;
 
-    public ShopOrderMethodUnassignService(ShopDetailSavePort shopDetailSavePort) {
-        this.shopDetailSavePort = shopDetailSavePort;
+    public ShopOrderMethodUnassignService(ShopOrderMethodSavePort shopOrderMethodSavePort) {
+        this.shopOrderMethodSavePort = shopOrderMethodSavePort;
     }
 
     @Override
@@ -23,6 +23,6 @@ class ShopOrderMethodUnassignService implements ShopOrderMethodUnassignUseCase {
         Long id = command.shopId();
         String orderMethod = command.orderMethod();
 
-        shopDetailSavePort.deleteOrderMethodByShopIdAndOrderMethod(id, OrderMethod.from(orderMethod));
+        shopOrderMethodSavePort.deleteOrderMethodByShopIdAndOrderMethod(id, OrderMethod.from(orderMethod));
     }
 }

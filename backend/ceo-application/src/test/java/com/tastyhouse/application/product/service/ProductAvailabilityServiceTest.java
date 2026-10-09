@@ -57,7 +57,7 @@ class ProductAvailabilityServiceTest {
         Fixture fixture = Fixture.withProducts(List.of(only), 1, 0);
 
         ProductAvailabilityChangeResult result =
-            fixture.service.hideProducts(SHOP_ID, List.of(ProductId.of(10L)));
+            fixture.productService.hideProducts(SHOP_ID, List.of(ProductId.of(10L)));
 
         assertThat(result.succeeded()).isEmpty();
         assertThat(result.failed()).hasSize(1);
@@ -72,7 +72,7 @@ class ProductAvailabilityServiceTest {
         Fixture fixture = Fixture.withProducts(List.of(representative), 3, 1);
 
         ProductAvailabilityChangeResult result =
-            fixture.service.hideProducts(SHOP_ID, List.of(ProductId.of(10L)));
+            fixture.productService.hideProducts(SHOP_ID, List.of(ProductId.of(10L)));
 
         assertThat(result.succeeded()).isEmpty();
         assertThat(result.failed()).hasSize(1);
@@ -88,7 +88,7 @@ class ProductAvailabilityServiceTest {
         ProductOption second = option(101L, "치즈추가", 2);
         Fixture fixture = Fixture.withOptions(List.of(first, second), optionGroup(1));
 
-        ProductAvailabilityChangeResult result = fixture.service.markOptionsSoldOut(
+        ProductAvailabilityChangeResult result = fixture.optionService.markOptionsSoldOut(
             SHOP_ID, List.of(ProductOptionId.of(100L), ProductOptionId.of(101L)), List.of(), null, NOW);
 
         assertThat(result.succeeded()).containsExactly(100L);
@@ -106,7 +106,7 @@ class ProductAvailabilityServiceTest {
         ProductOption only = option(100L, "곱빼기", 1);
         Fixture fixture = Fixture.withOptions(List.of(only), optionGroup(null));
 
-        ProductAvailabilityChangeResult result = fixture.service.markOptionsSoldOut(
+        ProductAvailabilityChangeResult result = fixture.optionService.markOptionsSoldOut(
             SHOP_ID, List.of(ProductOptionId.of(100L)), List.of(), null, NOW);
 
         assertThat(result.succeeded()).isEmpty();
@@ -128,7 +128,7 @@ class ProductAvailabilityServiceTest {
             optionGroup(null, 3)
         );
 
-        ProductAvailabilityChangeResult result = fixture.service.markOptionsSoldOut(
+        ProductAvailabilityChangeResult result = fixture.optionService.markOptionsSoldOut(
             SHOP_ID,
             List.of(
                 ProductOptionId.of(100L), ProductOptionId.of(101L),
@@ -152,7 +152,7 @@ class ProductAvailabilityServiceTest {
         Fixture fixture = Fixture.withProducts(List.of(representative, plain), 2, 1);
 
         ProductAvailabilityChangeResult result =
-            fixture.service.hideProducts(SHOP_ID, List.of(ProductId.of(10L), ProductId.of(11L)));
+            fixture.productService.hideProducts(SHOP_ID, List.of(ProductId.of(10L), ProductId.of(11L)));
 
         assertThat(result.failed()).hasSize(1);
         assertThat(result.succeeded()).hasSize(1);
@@ -169,7 +169,7 @@ class ProductAvailabilityServiceTest {
         Fixture fixture = Fixture.withProducts(List.of(representative, plain), 2, 1);
 
         ProductAvailabilityChangeResult result =
-            fixture.service.hideProducts(SHOP_ID, List.of(ProductId.of(10L), ProductId.of(11L)));
+            fixture.productService.hideProducts(SHOP_ID, List.of(ProductId.of(10L), ProductId.of(11L)));
 
         List<Long> failedIds = result.failed().stream().map(ProductAvailabilityFailure::id).toList();
         assertThat(result.succeeded()).doesNotContainAnyElementsOf(failedIds);
@@ -195,7 +195,7 @@ class ProductAvailabilityServiceTest {
             ? List.of(ProductId.of(11L), ProductId.of(10L))
             : List.of(ProductId.of(10L), ProductId.of(11L));
 
-        return fixture.service.hideProducts(SHOP_ID, ids).succeeded();
+        return fixture.productService.hideProducts(SHOP_ID, ids).succeeded();
     }
 
     @Test
@@ -203,12 +203,12 @@ class ProductAvailabilityServiceTest {
     void validateSoldOutUntil_lowerBoundary() {
         Fixture fixture = Fixture.withProducts(List.of(), 5, 5);
 
-        assertThatThrownBy(() -> fixture.service.validateSoldOutUntil(NOW.plusMinutes(29), NOW))
+        assertThatThrownBy(() -> fixture.validator.validate(NOW.plusMinutes(29), NOW))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(CeoErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_SOON);
 
-        fixture.service.validateSoldOutUntil(NOW.plusMinutes(30), NOW);
+        fixture.validator.validate(NOW.plusMinutes(30), NOW);
     }
 
     @Test
@@ -216,9 +216,9 @@ class ProductAvailabilityServiceTest {
     void validateSoldOutUntil_upperBoundary() {
         Fixture fixture = Fixture.withProducts(List.of(), 5, 5);
 
-        fixture.service.validateSoldOutUntil(NOW.plusDays(7), NOW);
+        fixture.validator.validate(NOW.plusDays(7), NOW);
 
-        assertThatThrownBy(() -> fixture.service.validateSoldOutUntil(NOW.plusDays(7).plusMinutes(1), NOW))
+        assertThatThrownBy(() -> fixture.validator.validate(NOW.plusDays(7).plusMinutes(1), NOW))
             .isInstanceOf(BusinessException.class)
             .extracting("errorCode")
             .isEqualTo(CeoErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_FAR);
@@ -229,7 +229,7 @@ class ProductAvailabilityServiceTest {
     void validateSoldOutUntil_nullSkipsValidation() {
         Fixture fixture = Fixture.withProducts(List.of(), 5, 5);
 
-        fixture.service.validateSoldOutUntil(null, NOW);
+        fixture.validator.validate(null, NOW);
     }
 
     @Test
@@ -238,9 +238,24 @@ class ProductAvailabilityServiceTest {
         Product target = product(10L, "떡볶이", true, false, 1);
         Fixture fixture = Fixture.withProducts(List.of(target), 5, 5);
 
-        assertThatThrownBy(() -> fixture.service.markProductsSoldOut(
+        assertThatThrownBy(() -> fixture.productService.markProductsSoldOut(
             SHOP_ID, List.of(ProductId.of(10L)), NOW.plusMinutes(10), NOW))
             .isInstanceOf(BusinessException.class);
+
+        assertThat(target.isSoldOut()).isFalse();
+    }
+
+    @Test
+    @DisplayName("옵션 품절도 기간 위반이면 요청 전체를 거부한다 — 부분실패가 아니라 400이다")
+    void markOptionsSoldOut_periodViolation_rejectsWholeRequest() {
+        ProductOption target = option(100L, "곱빼기", 1);
+        Fixture fixture = Fixture.withOptions(List.of(target), optionGroup(null));
+
+        assertThatThrownBy(() -> fixture.optionService.markOptionsSoldOut(
+            SHOP_ID, List.of(ProductOptionId.of(100L)), List.of(), NOW.plusMinutes(10), NOW))
+            .isInstanceOf(BusinessException.class)
+            .extracting("errorCode")
+            .isEqualTo(CeoErrorCode.PRODUCT_SOLD_OUT_UNTIL_TOO_SOON);
 
         assertThat(target.isSoldOut()).isFalse();
     }
@@ -252,7 +267,7 @@ class ProductAvailabilityServiceTest {
         target.markSoldOut(NOW.plusHours(5));
         Fixture fixture = Fixture.withProducts(List.of(target), 5, 5);
 
-        fixture.service.releaseProductsSoldOut(SHOP_ID, List.of(ProductId.of(10L)));
+        fixture.productService.releaseProductsSoldOut(SHOP_ID, List.of(ProductId.of(10L)));
 
         assertThat(target.isSoldOut()).isFalse();
         assertThat(target.getSoldOutUntil()).isNull();
@@ -266,7 +281,7 @@ class ProductAvailabilityServiceTest {
         Product onSale = product(11L, "튀김", true, false, 2);
         Fixture fixture = Fixture.withProducts(List.of(soldOut, onSale), 5, 5);
 
-        ProductAvailabilityChangeResult result = fixture.service.changeProductsSoldOutUntil(
+        ProductAvailabilityChangeResult result = fixture.productService.changeProductsSoldOutUntil(
             SHOP_ID, List.of(ProductId.of(10L), ProductId.of(11L)), NOW.plusHours(6), NOW);
 
         assertThat(result.succeeded()).containsExactly(10L);
@@ -284,7 +299,7 @@ class ProductAvailabilityServiceTest {
         Product healthy = product(11L, "튀김", true, false, 2);
         Fixture fixture = Fixture.withProducts(List.of(blocked, healthy), 5, 5);
 
-        ProductAvailabilityChangeResult result = fixture.service.releaseProducts(
+        ProductAvailabilityChangeResult result = fixture.productService.releaseProducts(
             SHOP_ID, List.of(ProductId.of(10L), ProductId.of(11L)), ReleaseTarget.ALL);
 
         assertThat(result.succeeded()).containsExactly(10L, 11L);
@@ -300,7 +315,7 @@ class ProductAvailabilityServiceTest {
         Product owned = product(10L, "떡볶이", true, false, 1);
         Fixture fixture = Fixture.withProducts(List.of(owned), 5, 5);
 
-        ProductAvailabilityChangeResult result = fixture.service.releaseProductsSoldOut(
+        ProductAvailabilityChangeResult result = fixture.productService.releaseProductsSoldOut(
             SHOP_ID, List.of(ProductId.of(10L), ProductId.of(999L)));
 
         assertThat(result.succeeded()).containsExactly(10L);
@@ -316,7 +331,7 @@ class ProductAvailabilityServiceTest {
         ProductCommonOption second = commonOption(201L, "물티슈", 2);
         Fixture fixture = Fixture.withCommonOptions(List.of(first, second), commonOptionGroup());
 
-        ProductAvailabilityChangeResult result = fixture.service.markOptionsSoldOut(
+        ProductAvailabilityChangeResult result = fixture.optionService.markOptionsSoldOut(
             SHOP_ID, List.of(),
             List.of(ProductCommonOptionId.of(200L), ProductCommonOptionId.of(201L)), null, NOW);
 
@@ -365,7 +380,9 @@ class ProductAvailabilityServiceTest {
 
     private static final class Fixture {
 
-        private final ProductAvailabilityService service;
+        private final ProductAvailabilityService productService;
+        private final ProductOptionAvailabilityService optionService;
+        private final ProductSoldOutUntilValidator validator;
 
         private Fixture(
             List<Product> products,
@@ -391,8 +408,13 @@ class ProductAvailabilityServiceTest {
             ProductPersistenceStub productPersistenceStub = new ProductPersistenceStub(owned, visibleCount, visibleRepresentativeCount);
             ProductOptionPersistenceStub productOptionPersistenceStub = new ProductOptionPersistenceStub(options);
             ProductCommonOptionPersistenceStub productCommonOptionPersistenceStub = new ProductCommonOptionPersistenceStub(commonOptions);
-            this.service = new ProductAvailabilityService(
+            this.validator = new ProductSoldOutUntilValidator();
+            this.productService = new ProductAvailabilityService(
                 productPersistenceStub,
+                productPersistenceStub,
+                validator
+            );
+            this.optionService = new ProductOptionAvailabilityService(
                 productPersistenceStub,
                 productOptionPersistenceStub,
                 productOptionPersistenceStub,
@@ -401,7 +423,8 @@ class ProductAvailabilityServiceTest {
                 new ProductOptionGroupPersistenceStub(optionGroups),
                 new ProductCommonOptionGroupPersistenceStub(commonOptionGroups),
                 new ProductOptionGroupLinkPersistenceStub(optionGroupLinks),
-                new ProductCommonOptionGroupLinkPersistenceStub(commonOptionGroupLinks)
+                new ProductCommonOptionGroupLinkPersistenceStub(commonOptionGroupLinks),
+                validator
             );
         }
 

@@ -26,10 +26,4 @@ public interface ShopBasicInfoQueryPort {
     Optional<ShopOwnerMessageResult> findLatestOwnerMessage(Long shopId);
 
     List<ShopHygieneBadgeResult> findHygieneBadges(Long shopId);
-
-    List<ShopAmenityAssignmentResult> findAmenityAssignments(Long shopId);
-
-    List<ShopBannerImageResult> findBannerImages(Long shopId);
-
-    List<ShopPhotoCategoryResult> findPhotoCategories(Long shopId);
 }

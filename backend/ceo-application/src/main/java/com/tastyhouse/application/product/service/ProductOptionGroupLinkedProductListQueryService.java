@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.product.port.in.ProductOptionGroupLinkedProductListQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupLinkedProductResult;
-import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupQueryPort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
@@ -16,14 +16,14 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 @Transactional(readOnly = true)
 class ProductOptionGroupLinkedProductListQueryService implements ProductOptionGroupLinkedProductListQueryUseCase {
 
-    private final ProductOwnerQueryPort productOwnerQueryPort;
+    private final ProductOptionGroupQueryPort productOptionGroupQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionGroupLinkedProductListQueryService(
-        ProductOwnerQueryPort productOwnerQueryPort,
+        ProductOptionGroupQueryPort productOptionGroupQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productOwnerQueryPort = productOwnerQueryPort;
+        this.productOptionGroupQueryPort = productOptionGroupQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -36,7 +36,7 @@ class ProductOptionGroupLinkedProductListQueryService implements ProductOptionGr
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         List<ProductOptionGroupLinkedProductResult> linked =
-            productOwnerQueryPort.findLinkedProductsByOptionGroupId(optionGroupId);
+            productOptionGroupQueryPort.findLinkedProductsByOptionGroupId(optionGroupId);
         boolean ownedByRequestedShop = linked.stream().anyMatch(row -> shopId.equals(row.shopId()));
         if (!ownedByRequestedShop) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_OPTION_GROUP_NOT_FOUND);

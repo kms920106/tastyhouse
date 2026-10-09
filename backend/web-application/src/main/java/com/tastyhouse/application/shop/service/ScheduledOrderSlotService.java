@@ -21,8 +21,9 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopBusinessHourLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderMethodLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopSuspensionLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureLoadPort;
 
@@ -30,20 +31,23 @@ import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureLoadPo
 public class ScheduledOrderSlotService {
 
     private final ShopLoadPort shopLoadPort;
-    private final ShopDetailLoadPort shopDetailLoadPort;
+    private final ShopBusinessHourLoadPort shopBusinessHourLoadPort;
+    private final ShopOrderMethodLoadPort shopOrderMethodLoadPort;
     private final ShopTemporaryClosureLoadPort shopTemporaryClosureLoadPort;
     private final ShopSuspensionLoadPort shopSuspensionLoadPort;
     private final ScheduledOrderSlotCalculator scheduledOrderSlotCalculator;
 
     public ScheduledOrderSlotService(
         ShopLoadPort shopLoadPort,
-        ShopDetailLoadPort shopDetailLoadPort,
+        ShopBusinessHourLoadPort shopBusinessHourLoadPort,
+        ShopOrderMethodLoadPort shopOrderMethodLoadPort,
         ShopTemporaryClosureLoadPort shopTemporaryClosureLoadPort,
         ShopSuspensionLoadPort shopSuspensionLoadPort,
         ScheduledOrderSlotCalculator scheduledOrderSlotCalculator
     ) {
         this.shopLoadPort = shopLoadPort;
-        this.shopDetailLoadPort = shopDetailLoadPort;
+        this.shopBusinessHourLoadPort = shopBusinessHourLoadPort;
+        this.shopOrderMethodLoadPort = shopOrderMethodLoadPort;
         this.shopTemporaryClosureLoadPort = shopTemporaryClosureLoadPort;
         this.shopSuspensionLoadPort = shopSuspensionLoadPort;
         this.scheduledOrderSlotCalculator = scheduledOrderSlotCalculator;
@@ -76,12 +80,12 @@ public class ScheduledOrderSlotService {
         LocalDateTime now
     ) {
         Long rawShopId = shopId.value();
-        List<ShopBusinessHour> businessHours = shopDetailLoadPort.findBusinessHoursByShopId(rawShopId);
-        List<ShopBreakTime> breakTimes = shopDetailLoadPort.findBreakTimesByShopId(rawShopId);
-        List<ShopClosedDay> closedDays = shopDetailLoadPort.findClosedDaysByShopId(rawShopId);
+        List<ShopBusinessHour> businessHours = shopBusinessHourLoadPort.findBusinessHoursByShopId(rawShopId);
+        List<ShopBreakTime> breakTimes = shopBusinessHourLoadPort.findBreakTimesByShopId(rawShopId);
+        List<ShopClosedDay> closedDays = shopBusinessHourLoadPort.findClosedDaysByShopId(rawShopId);
         List<ShopTemporaryClosure> temporaryClosures = shopTemporaryClosureLoadPort.findByShopId(rawShopId);
         List<ShopSuspension> suspensions = shopSuspensionLoadPort.findByShopId(rawShopId);
-        List<ShopOrderMethod> shopOrderMethods = shopDetailLoadPort.findOrderMethodsByShopId(rawShopId);
+        List<ShopOrderMethod> shopOrderMethods = shopOrderMethodLoadPort.findOrderMethodsByShopId(rawShopId);
 
         return ScheduledOrderSlotContext.of(
             shop,

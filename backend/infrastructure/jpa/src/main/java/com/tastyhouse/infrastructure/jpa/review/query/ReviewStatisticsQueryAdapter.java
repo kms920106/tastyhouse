@@ -227,6 +227,7 @@ class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, ShopRev
         return count != null ? count : 0L;
     }
 
+    @Override
     public Map<Integer, Long> getRatingCounts(Long shopId, LocalDateTime from, LocalDateTime to) {
         List<ReviewRatingCountRow> results = queryFactory
             .select(Projections.constructor(ReviewRatingCountRow.class, reviewJpaEntity.totalRating.floor().intValue(), reviewJpaEntity.count()))
@@ -247,6 +248,7 @@ class ReviewStatisticsQueryAdapter implements ReviewStatisticsQueryPort, ShopRev
         return ratingMap;
     }
 
+    @Override
     public Map<String, Long> getMonthlyReviewCounts(Long shopId, LocalDateTime from, LocalDateTime to) {
         List<ReviewYearMonthCountRow> results = queryFactory
             .select(Projections.constructor(ReviewYearMonthCountRow.class, yearMonthKey(), reviewJpaEntity.count()))

@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.review.port.in.ReviewBestListQueryUseCase;
 import com.tastyhouse.application.review.port.out.BestReviewListItemResult;
-import com.tastyhouse.application.review.port.out.ReviewQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewFeedQueryPort;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -13,14 +13,14 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 @Transactional(readOnly = true)
 class ReviewBestListQueryService implements ReviewBestListQueryUseCase {
 
-    private final ReviewQueryPort reviewQueryPort;
+    private final ReviewFeedQueryPort reviewFeedQueryPort;
 
-    public ReviewBestListQueryService(ReviewQueryPort reviewQueryPort) {
-        this.reviewQueryPort = reviewQueryPort;
+    public ReviewBestListQueryService(ReviewFeedQueryPort reviewFeedQueryPort) {
+        this.reviewFeedQueryPort = reviewFeedQueryPort;
     }
 
     @Override
     public PageResult<BestReviewListItemResult> searchBestReviewList(int page, int size) {
-        return reviewQueryPort.findBestReviews(PageQuery.of(page, size));
+        return reviewFeedQueryPort.findBestReviews(PageQuery.of(page, size));
     }
 }

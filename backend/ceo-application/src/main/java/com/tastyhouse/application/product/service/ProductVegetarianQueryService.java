@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.product.port.in.ProductVegetarianQueryUseCase;
+import com.tastyhouse.application.product.port.out.ProductApprovalRequestOwnerQueryPort;
 import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.product.port.out.ProductVegetarianRequestResult;
 import com.tastyhouse.application.product.port.out.ProductVegetarianSettingResult;
@@ -21,17 +22,20 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 class ProductVegetarianQueryService implements ProductVegetarianQueryUseCase {
 
     private final ProductOwnerQueryPort productOwnerQueryPort;
+    private final ProductApprovalRequestOwnerQueryPort productApprovalRequestOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
     private final ShopFoodTypeCategoryReader shopFoodTypeCategoryReader;
     private final ProductVegetarianApprovalService productVegetarianApprovalService;
 
     public ProductVegetarianQueryService(
         ProductOwnerQueryPort productOwnerQueryPort,
+        ProductApprovalRequestOwnerQueryPort productApprovalRequestOwnerQueryPort,
         ShopOwnershipValidator shopOwnershipValidator,
         ShopFoodTypeCategoryReader shopFoodTypeCategoryReader,
         ProductVegetarianApprovalService productVegetarianApprovalService
     ) {
         this.productOwnerQueryPort = productOwnerQueryPort;
+        this.productApprovalRequestOwnerQueryPort = productApprovalRequestOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
         this.shopFoodTypeCategoryReader = shopFoodTypeCategoryReader;
         this.productVegetarianApprovalService = productVegetarianApprovalService;
@@ -47,7 +51,8 @@ class ProductVegetarianQueryService implements ProductVegetarianQueryUseCase {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
 
-        List<ProductVegetarianRequestResult> requests = productOwnerQueryPort.findVegetarianRequests(productId);
+        List<ProductVegetarianRequestResult> requests =
+            productApprovalRequestOwnerQueryPort.findVegetarianRequests(productId);
 
         Set<String> shopCategoryNames = shopFoodTypeCategoryReader.readCategoryNames(shopId);
         boolean changeable = productVegetarianApprovalService.isShopCategoryAllowed(shopCategoryNames);

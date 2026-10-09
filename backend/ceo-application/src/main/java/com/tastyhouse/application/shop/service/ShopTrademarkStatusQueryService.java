@@ -11,19 +11,19 @@ import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopImageChangeRequestResult;
 import com.tastyhouse.application.shop.port.out.ShopImageStatusResult;
 import com.tastyhouse.application.shop.port.out.ShopImageUrlsResult;
-import com.tastyhouse.application.shop.port.out.ShopOwnerQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopMediaOwnerQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class ShopTrademarkStatusQueryService implements ShopTrademarkStatusQueryUseCase {
 
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
-    private final ShopOwnerQueryPort shopOwnerQueryPort;
+    private final ShopMediaOwnerQueryPort shopMediaOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ShopTrademarkStatusQueryService(ShopBasicInfoQueryPort shopBasicInfoQueryPort, ShopOwnerQueryPort shopOwnerQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+    public ShopTrademarkStatusQueryService(ShopBasicInfoQueryPort shopBasicInfoQueryPort, ShopMediaOwnerQueryPort shopMediaOwnerQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
         this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
-        this.shopOwnerQueryPort = shopOwnerQueryPort;
+        this.shopMediaOwnerQueryPort = shopMediaOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -34,7 +34,7 @@ class ShopTrademarkStatusQueryService implements ShopTrademarkStatusQueryUseCase
             .map(ShopImageUrlsResult::trademarkImageUrl)
             .orElse(null);
         List<ShopImageChangeRequestResult> requests =
-            shopOwnerQueryPort.findImageChangeRequests(shopId, ShopImageType.TRADEMARK.name());
+            shopMediaOwnerQueryPort.findImageChangeRequests(shopId, ShopImageType.TRADEMARK.name());
         return new ShopImageStatusResult(trademarkImageUrl, requests);
     }
 }

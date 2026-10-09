@@ -9,19 +9,19 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryUpdateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopAmenityLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopAmenitySavePort;
 
 @Service
 @Transactional
 class ShopAmenityCategoryUpdateService implements ShopAmenityCategoryUpdateUseCase {
 
-    private final ShopDetailLoadPort shopDetailLoadPort;
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopAmenityLoadPort shopAmenityLoadPort;
+    private final ShopAmenitySavePort shopAmenitySavePort;
 
-    public ShopAmenityCategoryUpdateService(ShopDetailLoadPort shopDetailLoadPort, ShopDetailSavePort shopDetailSavePort) {
-        this.shopDetailLoadPort = shopDetailLoadPort;
-        this.shopDetailSavePort = shopDetailSavePort;
+    public ShopAmenityCategoryUpdateService(ShopAmenityLoadPort shopAmenityLoadPort, ShopAmenitySavePort shopAmenitySavePort) {
+        this.shopAmenityLoadPort = shopAmenityLoadPort;
+        this.shopAmenitySavePort = shopAmenitySavePort;
     }
 
     @Override
@@ -33,7 +33,7 @@ class ShopAmenityCategoryUpdateService implements ShopAmenityCategoryUpdateUseCa
         Integer sort = command.sort();
         Boolean visible = command.visible();
 
-        ShopAmenityCategory amenityCategory = shopDetailLoadPort.findAmenityCategoryById(categoryId)
+        ShopAmenityCategory amenityCategory = shopAmenityLoadPort.findAmenityCategoryById(categoryId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_AMENITY_CATEGORY_NOT_FOUND));
         amenityCategory.update(
             displayName,
@@ -42,6 +42,6 @@ class ShopAmenityCategoryUpdateService implements ShopAmenityCategoryUpdateUseCa
             sort,
             visible
         );
-        shopDetailSavePort.saveAmenityCategory(amenityCategory);
+        shopAmenitySavePort.saveAmenityCategory(amenityCategory);
     }
 }

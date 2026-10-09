@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.product.port.in.ProductImageQueryUseCase;
+import com.tastyhouse.application.product.port.out.ProductApprovalRequestOwnerQueryPort;
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
 import com.tastyhouse.application.product.port.out.ProductImageManagementResult;
 import com.tastyhouse.application.product.port.out.ProductImageStatusResult;
@@ -19,10 +20,16 @@ import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 class ProductImageQueryService implements ProductImageQueryUseCase {
 
     private final ProductOwnerQueryPort productOwnerQueryPort;
+    private final ProductApprovalRequestOwnerQueryPort productApprovalRequestOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
-    public ProductImageQueryService(ProductOwnerQueryPort productOwnerQueryPort, ShopOwnershipValidator shopOwnershipValidator) {
+    public ProductImageQueryService(
+        ProductOwnerQueryPort productOwnerQueryPort,
+        ProductApprovalRequestOwnerQueryPort productApprovalRequestOwnerQueryPort,
+        ShopOwnershipValidator shopOwnershipValidator
+    ) {
         this.productOwnerQueryPort = productOwnerQueryPort;
+        this.productApprovalRequestOwnerQueryPort = productApprovalRequestOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -31,7 +38,8 @@ class ProductImageQueryService implements ProductImageQueryUseCase {
         requireOwnedProduct(ceoId, shopId, productId);
 
         List<ProductImageManagementResult> images = productOwnerQueryPort.findProductImagesForManagement(productId);
-        List<ProductImageChangeRequestResult> requests = productOwnerQueryPort.findImageChangeRequests(productId);
+        List<ProductImageChangeRequestResult> requests =
+            productApprovalRequestOwnerQueryPort.findImageChangeRequests(productId);
 
         return new ProductImageStatusResult(images, requests);
     }

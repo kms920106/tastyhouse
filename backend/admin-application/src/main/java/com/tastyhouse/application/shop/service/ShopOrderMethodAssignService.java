@@ -8,16 +8,16 @@ import com.tastyhouse.domain.shop.model.ShopOrderMethod;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodAssignCommand;
 import com.tastyhouse.application.shop.port.in.ShopOrderMethodAssignUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderMethodSavePort;
 
 @Service
 @Transactional
 class ShopOrderMethodAssignService implements ShopOrderMethodAssignUseCase {
 
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopOrderMethodSavePort shopOrderMethodSavePort;
 
-    public ShopOrderMethodAssignService(ShopDetailSavePort shopDetailSavePort) {
-        this.shopDetailSavePort = shopDetailSavePort;
+    public ShopOrderMethodAssignService(ShopOrderMethodSavePort shopOrderMethodSavePort) {
+        this.shopOrderMethodSavePort = shopOrderMethodSavePort;
     }
 
     @Override
@@ -25,7 +25,7 @@ class ShopOrderMethodAssignService implements ShopOrderMethodAssignUseCase {
         Long id = command.shopId();
         String orderMethod = command.orderMethod();
 
-        ShopOrderMethod saved = shopDetailSavePort.saveOrderMethod(
+        ShopOrderMethod saved = shopOrderMethodSavePort.saveOrderMethod(
             ShopOrderMethod.of(ShopId.of(id), OrderMethod.from(orderMethod))
         );
         return saved.getId();

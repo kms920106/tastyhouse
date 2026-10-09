@@ -11,22 +11,22 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.application.product.port.in.ProductAvailabilityListQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityGroupResult;
 import com.tastyhouse.application.product.port.out.ProductAvailabilityItemResult;
+import com.tastyhouse.application.product.port.out.ProductAvailabilityQueryPort;
 import com.tastyhouse.application.product.port.out.ProductAvailabilitySearchCondition;
-import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
 class ProductAvailabilityListQueryService implements ProductAvailabilityListQueryUseCase {
 
-    private final ProductOwnerQueryPort productOwnerQueryPort;
+    private final ProductAvailabilityQueryPort productAvailabilityQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductAvailabilityListQueryService(
-        ProductOwnerQueryPort productOwnerQueryPort,
+        ProductAvailabilityQueryPort productAvailabilityQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productOwnerQueryPort = productOwnerQueryPort;
+        this.productAvailabilityQueryPort = productAvailabilityQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
 
@@ -42,7 +42,7 @@ class ProductAvailabilityListQueryService implements ProductAvailabilityListQuer
 
         ProductAvailabilitySearchCondition condition =
             ProductAvailabilitySearchCondition.of(shopId, keyword, soldOutOnly, hiddenOnly);
-        List<ProductAvailabilityItemResult> rows = productOwnerQueryPort.findProductAvailability(condition);
+        List<ProductAvailabilityItemResult> rows = productAvailabilityQueryPort.findProductAvailability(condition);
 
         Map<CategoryKey, List<ProductAvailabilityItemResult>> grouped = new LinkedHashMap<>();
         for (ProductAvailabilityItemResult row : rows) {

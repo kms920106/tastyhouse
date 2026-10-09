@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.product.port.in.ProductRepresentativeRequestListQueryUseCase;
-import com.tastyhouse.application.product.port.out.ProductManagementQueryPort;
+import com.tastyhouse.application.product.port.out.ProductApprovalRequestManagementQueryPort;
 import com.tastyhouse.application.product.port.out.ProductRepresentativeRequestResult;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
@@ -14,10 +14,12 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 @Transactional(readOnly = true)
 class ProductRepresentativeRequestListQueryService implements ProductRepresentativeRequestListQueryUseCase {
 
-    private final ProductManagementQueryPort productManagementQueryPort;
+    private final ProductApprovalRequestManagementQueryPort productApprovalRequestManagementQueryPort;
 
-    public ProductRepresentativeRequestListQueryService(ProductManagementQueryPort productManagementQueryPort) {
-        this.productManagementQueryPort = productManagementQueryPort;
+    public ProductRepresentativeRequestListQueryService(
+        ProductApprovalRequestManagementQueryPort productApprovalRequestManagementQueryPort
+    ) {
+        this.productApprovalRequestManagementQueryPort = productApprovalRequestManagementQueryPort;
     }
 
     @Override
@@ -28,7 +30,7 @@ class ProductRepresentativeRequestListQueryService implements ProductRepresentat
     ) {
         String approvalStatus = demoteStatus(status);
 
-        return productManagementQueryPort.findRepresentativeRequestPage(approvalStatus, PageQuery.of(page, size));
+        return productApprovalRequestManagementQueryPort.findRepresentativeRequestPage(approvalStatus, PageQuery.of(page, size));
     }
 
     private String demoteStatus(String status) {

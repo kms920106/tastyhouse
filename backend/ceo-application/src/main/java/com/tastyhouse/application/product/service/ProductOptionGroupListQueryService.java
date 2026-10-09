@@ -8,25 +8,25 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.product.model.CupDepositPolicy;
 import com.tastyhouse.application.product.port.in.ProductOptionGroupListQueryUseCase;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupManagementResult;
+import com.tastyhouse.application.product.port.out.ProductOptionGroupQueryPort;
 import com.tastyhouse.application.product.port.out.ProductOptionGroupViewResult;
 import com.tastyhouse.application.product.port.out.ProductOptionManagementResult;
-import com.tastyhouse.application.product.port.out.ProductOwnerQueryPort;
 import com.tastyhouse.application.shop.service.ShopOwnershipValidator;
 
 @Service
 @Transactional(readOnly = true)
 class ProductOptionGroupListQueryService implements ProductOptionGroupListQueryUseCase {
 
-    private final ProductOwnerQueryPort productOwnerQueryPort;
+    private final ProductOptionGroupQueryPort productOptionGroupQueryPort;
     private final CupDepositPolicy cupDepositPolicy;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ProductOptionGroupListQueryService(
-        ProductOwnerQueryPort productOwnerQueryPort,
+        ProductOptionGroupQueryPort productOptionGroupQueryPort,
         CupDepositPolicy cupDepositPolicy,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
-        this.productOwnerQueryPort = productOwnerQueryPort;
+        this.productOptionGroupQueryPort = productOptionGroupQueryPort;
         this.cupDepositPolicy = cupDepositPolicy;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -35,7 +35,7 @@ class ProductOptionGroupListQueryService implements ProductOptionGroupListQueryU
     public List<ProductOptionGroupViewResult> getProductOptionGroups(Long ceoId, Long shopId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
-        return productOwnerQueryPort.findProductOptionGroupsForManagement(shopId).stream()
+        return productOptionGroupQueryPort.findProductOptionGroupsForManagement(shopId).stream()
             .map(this::toOptionGroupViewResult)
             .toList();
     }

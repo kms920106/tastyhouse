@@ -10,34 +10,23 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.tastyhouse.domain.shared.model.OrderMethod;
 import com.tastyhouse.domain.shop.model.Amenity;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
 import com.tastyhouse.domain.shop.model.Shop;
 import com.tastyhouse.domain.shop.model.ShopAmenity;
 import com.tastyhouse.domain.shop.model.ShopAmenityCategory;
-import com.tastyhouse.domain.shop.model.ShopBannerImage;
-import com.tastyhouse.domain.shop.model.ShopBreakTime;
-import com.tastyhouse.domain.shop.model.ShopBusinessHour;
 import com.tastyhouse.domain.shop.model.ShopChangeActionType;
 import com.tastyhouse.domain.shop.model.ShopChangeActor;
 import com.tastyhouse.domain.shop.model.ShopChangeActorType;
 import com.tastyhouse.domain.shop.model.ShopChangeHistory;
 import com.tastyhouse.domain.shop.model.ShopChangeType;
-import com.tastyhouse.domain.shop.model.ShopClosedDay;
 import com.tastyhouse.domain.shop.model.ShopConvenienceInfo;
-import com.tastyhouse.domain.shop.model.ShopFoodType;
-import com.tastyhouse.domain.shop.model.ShopFoodTypeCategory;
-import com.tastyhouse.domain.shop.model.ShopOrderMethod;
-import com.tastyhouse.domain.shop.model.ShopOwnerMessageHistory;
-import com.tastyhouse.domain.shop.model.ShopPhotoCategory;
-import com.tastyhouse.domain.shop.model.ShopPhotoCategoryImage;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ProhibitedWordLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopAmenityLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopAmenitySavePort;
 import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoSavePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 import com.tastyhouse.testsupport.shop.service.RecordingShopChangeHistorySavePort;
@@ -68,12 +57,12 @@ class ShopConvenienceInfoServiceTest {
         }
     }
 
-    private static final class FakeShopDetailPersistence implements ShopDetailLoadPort, ShopDetailSavePort {
+    private static final class FakeShopAmenityPersistence implements ShopAmenityLoadPort, ShopAmenitySavePort {
 
         private final Map<Long, ShopAmenityCategory> categories = new HashMap<>();
         private long sequence = 0L;
 
-        FakeShopDetailPersistence() {
+        FakeShopAmenityPersistence() {
             categories.put(PARKING_CATEGORY_ID, ShopAmenityCategory.reconstitute(
                 PARKING_CATEGORY_ID, Amenity.PARKING, "주차 가능", null, null, 1, true
             ));
@@ -97,151 +86,6 @@ class ShopConvenienceInfoServiceTest {
 
         @Override
         public ShopAmenityCategory saveAmenityCategory(ShopAmenityCategory amenityCategory) {
-            throw unsupported();
-        }
-
-        @Override
-        public Optional<ShopFoodTypeCategory> findFoodTypeCategoryById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public ShopFoodTypeCategory saveFoodTypeCategory(ShopFoodTypeCategory foodTypeCategory) {
-            throw unsupported();
-        }
-
-        @Override
-        public ShopFoodType saveFoodType(ShopFoodType foodType) {
-            throw unsupported();
-        }
-
-        @Override
-        public void deleteFoodTypeByShopIdAndCategoryId(Long shopId, Long shopFoodTypeCategoryId) {
-            throw unsupported();
-        }
-
-        @Override
-        public List<ShopBusinessHour> findBusinessHoursByShopId(Long shopId) {
-            throw unsupported();
-        }
-
-        @Override
-        public Optional<ShopBusinessHour> findBusinessHourById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public ShopBusinessHour saveBusinessHour(ShopBusinessHour businessHour) {
-            throw unsupported();
-        }
-
-        @Override
-        public void deleteBusinessHourById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public List<ShopBreakTime> findBreakTimesByShopId(Long shopId) {
-            throw unsupported();
-        }
-
-        @Override
-        public Optional<ShopBreakTime> findBreakTimeById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public ShopBreakTime saveBreakTime(ShopBreakTime breakTime) {
-            throw unsupported();
-        }
-
-        @Override
-        public void deleteBreakTimeById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public List<ShopClosedDay> findClosedDaysByShopId(Long shopId) {
-            throw unsupported();
-        }
-
-        @Override
-        public Optional<ShopClosedDay> findClosedDayById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public ShopClosedDay saveClosedDay(ShopClosedDay closedDay) {
-            throw unsupported();
-        }
-
-        @Override
-        public void deleteClosedDayById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public List<ShopOrderMethod> findOrderMethodsByShopId(Long shopId) {
-            throw unsupported();
-        }
-
-        @Override
-        public ShopOrderMethod saveOrderMethod(ShopOrderMethod orderMethod) {
-            throw unsupported();
-        }
-
-        @Override
-        public void deleteOrderMethodByShopIdAndOrderMethod(Long shopId, OrderMethod orderMethod) {
-            throw unsupported();
-        }
-
-        @Override
-        public ShopBannerImage saveBannerImage(ShopBannerImage bannerImage) {
-            throw unsupported();
-        }
-
-        @Override
-        public void deleteBannerImageById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public Optional<ShopPhotoCategory> findPhotoCategoryById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public ShopPhotoCategory savePhotoCategory(ShopPhotoCategory photoCategory) {
-            throw unsupported();
-        }
-
-        @Override
-        public void deletePhotoCategoryById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public Optional<ShopPhotoCategoryImage> findPhotoCategoryImageById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public ShopPhotoCategoryImage savePhotoCategoryImage(ShopPhotoCategoryImage photoCategoryImage) {
-            throw unsupported();
-        }
-
-        @Override
-        public void deletePhotoCategoryImageById(Long id) {
-            throw unsupported();
-        }
-
-        @Override
-        public void saveOwnerMessage(ShopOwnerMessageHistory ownerMessageHistory) {
-            throw unsupported();
-        }
-
-        @Override
-        public Optional<ShopOwnerMessageHistory> findLatestOwnerMessage(Long shopId) {
             throw unsupported();
         }
 
@@ -292,13 +136,13 @@ class ShopConvenienceInfoServiceTest {
     void setUp() {
         shopChangeHistorySavePort = new RecordingShopChangeHistorySavePort();
         FakeShopConvenienceInfoPersistence fakeShopConvenienceInfoPersistence = new FakeShopConvenienceInfoPersistence();
-        FakeShopDetailPersistence fakeShopDetailPersistence = new FakeShopDetailPersistence();
+        FakeShopAmenityPersistence fakeShopAmenityPersistence = new FakeShopAmenityPersistence();
         shopConvenienceInfoService = new ShopConvenienceInfoService(
             fakeShopConvenienceInfoPersistence,
             fakeShopConvenienceInfoPersistence,
             new FakeShopPersistence(),
-            fakeShopDetailPersistence,
-            fakeShopDetailPersistence,
+            fakeShopAmenityPersistence,
+            fakeShopAmenityPersistence,
             new ProhibitedWordValidator(new FakeProhibitedWordLoadPort()),
             new ShopChangeHistoryRecorder(shopChangeHistorySavePort)
         );

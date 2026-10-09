@@ -8,19 +8,19 @@ import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryUpdateCommand;
 import com.tastyhouse.application.shop.port.in.ShopPhotoCategoryUpdateUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopPhotoCategoryLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopPhotoCategorySavePort;
 
 @Service
 @Transactional
 class ShopPhotoCategoryUpdateService implements ShopPhotoCategoryUpdateUseCase {
 
-    private final ShopDetailLoadPort shopDetailLoadPort;
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopPhotoCategoryLoadPort shopPhotoCategoryLoadPort;
+    private final ShopPhotoCategorySavePort shopPhotoCategorySavePort;
 
-    public ShopPhotoCategoryUpdateService(ShopDetailLoadPort shopDetailLoadPort, ShopDetailSavePort shopDetailSavePort) {
-        this.shopDetailLoadPort = shopDetailLoadPort;
-        this.shopDetailSavePort = shopDetailSavePort;
+    public ShopPhotoCategoryUpdateService(ShopPhotoCategoryLoadPort shopPhotoCategoryLoadPort, ShopPhotoCategorySavePort shopPhotoCategorySavePort) {
+        this.shopPhotoCategoryLoadPort = shopPhotoCategoryLoadPort;
+        this.shopPhotoCategorySavePort = shopPhotoCategorySavePort;
     }
 
     @Override
@@ -28,9 +28,9 @@ class ShopPhotoCategoryUpdateService implements ShopPhotoCategoryUpdateUseCase {
         Long categoryId = command.categoryId();
         String name = command.name();
 
-        ShopPhotoCategory photoCategory = shopDetailLoadPort.findPhotoCategoryById(categoryId)
+        ShopPhotoCategory photoCategory = shopPhotoCategoryLoadPort.findPhotoCategoryById(categoryId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.SHOP_PHOTO_CATEGORY_NOT_FOUND));
         photoCategory.update(name);
-        shopDetailSavePort.savePhotoCategory(photoCategory);
+        shopPhotoCategorySavePort.savePhotoCategory(photoCategory);
     }
 }

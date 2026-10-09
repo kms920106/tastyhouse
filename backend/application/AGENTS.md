@@ -60,7 +60,7 @@
 | `commandRecordsShouldBeBoundaryTyped` batch 예외 | `.areNotAnnotatedWith(BatchApp.class)` | 출처 모듈(`batch-application`)로 판정 |
 | `BatchSchedulerRulesTest` 대상 | `@BatchApp` 클래스 | `batch-application` 출처 클래스 |
 | `RuleAnchorTest` 개수 anchor | `markerBeanCounts`·`markerUseCaseCounts` | `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥50 · admin ≥100 · ceo ≥95 · batch =7 · core =0 — 앱 마커 제거 시점 값. 유스케이스 분리 후 web ≥187 · admin ≥207 · ceo ≥188) |
-| `ServiceContextBoundaryTest#domainServices()` | 스테레오타입 없는 `..service..` POJO | 구조 조건 − `EXCLUDED_COLLABORATORS` 24개(대상 94개 불변) + 짝 `excludedCollaboratorsShouldNotBeStale` |
+| `ServiceContextBoundaryTest#domainServices()` | 스테레오타입 없는 `..service..` POJO | 구조 조건 − `EXCLUDED_COLLABORATORS` 24개(대상은 앱 마커 제거 시점 94개 — 이후 도메인 서비스가 늘어 바뀔 수 있고, 하한 71은 `domainServicesShouldExist`가 지킨다) + 짝 `excludedCollaboratorsShouldNotBeStale` |
 | testFixtures `ApplicationLayerScanAssertions` | `assertScansOnlyOwnAppAndSharedMarkers` | `assertScansApplicationLayerWithoutFilters` + 신설 `assertLoadsOnlyOwnApplicationModule(appModule)`(출처 모듈 집합 판정 — 처음엔 `application-module.properties` 표식으로 판정했으나 표식을 지우고 `ModuleOrigin`으로 교체) |
 | 출처 모듈 판정 | 없음 | 신설 testFixtures `com.tastyhouse.architecture.ModuleOrigin`(`ModuleOrigin.from(module)` 술어 — 규칙별 `FROM_BATCH_APPLICATION` 같은 지역 술어를 대체) + `ModuleOriginTest` |
 
@@ -734,7 +734,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 - **빈은 자기가 뜨는 앱 컨텍스트에서 보이지 않는 구현에 의존하지 않는다**(`coreBeansShouldOnlyDependOnCoreVisibleTypes`). 컴파일은 통과해도(인터페이스가 코어에 있으면) 그 구현이 없는 앱에서 기동이 실패한다. 판정: 모든 `@Service`/`@Component` 빈(코어·앱 모듈 모두)의 생성자 파라미터 중 `com.tastyhouse.application.` 인터페이스마다 **후보** = 그 인터페이스의 추상이 아닌 스테레오타입 구현체(같은 인터페이스를 생성자로 받는 데코레이터는 제외) + 그 타입을 반환하는 `@Bean` 메서드. 후보가 1개 이상이면, 그 빈이 뜨는 **각 앱 컨텍스트**(코어 빈 → 4앱 전부, 앱 빈 → 자기 앱. 컨텍스트 = 코어 + 그 앱 모듈)에서 보이는 후보가 0개면 위반(구현이 다른 앱 모듈에만 있어 그 앱이 기동하지 못한다), 2개 이상이면 모호 위반이다. 위반은 Set으로 모아 한 번에 보고한다. anchor: 검사한 의존 ≥ 300, 후보가 1개 이상인 의존(`RESOLVED_FLOOR`) ≥ 43. **알려진 한계**: `@Primary`/`@Qualifier`는 모델링하지 않는다. infrastructure 구현체는 import 대상이 아니어서 후보 0인 의존(persistence·벤더가 구현하는 포트)은 건너뛴다. **anchor 하한(300 / `RESOLVED_FLOOR` 43)을 낮추지 않는다** — 후보 계산이 깨지면 모든 의존이 "후보 0, 건너뜀"이 되어 규칙이 공허 통과한다.
 - **`moduleBeanCounts`·`moduleUseCaseCounts` 하한을 낮추지 않는다**(빈: web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47 / UseCase: web ≥187 · admin ≥207 · ceo ≥188 · batch =7 · core =0 — 유스케이스 분리 전에는 web ≥50 · admin ≥100 · ceo ≥95). 한 모듈의 클래스가 통째로 사라지거나 엉뚱한 모듈로 옮겨지면 깨지는 것이 의도다.
 - **`ModuleOrigin`은 main 출력만 인정하고, 나머지는 예외를 던져야 한다.** 규칙은 `ModuleOrigin.from(module)`(`DescribedPredicate`)로 대상을 고른다. 인정하는 것은 클래스 디렉터리 `.../{module}/build/classes/java/main/...`와 main jar `{module}-<버전>.jar`뿐이다. testFixtures 출력(`build/classes/java/testFixtures`, `*-test-fixtures.jar`), IntelliJ 자체 빌드 출력(`out/production/...`), opaque·형식이 깨진 URI는 전부 `IllegalStateException`이다. 모르는 형태에서 빈 값이나 기본값을 돌려주면, 출처로 고르는 규칙(batch 선별 등)이 대상을 잃고 공허하게 통과한다. **그래서 아키텍처 테스트는 Gradle로 실행한다** — IntelliJ 자체 빌드로 돌리면 `out/production/...` 출력 때문에 예외로 실패한다. IntelliJ에서는 Settings → Build Tools → Gradle → "Build and run using: Gradle"(테스트 실행도 Gradle)로 둔다. 이 예외를 피하려고 `out/production`을 인정하도록 넓히지 않는다.
-- **`EXCLUDED_COLLABORATORS` 24개의 근거** — 모든 서비스가 `@Service`를 달게 되어 "스테레오타입이 없으면 도메인 서비스"라는 과거 술어를 쓸 수 없다. 그래서 구조 조건(`..service..`, 인터페이스 아님, `@Configuration` 아님, `port.in` 구현 아님 — ~~`*CommandService`/`*QueryService` 아님~~ 접미어 절은 유스케이스 분리로 삭제됐다. 유스케이스 서비스는 전부 `port.in`을 구현하므로 그 절이 하던 일은 마지막 조건이 한다)으로 고르고, **원래부터 스테레오타입이 있어 검사 대상이 아니던 협력 빈 24개**(Executor 6 · `*SocialLoginService` 4 · Validator 7 · Reader 1 · `OwnedShopIdProvider` · `MemberAuthService` · `CredentialLoginService` · `PhoneLoginService` · `AuthPasswordResetService` · `AdminDongSyncRunner`)를 FQN으로 뺐다. 결과 대상 집합은 (앱 마커 제거 시점에) 이전과 같은 94개였고 `SEALED_VIOLATIONS`는 불변이다. 유스케이스 분리로 새로 생긴 `{도메인}{명사}Reader`·`Validator`(예: ceo `ShopNoticeOwnerReader`·`ShopContentBoardOwnerReader`·`ShopBusinessHourOwnerValidator`)는 이 목록에 넣지 않았다 — 그래서 구조적 도메인 서비스로서 경계 검사를 받는다. `SEALED_VIOLATIONS`의 항목 수는 그대로이고, ceo 도메인 서비스 `ShopRequestCancelService`가 `ShopRequestCancellationService`로 개명되며 FQN만 바뀌었다(아래 "유스케이스 서비스 1:1 규칙 4종"). 이 목록에서 항목을 빼면 그 협력 빈이 처음으로 경계 검사를 받아 봉인 밖 위반이 드러날 수 있다 — 빼려면 위반부터 확인한다. 새 협력 빈을 만들 때는 도메인 서비스인지 협력 빈인지 판단해 넣을지 정한다. 낡은 항목은 `excludedCollaboratorsShouldNotBeStale`이 잡는다 — **알려진 한계**: 이 짝 테스트는 더 이상 존재하지 않거나 구조 조건에 맞지 않게 된 항목만 잡고, "목록에서 빼도 경계 규칙을 통과할 항목"은 잡지 못한다. Reader 1개는 `ShopFoodTypeCategoryReader`, Validator는 7개다(합계 24 — `MemberGradeService`는 간접 경로 이관으로 삭제돼 목록에서 빠졌고, 위임만 하던 `StorePriceVerificationReader`·`StorePriceVerificationOwnerReader`·`MemberReviewService`·`MemberShopService`는 위임 래퍼 제거로 삭제돼 28 → 24가 됐다 — `docs/tasks/delegation-wrapper-removal/backend.md`). **이 술어는 사실상 "구조 + 이름 목록"이다.**
+- **`EXCLUDED_COLLABORATORS` 24개의 근거** — 모든 서비스가 `@Service`를 달게 되어 "스테레오타입이 없으면 도메인 서비스"라는 과거 술어를 쓸 수 없다. 그래서 구조 조건(`..service..`, 인터페이스 아님, `@Configuration` 아님, `port.in` 구현 아님 — ~~`*CommandService`/`*QueryService` 아님~~ 접미어 절은 유스케이스 분리로 삭제됐다. 유스케이스 서비스는 전부 `port.in`을 구현하므로 그 절이 하던 일은 마지막 조건이 한다)으로 고르고, **원래부터 스테레오타입이 있어 검사 대상이 아니던 협력 빈 24개**(Executor 6 · `*SocialLoginService` 4 · Validator 7 · Reader 1 · `OwnedShopIdProvider` · `MemberAuthService` · `CredentialLoginService` · `PhoneLoginService` · `AuthPasswordResetService` · `AdminDongSyncRunner`)를 FQN으로 뺐다. 결과 대상 집합은 (앱 마커 제거 시점에) 이전과 같은 94개였고 `SEALED_VIOLATIONS`는 불변이다. 유스케이스 분리로 새로 생긴 `{도메인}{명사}Reader`·`Validator`(예: ceo `ShopNoticeOwnerReader`·`ShopContentBoardOwnerReader`·`ShopBusinessHourOwnerValidator`)는 이 목록에 넣지 않았다 — 그래서 구조적 도메인 서비스로서 경계 검사를 받는다. `ProductAvailabilityService`를 나누며 생긴 `ProductSoldOutUntilValidator`도 넣지 않았다 — 선례 `ProductNameValidator`가 목록에 있는 것은 앱 마커 제거 당시 이미 스테레오타입이 있던 협력 빈이었기 때문이고, 새 협력 빈은 경계 검사를 받게 두며 목록은 줄어들기만 해야 한다. `SEALED_VIOLATIONS`의 항목 수는 그대로이고, ceo 도메인 서비스 `ShopRequestCancelService`가 `ShopRequestCancellationService`로 개명되며 FQN만 바뀌었다(아래 "유스케이스 서비스 1:1 규칙 4종"). 이 목록에서 항목을 빼면 그 협력 빈이 처음으로 경계 검사를 받아 봉인 밖 위반이 드러날 수 있다 — 빼려면 위반부터 확인한다. 새 협력 빈을 만들 때는 도메인 서비스인지 협력 빈인지 판단해 넣을지 정한다. 낡은 항목은 `excludedCollaboratorsShouldNotBeStale`이 잡는다 — **알려진 한계**: 이 짝 테스트는 더 이상 존재하지 않거나 구조 조건에 맞지 않게 된 항목만 잡고, "목록에서 빼도 경계 규칙을 통과할 항목"은 잡지 못한다. Reader 1개는 `ShopFoodTypeCategoryReader`, Validator는 7개다(합계 24 — `MemberGradeService`는 간접 경로 이관으로 삭제돼 목록에서 빠졌고, 위임만 하던 `StorePriceVerificationReader`·`StorePriceVerificationOwnerReader`·`MemberReviewService`·`MemberShopService`는 위임 래퍼 제거로 삭제돼 28 → 24가 됐다 — `docs/tasks/delegation-wrapper-removal/backend.md`). **이 술어는 사실상 "구조 + 이름 목록"이다.**
 - **앱 테스트 클래스패스의 `com.tastyhouse.application` 클래스는 코어와 자기 앱 모듈에서만 와야 한다**(각 앱 `ApplicationModuleClasspathTest` → `assertLoadsOnlyOwnApplicationModule(ModuleOrigin.{WEB,ADMIN,CEO,BATCH})`, 출처 모듈 집합 == `{application, 자기 앱 모듈}`). 스캔에 필터가 없으므로 다른 앱 모듈이 의존에 섞이면 그 앱의 빈이 전부 뜬다("클래스패스 존재 = 활성화"). 판정은 클래스 출처(`ModuleOrigin`)로 하며, 앱 모듈에 표식 리소스(과거 `META-INF/tastyhouse/application-module.properties`)를 되살리지 않는다. 판정 대상에서 자기 앱 모듈이 빠져도 실패하므로 공허 통과가 없다.
 - **같은 FQCN이 application 계층 5모듈 중 두 곳 이상에 있으면 안 된다**(`SplitPackageUniquenessTest`). 패키지를 유지한 split package라서 같은 FQCN이 core와 앱 모듈에 함께 생겨도 컴파일은 통과하고, 실행 시 클래스패스 순서로 한쪽이 조용히 가려진다. ArchUnit은 같은 이름의 클래스를 하나로 합쳐 보므로 잡지 못한다. 그래서 이 검사는 5모듈의 소스 경로로 한다(스캔 소스 ≥1400 anchor).
 - 각 규칙은 위반 probe로 실패를 확인했다. 코어가 `MailSender`를 import하면 컴파일 에러인 것도 확인했다.
@@ -962,7 +962,7 @@ Command record는 경계 타입만 싣는다. carve-out 3건을 **그대로 유�
 | record | 좁은 시그니처가 제외하는 것 | 투영 호출부 |
 |---|---|---|
 | `ReviewDetailResult` | 1:N인 이미지·태그 | `ReviewQueryAdapter` |
-| `LatestReviewListItemResult` | 1:N인 이미지(`imageUrls`를 빈 목록으로 채운다) | `ReviewQueryAdapter`(6개 쿼리) |
+| `LatestReviewListItemResult` | 1:N인 이미지(`imageUrls`를 빈 목록으로 채운다) | `ReviewFeedQueryAdapter#selectLatestReviews`(투영 1곳. large-class-split 덩어리 04 이전에는 `ReviewQueryAdapter`의 6개 쿼리가 같은 투영을 각자 복제했다) |
 | `ReviewManagementDetailResult` | 1:N인 이미지·태그 | `ReviewManagementQueryAdapter#findReviewManagementDetail` |
 
 세 record는 canonical 생성자 외에 **QueryDSL 투영 전용 생성자**를 하나 더 갖는다. DAO가
@@ -1256,7 +1256,7 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 
 **대상**: `backend/infrastructure/jpa/**/*.java` 전체 · `backend/application/src/main/java/com/tastyhouse/application/**/port/out/`
 
-리터럴 `"COMPLETED"`는 도메인 enum 상수가 개명·삭제돼도 컴파일되고 조회가 **조용히 0건**이 된다. ~~그래서 `XxxCodes` 복제본을 거쳤다~~ **(번복됨)** 지금은 application이 도메인 enum의 `name()`을 포트 인자로 넘기므로, 상수가 개명·삭제되면 **application 호출부가 컴파일 에러**가 난다(위 "enum 비교값 전달 규칙"). persistence에 enum 상수 리터럴이나 복제 enum을 다시 들이지 않는다. **(persistence domain 재허용 후)** 쓰기 어댑터 `XxxPersistenceAdapter`은 도메인 enum을 참조할 수 있으므로 비교값을 `XxxStatus.X.name()`으로 만든다(리터럴 금지는 그대로). 조회 DAO는 여전히 포트 인자로 받는다. 옵션 가용성 결과의 `"NORMAL"`/`"COMMON"` 리터럴 4곳도 같은 이유로 `ProductOwnerQueryPort#findProductOptionAvailability(condition, normalOptionType, commonOptionType)` 인자로 바꿨다. 잔존 검사: `grep -rnE '"[A-Z][A-Z_]{2,}"' --include='*.java' infrastructure/jpa/src/main | grep -vE '@Table|@Column|@Index|name = "|columnDefinition|columnList'` → 0건.
+리터럴 `"COMPLETED"`는 도메인 enum 상수가 개명·삭제돼도 컴파일되고 조회가 **조용히 0건**이 된다. ~~그래서 `XxxCodes` 복제본을 거쳤다~~ **(번복됨)** 지금은 application이 도메인 enum의 `name()`을 포트 인자로 넘기므로, 상수가 개명·삭제되면 **application 호출부가 컴파일 에러**가 난다(위 "enum 비교값 전달 규칙"). persistence에 enum 상수 리터럴이나 복제 enum을 다시 들이지 않는다. **(persistence domain 재허용 후)** 쓰기 어댑터 `XxxPersistenceAdapter`은 도메인 enum을 참조할 수 있으므로 비교값을 `XxxStatus.X.name()`으로 만든다(리터럴 금지는 그대로). 조회 DAO는 여전히 포트 인자로 받는다. 옵션 가용성 결과의 `"NORMAL"`/`"COMMON"` 리터럴 4곳도 같은 이유로 `ProductAvailabilityQueryPort#findProductOptionAvailability(condition, normalOptionType, commonOptionType)` 인자로 바꿨다. 잔존 검사: `grep -rnE '"[A-Z][A-Z_]{2,}"' --include='*.java' infrastructure/jpa/src/main | grep -vE '@Table|@Column|@Index|name = "|columnDefinition|columnList'` → 0건.
 
 #### 정산이 limit 밖 행의 `memberId`까지 검증하는 것을 "불필요한 변환"이라며 줄이지 않는다
 
@@ -1406,7 +1406,7 @@ domain의 write 포트를 주입하지 않는다. 그 결과 아래가 **구조�
 
 **빈 순환 참조 회피**: 한 화면이 다른 컨텍스트의 데이터를 곁들여 보여줄 때 그쪽 QueryService를
 경유하지 않고 **QueryPort를 직접 주입**한다 — 서비스를 경유하면 상대 쪽이 이 서비스를 다시 주입해야
-해 순환이 생긴다. 표현 목적 조회는 DAO 계층에서 교차하는 것이 옳다(`ProductReviewsByRatingQueryService`가 `ReviewQueryPort`를,
+해 순환이 생긴다. 표현 목적 조회는 DAO 계층에서 교차하는 것이 옳다(`ProductReviewsByRatingQueryService`가 `ReviewFeedQueryPort`를,
 `ReviewProductQueryService`가 `ProductQueryPort`를 직접 주입하는 것이 실제 사례 — 유스케이스 분리 전에는 `ProductQueryService` ↔ `ReviewQueryService`).
 
 ### 도메인 계산 입력은 표현용 투영으로 대체하지 않는다
@@ -1914,13 +1914,21 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 
 #### 부분실패 판정은 "요청 전체를 반영한 뒤의 최종 상태" 기준
 
-**대상**: `product/service/ProductAvailabilityService.java`
+**대상**: `backend/ceo-application/src/main/java/com/tastyhouse/application/product/service/ProductAvailabilityService.java`(메뉴 — `hideProducts`·`markProductsSoldOut`·`releaseProducts`·`changeProductsSoldOutUntil`), `backend/ceo-application/src/main/java/com/tastyhouse/application/product/service/ProductOptionAvailabilityService.java`(옵션 — `hideOptions`·`markOptionsSoldOut`·`releaseOptions`·`changeOptionsSoldOutUntil`), 품절 기간 검증 `backend/ceo-application/src/main/java/com/tastyhouse/application/product/service/ProductSoldOutUntilValidator.java` → `validate`
+
+| 항목 | before | after |
+|---|---|---|
+| 클래스 | `ProductAvailabilityService` 한 클래스(메뉴·옵션·기간 검증, 생성자 의존 10개) | 메뉴 `ProductAvailabilityService`(의존 3개) / 옵션 `ProductOptionAvailabilityService`(의존 10개) / 기간 검증 `ProductSoldOutUntilValidator` |
+| 옵션 유스케이스 4개의 주입 | `ProductAvailabilityService` | `ProductOptionAvailabilityService` |
+| 동작 | — | 변경 없음 — 메서드 본문을 글자 그대로 옮겼다(`validateSoldOutUntil(` → `productSoldOutUntilValidator.validate(` 4곳만 다르다) |
 
 메뉴·옵션의 품절·숨김 전이에서 **하나씩 순차로 검사하면 요청 배열의 순서에 따라 결과가 갈린다.** 노출 메뉴가 2개일 때 둘 다 숨김 요청하면 순차 검사는 첫 건을 통과시키고 두 번째만 실패시키는데, 어느 것이 통과할지가 배열 순서에 좌우된다. **최종 상태 기준이면 "노출 메뉴가 0개가 되므로 마지막 1개는 남긴다"는 판정이 결정적이다.**
 
 이 제약들(노출 메뉴 ≥1 · 추천 메뉴 ≥1 · 옵션 `minSelect` 잔여 개수)이 api 모듈이 아니라 도메인에 있는 이유는 **애그리거트 불변식이고, ceo/admin 두 모듈에 흩어지면 한쪽만 고쳐지기 때문**이다.
 
-**이 서비스는 shop 컨텍스트를 참조하지 않는다.** 품절 기간 기본값("익일 가게 오픈 시간") 산출은 `ShopNextOpenTimeCalculator`(shop 컨텍스트)가 담당하고, ceo-api의 command service가 두 서비스를 각각 주입해 조립한다 — `ShopBusinessHour`를 직접 참조하면 컨텍스트 경계 위반이다.
+**두 서비스는 shop 컨텍스트를 참조하지 않는다.** 품절 기간 기본값("익일 가게 오픈 시간") 산출은 `ShopNextOpenTimeCalculator`(shop 컨텍스트)가 담당하고, 품절 유스케이스 서비스(`ProductSoldOutOwnerService`·`ProductOptionSoldOutService`)가 그 계산기와 메뉴·옵션 서비스를 각각 주입해 조립한다 — `ShopBusinessHour`를 직접 참조하면 컨텍스트 경계 위반이다.
+
+**품절 기간 검증(현재+30분 이상·7일 이하)을 `ProductSoldOutUntilValidator`로 따로 둔 이유**는 메뉴와 옵션 두 서비스가 같은 규칙을 써야 하기 때문이다 — 각 서비스에 복제하면 한쪽만 고쳐져 메뉴와 옵션의 허용 기간이 갈린다. `CeoErrorCode`를 던지므로 domain이 아니라 이 모듈에 둔다.
 
 #### 옵션그룹 합치기 — 기준 그룹 불변·흡수 그룹은 숨김
 
@@ -2046,9 +2054,9 @@ domain import는 `domain.exception` 602건 · `domain.shared.page` 43건이고 *
 - `cupDepositPolicy` — 순수 계산기인데도 **빈으로 두는 이유는 요율을 단 한 곳에 두기 위함**이다. 점주 설정(ceo)·손님 메뉴판(web)·주문 금액 확정(order) 세 경로가 **같은 인스턴스를 주입받아야** "화면 금액과 결제 금액이 다른" 사고가 구조적으로 불가능해진다.
 - `productDeletionService` — 삭제에도 숨김과 **같은 불변식**(노출 메뉴 ≥1 등)을 적용한다. **숨김만 막고 삭제를 열어두면 점주가 삭제로 우회해 빈 메뉴판을 만들 수 있다.**
 - `productSortService` — `sort` 값을 클라이언트에서 받지 않고 **순서 있는 id 배열만 받아 서버가 0..N-1로 정규화**한다.
-- `productOptionGroupLinkService` — **옵션그룹은 단일 가게에만 속한다**는 불변식을 강제해, 소유권 판정에서 ANY/ALL 구분이 사라지게 한다. 이 불변식이 `ProductQueryAdapter#findLinkedProductsByShop`의 단일 조회를 성립시킨다.
+- `productOptionGroupLinkService` — **옵션그룹은 단일 가게에만 속한다**는 불변식을 강제해, 소유권 판정에서 ANY/ALL 구분이 사라지게 한다. 이 불변식이 `ProductOptionGroupQueryAdapter#findLinkedProductsByShop`(분할 전 `ProductQueryAdapter`)의 단일 조회를 성립시킨다.
 - `productOptionGroupMergeService` — 링크 재배치는 `ProductOptionGroupLinkService#relink`에 위임한다. UNIQUE 충돌 처리와 sort 불변식이 그 클래스 소유로 남아야 `renumber`를 공개하지 않아도 된다.
-- `productExposureService` — 요일 묶음과 개별 요일의 **혼용을 금지한다.** 그 조합을 저장할 수 없게 하면 SQL 술어(`ProductQueryAdapter#exposedNow`)와 계산기(`ProductExposureCalculator`)가 갈릴 여지가 없다.
+- `productExposureService` — 요일 묶음과 개별 요일의 **혼용을 금지한다.** 그 조합을 저장할 수 없게 하면 SQL 술어(`ProductStorefrontQueryAdapter#exposedNow` — 분할 전 `ProductQueryAdapter`)와 계산기(`ProductExposureCalculator`)가 갈릴 여지가 없다.
 - `productNutritionService` — 영양성분과 알레르기를 **한 서비스가 소유한다.** 나누면 "영양성분만 저장되고 알레르기는 이전 값이 남은" 중간 상태가 손님 화면에 **잘못된 알레르기 표시**로 노출된다. 승인 워크플로가 없는 것은 점주(가맹본사)만이 아는 사실 정보여서 관리자가 검증할 근거가 없기 때문이다.
 - `productPriceService` — **전체 교체(PUT) 의미론**이라 정렬·가격명 중복 같은 컬렉션 단위 불변식을 한 번에 판정한다. `sort=0` 행의 배달가를 `PRODUCT.original_price`에 **동기화**해 그 컬럼을 읽는 기존 수십 경로(주문·검색·오늘의할인·목록)의 동작을 그대로 유지한다. `StorePriceVerificationPort`를 받는 이유는 가격 변경으로 배달가 > 매장가가 되면 **그 자리에서** 가게 인증을 내려야 하기 때문이다 — 배치로 미루면 그 사이 손님이 잘못된 뱃지를 본다.
 

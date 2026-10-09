@@ -5,16 +5,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeUnassignCommand;
 import com.tastyhouse.application.shop.port.in.ShopFoodTypeUnassignUseCase;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
+import com.tastyhouse.application.shop.port.out.write.ShopFoodTypeSavePort;
 
 @Service
 @Transactional
 class ShopFoodTypeUnassignService implements ShopFoodTypeUnassignUseCase {
 
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopFoodTypeSavePort shopFoodTypeSavePort;
 
-    public ShopFoodTypeUnassignService(ShopDetailSavePort shopDetailSavePort) {
-        this.shopDetailSavePort = shopDetailSavePort;
+    public ShopFoodTypeUnassignService(ShopFoodTypeSavePort shopFoodTypeSavePort) {
+        this.shopFoodTypeSavePort = shopFoodTypeSavePort;
     }
 
     @Override
@@ -22,6 +22,6 @@ class ShopFoodTypeUnassignService implements ShopFoodTypeUnassignUseCase {
         Long id = command.shopId();
         Long foodTypeCategoryId = command.foodTypeCategoryId();
 
-        shopDetailSavePort.deleteFoodTypeByShopIdAndCategoryId(id, foodTypeCategoryId);
+        shopFoodTypeSavePort.deleteFoodTypeByShopIdAndCategoryId(id, foodTypeCategoryId);
     }
 }

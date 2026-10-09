@@ -21,9 +21,9 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.port.out.write.ShopBookmarkLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopBookmarkSavePort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailSavePort;
 import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopOwnerMessageHistoryLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopOwnerMessageHistorySavePort;
 import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 import com.tastyhouse.application.shop.port.out.write.StationLoadPort;
 
@@ -34,8 +34,8 @@ public class ShopLifecycleService {
 
     private final ShopLoadPort shopLoadPort;
     private final ShopSavePort shopSavePort;
-    private final ShopDetailLoadPort shopDetailLoadPort;
-    private final ShopDetailSavePort shopDetailSavePort;
+    private final ShopOwnerMessageHistoryLoadPort shopOwnerMessageHistoryLoadPort;
+    private final ShopOwnerMessageHistorySavePort shopOwnerMessageHistorySavePort;
     private final ShopBookmarkLoadPort shopBookmarkLoadPort;
     private final ShopBookmarkSavePort shopBookmarkSavePort;
     private final StationLoadPort stationLoadPort;
@@ -47,8 +47,8 @@ public class ShopLifecycleService {
     public ShopLifecycleService(
         ShopLoadPort shopLoadPort,
         ShopSavePort shopSavePort,
-        ShopDetailLoadPort shopDetailLoadPort,
-        ShopDetailSavePort shopDetailSavePort,
+        ShopOwnerMessageHistoryLoadPort shopOwnerMessageHistoryLoadPort,
+        ShopOwnerMessageHistorySavePort shopOwnerMessageHistorySavePort,
         ShopBookmarkLoadPort shopBookmarkLoadPort,
         ShopBookmarkSavePort shopBookmarkSavePort,
         StationLoadPort stationLoadPort,
@@ -59,8 +59,8 @@ public class ShopLifecycleService {
     ) {
         this.shopLoadPort = shopLoadPort;
         this.shopSavePort = shopSavePort;
-        this.shopDetailLoadPort = shopDetailLoadPort;
-        this.shopDetailSavePort = shopDetailSavePort;
+        this.shopOwnerMessageHistoryLoadPort = shopOwnerMessageHistoryLoadPort;
+        this.shopOwnerMessageHistorySavePort = shopOwnerMessageHistorySavePort;
         this.shopBookmarkLoadPort = shopBookmarkLoadPort;
         this.shopBookmarkSavePort = shopBookmarkSavePort;
         this.stationLoadPort = stationLoadPort;
@@ -196,13 +196,13 @@ public class ShopLifecycleService {
         prohibitedWordValidator.validate(message);
 
         String previousValue = describeIntroduction(
-            shopDetailLoadPort.findLatestOwnerMessage(shopId)
+            shopOwnerMessageHistoryLoadPort.findLatestOwnerMessage(shopId)
                 .map(ShopOwnerMessageHistory::getMessage)
                 .orElse(null)
         );
 
         ShopOwnerMessageHistory ownerMessageHistory = ShopOwnerMessageHistory.of(ShopId.of(shopId), message);
-        shopDetailSavePort.saveOwnerMessage(ownerMessageHistory);
+        shopOwnerMessageHistorySavePort.saveOwnerMessage(ownerMessageHistory);
 
         shopChangeHistoryRecorder.record(
             ShopId.of(shopId),

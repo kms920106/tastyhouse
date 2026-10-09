@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.domain.shared.model.ApprovalStatus;
 import com.tastyhouse.application.product.port.in.ProductImageChangeRequestListQueryUseCase;
+import com.tastyhouse.application.product.port.out.ProductApprovalRequestManagementQueryPort;
 import com.tastyhouse.application.product.port.out.ProductImageChangeRequestResult;
-import com.tastyhouse.application.product.port.out.ProductManagementQueryPort;
 import com.tastyhouse.application.shared.port.out.page.PageQuery;
 import com.tastyhouse.application.shared.port.out.page.PageResult;
 
@@ -14,10 +14,12 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 @Transactional(readOnly = true)
 class ProductImageChangeRequestListQueryService implements ProductImageChangeRequestListQueryUseCase {
 
-    private final ProductManagementQueryPort productManagementQueryPort;
+    private final ProductApprovalRequestManagementQueryPort productApprovalRequestManagementQueryPort;
 
-    public ProductImageChangeRequestListQueryService(ProductManagementQueryPort productManagementQueryPort) {
-        this.productManagementQueryPort = productManagementQueryPort;
+    public ProductImageChangeRequestListQueryService(
+        ProductApprovalRequestManagementQueryPort productApprovalRequestManagementQueryPort
+    ) {
+        this.productApprovalRequestManagementQueryPort = productApprovalRequestManagementQueryPort;
     }
 
     @Override
@@ -28,7 +30,7 @@ class ProductImageChangeRequestListQueryService implements ProductImageChangeReq
     ) {
         String approvalStatus = demoteStatus(status);
 
-        return productManagementQueryPort.findImageChangeRequestPage(approvalStatus, PageQuery.of(page, size));
+        return productApprovalRequestManagementQueryPort.findImageChangeRequestPage(approvalStatus, PageQuery.of(page, size));
     }
 
     private String demoteStatus(String status) {

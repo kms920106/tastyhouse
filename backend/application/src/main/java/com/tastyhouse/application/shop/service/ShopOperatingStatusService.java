@@ -20,8 +20,9 @@ import com.tastyhouse.domain.shop.model.ShopOrderMethodAvailability;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
-import com.tastyhouse.application.shop.port.out.write.ShopDetailLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopBusinessHourLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
+import com.tastyhouse.application.shop.port.out.write.ShopOrderMethodLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopSuspensionLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureLoadPort;
 
@@ -31,20 +32,23 @@ public class ShopOperatingStatusService {
     private static final boolean PUBLIC_HOLIDAY = false;
 
     private final ShopLoadPort shopLoadPort;
-    private final ShopDetailLoadPort shopDetailLoadPort;
+    private final ShopBusinessHourLoadPort shopBusinessHourLoadPort;
+    private final ShopOrderMethodLoadPort shopOrderMethodLoadPort;
     private final ShopTemporaryClosureLoadPort shopTemporaryClosureLoadPort;
     private final ShopSuspensionLoadPort shopSuspensionLoadPort;
     private final ShopOperatingStatusCalculator shopOperatingStatusCalculator;
 
     public ShopOperatingStatusService(
         ShopLoadPort shopLoadPort,
-        ShopDetailLoadPort shopDetailLoadPort,
+        ShopBusinessHourLoadPort shopBusinessHourLoadPort,
+        ShopOrderMethodLoadPort shopOrderMethodLoadPort,
         ShopTemporaryClosureLoadPort shopTemporaryClosureLoadPort,
         ShopSuspensionLoadPort shopSuspensionLoadPort,
         ShopOperatingStatusCalculator shopOperatingStatusCalculator
     ) {
         this.shopLoadPort = shopLoadPort;
-        this.shopDetailLoadPort = shopDetailLoadPort;
+        this.shopBusinessHourLoadPort = shopBusinessHourLoadPort;
+        this.shopOrderMethodLoadPort = shopOrderMethodLoadPort;
         this.shopTemporaryClosureLoadPort = shopTemporaryClosureLoadPort;
         this.shopSuspensionLoadPort = shopSuspensionLoadPort;
         this.shopOperatingStatusCalculator = shopOperatingStatusCalculator;
@@ -76,7 +80,7 @@ public class ShopOperatingStatusService {
         ShopOperatingStatusAggregates aggregates = loadAggregates(shopId);
 
         Map<OrderMethod, ShopOperatingStatusResult> availabilities = new LinkedHashMap<>();
-        for (ShopOrderMethod assigned : shopDetailLoadPort.findOrderMethodsByShopId(shopId)) {
+        for (ShopOrderMethod assigned : shopOrderMethodLoadPort.findOrderMethodsByShopId(shopId)) {
             OrderMethod orderMethod = assigned.getOrderMethod();
             availabilities.put(orderMethod, shopOperatingStatusCalculator.calculate(
                 aggregates.toContext(shop, orderMethod, PUBLIC_HOLIDAY, now)
@@ -110,9 +114,9 @@ public class ShopOperatingStatusService {
 
     private ShopOperatingStatusAggregates loadAggregates(Long shopId) {
         return ShopOperatingStatusAggregates.of(
-            shopDetailLoadPort.findBusinessHoursByShopId(shopId),
-            shopDetailLoadPort.findBreakTimesByShopId(shopId),
-            shopDetailLoadPort.findClosedDaysByShopId(shopId),
+            shopBusinessHourLoadPort.findBusinessHoursByShopId(shopId),
+            shopBusinessHourLoadPort.findBreakTimesByShopId(shopId),
+            shopBusinessHourLoadPort.findClosedDaysByShopId(shopId),
             shopTemporaryClosureLoadPort.findByShopId(shopId),
             shopSuspensionLoadPort.findByShopId(shopId)
         );

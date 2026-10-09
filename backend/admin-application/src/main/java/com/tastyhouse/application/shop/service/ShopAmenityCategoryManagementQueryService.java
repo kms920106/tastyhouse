@@ -7,20 +7,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tastyhouse.application.shop.port.in.ShopAmenityCategoryManagementQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopAmenityCategoryResult;
-import com.tastyhouse.application.shop.port.out.ShopManagementQueryPort;
+import com.tastyhouse.application.shop.port.out.ShopClassificationManagementQueryPort;
 
 @Service
 @Transactional(readOnly = true)
 class ShopAmenityCategoryManagementQueryService implements ShopAmenityCategoryManagementQueryUseCase {
 
-    private final ShopManagementQueryPort shopManagementQueryPort;
+    private final ShopClassificationManagementQueryPort shopClassificationManagementQueryPort;
 
-    public ShopAmenityCategoryManagementQueryService(ShopManagementQueryPort shopManagementQueryPort) {
-        this.shopManagementQueryPort = shopManagementQueryPort;
+    public ShopAmenityCategoryManagementQueryService(ShopClassificationManagementQueryPort shopClassificationManagementQueryPort) {
+        this.shopClassificationManagementQueryPort = shopClassificationManagementQueryPort;
     }
 
     @Override
     public List<ShopAmenityCategoryResult> getAmenityCategories() {
-        return shopManagementQueryPort.findAllAmenityCategories();
+        return shopClassificationManagementQueryPort.findAllAmenityCategories();
     }
 }

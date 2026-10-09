@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.review.model.ReviewSortType;
 import com.tastyhouse.application.review.port.in.ReviewShopByRatingQueryUseCase;
 import com.tastyhouse.application.review.port.out.LatestReviewListItemResult;
-import com.tastyhouse.application.review.port.out.ReviewQueryPort;
+import com.tastyhouse.application.review.port.out.ReviewFeedQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewSortSpec;
 import com.tastyhouse.application.review.port.out.ReviewStatisticsQueryPort;
 import com.tastyhouse.application.review.port.out.ReviewsByRatingResult;
@@ -22,16 +22,16 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 @Transactional(readOnly = true)
 class ReviewShopByRatingQueryService implements ReviewShopByRatingQueryUseCase {
 
-    private final ReviewQueryPort reviewQueryPort;
+    private final ReviewFeedQueryPort reviewFeedQueryPort;
     private final ReviewStatisticsQueryPort reviewStatisticsQueryPort;
     private final ShopReviewDisplaySettingQueryPort shopReviewDisplaySettingQueryPort;
 
     public ReviewShopByRatingQueryService(
-        ReviewQueryPort reviewQueryPort,
+        ReviewFeedQueryPort reviewFeedQueryPort,
         ReviewStatisticsQueryPort reviewStatisticsQueryPort,
         ShopReviewDisplaySettingQueryPort shopReviewDisplaySettingQueryPort
     ) {
-        this.reviewQueryPort = reviewQueryPort;
+        this.reviewFeedQueryPort = reviewFeedQueryPort;
         this.reviewStatisticsQueryPort = reviewStatisticsQueryPort;
         this.shopReviewDisplaySettingQueryPort = shopReviewDisplaySettingQueryPort;
     }
@@ -46,11 +46,11 @@ class ReviewShopByRatingQueryService implements ReviewShopByRatingQueryUseCase {
     ) {
         Map<Integer, List<LatestReviewListItemResult>> reviewsByRating = new HashMap<>();
         for (int rating = 1; rating <= 5; rating++) {
-            reviewsByRating.put(rating, reviewQueryPort.findReviewsByShopIdAndRating(shopId, rating, 5));
+            reviewsByRating.put(rating, reviewFeedQueryPort.findReviewsByShopIdAndRating(shopId, rating, 5));
         }
 
         PageQuery pageQuery = PageQuery.of(page, size);
-        PageResult<LatestReviewListItemResult> allReviewsPage = reviewQueryPort.findLatestReviewsByShopId(
+        PageResult<LatestReviewListItemResult> allReviewsPage = reviewFeedQueryPort.findLatestReviewsByShopId(
             shopId,
             null,
             pageQuery,
