@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "persistence.banner.write.provider",
+      "type": "java.lang.String",
+      "description": "banner 쓰기 포트를 구현할 영속 기술. jpa 또는 mybatis.",
+      "defaultValue": "jpa"
+    }
+  ]
+}
