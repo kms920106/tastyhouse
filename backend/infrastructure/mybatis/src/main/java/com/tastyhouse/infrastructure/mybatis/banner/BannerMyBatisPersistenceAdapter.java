@@ -3,7 +3,6 @@ package com.tastyhouse.infrastructure.mybatis.banner;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.banner.model.Banner;
@@ -12,7 +11,6 @@ import com.tastyhouse.application.banner.port.out.write.BannerLoadPort;
 import com.tastyhouse.application.banner.port.out.write.BannerSavePort;
 
 @Repository
-@ConditionalOnProperty(name = "persistence.banner.write.provider", havingValue = "mybatis")
 class BannerMyBatisPersistenceAdapter implements BannerLoadPort, BannerSavePort {
 
     private final BannerMyBatisMapper bannerMyBatisMapper;

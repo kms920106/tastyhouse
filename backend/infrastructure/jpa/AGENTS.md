@@ -9,7 +9,7 @@
 > | Gradle 좌표 / 디렉터리 | `:infrastructure:persistence` / `backend/infrastructure/persistence/` | **`:infrastructure:jpa` / `backend/infrastructure/jpa/`** |
 > | 자바 패키지 루트 | `com.tastyhouse.infrastructure.persistence..` | **`com.tastyhouse.infrastructure.jpa..`** — 하위 `<ctx>/persistence`·`<ctx>/query`·`config`·`shared.*` 구조는 불변 |
 > | 진입 설정 클래스 | `InfrastructurePersistenceConfig` | **`JpaModuleConfig`**(애노테이션·package-private 동일) |
-> | 설정 yml | `application-persistence.yml` 한 벌(datasource + `spring.jpa.*` + provider 키) | **`application-jpa.yml`**(이 모듈 — `spring.jpa.*`·hibernate 로그 레벨) + `application-persistence.yml`(persistence 조립 모듈 — datasource·`spring.sql.init`·provider 키, `application-jpa.yml`을 import. **mysql 모듈 분리 후** datasource·`spring.sql.init`은 `infrastructure:mysql`의 `application-mysql.yml`로 갔다) |
+> | 설정 yml | `application-persistence.yml` 한 벌(datasource + `spring.jpa.*` + provider 키) | **`application-jpa.yml`**(이 모듈 — `spring.jpa.*`·hibernate 로그 레벨) + `application-persistence.yml`(persistence 조립 모듈 — datasource·`spring.sql.init`·provider 키, `application-jpa.yml`을 import. **mysql 모듈 분리 후** datasource·`spring.sql.init`은 `infrastructure:mysql`의 `application-mysql.yml`로 갔다. provider 키는 **(번복됨 — banner-write-primary)** 삭제됐다) |
 > | MySQL 드라이버 | 이 모듈 `runtimeOnly` | **persistence 조립 모듈**이 소유(JPA·MyBatis 공용). **mysql 모듈 분리 후** DB 연결 코어 `infrastructure:mysql`이 소유하고 persistence가 그것을 조립한다 |
 > | 앱 4개 의존 | `runtimeOnly ':infrastructure:persistence'` | **불변** — persistence가 이 모듈을 `runtimeOnly`로 묶는다 |
 >
@@ -265,14 +265,14 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 ## 설정 파일 (`src/main/resources/application-jpa.yml` — datasource·provider 키는 `infrastructure:persistence`의 `application-persistence.yml`)
 
-> **(mysql 모듈 분리)** 위 제목·아래 표의 "datasource는 `application-persistence.yml`"은 지금 `infrastructure:mysql`의 `application-mysql.yml`로 읽는다(persistence yml이 그것을 import한다). provider 키는 그대로 persistence 소유다. 커넥션 풀(HikariCP) 설정과 근거는 `../mysql/AGENTS.md`.
+> **(mysql 모듈 분리)** 위 제목·아래 표의 "datasource는 `application-persistence.yml`"은 지금 `infrastructure:mysql`의 `application-mysql.yml`로 읽는다(persistence yml이 그것을 import한다). ~~provider 키는 그대로 persistence 소유다.~~ **(번복됨 — banner-write-primary)** 제목의 "provider 키"는 삭제됐다 — 지금 persistence yml은 import만 담는다. 커넥션 풀(HikariCP) 설정과 근거는 `../mysql/AGENTS.md`.
 
 > **(번복됨 — jpa 모듈 분리) 제목의 `application-persistence.yml`은 이제 이 모듈 소유가 아니다.** 설정은 두 파일로 나뉘었다. 앱 `application.yml`의 import 줄(`classpath:application-persistence.yml`)은 불변이다.
 >
 > | 파일 | 소유 모듈 | 키 |
 > |---|---|---|
 > | `application-jpa.yml` | **이 모듈** (`backend/infrastructure/jpa/src/main/resources/`) | `spring.jpa.hibernate.ddl-auto: validate`·`spring.jpa.hibernate.naming.physical-strategy`·`spring.jpa.properties.hibernate.format_sql`/`show_sql`·`spring.jpa.open-in-view: false`·`logging.level.org.hibernate.SQL`/`org.hibernate.orm.jdbc.bind` |
-> | `application-persistence.yml` | 조립 모듈 `infrastructure:persistence` (`backend/infrastructure/persistence/src/main/resources/`) | `spring.config.import: classpath:application-jpa.yml`·`spring.datasource.*`(URL·계정·`com.mysql.cj.jdbc.Driver`)·`spring.sql.init.mode`·`persistence.banner.write.provider` |
+> | `application-persistence.yml` | 조립 모듈 `infrastructure:persistence` (`backend/infrastructure/persistence/src/main/resources/`) | `spring.config.import: classpath:application-jpa.yml`·`spring.datasource.*`(URL·계정·`com.mysql.cj.jdbc.Driver`)·`spring.sql.init.mode`·`persistence.banner.write.provider` (**(번복됨 — banner-write-primary)** 키 삭제) |
 >
 > 나눈 기준: JPA를 쓸 때만 의미 있는 키는 JPA 구현 모듈이, JPA·MyBatis가 함께 쓰는 DB 접속(datasource·드라이버)과 구현 선택 스위치는 조립 모듈이 갖는다. 아래 문단은 분리 전 서술이며 "이 모듈의 `application-persistence.yml`"은 지금 persistence 조립 모듈의 파일로 읽는다.
 
@@ -295,19 +295,20 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 ## banner 쓰기 — JPA 구현과 MyBatis 구현의 공존
 
-`BannerLoadPort`·`BannerSavePort`(banner 쓰기 포트 — 분리 전 `BannerPersistencePort`)는 이 모듈의 `banner/persistence/BannerJpaPersistenceAdapter`(JPA)와 `infrastructure:mybatis`의 `BannerMyBatisPersistenceAdapter`(MyBatis)가 **둘 다 완전히 구현**한다. 어느 쪽이 빈으로 뜨는지는 속성 `persistence.banner.write.provider`(조립 모듈 `infrastructure:persistence`의 `application-persistence.yml`, 기본 `${BANNER_WRITE_PROVIDER:jpa}` — jpa 모듈 분리 전에는 이 모듈 소유)가 정한다.
+`BannerLoadPort`·`BannerSavePort`(banner 쓰기 포트 — 분리 전 `BannerPersistencePort`)는 이 모듈의 `banner/persistence/BannerJpaPersistenceAdapter`(JPA)와 `infrastructure:mybatis`의 `BannerMyBatisPersistenceAdapter`(MyBatis)가 **둘 다 완전히 구현**한다. ~~어느 쪽이 빈으로 뜨는지는 속성 `persistence.banner.write.provider`(조립 모듈 `infrastructure:persistence`의 `application-persistence.yml`, 기본 `${BANNER_WRITE_PROVIDER:jpa}` — jpa 모듈 분리 전에는 이 모듈 소유)가 정한다.~~ **(번복됨 — banner-write-primary)** 두 구현이 모두 조건 없이 빈으로 뜨고(MyBatis 구현은 mybatis 모듈이 실리는 admin-api에서만), **`@Primary`가 붙은 JPA 구현이 주입된다.** MyBatis로 전환하려면 `@Primary`를 `BannerMyBatisPersistenceAdapter`로 옮기고 재빌드한다. 규칙과 근거는 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙", 작업 기록은 `docs/tasks/banner-write-primary/backend.md`.
 
 | 항목 | before (MyBatis 파일럿 직후) | after (공존 + 전환) |
 |---|---|---|
 | 이 모듈의 banner 쓰기 | MyBatis 어댑터·XML이 이 모듈 안에 있었고 JPA 쓰기 코드는 삭제됨 | JPA 어댑터 복원: `BannerJpaPersistenceAdapter`·`BannerJpaMapper`·`BannerJpaRepository`·`BannerJpaEntity#create/applyChanges` |
 | MyBatis 코드 위치 | 이 모듈 | 신설 모듈 `infrastructure:mybatis`(`backend/infrastructure/mybatis/AGENTS.md`) |
 | `mybatis-spring-boot-starter`·`@MapperScan` | 이 모듈(4앱 전부에서 MyBatis 자동 설정이 켜짐) | mybatis 모듈로 이동 — admin-api에서만 켜진다 |
-| 선택 | — | `BannerJpaPersistenceAdapter`에 `@ConditionalOnProperty(name = "persistence.banner.write.provider", havingValue = "jpa", matchIfMissing = true)` |
+| 선택 | — | ~~`BannerJpaPersistenceAdapter`에 `@ConditionalOnProperty(name = "persistence.banner.write.provider", havingValue = "jpa", matchIfMissing = true)`~~ **(번복됨 — banner-write-primary)** `BannerJpaPersistenceAdapter`에 `@Primary`(조건 애노테이션 없음) |
 
-- **`matchIfMissing = true`는 JPA 쪽에만 둔다.** MyBatis 쪽에도 두면 속성이 없을 때 admin-api에 구현이 2개 등록돼 `NoUniqueBeanDefinitionException`이 난다.
-- ~~**속성을 이 모듈 yml이 소유하는 이유**: 기본 구현(JPA)을 가진 모듈이 기본값도 갖는다.~~ **(번복됨 — jpa 모듈 분리)** 속성은 조립 모듈 `infrastructure:persistence`의 `application-persistence.yml`이 소유한다 — 구현을 고르는 스위치는 어느 한 구현이 아니라 구현들을 묶는 조립 모듈의 것이다. 4앱이 모두 이 yml을 import하므로 어디서나 기본은 jpa다.
-- **mybatis 모듈이 없는 앱(web·ceo·batch)에서 `provider=mybatis`로 두면** banner 쓰기 구현이 0개가 되지만, 이 포트를 주입하는 모듈은 `admin-application`뿐이라 그 앱들은 영향이 없다.
-- **JPA 1차 캐시와 섞이지 않는다** — 스위치로 둘 중 하나만 등록되므로 같은 행을 두 기술이 동시에 쓰는 일이 없다. 조회(`banner/query/BannerQueryAdapter`, QueryDSL)는 어느 설정에서도 JPA다.
+- ~~**`matchIfMissing = true`는 JPA 쪽에만 둔다.** MyBatis 쪽에도 두면 속성이 없을 때 admin-api에 구현이 2개 등록돼 `NoUniqueBeanDefinitionException`이 난다.~~ **(번복됨 — banner-write-primary)** **`@Primary`는 쓰는 쪽(지금은 JPA) 하나에만 둔다.** admin-api에는 구현이 2개 등록되므로, 둘 다 없으면 단일 주입에서 `NoUniqueBeanDefinitionException`이, 둘 다 있으면 primary 중복 예외가 난다. 컨텍스트 기동 자체는 성공하고 주입 시점에 터지므로, admin-api 가드 `PersistencePrimaryRulesTest`가 빌드 단계에서 잡는다.
+- ~~**속성을 이 모듈 yml이 소유하는 이유**: 기본 구현(JPA)을 가진 모듈이 기본값도 갖는다.~~ **(번복됨 — jpa 모듈 분리)** ~~속성은 조립 모듈 `infrastructure:persistence`의 `application-persistence.yml`이 소유한다 — 구현을 고르는 스위치는 어느 한 구현이 아니라 구현들을 묶는 조립 모듈의 것이다. 4앱이 모두 이 yml을 import하므로 어디서나 기본은 jpa다.~~ **(번복됨 — banner-write-primary)** 속성 자체가 삭제됐다(메타데이터 json 포함).
+- **mybatis 모듈이 없는 앱(web·ceo·batch)에는 JPA 구현 1개만 뜬다** — 후보가 하나라 `@Primary`는 영향이 없고, 이 포트를 주입하는 모듈은 `admin-application`뿐이다(**(번복됨 — banner-write-primary)** 과거 서술 "`provider=mybatis`로 두면 구현이 0개"는 키 삭제로 해당 없음).
+- **`@Primary`는 단일 주입에만 적용된다** — `List<BannerLoadPort>`처럼 여러 빈을 모으면 admin-api에서는 두 구현이 모두 들어간다. 현재 그런 주입은 0건이다.
+- **JPA 1차 캐시와 섞이지 않는다** — ~~스위치로 둘 중 하나만 등록되므로~~ **(번복됨 — banner-write-primary)** 두 구현이 모두 등록되더라도 `@Primary`로 하나만 주입되고, 한 구현이 두 포트(`BannerLoadPort`·`BannerSavePort`)를 모두 맡으므로(같은 포트 안에서 메서드별로 기술을 섞지 않는다) 같은 행을 두 기술이 동시에 쓰는 일이 없다. 섞으면 JPA 쓰기 지연 동안 같은 트랜잭션의 MyBatis 재조회가 옛 값을 보는 함정이 생긴다. 조회(`banner/query/BannerQueryAdapter`, QueryDSL)는 어느 설정에서도 JPA다.
 
 <!-- MANUAL: -->
 
@@ -317,11 +318,13 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 원문 주석은 챕터 05에서 제거되므로, 이 문서가 그 금지 지시의 유일한 소재지다.
 
-### `BannerJpaProviderConditionTest` — banner 쓰기 JPA 구현의 등록 조건
+### `BannerJpaPersistenceAdapterRegistrationTest` — banner 쓰기 JPA 구현이 대표(`@Primary`)다
 
-**대상**: `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/banner/persistence/BannerJpaProviderConditionTest.java` · `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/banner/persistence/BannerJpaPersistenceAdapter.java` → 클래스의 `@ConditionalOnProperty`
+**대상**: `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/banner/persistence/BannerJpaPersistenceAdapterRegistrationTest.java` → `registersUnconditionallyAndServesBothPorts`·`winsOverNonPrimaryImplementation` · `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/banner/persistence/BannerJpaPersistenceAdapter.java` → 클래스의 `@Primary`
 
-원문 취지: 속성이 없거나 `jpa`이면 등록, `mybatis`·알 수 없는 값이면 미등록. mybatis 모듈의 `BannerMyBatisProviderConditionTest`와 짝을 이뤄 "어떤 값이든 구현은 최대 1개, 기본은 JPA"를 증명한다. `matchIfMissing = true`를 지우거나 MyBatis 쪽으로 옮기지 않는다.
+원문 취지: 속성 없이 등록되고 같은 빈 하나가 `BannerLoadPort`·`BannerSavePort` 둘 다로 주입된다. `@Primary`가 없는 다른 구현(테스트 중첩 클래스)이 함께 있어도 두 포트 모두 JPA 구현으로 주입된다. mybatis 모듈의 `BannerMyBatisPersistenceAdapterRegistrationTest`와 짝을 이뤄 "구현은 둘 다 뜨고 주입은 JPA"를 증명한다. 단언은 `getBean` 시점에 둔다 — primary가 0개·2개여도 컨텍스트 기동은 성공하기 때문이다. `@Primary`를 지우면 `NoUniqueBeanDefinitionException`으로 실패한다(반증 확인). MyBatis로 전환할 때만 `@Primary`를 MyBatis 어댑터로 옮기고, 이 테스트와 mybatis 쪽 테스트의 기대를 함께 뒤집는다.
+
+> **(번복됨 — banner-write-primary)** 이 항목은 `BannerJpaProviderConditionTest`(속성이 없거나 `jpa`이면 등록, `mybatis`·알 수 없는 값이면 미등록 — `matchIfMissing = true`를 JPA에만 두라는 봉인)를 대체했다. 조건 테스트는 `@ConditionalOnProperty` 삭제와 함께 삭제됐다.
 
 ### `QueryFetchShapeConventionTest` — 단건·존재 확인 쿼리의 모양을 고정한다
 

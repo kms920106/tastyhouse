@@ -37,7 +37,7 @@ class LayerRulesTest {
     void shouldNotDependOnOtherPersistenceAdapters() {
         ArchRule rule = noClasses()
             .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure.jpa..")
-            .because("영속 어댑터 모듈끼리는 서로를 모른다 — 같은 포트의 JPA 구현과 MyBatis 구현은 provider 속성으로만 갈린다");
+            .because("영속 어댑터 모듈끼리는 서로를 모른다 — 같은 포트의 JPA 구현과 MyBatis 구현은 @Primary로만 갈린다");
 
         rule.check(classes);
     }

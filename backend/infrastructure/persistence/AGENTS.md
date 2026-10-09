@@ -8,7 +8,7 @@ DB 영속 계층을 **한 벌로 묶어 앱에 노출하는 조립 모듈(스타
 > - **조립 모듈(스타터)**: 도메인 포트를 하나도 구현하지 않고, "이 앱에 어떤 구현 모듈을 싣는가"만 선언하는 모듈. `spring-boot-starter-data-jpa`가 Hibernate를 골라 싣는 것과 같은 역할이다.
 > - **구현 모듈**: 포트를 실제 기술로 구현한 모듈. DB 쪽은 `infrastructure:jpa`(JPA·QueryDSL — 쓰기 어댑터 + 조회 DAO 전부)와 `infrastructure:mybatis`(banner 쓰기 MyBatis 구현) 둘이다.
 > - **DB 연결 코어**: `infrastructure:mysql` — MySQL 드라이버·커넥션 풀(HikariCP)·접속 설정을 소유한다. 구현 모듈이 아니라 그 아래에서 JPA·MyBatis가 함께 쓰는 DataSource를 만든다.
-> - **provider 키**: 같은 포트를 여러 구현 모듈이 구현할 때 어느 쪽을 빈으로 등록할지 고르는 속성(`persistence.banner.write.provider`).
+> - ~~**provider 키**: 같은 포트를 여러 구현 모듈이 구현할 때 어느 쪽을 빈으로 등록할지 고르는 속성(`persistence.banner.write.provider`).~~ **(번복됨 — banner-write-primary)** 이 키는 삭제됐다. 지금은 같은 포트의 구현이 모두 빈으로 등록되고, 그중 **`@Primary`**(여러 후보 빈 중 단일 주입 때 우선 선택되는 쪽을 표시하는 Spring 애노테이션)가 붙은 구현이 주입된다. 이 모듈은 그 선택에 관여하지 않는다.
 
 ## 왜 코드 없는 모듈이 됐나 (jpa 모듈 분리)
 
@@ -18,7 +18,7 @@ DB 영속 계층을 **한 벌로 묶어 앱에 노출하는 조립 모듈(스타
 |---|---|---|
 | 자바 코드 | JPA 엔티티·어댑터·조회 DAO·가드 테스트 전부 | **없음** (테스트·ArchUnit도 없음) |
 | `build.gradle` 의존 | `:domain`·`:application`·`spring-boot-starter-data-jpa`·QueryDSL·`mysql-connector-j` | **`runtimeOnly project(':infrastructure:jpa')` + `runtimeOnly project(':infrastructure:mysql')` 두 줄** (mysql 모듈 분리 전에는 두 번째 줄이 `runtimeOnly 'com.mysql:mysql-connector-j'`) |
-| `application-persistence.yml` | datasource + `spring.jpa.*` + provider 키 + 로그 레벨 한 벌 | provider 키 + `application-mysql.yml`·`application-jpa.yml` import (`spring.jpa.*`는 jpa 모듈로, datasource·`spring.sql.init`은 mysql 모듈로) |
+| `application-persistence.yml` | datasource + `spring.jpa.*` + provider 키 + 로그 레벨 한 벌 | `application-mysql.yml`·`application-jpa.yml` import만 (`spring.jpa.*`는 jpa 모듈로, datasource·`spring.sql.init`은 mysql 모듈로. provider 키는 **(번복됨 — banner-write-primary)** 삭제) |
 | 설정 파일명 | `application-infrastructure.yml` (모듈명과 불일치) | **`application-persistence.yml`** — 다른 모듈(`redis`·`mysql`·`jpa` 등)처럼 `application-{모듈명}.yml`로 정렬. 앱 4개의 import 줄만 바뀌었고 동작은 불변 |
 | 자바 패키지 | `com.tastyhouse.infrastructure.persistence..` | 없음 — 코드가 `com.tastyhouse.infrastructure.jpa..`로 갔다 |
 | 앱 4개(web·admin·ceo·batch) | `runtimeOnly project(':infrastructure:persistence')` + `classpath:application-persistence.yml` import | **불변** — 동작도 불변 |
@@ -27,7 +27,7 @@ DB 영속 계층을 **한 벌로 묶어 앱에 노출하는 조립 모듈(스타
 
 ## mysql 모듈 분리 — 드라이버·datasource를 `infrastructure:mysql`로
 
-`infrastructure:redis`가 Redis 연결 설정을 `application-redis.yml`로 소유하듯, MySQL 접속 기술도 자기 모듈이 소유하게 했다. 이 모듈은 jpa와 mysql을 묶고 provider 키를 갖는 조립 역할만 남는다. 커넥션 풀 설정(HikariCP)과 그 근거는 `../mysql/AGENTS.md`가 소유한다.
+`infrastructure:redis`가 Redis 연결 설정을 `application-redis.yml`로 소유하듯, MySQL 접속 기술도 자기 모듈이 소유하게 했다. 이 모듈은 jpa와 mysql을 묶는 조립 역할만 남는다(당시에는 provider 키도 가졌으나 **(번복됨 — banner-write-primary)** 삭제됐다). 커넥션 풀 설정(HikariCP)과 그 근거는 `../mysql/AGENTS.md`가 소유한다.
 
 | 항목 | before | after (현행) |
 |---|---|---|
@@ -44,8 +44,9 @@ backend/infrastructure/persistence/
   build.gradle                                       runtimeOnly jpa + runtimeOnly mysql
   AGENTS.md
   src/main/resources/application-persistence.yml  아래 키 목록
-  src/main/resources/META-INF/additional-spring-configuration-metadata.json  provider 키 메타데이터
 ```
+
+**(번복됨 — banner-write-primary)** `src/main/resources/META-INF/additional-spring-configuration-metadata.json`(provider 키 하나의 IDE 자동완성용 메타데이터)은 키와 함께 삭제됐다.
 
 `compileJava`는 NO-SOURCE로 넘어가고 jar에는 리소스만 실린다. `bootJar` 비활성 + plain jar(실행 단위가 아니다).
 
@@ -54,12 +55,15 @@ backend/infrastructure/persistence/
 | 키 | 값 | 용도 |
 |---|---|---|
 | `spring.config.import` | `classpath:application-mysql.yml`, `classpath:application-jpa.yml` | 하위 모듈 설정 중첩 로드 — datasource·커넥션 풀은 mysql 모듈이, `spring.jpa.*`(`ddl-auto: validate`·naming·`open-in-view: false`)와 hibernate 로그 레벨은 jpa 모듈이 소유한다 |
-| `persistence.banner.write.provider` | `${BANNER_WRITE_PROVIDER:jpa}` | banner 쓰기 구현 선택(`jpa`·`mybatis`) |
+
+| 항목 | before | after (banner-write-primary) |
+|---|---|---|
+| `persistence.banner.write.provider` | `${BANNER_WRITE_PROVIDER:jpa}` — banner 쓰기 구현 선택(`jpa`·`mybatis`) | **삭제** — 구현 선택은 JPA 어댑터의 `@Primary`가 한다. 환경변수 `BANNER_WRITE_PROVIDER`는 무효 |
 
 ## 왜 드라이버·datasource는 mysql 모듈에, provider 키는 여기 두나
 
 - **JPA·MyBatis가 같은 DataSource를 쓴다.** admin-api에서는 JPA(`infrastructure:jpa`)와 MyBatis(`infrastructure:mybatis`)가 같은 커넥션 풀을 공유하고, `JpaTransactionManager` 하나가 두 기술을 같은 트랜잭션으로 묶는다. 드라이버·접속 정보는 어느 한 구현 모듈의 것이 아니다. ~~그래서 구현들을 묶는 조립 모듈(이 모듈)이 갖는다.~~ **(번복됨 — mysql 모듈 분리)** 지금은 두 구현 아래의 DB 연결 코어 `infrastructure:mysql`이 갖는다. "어느 구현 모듈의 것도 아니다"라는 근거는 그대로이고, 위치만 이 모듈에서 그 아래 모듈로 내려갔다. 이 모듈이 mysql을 조립하므로 admin-api의 MyBatis도 같은 풀을 받는다.
-- **provider 키는 "어느 구현을 쓸지"를 고르는 스위치다.** 스위치는 선택지 중 하나(jpa)가 아니라 선택지를 조립하는 쪽에 있어야 한다. 4앱이 모두 이 yml을 import하므로 어디서나 기본값은 `jpa`다. 각 구현의 `@ConditionalOnProperty` 규칙(`matchIfMissing = true`는 JPA 쪽에만)은 `../jpa/AGENTS.md`의 "banner 쓰기 — JPA 구현과 MyBatis 구현의 공존"과 `../mybatis/AGENTS.md`에 있다.
+- ~~**provider 키는 "어느 구현을 쓸지"를 고르는 스위치다.** 스위치는 선택지 중 하나(jpa)가 아니라 선택지를 조립하는 쪽에 있어야 한다. 4앱이 모두 이 yml을 import하므로 어디서나 기본값은 `jpa`다.~~ **(번복됨 — banner-write-primary)** 제목은 앵커 보존을 위해 그대로 둔다. provider 키는 삭제됐고, 구현 선택은 이제 설정이 아니라 코드(JPA 어댑터의 `@Primary`)가 한다 — 컨텍스트마다 yml 4줄·메타데이터·조건 애노테이션 2개·조건 테스트 2개를 반복하던 비용을 없애기 위해서다. 그래서 이 모듈은 더 이상 선택 스위치를 소유하지 않는다. 규칙은 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙", banner 사례는 `../jpa/AGENTS.md`의 "banner 쓰기 — JPA 구현과 MyBatis 구현의 공존"과 `../mybatis/AGENTS.md`에 있다.
 
 ## mybatis는 조립하지 않는다
 
@@ -74,7 +78,7 @@ backend/infrastructure/persistence/
 
 DB 연결 코어(mysql)를 다른 DB로 바꿀 때도 같은 쌍이다 — `runtimeOnly project(':infrastructure:mysql')`과 `classpath:application-mysql.yml`을 함께 바꾼다.
 
-같은 포트를 새 구현도 구현한다면 provider 키(`persistence.{ctx}.write.provider`)를 이 yml에 추가하고, 기본 구현에만 `matchIfMissing = true`를 둔다(`backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙"). 특정 앱에서만 켜야 하는 구현(mybatis처럼)은 여기가 아니라 그 앱의 `build.gradle`·`application.yml`에 둔다.
+같은 포트를 새 구현도 구현한다면 ~~provider 키(`persistence.{ctx}.write.provider`)를 이 yml에 추가하고, 기본 구현에만 `matchIfMissing = true`를 둔다~~ **(번복됨 — banner-write-primary)** 이 yml은 고치지 않는다. 두 구현 모두 포트를 `implements`하고 쓰는 쪽에만 `@Primary`를 붙인다(`backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙"). 특정 앱에서만 켜야 하는 구현(mybatis처럼)은 여기가 아니라 그 앱의 `build.gradle`·`application.yml`에 둔다.
 
 ## 가드
 

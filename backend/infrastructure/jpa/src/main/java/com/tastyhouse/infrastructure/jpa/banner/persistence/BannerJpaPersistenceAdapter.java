@@ -3,7 +3,7 @@ package com.tastyhouse.infrastructure.jpa.banner.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.banner.model.Banner;
@@ -14,7 +14,7 @@ import com.tastyhouse.application.banner.port.out.write.BannerSavePort;
 import static com.tastyhouse.infrastructure.jpa.banner.persistence.QBannerJpaEntity.bannerJpaEntity;
 
 @Repository
-@ConditionalOnProperty(name = "persistence.banner.write.provider", havingValue = "jpa", matchIfMissing = true)
+@Primary
 class BannerJpaPersistenceAdapter implements BannerLoadPort, BannerSavePort {
 
     private final JPAQueryFactory queryFactory;

@@ -170,6 +170,18 @@
 
 **시더가 없는 web-api와 `config..`가 없는 batch-module에는 대상 0건이라 두지 않는다(공허 통과 회피).**
 
+### `PersistencePrimaryRulesTest` — 여러 기술이 함께 구현하는 쓰기 포트는 `@Primary`가 정확히 1개 (banner-write-primary)
+
+**대상**: `backend/admin-api/src/test/java/com/tastyhouse/adminapi/architecture/PersistencePrimaryRulesTest.java` → `eachSharedWritePortHasExactlyOnePrimaryImplementation`
+· 검사 대상 `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/banner/persistence/BannerJpaPersistenceAdapter.java`(`@Primary`) · `backend/infrastructure/mybatis/src/main/java/com/tastyhouse/infrastructure/mybatis/banner/BannerMyBatisPersistenceAdapter.java`(`@Primary` 없음)
+
+원문 취지: `com.tastyhouse.infrastructure`(테스트 제외)의 `@Repository` 클래스를 그 클래스가 구현하는 application `..port.out.write..` 인터페이스별로 모은다. 구현이 2개 이상인 포트는 `@Primary` 구현이 **정확히 1개**여야 한다 — 0개면 단일 주입에서 `NoUniqueBeanDefinitionException`, 2개면 primary 중복 예외가 나는데, 둘 다 **컨텍스트 기동은 성공하고 주입 시점에야** 드러나므로 빌드 단계에서 잡는다. 규칙 정본은 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙".
+
+- **이 앱에 두는 이유**: JPA(`infrastructure:jpa`)와 MyBatis(`infrastructure:mybatis`) 구현이 함께 실리는 유일한 앱이다. admin-api의 테스트 클래스패스에만 두 모듈이 다 있어(`runtimeOnly`로 받은 클래스를 ArchUnit이 읽는다) 다른 앱에 두면 공존 포트가 0건이다.
+- **anchor**: 구현이 2개 이상인 포트가 1개 이상이어야 한다(현재 `BannerLoadPort`·`BannerSavePort`). 공존 포트가 사라지면 공허 통과하지 않고 실패한다 — 그때는 이 테스트를 지우는 것이 맞는지(공존 구현 자체를 없앴는지) 먼저 확인한다.
+- **한계**: `@Repository`가 붙은 구현만 수집한다. `@Component`·`@Bean` 메서드로 등록한 구현은 수집 대상 밖이라 이 가드가 보지 못한다 — 영속 어댑터는 `@Repository`로 등록한다는 관례에 기대고 있다. `List<Port>` 주입(두 구현이 모두 들어간다)도 검사하지 않는다(현재 0건).
+- **반증 확인**: JPA 어댑터의 `@Primary`를 지우거나 MyBatis 어댑터에도 붙이면 이 테스트가 실패한다.
+
 ### `shouldDependOnOauthSpiOnlyNotProviderPackages`는 이 모듈에 두지 않는다
 
 web-api에 있는 이 규칙을 **이 모듈에 복제하지 않는다** — admin에는 소셜 로그인이 없어 대상 0건으로 **공허하게 통과**하기 때문이다(전환 전 이 앱의 `LayerRulesTest`에도 없던 규칙이다).
