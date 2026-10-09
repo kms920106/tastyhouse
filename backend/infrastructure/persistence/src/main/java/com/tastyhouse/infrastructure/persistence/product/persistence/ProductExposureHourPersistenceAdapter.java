@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductExposureHour;
@@ -18,16 +17,16 @@ class ProductExposureHourPersistenceAdapter implements ProductExposureHourPersis
 
     private final JPAQueryFactory queryFactory;
     private final ProductExposureHourJpaRepository productExposureHourJpaRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     public ProductExposureHourPersistenceAdapter(
         JPAQueryFactory queryFactory,
-        ProductExposureHourJpaRepository productExposureHourJpaRepository
+        ProductExposureHourJpaRepository productExposureHourJpaRepository,
+        EntityManager entityManager
     ) {
         this.queryFactory = queryFactory;
         this.productExposureHourJpaRepository = productExposureHourJpaRepository;
+        this.entityManager = entityManager;
     }
 
     @Override

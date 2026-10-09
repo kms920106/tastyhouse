@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.product.model.ProductAllergen;
@@ -18,16 +17,16 @@ class ProductAllergenPersistenceAdapter implements ProductAllergenPersistencePor
 
     private final JPAQueryFactory queryFactory;
     private final ProductAllergenJpaRepository productAllergenJpaRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     public ProductAllergenPersistenceAdapter(
         JPAQueryFactory queryFactory,
-        ProductAllergenJpaRepository productAllergenJpaRepository
+        ProductAllergenJpaRepository productAllergenJpaRepository,
+        EntityManager entityManager
     ) {
         this.queryFactory = queryFactory;
         this.productAllergenJpaRepository = productAllergenJpaRepository;
+        this.entityManager = entityManager;
     }
 
     @Override

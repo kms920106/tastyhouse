@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.region.vo.AdminDongId;
@@ -25,16 +24,16 @@ class ShopDeliveryAreaPersistenceAdapter implements ShopDeliveryAreaPersistenceP
 
     private final JPAQueryFactory queryFactory;
     private final ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     public ShopDeliveryAreaPersistenceAdapter(
         JPAQueryFactory queryFactory,
-        ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository
+        ShopDeliveryAreaJpaRepository shopDeliveryAreaJpaRepository,
+        EntityManager entityManager
     ) {
         this.queryFactory = queryFactory;
         this.shopDeliveryAreaJpaRepository = shopDeliveryAreaJpaRepository;
+        this.entityManager = entityManager;
     }
 
     @Override

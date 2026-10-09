@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.member.vo.MemberId;
@@ -21,13 +20,16 @@ class MemberReviewRankPersistenceAdapter implements MemberReviewRankPersistenceP
 
     private final JPAQueryFactory queryFactory;
     private final MemberReviewRankJpaRepository memberReviewRankJpaRepository;
+    private final EntityManager entityManager;
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    public MemberReviewRankPersistenceAdapter(JPAQueryFactory queryFactory, MemberReviewRankJpaRepository memberReviewRankJpaRepository) {
+    public MemberReviewRankPersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        MemberReviewRankJpaRepository memberReviewRankJpaRepository,
+        EntityManager entityManager
+    ) {
         this.queryFactory = queryFactory;
         this.memberReviewRankJpaRepository = memberReviewRankJpaRepository;
+        this.entityManager = entityManager;
     }
 
     @Override

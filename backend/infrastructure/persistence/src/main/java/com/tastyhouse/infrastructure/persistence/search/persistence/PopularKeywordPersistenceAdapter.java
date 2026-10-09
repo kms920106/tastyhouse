@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.search.model.PopularKeyword;
@@ -17,13 +16,16 @@ class PopularKeywordPersistenceAdapter implements PopularKeywordPersistencePort 
 
     private final JPAQueryFactory queryFactory;
     private final PopularKeywordJpaRepository jpaRepository;
+    private final EntityManager entityManager;
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    public PopularKeywordPersistenceAdapter(JPAQueryFactory queryFactory, PopularKeywordJpaRepository jpaRepository) {
+    public PopularKeywordPersistenceAdapter(
+        JPAQueryFactory queryFactory,
+        PopularKeywordJpaRepository jpaRepository,
+        EntityManager entityManager
+    ) {
         this.queryFactory = queryFactory;
         this.jpaRepository = jpaRepository;
+        this.entityManager = entityManager;
     }
 
     @Override

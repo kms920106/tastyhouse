@@ -12,6 +12,7 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.Test;
 
 import static com.tngtech.archunit.base.DescribedPredicate.not;
@@ -19,6 +20,7 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPac
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noFields;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LayerRulesTest {
@@ -200,6 +202,16 @@ class LayerRulesTest {
         assertThat(jpaRepositories())
             .as("jpaRepositoriesShouldNotDeclareMethods가 공허하게 통과하지 않는다")
             .hasSizeGreaterThanOrEqualTo(123);
+    }
+
+    @Test
+    void entityManagerShouldBeConstructorInjected() {
+        ArchRule rule = noFields()
+            .should().beAnnotatedWith(PersistenceContext.class)
+            .because("EntityManager는 Spring이 트랜잭션 바인딩 shared proxy를 주입하므로 생성자 주입(private final)으로 받는다 — "
+                + "@PersistenceContext 필드 주입은 final을 잃고 코드베이스의 생성자 주입 컨벤션과 갈린다");
+
+        rule.check(classes);
     }
 
     @Test

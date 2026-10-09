@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,9 +36,7 @@ class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePor
     private final ShopDeliveryTipRegionJpaRepository shopDeliveryTipRegionJpaRepository;
     private final ShopDeliveryTipScheduleJpaRepository shopDeliveryTipScheduleJpaRepository;
     private final ShopDeliveryTipHolidayJpaRepository shopDeliveryTipHolidayJpaRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final EntityManager entityManager;
 
     public ShopDeliveryTipPersistenceAdapter(
         JPAQueryFactory queryFactory,
@@ -47,7 +44,8 @@ class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePor
         ShopDeliveryTipTierJpaRepository shopDeliveryTipTierJpaRepository,
         ShopDeliveryTipRegionJpaRepository shopDeliveryTipRegionJpaRepository,
         ShopDeliveryTipScheduleJpaRepository shopDeliveryTipScheduleJpaRepository,
-        ShopDeliveryTipHolidayJpaRepository shopDeliveryTipHolidayJpaRepository
+        ShopDeliveryTipHolidayJpaRepository shopDeliveryTipHolidayJpaRepository,
+        EntityManager entityManager
     ) {
         this.queryFactory = queryFactory;
         this.shopDeliveryTipSettingJpaRepository = shopDeliveryTipSettingJpaRepository;
@@ -55,6 +53,7 @@ class ShopDeliveryTipPersistenceAdapter implements ShopDeliveryTipPersistencePor
         this.shopDeliveryTipRegionJpaRepository = shopDeliveryTipRegionJpaRepository;
         this.shopDeliveryTipScheduleJpaRepository = shopDeliveryTipScheduleJpaRepository;
         this.shopDeliveryTipHolidayJpaRepository = shopDeliveryTipHolidayJpaRepository;
+        this.entityManager = entityManager;
     }
 
     @Override

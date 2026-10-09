@@ -5,8 +5,6 @@ import java.time.LocalTime;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
@@ -22,9 +20,6 @@ class ReservationSlotPersistenceAdapter implements ReservationSlotPersistencePor
 
     private final JPAQueryFactory queryFactory;
     private final ReservationSlotJpaRepository slotJpaRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     public ReservationSlotPersistenceAdapter(JPAQueryFactory queryFactory, ReservationSlotJpaRepository slotJpaRepository) {
         this.queryFactory = queryFactory;
@@ -64,7 +59,7 @@ class ReservationSlotPersistenceAdapter implements ReservationSlotPersistencePor
     public void saveAndFlush(ReservationSlot slot) {
         try {
             save(slot);
-            entityManager.flush();
+            slotJpaRepository.flush();
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new OptimisticLockConflictException("예약 슬롯 낙관적 락 충돌", e);
         }

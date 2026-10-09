@@ -267,6 +267,23 @@ Spring Data `Repository`를 상속한 인터페이스(`XxxJpaRepository` 123개)
 - **대가**: 파생 쿼리는 부팅 때 Spring Data가 검증했지만 QueryDSL 쿼리는 실행 시점에만 검증된다. 조건을 바꿀 때는 해당 엔드포인트를 한 번 호출해 확인한다.
 - `jpaRepositoriesExist`(≥123)가 대상이 사라져 공허 통과하는 것을 막는다.
 
+### `entityManagerShouldBeConstructorInjected` — EntityManager는 생성자 주입으로 받는다
+
+**대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/architecture/LayerRulesTest.java`
+→ `entityManagerShouldBeConstructorInjected()`
+
+이 모듈의 어떤 필드에도 `@PersistenceContext`를 달지 않는다. `EntityManager`가 필요하면 `private final EntityManager entityManager`로 선언하고 생성자 파라미터로 받는다. `@Bean` 메서드는 메서드 파라미터로 받는다(`config/QueryDslConfig#jpaQueryFactory`).
+
+| 항목 | before | after |
+|---|---|---|
+| 주입 방식 | `@PersistenceContext private EntityManager entityManager;`(필드 주입, non-final) — 어댑터 7개 + `QueryDslConfig` | 생성자 주입 `private final EntityManager entityManager` — 어댑터 6개, `QueryDslConfig`는 `@Bean` 메서드 파라미터 |
+| `ReservationSlotPersistenceAdapter#saveAndFlush` | `entityManager.flush()` | `slotJpaRepository.flush()` — EntityManager 의존 삭제(**동작 변경**, 아래 "예약 슬롯의 낙관적 락 배선" 항목) |
+| 가드 | 없음 | `entityManagerShouldBeConstructorInjected` |
+
+- **생성자 주입이 안전한 근거**: Spring이 주입하는 `EntityManager`는 트랜잭션에 바인딩된 shared proxy다. 싱글톤 빈이 `final`로 들고 있어도 호출마다 현재 트랜잭션의 영속성 컨텍스트로 위임되므로 스레드 안전하다. `@PersistenceContext`로 받은 것과 같은 객체다. `query/ProductQueryAdapter`가 이 형태의 선례다.
+- **EntityManager 자체는 없앨 수 없다**: 쓰임새는 bulk delete 앞뒤의 `flush()`/`clear()`(위 `@Modifying(flushAutomatically, clearAutomatically)` 재현)와 `ProductQueryAdapter#findOptionGroupMergeCandidates`의 `createNativeQuery`다. `clear()`는 `JpaRepository`에 대응 메서드가 없다. delete 메서드에서는 flush도 `jpaRepository.flush()`로 섞지 않고 `EntityManager` 한 경로로 쓴다.
+- **flush만 필요하면 `JpaRepository.flush()`를 쓴다**: 상속 메서드라 `jpaRepositoriesShouldNotDeclareMethods`와 충돌하지 않는다. 리포지토리 프록시를 거치므로 예외가 Spring 예외로 번역된다.
+
 ### `SEALED_PERSISTENCE_TO_QUERY` 3건 — read→write 단방향 위반 봉인
 
 **대상**: `backend/infrastructure/persistence/src/test/java/com/tastyhouse/infrastructure/persistence/architecture/LayerRulesTest.java`
@@ -976,6 +993,14 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 **대상**: `.../reservation/persistence/ReservationSlotPersistenceAdapter.java`(03b 동안 `ReservationSlotStatePortImpl` — 번복됨) · `.../reservation/persistence/ReservationSlotJpaRepository.java`
 
 `@Version`만으로 동시 차감 충돌을 감지하므로 **별도 `@Lock`을 두지 않는다.** `save`·`flush`를 함께 감싸 `OptimisticLockConflictException`으로 번역하는 자리도 유지한다 — **도메인의 재시도 판별이 spring-orm 예외에 의존하지 않게** 하기 위함이다.
+
+**`saveAndFlush`의 flush는 `slotJpaRepository.flush()`로 부른다. `EntityManager.flush()`로 되돌리지 않는다.** shared EntityManager proxy는 예외를 번역하지 않는다. 그래서 `entityManager.flush()`에서 버전 충돌이 나면 `jakarta.persistence.OptimisticLockException`이 그대로 던져지고, 메서드 안의 `catch (ObjectOptimisticLockingFailureException)`가 잡지 못한다. 예외는 `@Repository` 프록시 경계에서야 번역돼 나가므로, `ReservationCreateService`의 `catch (OptimisticLockConflictException | DataIntegrityViolationException)`도 잡지 못하고 재시도 없이 실패했다. Spring Data 리포지토리 프록시는 `flush()` 안에서 예외를 번역하므로 catch가 동작하고 재시도 루프가 산다.
+
+| 항목 | before | after |
+|---|---|---|
+| flush 호출 | `entityManager.flush()` | `slotJpaRepository.flush()` |
+| 버전 충돌 시 이 메서드 밖으로 나가는 예외 | `ObjectOptimisticLockingFailureException`(경계에서 번역) — catch 우회 | `OptimisticLockConflictException` |
+| `ReservationCreateService` | 재시도 없이 실패 | `MAX_RETRY`까지 재시도, 소진 시 `RESERVATION_SLOT_FULL`(409) |
 
 #### 모듈 auto-configuration의 두 설정을 건드리지 않는다
 
@@ -2303,7 +2328,7 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 
 → `ReservationSlotJpaEntity.version` · `ReservationSlotPersistenceAdapter#save`(03b 동안 `ReservationSlotStatePortImpl#save` — 번복됨) · `ReservationSlotJpaRepository#findByShopIdAndSlotDateAndSlotTime`
 
-`@Version`만으로 동시 차감 충돌을 감지하므로 **별도 `@Lock`을 두지 않는다.** managed 엔티티의 `@Version`이 flush 시 검증·증가되므로 load-copy-save가 낙관적 락 동작을 그대로 보존한다. `save`의 dirty checking 변경은 명시적 `flush` 시점에 검증되므로 충돌도 거기서 나며, `save`·`flush`를 함께 감싸 `OptimisticLockConflictException`으로 번역한다 — **도메인의 재시도 판별이 spring-orm 예외에 의존하지 않게** 하기 위함이다.
+`@Version`만으로 동시 차감 충돌을 감지하므로 **별도 `@Lock`을 두지 않는다.** managed 엔티티의 `@Version`이 flush 시 검증·증가되므로 load-copy-save가 낙관적 락 동작을 그대로 보존한다. `save`의 dirty checking 변경은 명시적 `flush` 시점에 검증되므로 충돌도 거기서 나며, `save`·`flush`를 함께 감싸 `OptimisticLockConflictException`으로 번역한다 — **도메인의 재시도 판별이 spring-orm 예외에 의존하지 않게** 하기 위함이다. 이 번역이 실제로 동작하려면 flush를 예외를 번역하는 `slotJpaRepository.flush()`로 불러야 한다(위 "예약 슬롯의 낙관적 락 배선을 바꾸지 않는다" 항목).
 
 #### 승인 상태를 별도 요청 테이블로 분리하지 않은 판단
 
