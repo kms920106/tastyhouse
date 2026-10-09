@@ -11,7 +11,7 @@ spring:
     web-application-type: none
   config:
     import:
-      - classpath:application-infrastructure.yml
+      - classpath:application-persistence.yml
       - classpath:application-file-storage.yml
       - classpath:application-bbq.yml
       - classpath:application-admdongkor.yml

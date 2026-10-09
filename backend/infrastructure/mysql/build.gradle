@@ -4,8 +4,8 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly project(':infrastructure:jpa')
-    runtimeOnly project(':infrastructure:mysql')
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    runtimeOnly 'com.zaxxer:HikariCP'
 }
 
 jar {

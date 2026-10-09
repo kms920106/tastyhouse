@@ -1,0 +1,10 @@
+spring:
+  config:
+    import:
+      - classpath:application-mysql.yml
+      - classpath:application-jpa.yml
+
+persistence:
+  banner:
+    write:
+      provider: ${BANNER_WRITE_PROVIDER:jpa}

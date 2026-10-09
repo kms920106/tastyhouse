@@ -80,8 +80,8 @@ MyBatis 구현은 이 모듈을 의존하는 앱에서만 쓸 수 있다. 지금
 
 ### External
 - `org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3` (implementation — Spring Boot 3.2.x 호환 라인)
-- MySQL 드라이버는 이 모듈이 선언하지 않는다 — 조립 모듈 `infrastructure:persistence`가 `runtimeOnly`로 싣는다(JPA·MyBatis 공용 드라이버라 어느 한 구현 모듈이 아니라 조립 모듈이 소유한다. `../persistence/AGENTS.md`). admin-api가 persistence를 의존하므로 이 모듈과 함께 실린다.
-- datasource(`spring.datasource.*`)와 provider 키 `persistence.banner.write.provider`도 같은 조립 모듈의 `application-infrastructure.yml`이 소유한다. 이 모듈의 `application-mybatis.yml`은 MyBatis 자체 설정만 갖는다.
+- MySQL 드라이버는 이 모듈이 선언하지 않는다 — DB 연결 코어 `infrastructure:mysql`이 소유하고, 조립 모듈 `infrastructure:persistence`가 그것을 `runtimeOnly`로 싣는다(JPA·MyBatis 공용 드라이버라 어느 한 구현 모듈의 것이 아니다. `../mysql/AGENTS.md`). admin-api가 persistence를 의존하므로 이 모듈과 함께 실린다.
+- datasource(`spring.datasource.*`, 커넥션 풀 포함)는 `infrastructure:mysql`의 `application-mysql.yml`이, provider 키 `persistence.banner.write.provider`는 조립 모듈의 `application-persistence.yml`이 소유한다. MyBatis도 JPA와 같은 Hikari 풀을 쓴다. 이 모듈의 `application-mybatis.yml`은 MyBatis 자체 설정만 갖는다.
 
 ## 봉인·가드 목록
 

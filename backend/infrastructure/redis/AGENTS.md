@@ -51,7 +51,7 @@ com.tastyhouse.infrastructure.redis/
 
 이 모듈은 Redis 관련 **코드**뿐 아니라 **연결 설정**도 소유한다. `spring.data.redis.{host,port,password}`를 담으며 셋 다 환경변수로 덮어쓸 수 있다(`REDIS_HOST`·`REDIS_PORT`·`REDIS_PASSWORD`, 기본값 `localhost:6379`/빈 비밀번호).
 
-**소유가 이 모듈로 온 근거는 소비 지점이다.** 이 설정으로 만들어지는 `RedisConnectionFactory`를 주입받는 것이 이 모듈의 `RedisConfig`(`StringRedisTemplate`)이므로, **"모듈이 소비하는 설정은 모듈이 소유한다"** 는 기존 컨벤션(`application-infrastructure.yml`·`application-file-storage.yml`의 선례)이 그대로 적용된다. 챕터 05 §5b에서 `security-module`의 `application-security.yml`에서 옮겨왔고, **그 파일은 이 블록만 담고 있어 파일째 이관되고 삭제됐다.**
+**소유가 이 모듈로 온 근거는 소비 지점이다.** 이 설정으로 만들어지는 `RedisConnectionFactory`를 주입받는 것이 이 모듈의 `RedisConfig`(`StringRedisTemplate`)이므로, **"모듈이 소비하는 설정은 모듈이 소유한다"** 는 기존 컨벤션(`application-persistence.yml`·`application-file-storage.yml`의 선례)이 그대로 적용된다. 챕터 05 §5b에서 `security-module`의 `application-security.yml`에서 옮겨왔고, **그 파일은 이 블록만 담고 있어 파일째 이관되고 삭제됐다.**
 
 로딩은 web/admin/ceo-api 3개 앱의 `application.yml`이 `classpath:application-redis.yml`을 `spring.config.import`로 수행한다. batch-module은 대상이 아니다.
 

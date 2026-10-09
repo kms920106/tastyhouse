@@ -10,7 +10,7 @@ spring:
   config:
     import:
       - classpath:application-logging.yml
-      - classpath:application-infrastructure.yml
+      - classpath:application-persistence.yml
       - classpath:application-file-storage.yml
       - classpath:application-redis.yml
       - optional:file:.env[.properties]

@@ -2,20 +2,20 @@
 
 # infrastructure:jpa
 
-> **모듈 분리 (jpa 모듈 분리)**: 이 문서는 원래 `backend/infrastructure/persistence/AGENTS.md`였다. JPA·QueryDSL 코드 전부(main·test)가 **신설 모듈 `infrastructure:jpa`(디렉터리 `backend/infrastructure/jpa/`)로 `git mv`** 됐고, 문서도 함께 옮겨 왔다. `infrastructure:persistence`는 이제 **자바 코드 없는 조립 모듈(스타터)**로, `runtimeOnly project(':infrastructure:jpa')` + `runtimeOnly 'com.mysql:mysql-connector-j'`와 `application-infrastructure.yml`만 갖는다(`../persistence/AGENTS.md`). 4앱은 여전히 `runtimeOnly project(':infrastructure:persistence')`만 의존하므로 앱 쪽 Gradle·yml import는 바뀌지 않았다.
+> **모듈 분리 (jpa 모듈 분리)**: 이 문서는 원래 `backend/infrastructure/persistence/AGENTS.md`였다. JPA·QueryDSL 코드 전부(main·test)가 **신설 모듈 `infrastructure:jpa`(디렉터리 `backend/infrastructure/jpa/`)로 `git mv`** 됐고, 문서도 함께 옮겨 왔다. `infrastructure:persistence`는 이제 **자바 코드 없는 조립 모듈(스타터)**로, `runtimeOnly project(':infrastructure:jpa')` + `runtimeOnly 'com.mysql:mysql-connector-j'`와 `application-persistence.yml`만 갖는다(`../persistence/AGENTS.md`). 4앱은 여전히 `runtimeOnly project(':infrastructure:persistence')`만 의존하므로 앱 쪽 Gradle·yml import는 바뀌지 않았다.
 >
 > | 항목 | before | after (현행) |
 > |---|---|---|
 > | Gradle 좌표 / 디렉터리 | `:infrastructure:persistence` / `backend/infrastructure/persistence/` | **`:infrastructure:jpa` / `backend/infrastructure/jpa/`** |
 > | 자바 패키지 루트 | `com.tastyhouse.infrastructure.persistence..` | **`com.tastyhouse.infrastructure.jpa..`** — 하위 `<ctx>/persistence`·`<ctx>/query`·`config`·`shared.*` 구조는 불변 |
 > | 진입 설정 클래스 | `InfrastructurePersistenceConfig` | **`JpaModuleConfig`**(애노테이션·package-private 동일) |
-> | 설정 yml | `application-infrastructure.yml` 한 벌(datasource + `spring.jpa.*` + provider 키) | **`application-jpa.yml`**(이 모듈 — `spring.jpa.*`·hibernate 로그 레벨) + `application-infrastructure.yml`(persistence 조립 모듈 — datasource·`spring.sql.init`·provider 키, `application-jpa.yml`을 import) |
-> | MySQL 드라이버 | 이 모듈 `runtimeOnly` | **persistence 조립 모듈**이 소유(JPA·MyBatis 공용) |
+> | 설정 yml | `application-persistence.yml` 한 벌(datasource + `spring.jpa.*` + provider 키) | **`application-jpa.yml`**(이 모듈 — `spring.jpa.*`·hibernate 로그 레벨) + `application-persistence.yml`(persistence 조립 모듈 — datasource·`spring.sql.init`·provider 키, `application-jpa.yml`을 import. **mysql 모듈 분리 후** datasource·`spring.sql.init`은 `infrastructure:mysql`의 `application-mysql.yml`로 갔다) |
+> | MySQL 드라이버 | 이 모듈 `runtimeOnly` | **persistence 조립 모듈**이 소유(JPA·MyBatis 공용). **mysql 모듈 분리 후** DB 연결 코어 `infrastructure:mysql`이 소유하고 persistence가 그것을 조립한다 |
 > | 앱 4개 의존 | `runtimeOnly ':infrastructure:persistence'` | **불변** — persistence가 이 모듈을 `runtimeOnly`로 묶는다 |
 >
 > 아래 본문의 "이 모듈"은 `infrastructure:jpa`를 가리킨다. `~~취소선~~`과 "(챕터 N) 당시" 같은 과거 시점 서술 안의 `persistence` 모듈명·패키지·`InfrastructurePersistenceConfig`는 그때의 기록이라 고치지 않았다 — 지금 이름으로 읽는다.
 
-> **경로 이동 (챕터 05)**: 이 모듈은 `infrastructure-module/`에서 **`infrastructure/persistence/`로 이동**했고 Gradle 좌표는 `:infrastructure:persistence`다. 자바 패키지(`com.tastyhouse.infrastructure..`)와 `application-infrastructure.yml`은 **불변**이다(챕터 05 시점. **(번복됨 — infrastructure 패키지 루트 통일)** 이후 자바 패키지는 `com.tastyhouse.infrastructure.persistence..`로 한 겹 내려갔다 — 아래 규칙 절의 "패키지 루트" 항목). **클래스명은 챕터 02로 바뀌었다** — 모듈 진입점 `InfrastructureModuleConfig`는 **`PersistenceModuleAutoConfiguration`**으로 리네임 + `@AutoConfiguration(before = JpaRepositoriesAutoConfiguration.class)`로 전환됐고(`InfrastructurePersistenceConfig`는 이름 불변), `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록해 앱은 더 이상 `@Import`하지 않는다. **(번복됨 — imports 제거)** 그 `PersistenceModuleAutoConfiguration`과 imports 파일은 **삭제**됐다 — 지금 이 모듈의 빈은 4앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 문자열로 스캔해 등록하고, 진입 설정은 `InfrastructurePersistenceConfig` 하나다. ~~그 밖의 본문 패키지 경로는 그대로 유효하다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** 본문의 `<ctx>/...` 상대 경로는 그대로 유효하지만, 루트는 `com.tastyhouse.infrastructure.persistence`다. 형제 모듈 `infrastructure:redis`가 Redis를(`../redis/AGENTS.md`), `infrastructure:restclient`(구 `infrastructure:http-client`)가 외부 연동 코어를(`../restclient/AGENTS.md`) 소유하고, 실제 외부 어댑터는 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`이 기술별로 나눠 갖는다 — 전부 driven 어댑터다(코드 없는 조립 스타터 `file-storage`·`oauth`는 어댑터가 아니다).
+> **경로 이동 (챕터 05)**: 이 모듈은 `infrastructure-module/`에서 **`infrastructure/persistence/`로 이동**했고 Gradle 좌표는 `:infrastructure:persistence`다. 자바 패키지(`com.tastyhouse.infrastructure..`)와 `application-persistence.yml`은 **불변**이다(챕터 05 시점. **(번복됨 — infrastructure 패키지 루트 통일)** 이후 자바 패키지는 `com.tastyhouse.infrastructure.persistence..`로 한 겹 내려갔다 — 아래 규칙 절의 "패키지 루트" 항목). **클래스명은 챕터 02로 바뀌었다** — 모듈 진입점 `InfrastructureModuleConfig`는 **`PersistenceModuleAutoConfiguration`**으로 리네임 + `@AutoConfiguration(before = JpaRepositoriesAutoConfiguration.class)`로 전환됐고(`InfrastructurePersistenceConfig`는 이름 불변), `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록해 앱은 더 이상 `@Import`하지 않는다. **(번복됨 — imports 제거)** 그 `PersistenceModuleAutoConfiguration`과 imports 파일은 **삭제**됐다 — 지금 이 모듈의 빈은 4앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 문자열로 스캔해 등록하고, 진입 설정은 `InfrastructurePersistenceConfig` 하나다. ~~그 밖의 본문 패키지 경로는 그대로 유효하다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** 본문의 `<ctx>/...` 상대 경로는 그대로 유효하지만, 루트는 `com.tastyhouse.infrastructure.persistence`다. 형제 모듈 `infrastructure:redis`가 Redis를(`../redis/AGENTS.md`), `infrastructure:restclient`(구 `infrastructure:http-client`)가 외부 연동 코어를(`../restclient/AGENTS.md`) 소유하고, 실제 외부 어댑터는 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`이 기술별로 나눠 갖는다 — 전부 driven 어댑터다(코드 없는 조립 스타터 `file-storage`·`oauth`는 어댑터가 아니다).
 >
 > 재편 이유는 `infrastructure` 아래를 **기술별로** 나누기 위해서다 — 모듈 이름이 곧 "infrastructure = DB"라는 암묵 전제가 되지 않게 한다.
 
@@ -263,18 +263,20 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 상세(메서드 배치·별칭 위치)는 아래 [`ProductQueryAdapter` — 쿼리 전략](#productqueryadapter--쿼리-전략) 절.
 
-## 설정 파일 (`src/main/resources/application-jpa.yml` — datasource·provider 키는 `infrastructure:persistence`의 `application-infrastructure.yml`)
+## 설정 파일 (`src/main/resources/application-jpa.yml` — datasource·provider 키는 `infrastructure:persistence`의 `application-persistence.yml`)
 
-> **(번복됨 — jpa 모듈 분리) 제목의 `application-infrastructure.yml`은 이제 이 모듈 소유가 아니다.** 설정은 두 파일로 나뉘었다. 앱 `application.yml`의 import 줄(`classpath:application-infrastructure.yml`)은 불변이다.
+> **(mysql 모듈 분리)** 위 제목·아래 표의 "datasource는 `application-persistence.yml`"은 지금 `infrastructure:mysql`의 `application-mysql.yml`로 읽는다(persistence yml이 그것을 import한다). provider 키는 그대로 persistence 소유다. 커넥션 풀(HikariCP) 설정과 근거는 `../mysql/AGENTS.md`.
+
+> **(번복됨 — jpa 모듈 분리) 제목의 `application-persistence.yml`은 이제 이 모듈 소유가 아니다.** 설정은 두 파일로 나뉘었다. 앱 `application.yml`의 import 줄(`classpath:application-persistence.yml`)은 불변이다.
 >
 > | 파일 | 소유 모듈 | 키 |
 > |---|---|---|
 > | `application-jpa.yml` | **이 모듈** (`backend/infrastructure/jpa/src/main/resources/`) | `spring.jpa.hibernate.ddl-auto: validate`·`spring.jpa.hibernate.naming.physical-strategy`·`spring.jpa.properties.hibernate.format_sql`/`show_sql`·`spring.jpa.open-in-view: false`·`logging.level.org.hibernate.SQL`/`org.hibernate.orm.jdbc.bind` |
-> | `application-infrastructure.yml` | 조립 모듈 `infrastructure:persistence` (`backend/infrastructure/persistence/src/main/resources/`) | `spring.config.import: classpath:application-jpa.yml`·`spring.datasource.*`(URL·계정·`com.mysql.cj.jdbc.Driver`)·`spring.sql.init.mode`·`persistence.banner.write.provider` |
+> | `application-persistence.yml` | 조립 모듈 `infrastructure:persistence` (`backend/infrastructure/persistence/src/main/resources/`) | `spring.config.import: classpath:application-jpa.yml`·`spring.datasource.*`(URL·계정·`com.mysql.cj.jdbc.Driver`)·`spring.sql.init.mode`·`persistence.banner.write.provider` |
 >
-> 나눈 기준: JPA를 쓸 때만 의미 있는 키는 JPA 구현 모듈이, JPA·MyBatis가 함께 쓰는 DB 접속(datasource·드라이버)과 구현 선택 스위치는 조립 모듈이 갖는다. 아래 문단은 분리 전 서술이며 "이 모듈의 `application-infrastructure.yml`"은 지금 persistence 조립 모듈의 파일로 읽는다.
+> 나눈 기준: JPA를 쓸 때만 의미 있는 키는 JPA 구현 모듈이, JPA·MyBatis가 함께 쓰는 DB 접속(datasource·드라이버)과 구현 선택 스위치는 조립 모듈이 갖는다. 아래 문단은 분리 전 서술이며 "이 모듈의 `application-persistence.yml`"은 지금 persistence 조립 모듈의 파일로 읽는다.
 
-이 모듈이 실제로 구현·소비하는 datasource/hibernate(`ddl-auto`)/mysql driver/`spring.sql.init` 등 JPA·DB 설정을 이 모듈의 `application-infrastructure.yml`이 소유한다(과거 `core-module`의 `application-core.yml`이었으나, 도메인 모듈이 JPA-free로 전환되며 이 모듈로 이동·리네이밍됨). 실행 모듈(`web-api`/`admin-api`/`ceo-api`/`batch-module`)의 `application.yml`이 `spring.config.import: classpath:application-infrastructure.yml`로 로딩하며, 이는 외부 연동 모듈이 각자 소유하는 `application-file-storage.yml`(파일 저장 스타터 `infrastructure:file-storage` — 챕터 03에서 `application-external.yml`을 대체했고 `application-firebase.yml`을 중첩 import한다)·`application-pg.yml`(`infrastructure:pg`)·`application-mail.yml`(`infrastructure:mail` — `application-javamail.yml`을 중첩 import)·`application-sms.yml`(`infrastructure:sms` — `application-solapi.yml`을 중첩 import)·`application-bbq.yml`(`infrastructure:bbq`)·`application-admdongkor.yml`(`infrastructure:admdongkor`)·`application-aws-s3.yml`(`infrastructure:aws-s3`)·`application-aws-ses.yml`(`infrastructure:aws-ses`)·`application-aws-sns.yml`(`infrastructure:aws-sns`)과, `application-redis.yml`(`infrastructure:redis` 소유)·`application-logging.yml`(logging-module 소유)과 동일한 패턴이다.
+이 모듈이 실제로 구현·소비하는 datasource/hibernate(`ddl-auto`)/mysql driver/`spring.sql.init` 등 JPA·DB 설정을 이 모듈의 `application-persistence.yml`이 소유한다(과거 `core-module`의 `application-core.yml`이었으나, 도메인 모듈이 JPA-free로 전환되며 이 모듈로 이동·리네이밍됨). 실행 모듈(`web-api`/`admin-api`/`ceo-api`/`batch-module`)의 `application.yml`이 `spring.config.import: classpath:application-persistence.yml`로 로딩하며, 이는 외부 연동 모듈이 각자 소유하는 `application-file-storage.yml`(파일 저장 스타터 `infrastructure:file-storage` — 챕터 03에서 `application-external.yml`을 대체했고 `application-firebase.yml`을 중첩 import한다)·`application-pg.yml`(`infrastructure:pg`)·`application-mail.yml`(`infrastructure:mail` — `application-javamail.yml`을 중첩 import)·`application-sms.yml`(`infrastructure:sms` — `application-solapi.yml`을 중첩 import)·`application-bbq.yml`(`infrastructure:bbq`)·`application-admdongkor.yml`(`infrastructure:admdongkor`)·`application-aws-s3.yml`(`infrastructure:aws-s3`)·`application-aws-ses.yml`(`infrastructure:aws-ses`)·`application-aws-sns.yml`(`infrastructure:aws-sns`)과, `application-redis.yml`(`infrastructure:redis` 소유)·`application-logging.yml`(logging-module 소유)과 동일한 패턴이다.
 
 ## Dependencies
 
@@ -285,7 +287,7 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 ### External
 - `spring-boot-starter-data-jpa` (api)
-- ~~`mysql-connector-j`~~ **(번복됨 — jpa 모듈 분리)** MySQL 드라이버는 이 모듈이 갖지 않는다. JPA·MyBatis가 같은 datasource를 쓰므로 조립 모듈 `infrastructure:persistence`가 `runtimeOnly 'com.mysql:mysql-connector-j'`로 소유한다(`../persistence/AGENTS.md`)
+- ~~`mysql-connector-j`~~ **(번복됨 — jpa 모듈 분리)** MySQL 드라이버는 이 모듈이 갖지 않는다. JPA·MyBatis가 같은 datasource를 쓰므로 ~~조립 모듈 `infrastructure:persistence`가 `runtimeOnly 'com.mysql:mysql-connector-j'`로 소유한다~~ **(mysql 모듈 분리)** DB 연결 코어 `infrastructure:mysql`이 소유하고 조립 모듈 `infrastructure:persistence`가 그것을 `runtimeOnly`로 싣는다(`../mysql/AGENTS.md`)
 
 ### 이 모듈을 의존하는 쪽
 - 조립 모듈 `infrastructure:persistence`가 `runtimeOnly project(':infrastructure:jpa')`로 묶는다. 앱 4개(web-api·admin-api·ceo-api·batch-module)는 이 모듈을 직접 의존하지 않고 persistence 조립 모듈만 `runtimeOnly`로 의존한다
@@ -293,7 +295,7 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 ## banner 쓰기 — JPA 구현과 MyBatis 구현의 공존
 
-`BannerLoadPort`·`BannerSavePort`(banner 쓰기 포트 — 분리 전 `BannerPersistencePort`)는 이 모듈의 `banner/persistence/BannerJpaPersistenceAdapter`(JPA)와 `infrastructure:mybatis`의 `BannerMyBatisPersistenceAdapter`(MyBatis)가 **둘 다 완전히 구현**한다. 어느 쪽이 빈으로 뜨는지는 속성 `persistence.banner.write.provider`(조립 모듈 `infrastructure:persistence`의 `application-infrastructure.yml`, 기본 `${BANNER_WRITE_PROVIDER:jpa}` — jpa 모듈 분리 전에는 이 모듈 소유)가 정한다.
+`BannerLoadPort`·`BannerSavePort`(banner 쓰기 포트 — 분리 전 `BannerPersistencePort`)는 이 모듈의 `banner/persistence/BannerJpaPersistenceAdapter`(JPA)와 `infrastructure:mybatis`의 `BannerMyBatisPersistenceAdapter`(MyBatis)가 **둘 다 완전히 구현**한다. 어느 쪽이 빈으로 뜨는지는 속성 `persistence.banner.write.provider`(조립 모듈 `infrastructure:persistence`의 `application-persistence.yml`, 기본 `${BANNER_WRITE_PROVIDER:jpa}` — jpa 모듈 분리 전에는 이 모듈 소유)가 정한다.
 
 | 항목 | before (MyBatis 파일럿 직후) | after (공존 + 전환) |
 |---|---|---|
@@ -303,7 +305,7 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 | 선택 | — | `BannerJpaPersistenceAdapter`에 `@ConditionalOnProperty(name = "persistence.banner.write.provider", havingValue = "jpa", matchIfMissing = true)` |
 
 - **`matchIfMissing = true`는 JPA 쪽에만 둔다.** MyBatis 쪽에도 두면 속성이 없을 때 admin-api에 구현이 2개 등록돼 `NoUniqueBeanDefinitionException`이 난다.
-- ~~**속성을 이 모듈 yml이 소유하는 이유**: 기본 구현(JPA)을 가진 모듈이 기본값도 갖는다.~~ **(번복됨 — jpa 모듈 분리)** 속성은 조립 모듈 `infrastructure:persistence`의 `application-infrastructure.yml`이 소유한다 — 구현을 고르는 스위치는 어느 한 구현이 아니라 구현들을 묶는 조립 모듈의 것이다. 4앱이 모두 이 yml을 import하므로 어디서나 기본은 jpa다.
+- ~~**속성을 이 모듈 yml이 소유하는 이유**: 기본 구현(JPA)을 가진 모듈이 기본값도 갖는다.~~ **(번복됨 — jpa 모듈 분리)** 속성은 조립 모듈 `infrastructure:persistence`의 `application-persistence.yml`이 소유한다 — 구현을 고르는 스위치는 어느 한 구현이 아니라 구현들을 묶는 조립 모듈의 것이다. 4앱이 모두 이 yml을 import하므로 어디서나 기본은 jpa다.
 - **mybatis 모듈이 없는 앱(web·ceo·batch)에서 `provider=mybatis`로 두면** banner 쓰기 구현이 0개가 되지만, 이 포트를 주입하는 모듈은 `admin-application`뿐이라 그 앱들은 영향이 없다.
 - **JPA 1차 캐시와 섞이지 않는다** — 스위치로 둘 중 하나만 등록되므로 같은 행을 두 기술이 동시에 쓰는 일이 없다. 조회(`banner/query/BannerQueryAdapter`, QueryDSL)는 어느 설정에서도 JPA다.
 

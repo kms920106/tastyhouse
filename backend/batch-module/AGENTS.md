@@ -100,7 +100,9 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 ## 설정 파일
 
-`src/main/resources/application.yml`이 `application-infrastructure.yml`(DB/JPA, `infrastructure:persistence` 소유)과 외부 연동 설정 세 벌 — `application-file-storage.yml`(파일 저장 스타터 `infrastructure:file-storage` 소유. `file.provider`를 갖고 벤더 yml `application-firebase.yml`을 중첩 import한다)·`application-bbq.yml`(BBQ 메뉴 수집, `infrastructure:bbq` 소유)·`application-admdongkor.yml`(행정동 경계 수집, `infrastructure:admdongkor` 소유) — 을 `classpath:` import한다(챕터 03 이전에는 `application-external.yml`·`application-firebase.yml` 두 줄이었다) — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
+`src/main/resources/application.yml`이 `application-persistence.yml`(DB/JPA, `infrastructure:persistence` 소유)과 외부 연동 설정 세 벌 — `application-file-storage.yml`(파일 저장 스타터 `infrastructure:file-storage` 소유. `file.provider`를 갖고 벤더 yml `application-firebase.yml`을 중첩 import한다)·`application-bbq.yml`(BBQ 메뉴 수집, `infrastructure:bbq` 소유)·`application-admdongkor.yml`(행정동 경계 수집, `infrastructure:admdongkor` 소유) — 을 `classpath:` import한다(챕터 03 이전에는 `application-external.yml`·`application-firebase.yml` 두 줄이었다) — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
+
+**DB 커넥션 풀은 다른 앱과 같은 `infrastructure:mysql`의 `application-mysql.yml`을 받는다**(persistence yml이 import). batch는 기본값(`DB_POOL_MAX_SIZE` 5, `DB_SOCKET_TIMEOUT_MS` 0 = 무제한)을 그대로 쓴다. 행정동 경계·BBQ 메뉴 적재처럼 오래 걸리는 쿼리가 있으므로 **`DB_SOCKET_TIMEOUT_MS`를 켜지 않는다** — 켜면 그 시간을 넘는 쿼리가 끊긴다. 이 앱 `application.yml`에 `spring.datasource.hikari.*`를 적어도 import된 mysql yml이 이기므로 반영되지 않는다. 조정은 기동 시 환경변수로 한다(`../infrastructure/mysql/AGENTS.md`의 "앱별 조정").
 
 ## 스케줄러 활성 상태 (트리거 7종 중 1종이 비활성)
 
