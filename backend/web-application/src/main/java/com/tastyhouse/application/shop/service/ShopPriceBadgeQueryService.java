@@ -18,6 +18,7 @@ import com.tastyhouse.domain.shop.model.ShopOperatingStatusCalculator;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.ProductPriceResult;
 import com.tastyhouse.application.product.port.out.ProductQueryPort;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
 import com.tastyhouse.application.shop.port.in.ShopPriceBadgeQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopBasicInfoQueryPort;
 import com.tastyhouse.application.shop.port.out.ShopBusinessHourResult;
@@ -34,20 +35,20 @@ class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
 
     private final ProductQueryPort productQueryPort;
     private final ShopBasicInfoQueryPort shopBasicInfoQueryPort;
-    private final StorePriceVerificationReader storePriceVerificationReader;
+    private final StorePriceVerificationPort storePriceVerificationPort;
     private final StorePriceBadgePolicy storePriceBadgePolicy;
     private final ShopOperatingStatusCalculator shopOperatingStatusCalculator;
 
     public ShopPriceBadgeQueryService(
         ProductQueryPort productQueryPort,
         ShopBasicInfoQueryPort shopBasicInfoQueryPort,
-        StorePriceVerificationReader storePriceVerificationReader,
+        StorePriceVerificationPort storePriceVerificationPort,
         StorePriceBadgePolicy storePriceBadgePolicy,
         ShopOperatingStatusCalculator shopOperatingStatusCalculator
     ) {
         this.productQueryPort = productQueryPort;
         this.shopBasicInfoQueryPort = shopBasicInfoQueryPort;
-        this.storePriceVerificationReader = storePriceVerificationReader;
+        this.storePriceVerificationPort = storePriceVerificationPort;
         this.storePriceBadgePolicy = storePriceBadgePolicy;
         this.shopOperatingStatusCalculator = shopOperatingStatusCalculator;
     }
@@ -57,7 +58,7 @@ class ShopPriceBadgeQueryService implements ShopPriceBadgeQueryUseCase {
         LocalDateTime now = LocalDateTime.now();
 
         boolean sameAsStorePrice = storePriceBadgePolicy.shouldExposeSameAsStorePriceBadge(
-            storePriceVerificationReader.readVerified(shopId));
+            storePriceVerificationPort.isStorePriceVerified(shopId));
 
         List<ProductPrice> prices = productQueryPort.findShopProductPrices(shopId).stream()
             .map(ShopPriceBadgeQueryService::toProductPrice)

@@ -40,8 +40,6 @@ class ServiceContextBoundaryTest {
         "com.tastyhouse.application.auth.service.kakao.KakaoSocialLoginService",
         "com.tastyhouse.application.auth.service.naver.NaverSocialLoginService",
         "com.tastyhouse.application.member.service.MemberAuthService",
-        "com.tastyhouse.application.member.service.MemberReviewService",
-        "com.tastyhouse.application.member.service.MemberShopService",
         "com.tastyhouse.application.payment.service.PaymentCancellationExecutor",
         "com.tastyhouse.application.payment.service.PaymentConfirmationExecutor",
         "com.tastyhouse.application.product.service.ProductImageSpecValidator",
@@ -57,9 +55,7 @@ class ServiceContextBoundaryTest {
         "com.tastyhouse.application.shop.service.ShopImageSpecValidator",
         "com.tastyhouse.application.shop.service.ShopMenuCollectionImageSpecValidator",
         "com.tastyhouse.application.shop.service.ShopOwnershipValidator",
-        "com.tastyhouse.application.shop.service.StorePriceListImageSpecValidator",
-        "com.tastyhouse.application.shop.service.StorePriceVerificationOwnerReader",
-        "com.tastyhouse.application.shop.service.StorePriceVerificationReader"
+        "com.tastyhouse.application.shop.service.StorePriceListImageSpecValidator"
     );
 
     private static final Set<String> SEALED_VIOLATIONS = Set.of(

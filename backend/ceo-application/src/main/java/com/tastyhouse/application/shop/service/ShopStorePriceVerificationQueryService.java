@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationOwnerLatestResult;
 import com.tastyhouse.application.product.port.out.StorePriceVerificationOwnerQueryPort;
+import com.tastyhouse.application.product.port.out.StorePriceVerificationPort;
 import com.tastyhouse.application.product.service.StorePriceVerificationService;
 import com.tastyhouse.application.shop.port.in.ShopStorePriceVerificationQueryUseCase;
 import com.tastyhouse.application.shop.port.out.ShopStorePriceVerificationViewResult;
@@ -17,18 +18,18 @@ import com.tastyhouse.application.shop.port.out.ShopStorePriceVerificationViewRe
 class ShopStorePriceVerificationQueryService implements ShopStorePriceVerificationQueryUseCase {
 
     private final StorePriceVerificationService storePriceVerificationService;
-    private final StorePriceVerificationOwnerReader storePriceVerificationReader;
+    private final StorePriceVerificationPort storePriceVerificationPort;
     private final StorePriceVerificationOwnerQueryPort storePriceVerificationOwnerQueryPort;
     private final ShopOwnershipValidator shopOwnershipValidator;
 
     public ShopStorePriceVerificationQueryService(
         StorePriceVerificationService storePriceVerificationService,
-        StorePriceVerificationOwnerReader storePriceVerificationReader,
+        StorePriceVerificationPort storePriceVerificationPort,
         StorePriceVerificationOwnerQueryPort storePriceVerificationOwnerQueryPort,
         ShopOwnershipValidator shopOwnershipValidator
     ) {
         this.storePriceVerificationService = storePriceVerificationService;
-        this.storePriceVerificationReader = storePriceVerificationReader;
+        this.storePriceVerificationPort = storePriceVerificationPort;
         this.storePriceVerificationOwnerQueryPort = storePriceVerificationOwnerQueryPort;
         this.shopOwnershipValidator = shopOwnershipValidator;
     }
@@ -51,7 +52,7 @@ class ShopStorePriceVerificationQueryService implements ShopStorePriceVerificati
         return new ShopStorePriceVerificationViewResult(
             latest == null ? null : latest.id(),
             latest == null ? null : latest.status(),
-            storePriceVerificationReader.readVerified(shopId),
+            storePriceVerificationPort.isStorePriceVerified(shopId),
             latest == null ? null : latest.rejectReason(),
             unverifiedItems
         );
