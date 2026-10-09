@@ -24,7 +24,7 @@ class PartnershipPersistenceAdapter implements PartnershipLoadPort, PartnershipS
     }
 
     @Override
-    public Optional<PartnershipRequest> findById(PartnershipRequestId partnershipRequestId) {
+    public Optional<PartnershipRequest> findActiveById(PartnershipRequestId partnershipRequestId) {
         PartnershipRequestJpaEntity entity = queryFactory
             .selectFrom(partnershipRequestJpaEntity)
             .where(partnershipRequestJpaEntity.id.eq(partnershipRequestId.value()), partnershipRequestJpaEntity.deleted.isFalse())

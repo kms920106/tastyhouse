@@ -294,7 +294,7 @@ public class ShopDeliveryTipService {
 
     private String describeRegionTips(List<ShopDeliveryTipRegion> regionTips) {
         Map<Long, String> namesById = adminDongLoadPort
-            .findAllByIds(regionTips.stream().map(ShopDeliveryTipRegion::getAdminDongId).toList())
+            .findAllActiveByIds(regionTips.stream().map(ShopDeliveryTipRegion::getAdminDongId).toList())
             .stream()
             .collect(Collectors.toMap(AdminDong::getId, AdminDong::getDongName, (first, second) -> first));
 
@@ -361,7 +361,7 @@ public class ShopDeliveryTipService {
             }
 
             AdminDongId adminDongId = AdminDongId.of(spec.adminDongId());
-            if (!adminDongLoadPort.existsById(adminDongId)) {
+            if (!adminDongLoadPort.existsActiveById(adminDongId)) {
                 throw new ApplicationException(CeoErrorCode.ADMIN_DONG_NOT_FOUND,
                     CeoErrorCode.ADMIN_DONG_NOT_FOUND.getDefaultMessage() + " 행정동 ID: " + spec.adminDongId());
             }

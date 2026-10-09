@@ -25,7 +25,7 @@ class EventWinnerDeleteService implements EventWinnerDeleteUseCase {
 
     @Override
     public void deleteWinner(EventWinnerDeleteCommand command) {
-        EventWinner winner = eventWinnerLoadPort.findById(command.winnerId())
+        EventWinner winner = eventWinnerLoadPort.findActiveById(command.winnerId())
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.EVENT_WINNER_NOT_FOUND));
 
         winner.delete();

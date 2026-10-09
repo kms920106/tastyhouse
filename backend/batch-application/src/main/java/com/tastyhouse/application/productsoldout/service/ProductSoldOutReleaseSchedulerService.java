@@ -41,7 +41,7 @@ class ProductSoldOutReleaseSchedulerService implements ReleaseExpiredSoldOutUseC
     public void releaseExpiredSoldOut() {
         LocalDateTime now = LocalDateTime.now();
 
-        List<Product> products = productLoadPort.findAllSoldOutExpiredBefore(now);
+        List<Product> products = productLoadPort.findAllActiveSoldOutExpiredBefore(now);
         List<ProductOption> options = productOptionLoadPort.findAllSoldOutExpiredBefore(now);
         List<ProductCommonOption> commonOptions = productCommonOptionLoadPort.findAllSoldOutExpiredBefore(now);
 

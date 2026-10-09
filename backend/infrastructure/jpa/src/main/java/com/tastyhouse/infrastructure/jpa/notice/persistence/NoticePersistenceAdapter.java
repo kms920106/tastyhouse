@@ -24,7 +24,7 @@ class NoticePersistenceAdapter implements NoticeLoadPort, NoticeSavePort {
     }
 
     @Override
-    public Optional<Notice> findById(NoticeId noticeId) {
+    public Optional<Notice> findActiveById(NoticeId noticeId) {
         NoticeJpaEntity entity = queryFactory
             .selectFrom(noticeJpaEntity)
             .where(noticeJpaEntity.id.eq(noticeId.value()), noticeJpaEntity.deleted.isFalse())

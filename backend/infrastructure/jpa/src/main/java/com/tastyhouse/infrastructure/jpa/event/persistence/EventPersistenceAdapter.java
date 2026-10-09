@@ -24,7 +24,7 @@ class EventPersistenceAdapter implements EventLoadPort, EventSavePort {
     }
 
     @Override
-    public Optional<Event> findById(EventId eventId) {
+    public Optional<Event> findActiveById(EventId eventId) {
         EventJpaEntity entity = queryFactory
             .selectFrom(eventJpaEntity)
             .where(eventJpaEntity.id.eq(eventId.value()), eventJpaEntity.deleted.isFalse())

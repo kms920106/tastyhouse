@@ -52,7 +52,7 @@ public class ProductFeedbackService {
         String content,
         LocalDateTime now
     ) {
-        Product product = productLoadPort.findById(productId)
+        Product product = productLoadPort.findActiveById(productId)
             .filter(found -> !found.isDeleted())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
 

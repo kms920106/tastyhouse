@@ -7,5 +7,5 @@ import com.tastyhouse.domain.faq.vo.FaqId;
 
 public interface FaqLoadPort {
 
-    Optional<Faq> findById(FaqId faqId);
+    Optional<Faq> findActiveById(FaqId faqId);
 }

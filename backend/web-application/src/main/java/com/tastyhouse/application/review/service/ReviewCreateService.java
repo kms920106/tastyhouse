@@ -59,7 +59,7 @@ class ReviewCreateService implements ReviewCreateUseCase {
         }
         validateDeliveryRating(orderId, deliveryRating, deliveryComment);
 
-        Product product = productLoadPort.findById(ProductId.of(command.productId()))
+        Product product = productLoadPort.findActiveById(ProductId.of(command.productId()))
             .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
         ReviewRegistration registration = reviewLifecycleService.register(
@@ -82,7 +82,7 @@ class ReviewCreateService implements ReviewCreateUseCase {
     }
 
     private void validateOrderOwnership(OrderId orderId, MemberId memberId) {
-        Order order = orderLoadPort.findById(orderId)
+        Order order = orderLoadPort.findByIdIncludingDeleted(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         if (!order.getMemberId().equals(memberId)) {
             throw new ApplicationException(WebErrorCode.REVIEW_ORDER_ACCESS_DENIED);
@@ -97,7 +97,7 @@ class ReviewCreateService implements ReviewCreateUseCase {
             throw new ApplicationException(WebErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
         }
 
-        Order order = orderLoadPort.findById(orderId)
+        Order order = orderLoadPort.findByIdIncludingDeleted(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         if (order.getOrderMethod() != OrderMethod.DELIVERY) {
             throw new ApplicationException(WebErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);

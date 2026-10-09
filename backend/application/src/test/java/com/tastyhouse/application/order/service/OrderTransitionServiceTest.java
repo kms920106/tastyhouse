@@ -202,7 +202,7 @@ class OrderTransitionServiceTest {
         private final List<Order> saved = new ArrayList<>();
 
         @Override
-        public Optional<Order> findById(OrderId orderId) {
+        public Optional<Order> findByIdIncludingDeleted(OrderId orderId) {
             return Optional.ofNullable(stored);
         }
 

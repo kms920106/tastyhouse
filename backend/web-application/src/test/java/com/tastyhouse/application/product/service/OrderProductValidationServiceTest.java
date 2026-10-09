@@ -526,7 +526,7 @@ class OrderProductValidationServiceTest {
         }
 
         @Override
-        public List<ProductPrice> findAllByShopId(ShopId shopId) {
+        public List<ProductPrice> findAllOfActiveProductsByShopId(ShopId shopId) {
             throw new UnsupportedOperationException();
         }
 

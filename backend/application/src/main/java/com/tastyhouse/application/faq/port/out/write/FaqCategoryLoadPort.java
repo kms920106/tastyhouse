@@ -7,7 +7,7 @@ import com.tastyhouse.domain.faq.vo.FaqCategoryId;
 
 public interface FaqCategoryLoadPort {
 
-    Optional<FaqCategory> findById(FaqCategoryId faqCategoryId);
+    Optional<FaqCategory> findActiveById(FaqCategoryId faqCategoryId);
 
     boolean existsActiveItemsByCategoryId(FaqCategoryId faqCategoryId);
 }

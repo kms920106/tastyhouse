@@ -95,7 +95,7 @@ class AdminDongPersistenceAdapter implements AdminDongLoadPort, AdminDongSavePor
     }
 
     @Override
-    public boolean existsById(AdminDongId adminDongId) {
+    public boolean existsActiveById(AdminDongId adminDongId) {
         return queryFactory.selectOne()
             .from(adminDongJpaEntity)
             .where(
@@ -106,7 +106,7 @@ class AdminDongPersistenceAdapter implements AdminDongLoadPort, AdminDongSavePor
     }
 
     @Override
-    public Optional<AdminDong> findByDongNameMatch(String sidoName, String sigunguName, String dongName) {
+    public Optional<AdminDong> findActiveByDongNameMatch(String sidoName, String sigunguName, String dongName) {
         AdminDongJpaEntity entity = queryFactory
             .selectFrom(adminDongJpaEntity)
             .where(
@@ -120,7 +120,7 @@ class AdminDongPersistenceAdapter implements AdminDongLoadPort, AdminDongSavePor
     }
 
     @Override
-    public List<AdminDong> findAllWithinBoundingBox(GeoBoundingBox boundingBox) {
+    public List<AdminDong> findAllActiveWithinBoundingBox(GeoBoundingBox boundingBox) {
         return queryFactory.selectFrom(adminDongJpaEntity)
             .where(
                 adminDongJpaEntity.active.isTrue(),
@@ -132,7 +132,7 @@ class AdminDongPersistenceAdapter implements AdminDongLoadPort, AdminDongSavePor
     }
 
     @Override
-    public List<AdminDong> findAllByIds(Collection<AdminDongId> adminDongIds) {
+    public List<AdminDong> findAllActiveByIds(Collection<AdminDongId> adminDongIds) {
         if (adminDongIds.isEmpty()) {
             return List.of();
         }
@@ -149,7 +149,7 @@ class AdminDongPersistenceAdapter implements AdminDongLoadPort, AdminDongSavePor
     }
 
     @Override
-    public Set<AdminDongId> filterExistingIds(Collection<AdminDongId> adminDongIds) {
+    public Set<AdminDongId> filterActiveIds(Collection<AdminDongId> adminDongIds) {
         if (adminDongIds.isEmpty()) {
             return Set.of();
         }

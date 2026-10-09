@@ -24,7 +24,7 @@ class CouponPersistenceAdapter implements CouponLoadPort, CouponSavePort {
     }
 
     @Override
-    public Optional<Coupon> findById(CouponId id) {
+    public Optional<Coupon> findActiveById(CouponId id) {
         CouponJpaEntity entity = queryFactory
             .selectFrom(couponJpaEntity)
             .where(couponJpaEntity.id.eq(id.value()), couponJpaEntity.deleted.isFalse())

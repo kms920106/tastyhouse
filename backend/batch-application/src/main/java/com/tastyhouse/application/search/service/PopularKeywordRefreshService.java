@@ -43,7 +43,7 @@ public class PopularKeywordRefreshService {
         LocalDateTime since = LocalDateTime.now().minusDays(AGGREGATION_WINDOW_DAYS);
         List<KeywordCount> rows = keywordCountPort.findTopKeywordsSince(since);
 
-        Set<String> previousKeywords = popularKeywordLoadPort.findActiveOrderByRank().stream()
+        Set<String> previousKeywords = popularKeywordLoadPort.findVisibleOrderByRank().stream()
             .map(PopularKeyword::getKeyword)
             .collect(Collectors.toSet());
 

@@ -24,7 +24,7 @@ public class OrderTransitionService {
     }
 
     public Order load(OrderId orderId) {
-        return orderLoadPort.findById(orderId)
+        return orderLoadPort.findByIdIncludingDeleted(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
     }
 

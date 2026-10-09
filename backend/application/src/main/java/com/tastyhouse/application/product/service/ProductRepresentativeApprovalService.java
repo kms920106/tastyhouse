@@ -121,7 +121,7 @@ public class ProductRepresentativeApprovalService {
         if (additional <= 0) {
             return;
         }
-        long current = productLoadPort.countRepresentativeByShopId(shopId);
+        long current = productLoadPort.countActiveRepresentativeByShopId(shopId);
         long pending = requestLoadPort.countByShopIdAndStatus(shopId, ApprovalStatus.PENDING);
         if (current + pending + additional > MAX_REPRESENTATIVE_COUNT) {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
@@ -129,7 +129,7 @@ public class ProductRepresentativeApprovalService {
     }
 
     private void validateApprovableLimit(ShopId shopId) {
-        if (productLoadPort.countRepresentativeByShopId(shopId) + 1 > MAX_REPRESENTATIVE_COUNT) {
+        if (productLoadPort.countActiveRepresentativeByShopId(shopId) + 1 > MAX_REPRESENTATIVE_COUNT) {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_REPRESENTATIVE_LIMIT_EXCEEDED);
         }
     }
@@ -146,12 +146,12 @@ public class ProductRepresentativeApprovalService {
     }
 
     private Product loadProduct(ProductId productId) {
-        return productLoadPort.findById(productId)
+        return productLoadPort.findActiveById(productId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
-        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(shopId, List.of(productId));
+        List<Product> found = productLoadPort.findAllActiveByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }

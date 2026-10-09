@@ -48,7 +48,7 @@ class CouponUpdateService implements CouponUpdateUseCase {
     }
 
     private Coupon findCouponOrThrow(CouponId couponId) {
-        return couponLoadPort.findById(couponId)
+        return couponLoadPort.findActiveById(couponId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.COUPON_NOT_FOUND));
     }
 }

@@ -202,12 +202,12 @@ class ProductRegistrationServiceTest {
         }
 
         @Override
-        public Optional<Product> findById(ProductId id) {
+        public Optional<Product> findActiveById(ProductId id) {
             return Optional.ofNullable(existing);
         }
 
         @Override
-        public List<Product> findAllByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
+        public List<Product> findAllActiveByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
             return List.of();
         }
 
@@ -222,12 +222,12 @@ class ProductRegistrationServiceTest {
         }
 
         @Override
-        public long countRepresentativeByShopId(ShopId shopId) {
+        public long countActiveRepresentativeByShopId(ShopId shopId) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
+        public List<Product> findAllActiveSoldOutExpiredBefore(LocalDateTime baseTime) {
             return List.of();
         }
 
@@ -237,24 +237,24 @@ class ProductRegistrationServiceTest {
         }
 
         @Override
-        public boolean existsByShopIdAndName(ShopId shopId, String name) {
+        public boolean existsActiveByShopIdAndName(ShopId shopId, String name) {
             return existing != null && existing.getName().equals(name);
         }
 
         @Override
-        public boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
+        public boolean existsActiveByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
             return existing != null
                 && !existing.getId().equals(excludedId.value())
                 && existing.getName().equals(name);
         }
 
         @Override
-        public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
+        public List<Product> findAllActiveByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public long countByCategoryId(ProductCategoryId productCategoryId) {
+        public long countActiveByCategoryId(ProductCategoryId productCategoryId) {
             throw new UnsupportedOperationException();
         }
 

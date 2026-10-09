@@ -27,7 +27,7 @@ public class FakeShopLinkProductPersistence implements ProductLoadPort, ProductS
     }
 
     @Override
-    public Optional<Product> findById(ProductId id) {
+    public Optional<Product> findActiveById(ProductId id) {
         return Optional.ofNullable(products.get(id.value()));
     }
 
@@ -43,11 +43,11 @@ public class FakeShopLinkProductPersistence implements ProductLoadPort, ProductS
 
     @Override
     public Optional<Product> findByIdIncludingDeleted(ProductId id) {
-        return findById(id);
+        return findActiveById(id);
     }
 
     @Override
-    public List<Product> findAllByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
+    public List<Product> findAllActiveByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
         throw new UnsupportedOperationException();
     }
 
@@ -57,32 +57,32 @@ public class FakeShopLinkProductPersistence implements ProductLoadPort, ProductS
     }
 
     @Override
-    public long countRepresentativeByShopId(ShopId shopId) {
+    public long countActiveRepresentativeByShopId(ShopId shopId) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
+    public List<Product> findAllActiveSoldOutExpiredBefore(LocalDateTime baseTime) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean existsByShopIdAndName(ShopId shopId, String name) {
+    public boolean existsActiveByShopIdAndName(ShopId shopId, String name) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
+    public boolean existsActiveByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
+    public List<Product> findAllActiveByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public long countByCategoryId(ProductCategoryId productCategoryId) {
+    public long countActiveByCategoryId(ProductCategoryId productCategoryId) {
         throw new UnsupportedOperationException();
     }
 }

@@ -26,7 +26,7 @@ class BannerJpaPersistenceAdapter implements BannerLoadPort, BannerSavePort {
     }
 
     @Override
-    public Optional<Banner> findById(BannerId id) {
+    public Optional<Banner> findActiveById(BannerId id) {
         BannerJpaEntity entity = queryFactory
             .selectFrom(bannerJpaEntity)
             .where(

@@ -51,7 +51,7 @@ class BannerJpaPersistenceAdapterRegistrationTest {
     static class OtherBannerPersistence implements BannerLoadPort, BannerSavePort {
 
         @Override
-        public Optional<Banner> findById(BannerId id) {
+        public Optional<Banner> findActiveById(BannerId id) {
             return Optional.empty();
         }
 

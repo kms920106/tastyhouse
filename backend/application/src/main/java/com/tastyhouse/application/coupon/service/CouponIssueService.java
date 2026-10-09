@@ -70,7 +70,7 @@ public class CouponIssueService {
             throw new ApplicationException(ApplicationErrorCode.COUPON_ACCESS_DENIED);
         }
 
-        Coupon coupon = couponLoadPort.findById(memberCoupon.getCouponId())
+        Coupon coupon = couponLoadPort.findActiveById(memberCoupon.getCouponId())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.COUPON_INFO_NOT_FOUND));
 
         coupon.validateMinOrderAmount(orderAmountAfterProductDiscount);
@@ -90,7 +90,7 @@ public class CouponIssueService {
     }
 
     private Coupon findCouponOrThrow(CouponId couponId) {
-        return couponLoadPort.findById(couponId)
+        return couponLoadPort.findActiveById(couponId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.COUPON_NOT_FOUND));
     }
 }

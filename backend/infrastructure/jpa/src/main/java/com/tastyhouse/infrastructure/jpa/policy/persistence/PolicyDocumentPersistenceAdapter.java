@@ -26,12 +26,7 @@ class PolicyDocumentPersistenceAdapter implements PolicyDocumentLoadPort, Policy
 
     @Override
     public Optional<PolicyDocument> findById(PolicyDocumentId id) {
-        PolicyDocumentJpaEntity entity = queryFactory
-            .selectFrom(policyDocumentJpaEntity)
-            .where(policyDocumentJpaEntity.id.eq(id.value()))
-            .fetchOne();
-
-        return Optional.ofNullable(entity).map(PolicyDocumentMapper::toDomain);
+        return policyDocumentJpaRepository.findById(id.value()).map(PolicyDocumentMapper::toDomain);
     }
 
     @Override

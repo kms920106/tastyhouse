@@ -7,5 +7,5 @@ import com.tastyhouse.domain.coupon.vo.CouponId;
 
 public interface CouponLoadPort {
 
-    Optional<Coupon> findById(CouponId id);
+    Optional<Coupon> findActiveById(CouponId id);
 }

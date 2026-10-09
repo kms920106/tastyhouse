@@ -41,12 +41,12 @@ class FaqUpdateService implements FaqUpdateUseCase {
     }
 
     private Faq findFaqOrThrow(FaqId faqId) {
-        return faqLoadPort.findById(faqId)
+        return faqLoadPort.findActiveById(faqId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_NOT_FOUND));
     }
 
     private void validateCategoryExists(FaqCategoryId faqCategoryId) {
-        faqCategoryLoadPort.findById(faqCategoryId)
+        faqCategoryLoadPort.findActiveById(faqCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 }

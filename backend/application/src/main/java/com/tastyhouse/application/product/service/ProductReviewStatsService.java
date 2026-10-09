@@ -25,7 +25,7 @@ public class ProductReviewStatsService {
     }
 
     public void updateReviewStats(Long productId) {
-        productLoadPort.findById(ProductId.of(productId)).ifPresent(product -> {
+        productLoadPort.findActiveById(ProductId.of(productId)).ifPresent(product -> {
             Long count = productReviewStatisticsPort.countVisibleMenuReviewsByProductId(productId);
             Double rating = roundToTenth(productReviewStatisticsPort.getAverageMenuRatingByProductId(productId));
             product.updateReviewStats(rating, count != null ? count.intValue() : 0);

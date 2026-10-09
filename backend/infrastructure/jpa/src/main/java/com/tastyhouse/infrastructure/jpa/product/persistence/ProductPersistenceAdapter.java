@@ -30,7 +30,7 @@ class ProductPersistenceAdapter implements ProductLoadPort, ProductSavePort {
     }
 
     @Override
-    public Optional<Product> findById(ProductId id) {
+    public Optional<Product> findActiveById(ProductId id) {
         ProductJpaEntity entity = queryFactory
             .selectFrom(productJpaEntity)
             .where(productJpaEntity.id.eq(id.value()), productJpaEntity.deleted.isFalse())
@@ -57,7 +57,7 @@ class ProductPersistenceAdapter implements ProductLoadPort, ProductSavePort {
     }
 
     @Override
-    public List<Product> findAllByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
+    public List<Product> findAllActiveByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
         if (ids.isEmpty()) {
             return List.of();
         }
@@ -105,7 +105,7 @@ class ProductPersistenceAdapter implements ProductLoadPort, ProductSavePort {
     }
 
     @Override
-    public long countRepresentativeByShopId(ShopId shopId) {
+    public long countActiveRepresentativeByShopId(ShopId shopId) {
         Long count = queryFactory
             .select(productJpaEntity.count())
             .from(productJpaEntity)
@@ -119,7 +119,7 @@ class ProductPersistenceAdapter implements ProductLoadPort, ProductSavePort {
     }
 
     @Override
-    public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
+    public List<Product> findAllActiveSoldOutExpiredBefore(LocalDateTime baseTime) {
         return queryFactory
             .selectFrom(productJpaEntity)
             .where(
@@ -135,7 +135,7 @@ class ProductPersistenceAdapter implements ProductLoadPort, ProductSavePort {
     }
 
     @Override
-    public boolean existsByShopIdAndName(ShopId shopId, String name) {
+    public boolean existsActiveByShopIdAndName(ShopId shopId, String name) {
         return queryFactory
             .selectOne()
             .from(productJpaEntity)
@@ -148,7 +148,7 @@ class ProductPersistenceAdapter implements ProductLoadPort, ProductSavePort {
     }
 
     @Override
-    public boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
+    public boolean existsActiveByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
         return queryFactory
             .selectOne()
             .from(productJpaEntity)
@@ -162,7 +162,7 @@ class ProductPersistenceAdapter implements ProductLoadPort, ProductSavePort {
     }
 
     @Override
-    public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
+    public List<Product> findAllActiveByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
         Long categoryId = productCategoryId == null ? null : productCategoryId.value();
         return queryFactory
             .selectFrom(productJpaEntity)
@@ -179,7 +179,7 @@ class ProductPersistenceAdapter implements ProductLoadPort, ProductSavePort {
     }
 
     @Override
-    public long countByCategoryId(ProductCategoryId productCategoryId) {
+    public long countActiveByCategoryId(ProductCategoryId productCategoryId) {
         Long count = queryFactory
             .select(productJpaEntity.count())
             .from(productJpaEntity)

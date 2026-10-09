@@ -92,7 +92,7 @@ class ProductOwnerUpdateService implements ProductOwnerUpdateUseCase {
     }
 
     private Product loadOwnedProduct(Long shopId, Long productId) {
-        Product product = productLoadPort.findById(ProductId.of(productId))
+        Product product = productLoadPort.findActiveById(ProductId.of(productId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
@@ -101,7 +101,7 @@ class ProductOwnerUpdateService implements ProductOwnerUpdateUseCase {
     }
 
     private Integer nextSort(Long shopId, ProductCategoryId productCategoryId) {
-        return productLoadPort.findAllByShopIdAndCategoryId(ShopId.of(shopId), productCategoryId).size();
+        return productLoadPort.findAllActiveByShopIdAndCategoryId(ShopId.of(shopId), productCategoryId).size();
     }
 
     private boolean isSameCategory(ProductCategoryId current, ProductCategoryId requested) {

@@ -318,6 +318,31 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 
 원문 주석은 챕터 05에서 제거되므로, 이 문서가 그 금지 지시의 유일한 소재지다.
 
+### 쓰기 어댑터 조회 이름은 숨은 필터를 드러낸다 (`Active`·`Visible`·`IncludingDeleted`)
+
+**대상**: `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/architecture/LoadMethodNamingConventionTest.java` → `filteredLoadMethodsShouldNameTheFilter` · `softDeleteEntitiesShouldNotExposeBareFindById`
+
+과거에는 같은 `findById`라는 이름이 두 가지 뜻으로 쓰였다. 쓰기 어댑터 `findById` 55개 가운데 11개(Product·Coupon·Event·EventWinner·Banner·RankPeriod·RankPrize·Partnership·Faq·FaqCategory·Notice)는 `deleted.isFalse()`를 걸었고, 43개는 `JpaRepository#findById`로, 1개(PolicyDocument)는 QueryDSL로 PK만 조회했다. `findById`가 아닌 메서드에도 이름에 없는 필터가 있었다(Product 7개·ProductPrice 1개의 `deleted`, AdminDong 5개의 `active`). `AdminDongLoadPort`는 같은 포트 안에서 `findById`에는 필터가 없고 `existsById`에는 있었다.
+
+| 항목 | before | after |
+|---|---|---|
+| 소프트 삭제 11개 포트의 필터 걸린 단건 조회 | `findById` | `findActiveById` |
+| Product의 필터 걸린 조회 | `findAllByShopIdAndIdIn` · `countRepresentativeByShopId` · `findAllSoldOutExpiredBefore` · `existsByShopIdAndName` · `existsByShopIdAndNameAndIdNot` · `findAllByShopIdAndCategoryId` · `countByCategoryId` | 각각 `Active`를 넣은 이름(`findAllActiveByShopIdAndIdIn` …) |
+| ProductPrice 목록(부모 상품의 `deleted`) | `findAllByShopId` | `findAllOfActiveProductsByShopId` |
+| AdminDong의 `active` 조회 | `existsById` · `findByDongNameMatch` · `findAllWithinBoundingBox` · `findAllByIds` · `filterExistingIds` | `existsActiveById` · `findActiveByDongNameMatch` · `findAllActiveWithinBoundingBox` · `findAllActiveByIds` · `filterActiveIds` (`findById`는 필터가 없어 유지) |
+| PopularKeyword(실제 필터는 `visible`) | `findActiveOrderByRank` | `findVisibleOrderByRank` |
+| Order(관리자 소프트 삭제 대상인데 필터 없음) | `findById` | `findByIdIncludingDeleted` — 필터를 걸지 않는다. 호출부는 `OrderTransitionService#load`(결제 확정·취소·상태 전이)와 `ReviewCreateService`·`ReviewUpdateService`·`MenuReviewCreateService`의 주문 확인이다. 그래서 관리자가 삭제한 주문에도 리뷰를 쓸 수 있다(이번 개명 전부터 그랬다) |
+| PolicyDocument 순수 PK 조회 | QueryDSL `selectFrom … where id = ?` | `policyDocumentJpaRepository.findById` |
+| 동작 | — | 변경 없음 — 쿼리 조건 전부 동일 |
+
+- **규칙 1**: `*PersistenceAdapter`의 public 메서드 본문에 `xJpaEntity.deleted.isFalse()`/`.eq(false)` 또는 `xJpaEntity.active.isTrue()`/`.eq(true)`가 있으면 이름에 `Active` 또는 `Visible`이 있어야 한다. 하한 앵커는 매칭 메서드 27개다(위반 수가 아니라 매칭 수).
+- **규칙 2**: `findById`라는 public 메서드의 **본문**이 소프트 삭제 엔티티(`private boolean deleted` 필드를 가진 `*JpaEntity`, 하한 12개)를 `{엔티티}JpaRepository.findById(` 또는 `selectFrom({엔티티})`로 읽으면 실패한다. 판정을 어댑터가 아니라 메서드 본문 단위로 하는 이유는 `ProductPricePersistenceAdapter`처럼 다른 메서드의 조인에서만 소프트 삭제 엔티티를 쓰는 어댑터가 있어서다. 엔티티 이름은 대소문자를 구분하고 단어 경계로 매칭한다 — 그러지 않으면 `couponJpaRepository`가 `memberCouponJpaRepository`에, `noticeJpaRepository`가 `shopNoticeJpaRepository`에 잘못 걸린다. 하한 앵커는 셋이다: 소프트 삭제 엔티티 12개, 검사한 `findById` 메서드 40개(현재 43), 소프트 삭제 읽기 패턴이 매칭된 public 메서드 30개(`save`·`delete`의 PK 조회 포함, 현재 30).
+- **`visible` 필터는 규칙 1의 대상이 아니다** — `ProductImagePersistenceAdapter#findRepresentativeImageFileId`는 "대표 이미지"라는 도메인 용어가 이미 "노출 이미지 중 첫 번째"라는 뜻을 담고 있어 그대로 둔다.
+- **상품과 옵션의 품절 해제 조회 이름이 다른 것은 의도다.** `ProductLoadPort#findAllActiveSoldOutExpiredBefore`만 `deleted` 필터가 있고, `ProductOptionLoadPort`·`ProductCommonOptionLoadPort`의 `findAllSoldOutExpiredBefore`는 옵션이 소프트 삭제 대상이 아니라 필터가 없다.
+- **MyBatis 구현은 이 가드 밖이다.** `infrastructure/mybatis`의 `BannerMyBatisPersistenceAdapter`는 jpa 소스 스캔에 잡히지 않지만, 같은 포트를 구현하므로 포트 이름이 바뀌면 컴파일로 함께 강제된다. SQL id도 이미 `selectActiveById`다.
+- **조회 어댑터(`..query..`)는 대상이 아니다** — 화면용 읽기 모델이다.
+- **가드는 잡는 형태만 강제한다.** public 메서드 본문의 텍스트만 보므로 private 헬퍼(`notDeleted()`)·Q 별칭 변수에 둔 필터, `deleted.eq(Boolean.FALSE)`·`deleted.ne(true)` 같은 변형, `select(x).from(x)`·`entityManager.find`로 읽는 경우는 잡지 못한다. 지금 쓰기 어댑터에는 이런 형태가 없다. 새로 쓸 때는 위 형태로 쓰고, 다른 형태가 필요하면 가드를 함께 넓힌다.
+
 ### `BannerJpaPersistenceAdapterRegistrationTest` — banner 쓰기 JPA 구현이 대표(`@Primary`)다
 
 **대상**: `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/banner/persistence/BannerJpaPersistenceAdapterRegistrationTest.java` → `registersUnconditionallyAndServesBothPorts`·`winsOverNonPrimaryImplementation` · `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/banner/persistence/BannerJpaPersistenceAdapter.java` → 클래스의 `@Primary`
@@ -339,7 +364,7 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 | `existsShouldNotAssignSelectOneToLocalVariable` | `Xxx var = queryFactory.selectOne()` 0건 | 존재 확인을 지역 변수로 받지 않는다 |
 | `topLevelSelectOneShouldEndWithFetchFirstNotNull` | `queryFactory.selectOne()` 이후 첫 `;`까지가 `.fetchFirst() != null`로 끝남 | `queryFactory` 접두로 대상을 고르므로 **`JPAExpressions.selectOne()` 서브쿼리는 대상이 아니다**. 검사 대상 ≥ 45 (구현 시점 48) |
 | `existsShouldNotUseCount` | `count != null && count > 0` 0건 | 이 문자열 형태만 잡는다. `count > 0` 같은 변형은 리뷰가 지킨다 |
-| `singleSourceEntityLoadShouldUseSelectFrom` | `.select(xJpaEntity).from(xJpaEntity)` 0건 | `from(a, b, c)` 다중 소스(`ProductPricePersistenceAdapter#findAllByShopId`)는 걸리지 않는다 |
+| `singleSourceEntityLoadShouldUseSelectFrom` | `.select(xJpaEntity).from(xJpaEntity)` 0건 | `from(a, b, c)` 다중 소스(`ProductPricePersistenceAdapter#findAllOfActiveProductsByShopId`)는 걸리지 않는다 |
 | `entityLoadVariableShouldBeNamedEntity` | `XxxJpaEntity var = queryFactory.selectFrom(` 의 변수명이 `entity` | 투영·스칼라 변수명 `result`는 강제하지 않는다. `.selectFrom(` ≥ 100 (구현 시점 115) |
 
 - **원문 텍스트를 보므로 문자열 리터럴 안의 패턴도 걸린다.** 반증 probe는 그 성질을 이용해 문자열 리터럴로 위반을 심어 6개 규칙이 모두 실패함을 확인했다.
@@ -990,9 +1015,9 @@ detached 인스턴스를 그대로 `save`(merge)하면 **`@CreatedDate(updatable
 
 **대상**: `.../partnership/persistence/PartnershipPersistenceAdapter.java` · `.../product/persistence/ProductPersistenceAdapter.java` → `save` · `findByIdIncludingDeleted` · `.../rank/persistence/RankPeriodPersistenceAdapter.java` · `.../rank/persistence/RankPrizePersistenceAdapter.java` → `delete`
 
-삭제 전이를 저장하는 경로가 바로 이 자리이므로 **필터 없는 순수 PK 조회여야 한다.** 일반 로드용 필터 걸린 조회(`findById`)를 재사용하면 이미 삭제된 행을 다시 읽지 못해 **삭제가 영원히 실패하고 멱등 처리·상태 확인이 불가능해진다**(`RankPeriodPersistenceAdapter#delete` 선례).
+삭제 전이를 저장하는 경로가 바로 이 자리이므로 **필터 없는 순수 PK 조회여야 한다.** 일반 로드용 필터 걸린 조회(`findActiveById`)를 재사용하면 이미 삭제된 행을 다시 읽지 못해 **삭제가 영원히 실패하고 멱등 처리·상태 확인이 불가능해진다**(`RankPeriodPersistenceAdapter#delete` 선례).
 
-반대로 **일반 로드에서는 필터를 빼지 않는다** — `ProductJpaRepository`의 상속받은 `findById`에는 `deleted` 필터가 없으므로 일반 로드(`ProductPersistenceAdapter#findById`)는 QueryDSL로 `deleted.isFalse()`를 건다(과거 파생 쿼리 `findByIdAndDeletedFalse` — JpaRepository 메서드 선언 금지로 어댑터로 이관). 이 필터가 신규 주문·신규 메뉴평가 차단을 자동으로 성립시킨다.
+반대로 **일반 로드에서는 필터를 빼지 않는다** — `ProductJpaRepository`의 상속받은 `findById`에는 `deleted` 필터가 없으므로 일반 로드(`ProductPersistenceAdapter#findActiveById`)는 QueryDSL로 `deleted.isFalse()`를 건다(과거 파생 쿼리 `findByIdAndDeletedFalse` — JpaRepository 메서드 선언 금지로 어댑터로 이관). 이 필터가 신규 주문·신규 메뉴평가 차단을 자동으로 성립시킨다.
 
 #### replace-all 선행 삭제를 derived `deleteBy...`로 되돌리지 않는다
 
@@ -1014,7 +1039,7 @@ derived 삭제는 영속성 컨텍스트에 delete action만 큐잉하는데, **
 
 #### null 파라미터로 파생 쿼리를 합치지 않는다
 
-**대상**: `.../product/persistence/ProductPersistenceAdapter.java` → `findAllByShopIdAndCategoryId` (과거 파생 쿼리 `findAllByShopIdAndProductCategoryIdIsNullAndDeletedFalseOrderBySortAsc` — 지금은 QueryDSL `productCategoryId.isNull()` 분기)
+**대상**: `.../product/persistence/ProductPersistenceAdapter.java` → `findAllActiveByShopIdAndCategoryId` (과거 파생 쿼리 `findAllByShopIdAndProductCategoryIdIsNullAndDeletedFalseOrderBySortAsc` — 지금은 QueryDSL `productCategoryId.isNull()` 분기)
 
 미분류 메뉴 조회를 `productCategoryId.eq(null)` 하나로 합치면 **null이 "조건 없음"으로 해석돼 가게의 모든 메뉴가 대상이 된다.**
 
@@ -1080,7 +1105,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 >
 > **(번복됨 — persistence domain 재허용)** 방어선 두 개와 제자리 갱신은 `AdminDongPersistenceAdapter`에 있다. `AdminDongBoundarySnapshot`은 삭제됐고, 바운딩박스 파생은 **이 모듈의 `AdminDongMapper`로 돌아왔다** — `toEntity`와 `applyChanges`가 도메인 경계(`List<GeoRing>`)에서 같은 private 헬퍼 `enclosingBoundingBox`로 min/max를 계산한다(StateMapper의 계산을 그대로 옮김). 아래 마지막 항목의 원래 서술("`toEntity`와 `applyChanges`가 같은 파생 헬퍼를 쓴다")이 다시 현행이다.
 
-- **모든 조회의 `is_active = 1` 필터** — 폐지 동은 시드가 삭제하지 않고 `is_active = 0`으로 남기므로(다른 테이블이 id로 참조 중이다) **이 필터가 유일한 방어선이다.** 빠지면 폐지된 행정동이 "검색 목록에는 안 뜨는데 등록 검증은 통과하고 주소 매칭에도 걸리는" 비대칭이 되살아난다.
+- **`findById`를 뺀 모든 조회의 `is_active = 1` 필터** — 폐지 동은 시드가 삭제하지 않고 `is_active = 0`으로 남기므로(다른 테이블이 id로 참조 중이다) **이 필터가 유일한 방어선이다.** 빠지면 폐지된 행정동이 "검색 목록에는 안 뜨는데 등록 검증은 통과하고 주소 매칭에도 걸리는" 비대칭이 되살아난다.
 - **빈 목록 동기화 차단** — 원천을 못 읽었을 때 마스터를 비우면 **전국 배달지역이 통째로 죽는다.**
 - 동기화는 전량 삭제·재삽입이 아니라 **제자리 갱신(id 보존)** 이어야 한다 — 다른 테이블이 `id`를 참조한다.
 - 바운딩박스는 호출자가 넘기지 않고 **경계에서 파생시킨다** — 두 값을 각각 받으면 어긋남이 조용히 저장된다. `toEntity`와 `applyChanges`가 같은 파생 헬퍼를 쓰는 것도 신규 행과 갱신 행의 저장 형태가 갈리지 않게 하기 위함이다.
@@ -1415,7 +1440,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 | DAO 메서드 | 같은 데이터를 읽는 write 포트 | 반드시 조건이 일치해야 하는 이유 |
 |---|---|---|
 | `findProductPrices` | `ProductPriceLoadPort#findAllByProductId` | — |
-| `findShopProductPrices` | `ProductPriceLoadPort#findAllByShopId` | 어긋나면 손님 화면과 점주 화면의 **매장가격 뱃지가 갈린다** |
+| `findShopProductPrices` | `ProductPriceLoadPort#findAllOfActiveProductsByShopId` | 어긋나면 손님 화면과 점주 화면의 **매장가격 뱃지가 갈린다** |
 | `countVisibleProducts` | `ProductLoadPort#countVisibleByShopId` | 조건(`visible = true` **이고** `deleted = false`)이 어긋나면 같은 가게의 뱃지가 점주·손님 화면에서 다르게 켜진다 |
 | `findOptionGroupMergeExcludedSignatures` | exclusion write 포트 | 추천 목록을 만드는 것이 query 서비스라 write 포트를 주입할 수 없다 |
 
@@ -2387,17 +2412,17 @@ derived 삭제는 또한 대상을 먼저 조회한 뒤 건별로 삭제하므�
 
 #### 소프트 삭제 필터는 조회 성격으로 갈린다
 
-→ `ProductPersistenceAdapter#findById` · `ProductPersistenceAdapter#findByIdIncludingDeleted`
+→ `ProductPersistenceAdapter#findActiveById` · `ProductPersistenceAdapter#findByIdIncludingDeleted`
 
-`ProductPersistenceAdapter`의 QueryDSL 조회 대부분에 `deleted.isFalse()`가 붙어 있다(과거 `ProductJpaRepository` 파생 쿼리의 `AndDeletedFalse` — JpaRepository 메서드 선언 금지로 이관). **상속받은 `ProductJpaRepository#findById`에는 그 필터가 없으므로** 일반 로드는 필터 걸린 QueryDSL 조회를, 삭제·저장 경로만 필터 없는 `findById`를 쓴다.
+`ProductPersistenceAdapter`의 QueryDSL 조회 대부분에 `deleted.isFalse()`가 붙어 있다(과거 `ProductJpaRepository` 파생 쿼리의 `AndDeletedFalse` — JpaRepository 메서드 선언 금지로 이관). **상속받은 `ProductJpaRepository#findById`에는 그 필터가 없으므로** 일반 로드는 필터 걸린 QueryDSL 조회(`findActiveById`)를, 삭제·저장 경로만 필터 없는 `findById`를 쓴다.
 
-일반 로드(`ProductPersistenceAdapter#findById`)에 필터를 걸어 두면 **신규 주문·신규 메뉴평가 차단이 자동으로 성립**한다. 반면 삭제 자신은 필터 없는 순수 PK 조회(`findByIdIncludingDeleted`)로 대상을 읽어야 한다 — `findById`를 재사용하면 이미 삭제된 행을 다시 읽지 못해 **멱등 처리와 상태 확인이 불가능**해지고 삭제가 영원히 실패한다(`RankPeriodPersistenceAdapter#delete` 선례).
+일반 로드(`ProductPersistenceAdapter#findActiveById`)에 필터를 걸어 두면 **신규 주문·신규 메뉴평가 차단이 자동으로 성립**한다. 반면 삭제 자신은 필터 없는 순수 PK 조회(`findByIdIncludingDeleted`)로 대상을 읽어야 한다 — `findActiveById`를 재사용하면 이미 삭제된 행을 다시 읽지 못해 **멱등 처리와 상태 확인이 불가능**해지고 삭제가 영원히 실패한다(`RankPeriodPersistenceAdapter#delete` 선례).
 
 `ProductCategoryPersistenceAdapter#delete`만 **하드 삭제**다 — 메뉴그룹은 주문·리뷰가 참조하지 않고, 소속 메뉴가 남아 있으면 도메인 서비스가 `PRODUCT_CATEGORY_HAS_PRODUCTS`로 먼저 막으므로 고아 데이터가 생기지 않는다. `Product` 자신이 소프트 삭제인 이유는 스키마에 FK 제약이 0개이기 때문이다.
 
 #### null 파라미터를 "조건 없음"으로 해석시키지 않는다
 
-→ `ProductPersistenceAdapter#findAllByShopIdAndCategoryId`
+→ `ProductPersistenceAdapter#findAllActiveByShopIdAndCategoryId`
 
 미분류 메뉴 조회를 `productCategoryId = null`로 합치지 않고 **`isNull()` 조건으로 따로 가른다**(과거에는 별도 파생 메서드였다). 하나로 합치면 null이 "조건 없음"으로 해석돼 가게의 모든 메뉴가 대상이 된다.
 
@@ -2476,13 +2501,13 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 **대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/region/persistence/AdminDongPersistenceAdapter.java`(03b 동안 `AdminDongStatePortImpl` — 번복됨)
 → `synchronize(List<AdminDong>)` · `SAVE_BATCH_SIZE` · `deactivateMissing`
 
-> **(03b)** 아래 동기화 규칙 4개는 `AdminDongStatePortImpl`에 그대로 있다. **"`AdminDongJpaEntity`·`AdminDongMapper` 쪽 규칙" 중 둘은 application으로 옮겨 갔다** — ① 바운딩박스 파생(`GeoBoundingBox.enclosing`)과 경계 인코딩은 `application/region/store/AdminDongStateMapper#toBoundarySnapshot`이 하고, 결과를 `AdminDongBoundarySnapshot(encodedRings, minLatitude, maxLatitude, minLongitude, maxLongitude)` 하나로 넘긴다. 경계와 박스가 한 record라 "두 값을 각각 받으면 어긋난다"는 위험이 구조적으로 막히며, 이 모듈의 `AdminDongMapper#toEntity`·`#applyChanges`는 Snapshot을 컬럼에 옮기기만 한다(같은 헬퍼를 쓴다는 규칙은 "Snapshot을 같은 방식으로 펼친다"로 승계 — 둘 다 Snapshot이 `null`이면 6개 컬럼을 `null`로 둔다). ② 대표점 `GeoPoint` 승격(위경도 둘 다 있을 때만)과 경계 디코딩(빈 값 → 빈 목록)은 `AdminDongStateMapper#toCenter`·`toDomain`이 한다. 좌표·경계 컬럼 nullable, `findAllWithinBoundingBox` 프리필터 규칙은 그대로다(메서드는 이제 원시 위경도 4개를 받는다).
+> **(03b)** 아래 동기화 규칙 4개는 `AdminDongStatePortImpl`에 그대로 있다. **"`AdminDongJpaEntity`·`AdminDongMapper` 쪽 규칙" 중 둘은 application으로 옮겨 갔다** — ① 바운딩박스 파생(`GeoBoundingBox.enclosing`)과 경계 인코딩은 `application/region/store/AdminDongStateMapper#toBoundarySnapshot`이 하고, 결과를 `AdminDongBoundarySnapshot(encodedRings, minLatitude, maxLatitude, minLongitude, maxLongitude)` 하나로 넘긴다. 경계와 박스가 한 record라 "두 값을 각각 받으면 어긋난다"는 위험이 구조적으로 막히며, 이 모듈의 `AdminDongMapper#toEntity`·`#applyChanges`는 Snapshot을 컬럼에 옮기기만 한다(같은 헬퍼를 쓴다는 규칙은 "Snapshot을 같은 방식으로 펼친다"로 승계 — 둘 다 Snapshot이 `null`이면 6개 컬럼을 `null`로 둔다). ② 대표점 `GeoPoint` 승격(위경도 둘 다 있을 때만)과 경계 디코딩(빈 값 → 빈 목록)은 `AdminDongStateMapper#toCenter`·`toDomain`이 한다. 좌표·경계 컬럼 nullable, `findAllWithinBoundingBox`(현 `findAllActiveWithinBoundingBox`) 프리필터 규칙은 그대로다(메서드는 이제 원시 위경도 4개를 받는다).
 >
 > **(번복됨 — persistence domain 재허용)** 동기화 규칙 4개는 `AdminDongPersistenceAdapter`에 있고, ①② 모두 **이 모듈의 `AdminDongMapper`로 돌아왔다** — 바운딩박스 파생은 `toEntity`·`applyChanges`가 같은 private 헬퍼 `enclosingBoundingBox`로(StateMapper의 min/max 계산을 그대로 옮김), 대표점 승격은 `toCenter`로, 경계 인코딩·디코딩은 domain `GeoPolygonTextCodec`으로 한다. `AdminDongBoundarySnapshot`·`AdminDongCenterSnapshot`은 삭제됐다. 아래 원래 서술("`toEntity`와 `applyChanges`가 같은 헬퍼를 쓴다")이 다시 현행이다.
 
 쓰기는 `synchronize`(동기화 배치 전용) 하나뿐이며 건별 저장 경로가 없다.
 
-- **모든 조회가 `is_active = 1`로 통일돼 있다.** 과거 이 어댑터의 `existsById`·`findByDongNameMatch`는 활성 여부를 거르지 않는 반면 `AdminDongQueryAdapter`는 걸러, 통폐합돼 폐지된 행정동이 **검색 목록에는 안 뜨는데 등록 검증은 통과하고 주소 매칭에도 걸리는** 비대칭이 있었다. 폐지 동은 시드가 삭제하지 않고 `is_active = 0`으로 남기므로(다른 테이블이 id로 참조 중이다) **이 필터가 유일한 방어선이다.**
+- **`findById`를 뺀 모든 조회가 `is_active = 1`로 통일돼 있고, 그 메서드는 이름에 `Active`를 단다**(`existsActiveById`·`findActiveByDongNameMatch`·`findAllActiveWithinBoundingBox`·`findAllActiveByIds`·`filterActiveIds` — 개명 전 이름은 `Active`가 없었다). `findById`는 필터 없는 순수 PK 조회다. 과거 이 어댑터의 `existsById`·`findByDongNameMatch`는 활성 여부를 거르지 않는 반면 `AdminDongQueryAdapter`는 걸러, 통폐합돼 폐지된 행정동이 **검색 목록에는 안 뜨는데 등록 검증은 통과하고 주소 매칭에도 걸리는** 비대칭이 있었다. 폐지 동은 시드가 삭제하지 않고 `is_active = 0`으로 남기므로(다른 테이블이 id로 참조 중이다) **이 필터가 유일한 방어선이다.**
 - **전량 삭제·재삽입이 아니라 제자리 갱신(id 보존)** 인 이유도 다른 테이블이 `id`를 참조하기 때문이다. 원천에서 사라진 동은 삭제하지 않고 `deactivate()`로 폐지 처리한다.
 - **빈 목록 동기화는 `IllegalArgumentException`으로 막는다** — 원천을 못 읽었을 때 마스터를 비우면 전국 배달지역이 통째로 죽는다.
 - `SAVE_BATCH_SIZE = 500` — 3,500여 건을 한 영속성 컨텍스트에 쌓으면 경계 문자열(행당 평균 4KB, 최대 64KB)까지 함께 메모리에 머물러 힙이 불필요하게 커진다.
@@ -2493,7 +2518,7 @@ domain의 `ContextBoundaryTest`(03a 이후 서비스 간 경계는 `application`
 - **바운딩박스는 호출자가 넘기지 않고 경계에서 파생시킨다** — 경계와 박스가 어긋나면 프리필터가 실제 경계와 다른 후보를 내놓는데, 두 값을 각각 받으면 그 어긋남이 조용히 저장될 수 있다. 경계가 사라지면 낡은 박스가 남지 않도록 null까지 그대로 반영한다.
 - `toEntity`와 `applyChanges`는 **같은 파생 헬퍼를 쓴다** — 한쪽만 바뀌면 신규 행과 갱신 행의 저장 형태가 갈린다.
 - 대표점은 **위경도가 모두 있을 때만** `GeoPoint`로 승격한다(하나만 있으면 좌표로서 의미가 없다). 경계는 빈 문자열·null 모두 빈 목록으로 정규화한다.
-- `AdminDongJpaRepository#findAllWithinBoundingBox`는 배달지역 환산의 후보 프리필터이며 `idx_admin_dong_center`를 탄다. 대표점이 없는 행은 좌표 비교가 `NULL`이 되어 자동으로 빠진다 — 판정 근거가 없는 동을 후보에 넣어도 "판정 불가"로 분류될 뿐이다. `findExistingIds`는 일괄 등록의 존재 검증이 건별 조회를 돌지 않도록 식별자만 투영한다.
+- `AdminDongPersistenceAdapter#findAllActiveWithinBoundingBox`는 배달지역 환산의 후보 프리필터이며 `idx_admin_dong_center`를 탄다. 대표점이 없는 행은 좌표 비교가 `NULL`이 되어 자동으로 빠진다 — 판정 근거가 없는 동을 후보에 넣어도 "판정 불가"로 분류될 뿐이다. `filterActiveIds`는 일괄 등록의 존재 검증이 건별 조회를 돌지 않도록 식별자만 투영한다.
 
 #### 낙관적 락은 슬롯 예약에만 있고, 예외는 프레임워크-프리로 번역한다
 

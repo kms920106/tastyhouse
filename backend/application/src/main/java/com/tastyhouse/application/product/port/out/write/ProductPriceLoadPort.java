@@ -14,5 +14,5 @@ public interface ProductPriceLoadPort {
 
     List<ProductPrice> findAllByProductId(ProductId productId);
 
-    List<ProductPrice> findAllByShopId(ShopId shopId);
+    List<ProductPrice> findAllOfActiveProductsByShopId(ShopId shopId);
 }

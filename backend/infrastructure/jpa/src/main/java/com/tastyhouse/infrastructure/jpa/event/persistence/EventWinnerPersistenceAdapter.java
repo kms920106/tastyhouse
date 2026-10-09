@@ -23,7 +23,7 @@ class EventWinnerPersistenceAdapter implements EventWinnerLoadPort, EventWinnerS
     }
 
     @Override
-    public Optional<EventWinner> findById(Long id) {
+    public Optional<EventWinner> findActiveById(Long id) {
         EventWinnerJpaEntity entity = queryFactory
             .selectFrom(eventWinnerJpaEntity)
             .where(eventWinnerJpaEntity.id.eq(id), eventWinnerJpaEntity.deleted.isFalse())

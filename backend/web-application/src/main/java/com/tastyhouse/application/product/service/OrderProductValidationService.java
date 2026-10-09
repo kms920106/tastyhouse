@@ -85,7 +85,7 @@ public class OrderProductValidationService {
     }
 
     private OrderProductSnapshot validateLine(OrderLineSelection line, OrderMethod orderMethod, LocalDateTime now) {
-        Product product = productLoadPort.findById(ProductId.of(line.productId()))
+        Product product = productLoadPort.findActiveById(ProductId.of(line.productId()))
             .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_PRODUCT_NOT_FOUND,
                 WebErrorCode.ORDER_PRODUCT_NOT_FOUND.getDefaultMessage() + ": " + line.productId()));
 

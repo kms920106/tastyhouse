@@ -46,7 +46,7 @@ class MenuReviewCreateService implements MenuReviewCreateUseCase {
         OrderProduct orderProduct = orderProductLoadPort.findById(OrderProductId.of(command.orderProductId()))
             .orElseThrow(() -> new ResourceNotFoundException(WebErrorCode.ORDER_PRODUCT_NOT_FOUND));
 
-        Order order = orderLoadPort.findById(orderProduct.getOrderId())
+        Order order = orderLoadPort.findByIdIncludingDeleted(orderProduct.getOrderId())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         MemberId targetMemberId = MemberId.of(command.memberId());
         if (!order.getMemberId().equals(targetMemberId)) {

@@ -95,7 +95,7 @@ public class ShopDeliveryAreaRadiusService {
             .approximate(center, radiusMeters, ShopDeliveryAreaPolicy.CIRCLE_SEGMENTS)
             .boundingBox();
 
-        return adminDongLoadPort.findAllWithinBoundingBox(candidateBox).stream()
+        return adminDongLoadPort.findAllActiveWithinBoundingBox(candidateBox).stream()
             .filter(AdminDong::hasCenter)
             .filter(adminDong -> center.distanceMetersTo(adminDong.getCenter()) <= radiusMeters)
             .map(adminDong -> AdminDongId.of(adminDong.getId()))

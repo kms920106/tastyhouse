@@ -6,7 +6,7 @@
 
 ## 용어 풀이
 
-- **포트**: application 모듈의 인터페이스. 서비스는 이것만 안다 — 예: `application/.../banner/port/out/write/{BannerLoadPort,BannerSavePort}`(`findById`, `save`).
+- **포트**: application 모듈의 인터페이스. 서비스는 이것만 안다 — 예: `application/.../banner/port/out/write/{BannerLoadPort,BannerSavePort}`(`findActiveById`, `save`).
 - **어댑터**: 포트를 실제 기술로 구현한 클래스. 이 모듈의 `BannerMyBatisPersistenceAdapter`가 MyBatis로 구현한다.
 - **JPA(ORM)**: 자바 객체(엔티티)를 테이블에 자동으로 대응시킨다. SQL을 직접 쓰지 않고, 엔티티 값을 바꾸면 트랜잭션 끝에 UPDATE가 나간다(변경 감지).
 - **MyBatis(SQL 매퍼)**: SQL을 XML에 직접 쓰고, 결과 행을 자바 객체로 옮긴다. 무엇이 실행되는지 SQL 그대로 보인다.
@@ -64,7 +64,7 @@ MyBatis 구현은 이 모듈을 의존하는 앱에서만 쓸 수 있다. 지금
 | 항목 | JPA (`infrastructure:jpa`) | MyBatis (이 모듈) |
 |---|---|---|
 | 클래스 | `BannerJpaPersistenceAdapter` + `BannerJpaMapper` + `BannerJpaRepository` + `BannerJpaEntity` | `BannerMyBatisPersistenceAdapter` + `BannerRowMapper` + `BannerMyBatisMapper` + `BannerRow`/`BannerWriteRow` + XML |
-| `findById` | QueryDSL `selectFrom … where id = ? and deleted = false` | XML `selectActiveById`(같은 조건) |
+| `findActiveById` | QueryDSL `selectFrom … where id = ? and deleted = false` | XML `selectActiveById`(같은 조건) |
 | 신규 저장 | `jpaRepository.save(entity)` — IDENTITY 키를 엔티티가 받음 | `insert`(`useGeneratedKeys`) — 키를 `BannerWriteRow#setId`로 받음 |
 | 수정 저장 | PK로 managed 엔티티를 로드해 값 복사 → 변경 감지로 UPDATE | `UPDATE … WHERE id = ?` 한 문장, 영향 행 0이면 예외 |
 | 없는 id 수정 | `IllegalStateException("존재하지 않는 배너입니다: …")` | 같은 예외·같은 메시지 |

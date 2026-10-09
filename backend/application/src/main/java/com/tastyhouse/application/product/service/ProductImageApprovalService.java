@@ -113,7 +113,7 @@ public class ProductImageApprovalService {
     }
 
     private void requireProductExists(ProductId productId) {
-        if (productLoadPort.findById(productId).isEmpty()) {
+        if (productLoadPort.findActiveById(productId).isEmpty()) {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }
     }

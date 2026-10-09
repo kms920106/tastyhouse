@@ -7,5 +7,5 @@ import com.tastyhouse.domain.order.vo.OrderId;
 
 public interface OrderLoadPort {
 
-    Optional<Order> findById(OrderId orderId);
+    Optional<Order> findByIdIncludingDeleted(OrderId orderId);
 }

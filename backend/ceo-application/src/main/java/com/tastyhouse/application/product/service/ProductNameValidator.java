@@ -24,14 +24,14 @@ public class ProductNameValidator {
 
     public void validateForCreate(Long shopId, String name) {
         validateCharacters(name);
-        if (productLoadPort.existsByShopIdAndName(ShopId.of(shopId), name)) {
+        if (productLoadPort.existsActiveByShopIdAndName(ShopId.of(shopId), name)) {
             throw new ApplicationException(CeoErrorCode.PRODUCT_NAME_DUPLICATED);
         }
     }
 
     public void validateForUpdate(Long shopId, Long productId, String name) {
         validateCharacters(name);
-        if (productLoadPort.existsByShopIdAndNameAndIdNot(ShopId.of(shopId), name, ProductId.of(productId))) {
+        if (productLoadPort.existsActiveByShopIdAndNameAndIdNot(ShopId.of(shopId), name, ProductId.of(productId))) {
             throw new ApplicationException(CeoErrorCode.PRODUCT_NAME_DUPLICATED);
         }
     }

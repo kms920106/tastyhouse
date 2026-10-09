@@ -267,17 +267,17 @@ class ShopDeliveryAreaPolygonServiceTest {
         }
 
         @Override
-        public boolean existsById(AdminDongId adminDongId) {
+        public boolean existsActiveById(AdminDongId adminDongId) {
             return adminDongs.containsKey(adminDongId.value());
         }
 
         @Override
-        public Optional<AdminDong> findByDongNameMatch(String sidoName, String sigunguName, String dongName) {
+        public Optional<AdminDong> findActiveByDongNameMatch(String sidoName, String sigunguName, String dongName) {
             return Optional.empty();
         }
 
         @Override
-        public List<AdminDong> findAllWithinBoundingBox(GeoBoundingBox boundingBox) {
+        public List<AdminDong> findAllActiveWithinBoundingBox(GeoBoundingBox boundingBox) {
             return adminDongs.values().stream()
                 .filter(AdminDong::hasCenter)
                 .filter(adminDong -> boundingBox.contains(adminDong.getCenter()))
@@ -285,7 +285,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         }
 
         @Override
-        public List<AdminDong> findAllByIds(Collection<AdminDongId> adminDongIds) {
+        public List<AdminDong> findAllActiveByIds(Collection<AdminDongId> adminDongIds) {
             return adminDongIds.stream()
                 .map(adminDongId -> adminDongs.get(adminDongId.value()))
                 .filter(java.util.Objects::nonNull)
@@ -293,7 +293,7 @@ class ShopDeliveryAreaPolygonServiceTest {
         }
 
         @Override
-        public Set<AdminDongId> filterExistingIds(Collection<AdminDongId> adminDongIds) {
+        public Set<AdminDongId> filterActiveIds(Collection<AdminDongId> adminDongIds) {
             return adminDongIds.stream()
                 .filter(adminDongId -> adminDongs.containsKey(adminDongId.value()))
                 .collect(Collectors.toCollection(LinkedHashSet::new));

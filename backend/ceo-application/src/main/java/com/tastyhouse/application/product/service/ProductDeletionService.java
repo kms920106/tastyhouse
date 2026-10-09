@@ -37,7 +37,7 @@ public class ProductDeletionService {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_AVAILABILITY_TARGET_EMPTY);
         }
 
-        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(shopId, distinctIds);
+        List<Product> found = productLoadPort.findAllActiveByShopIdAndIdIn(shopId, distinctIds);
         Map<Long, Product> byId = new LinkedHashMap<>();
         found.forEach(product -> byId.put(product.getId(), product));
 

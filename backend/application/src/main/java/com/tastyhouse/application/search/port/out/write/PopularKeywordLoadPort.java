@@ -6,5 +6,5 @@ import com.tastyhouse.domain.search.model.PopularKeyword;
 
 public interface PopularKeywordLoadPort {
 
-    List<PopularKeyword> findActiveOrderByRank();
+    List<PopularKeyword> findVisibleOrderByRank();
 }

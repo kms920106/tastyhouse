@@ -7,5 +7,5 @@ import com.tastyhouse.domain.partnership.vo.PartnershipRequestId;
 
 public interface PartnershipLoadPort {
 
-    Optional<PartnershipRequest> findById(PartnershipRequestId partnershipRequestId);
+    Optional<PartnershipRequest> findActiveById(PartnershipRequestId partnershipRequestId);
 }

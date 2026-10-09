@@ -46,7 +46,7 @@ class ProductCategoryDeleteService implements ProductCategoryDeleteUseCase {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
 
         ProductCategory category = loadOwnedCategory(shopId, productCategoryId);
-        if (productLoadPort.countByCategoryId(ProductCategoryId.of(productCategoryId)) > 0) {
+        if (productLoadPort.countActiveByCategoryId(ProductCategoryId.of(productCategoryId)) > 0) {
             throw new ApplicationException(CeoErrorCode.PRODUCT_CATEGORY_HAS_PRODUCTS);
         }
         productCategorySavePort.delete(category);

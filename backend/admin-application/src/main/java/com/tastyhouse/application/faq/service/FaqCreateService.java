@@ -35,7 +35,7 @@ class FaqCreateService implements FaqCreateUseCase {
     }
 
     private void validateCategoryExists(FaqCategoryId faqCategoryId) {
-        faqCategoryLoadPort.findById(faqCategoryId)
+        faqCategoryLoadPort.findActiveById(faqCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 }

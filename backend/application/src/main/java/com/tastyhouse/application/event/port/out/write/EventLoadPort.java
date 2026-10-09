@@ -7,5 +7,5 @@ import com.tastyhouse.domain.event.vo.EventId;
 
 public interface EventLoadPort {
 
-    Optional<Event> findById(EventId eventId);
+    Optional<Event> findActiveById(EventId eventId);
 }

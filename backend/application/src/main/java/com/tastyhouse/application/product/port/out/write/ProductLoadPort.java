@@ -11,25 +11,25 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 
 public interface ProductLoadPort {
 
-    Optional<Product> findById(ProductId id);
+    Optional<Product> findActiveById(ProductId id);
 
-    List<Product> findAllByShopIdAndIdIn(ShopId shopId, List<ProductId> ids);
+    List<Product> findAllActiveByShopIdAndIdIn(ShopId shopId, List<ProductId> ids);
 
     long countVisibleByShopId(ShopId shopId);
 
     long countVisibleRepresentativeByShopId(ShopId shopId);
 
-    long countRepresentativeByShopId(ShopId shopId);
+    long countActiveRepresentativeByShopId(ShopId shopId);
 
-    List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime);
+    List<Product> findAllActiveSoldOutExpiredBefore(LocalDateTime baseTime);
 
-    boolean existsByShopIdAndName(ShopId shopId, String name);
+    boolean existsActiveByShopIdAndName(ShopId shopId, String name);
 
-    boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId);
+    boolean existsActiveByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId);
 
-    List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId);
+    List<Product> findAllActiveByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId);
 
-    long countByCategoryId(ProductCategoryId productCategoryId);
+    long countActiveByCategoryId(ProductCategoryId productCategoryId);
 
     Optional<Product> findByIdIncludingDeleted(ProductId id);
 }

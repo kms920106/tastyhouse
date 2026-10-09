@@ -52,7 +52,7 @@ public class ShopDeliveryAreaService {
     }
 
     public Long addArea(ShopId shopId, AdminDongId adminDongId, ShopChangeActor actor) {
-        if (!adminDongLoadPort.existsById(adminDongId)) {
+        if (!adminDongLoadPort.existsActiveById(adminDongId)) {
             throw new ResourceNotFoundException(CeoErrorCode.ADMIN_DONG_NOT_FOUND);
         }
 
@@ -98,7 +98,7 @@ public class ShopDeliveryAreaService {
             return new BulkResult(0, 0, 0, (int) total);
         }
 
-        Set<AdminDongId> existingDongs = adminDongLoadPort.filterExistingIds(requested);
+        Set<AdminDongId> existingDongs = adminDongLoadPort.filterActiveIds(requested);
         if (existingDongs.size() != requested.size()) {
             throw new ResourceNotFoundException(CeoErrorCode.ADMIN_DONG_NOT_FOUND);
         }
@@ -219,7 +219,7 @@ public class ShopDeliveryAreaService {
     }
 
     private String describeAreas(Collection<AdminDongId> adminDongIds) {
-        Map<Long, String> namesById = adminDongLoadPort.findAllByIds(adminDongIds).stream()
+        Map<Long, String> namesById = adminDongLoadPort.findAllActiveByIds(adminDongIds).stream()
             .collect(Collectors.toMap(AdminDong::getId, AdminDong::fullName, (first, second) -> first));
 
         return ShopChangeValueFormatter.snapshot(

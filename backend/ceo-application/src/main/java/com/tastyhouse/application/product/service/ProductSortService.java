@@ -64,7 +64,7 @@ public class ProductSortService {
         ProductCategoryId productCategoryId,
         List<ProductId> orderedIds
     ) {
-        List<Product> current = productLoadPort.findAllByShopIdAndCategoryId(shopId, productCategoryId);
+        List<Product> current = productLoadPort.findAllActiveByShopIdAndCategoryId(shopId, productCategoryId);
         Map<Long, Product> byId = current.stream()
             .collect(Collectors.toMap(Product::getId, Function.identity()));
 
@@ -89,7 +89,7 @@ public class ProductSortService {
         }
 
         List<Long> movedRawIds = distinctRawIds(movedIds);
-        List<Product> moved = productLoadPort.findAllByShopIdAndIdIn(shopId, movedIds);
+        List<Product> moved = productLoadPort.findAllActiveByShopIdAndIdIn(shopId, movedIds);
         if (moved.size() != movedRawIds.size()) {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
         }
@@ -109,7 +109,7 @@ public class ProductSortService {
             throw new ApplicationException(ApplicationErrorCode.PRODUCT_ORDER_TARGET_MISMATCH);
         }
 
-        List<Product> targetGroup = productLoadPort.findAllByShopIdAndCategoryId(shopId, targetCategoryId);
+        List<Product> targetGroup = productLoadPort.findAllActiveByShopIdAndCategoryId(shopId, targetCategoryId);
         Map<Long, Product> targetById = targetGroup.stream()
             .collect(Collectors.toMap(Product::getId, Function.identity()));
         Map<Long, Product> movedById = moved.stream()
@@ -139,7 +139,7 @@ public class ProductSortService {
     }
 
     private void renumber(ShopId shopId, ProductCategoryId productCategoryId) {
-        List<Product> remaining = productLoadPort.findAllByShopIdAndCategoryId(shopId, productCategoryId);
+        List<Product> remaining = productLoadPort.findAllActiveByShopIdAndCategoryId(shopId, productCategoryId);
         for (int index = 0; index < remaining.size(); index++) {
             Product product = remaining.get(index);
             product.changeSort(index);

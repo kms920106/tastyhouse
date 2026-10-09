@@ -65,7 +65,7 @@ class ProductImageChangeRequestService implements ProductImageChangeRequestUseCa
     }
 
     private boolean notOwnedBy(Long shopId, ProductId productId) {
-        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(ShopId.of(shopId), List.of(productId));
+        List<Product> found = productLoadPort.findAllActiveByShopIdAndIdIn(ShopId.of(shopId), List.of(productId));
         return found.isEmpty();
     }
 }

@@ -30,7 +30,7 @@ class PopularKeywordPersistenceAdapter implements PopularKeywordLoadPort, Popula
     }
 
     @Override
-    public List<PopularKeyword> findActiveOrderByRank() {
+    public List<PopularKeyword> findVisibleOrderByRank() {
         return queryFactory.selectFrom(popularKeywordJpaEntity)
             .where(popularKeywordJpaEntity.visible.isTrue())
             .orderBy(popularKeywordJpaEntity.rank.asc())

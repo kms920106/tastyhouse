@@ -72,7 +72,7 @@ class ProductOptionGroupCreateService implements ProductOptionGroupCreateUseCase
     }
 
     private Shop loadShopOf(ProductId productId) {
-        Product product = productLoadPort.findById(productId)
+        Product product = productLoadPort.findActiveById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         return shopLoadPort.findById(product.getShopId())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.SHOP_NOT_FOUND));

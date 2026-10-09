@@ -110,7 +110,7 @@ public class ProductOptionGroupLinkService {
     public ShopId findOwningShopId(ProductOptionGroupId optionGroupId) {
         return linkLoadPort.findAllByOptionGroupId(optionGroupId).stream()
             .map(ProductOptionGroupLink::getProductId)
-            .map(productLoadPort::findById)
+            .map(productLoadPort::findActiveById)
             .filter(java.util.Optional::isPresent)
             .map(java.util.Optional::get)
             .map(Product::getShopId)
@@ -119,7 +119,7 @@ public class ProductOptionGroupLinkService {
     }
 
     private void validateSameShop(ProductId productId, ProductOptionGroupId optionGroupId) {
-        Product product = productLoadPort.findById(productId)
+        Product product = productLoadPort.findActiveById(productId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
 
         ShopId owner = findOwningShopId(optionGroupId);

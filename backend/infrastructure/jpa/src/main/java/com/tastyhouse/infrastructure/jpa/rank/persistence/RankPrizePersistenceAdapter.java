@@ -37,7 +37,7 @@ class RankPrizePersistenceAdapter implements RankPrizeLoadPort, RankPrizeSavePor
     }
 
     @Override
-    public Optional<RankPrize> findById(RankPrizeId id) {
+    public Optional<RankPrize> findActiveById(RankPrizeId id) {
         RankPrizeJpaEntity entity = queryFactory
             .selectFrom(rankPrizeJpaEntity)
             .where(rankPrizeJpaEntity.id.eq(id.value()), rankPrizeJpaEntity.deleted.isFalse())

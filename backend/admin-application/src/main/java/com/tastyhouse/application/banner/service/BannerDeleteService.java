@@ -34,7 +34,7 @@ class BannerDeleteService implements BannerDeleteUseCase {
     }
 
     private Banner findBannerOrThrow(BannerId bannerId) {
-        return bannerLoadPort.findById(bannerId)
+        return bannerLoadPort.findActiveById(bannerId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.BANNER_NOT_FOUND));
     }
 }

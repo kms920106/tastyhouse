@@ -7,5 +7,5 @@ import com.tastyhouse.domain.rank.vo.RankPrizeId;
 
 public interface RankPrizeLoadPort {
 
-    Optional<RankPrize> findById(RankPrizeId id);
+    Optional<RankPrize> findActiveById(RankPrizeId id);
 }

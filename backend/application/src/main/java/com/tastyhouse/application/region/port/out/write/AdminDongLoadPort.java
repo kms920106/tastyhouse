@@ -13,13 +13,13 @@ public interface AdminDongLoadPort {
 
     Optional<AdminDong> findById(AdminDongId adminDongId);
 
-    boolean existsById(AdminDongId adminDongId);
+    boolean existsActiveById(AdminDongId adminDongId);
 
-    Optional<AdminDong> findByDongNameMatch(String sidoName, String sigunguName, String dongName);
+    Optional<AdminDong> findActiveByDongNameMatch(String sidoName, String sigunguName, String dongName);
 
-    List<AdminDong> findAllWithinBoundingBox(GeoBoundingBox boundingBox);
+    List<AdminDong> findAllActiveWithinBoundingBox(GeoBoundingBox boundingBox);
 
-    List<AdminDong> findAllByIds(Collection<AdminDongId> adminDongIds);
+    List<AdminDong> findAllActiveByIds(Collection<AdminDongId> adminDongIds);
 
-    Set<AdminDongId> filterExistingIds(Collection<AdminDongId> adminDongIds);
+    Set<AdminDongId> filterActiveIds(Collection<AdminDongId> adminDongIds);
 }

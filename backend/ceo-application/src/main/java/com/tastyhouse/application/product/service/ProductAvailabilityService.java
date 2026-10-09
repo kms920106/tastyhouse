@@ -161,7 +161,7 @@ class ProductAvailabilityService {
 
     private LoadedProducts loadProducts(ShopId shopId, List<ProductId> productIds) {
         List<ProductId> distinctIds = distinct(productIds);
-        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(shopId, distinctIds);
+        List<Product> found = productLoadPort.findAllActiveByShopIdAndIdIn(shopId, distinctIds);
 
         Map<Long, Product> byId = new LinkedHashMap<>();
         found.forEach(product -> byId.put(product.getId(), product));

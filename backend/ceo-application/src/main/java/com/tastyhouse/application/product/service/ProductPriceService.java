@@ -180,7 +180,7 @@ public class ProductPriceService {
         if (!storePriceVerificationPort.isStorePriceVerified(shopId.value())) {
             return;
         }
-        List<ProductPrice> violated = productPriceLoadPort.findAllByShopId(shopId).stream()
+        List<ProductPrice> violated = productPriceLoadPort.findAllOfActiveProductsByShopId(shopId).stream()
             .filter(ProductPrice::isDeliveryPriceHigherThanStorePrice)
             .toList();
         if (violated.isEmpty()) {
@@ -195,7 +195,7 @@ public class ProductPriceService {
     }
 
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
-        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(shopId, List.of(productId));
+        List<Product> found = productLoadPort.findAllActiveByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }

@@ -37,7 +37,7 @@ class RankPeriodPersistenceAdapter implements RankPeriodLoadPort, RankPeriodSave
     }
 
     @Override
-    public Optional<RankPeriod> findById(RankPeriodId id) {
+    public Optional<RankPeriod> findActiveById(RankPeriodId id) {
         RankPeriodJpaEntity entity = queryFactory
             .selectFrom(rankPeriodJpaEntity)
             .where(rankPeriodJpaEntity.id.eq(id.value()), rankPeriodJpaEntity.deleted.isFalse())

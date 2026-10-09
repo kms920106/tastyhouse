@@ -263,7 +263,7 @@ public class ProductRegistrationService {
     }
 
     private Product loadProduct(ProductId productId) {
-        return productLoadPort.findById(productId)
+        return productLoadPort.findActiveById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 }

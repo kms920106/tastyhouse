@@ -71,7 +71,7 @@ class ReviewUpdateService implements ReviewUpdateUseCase {
             throw new ApplicationException(WebErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);
         }
 
-        Order order = orderLoadPort.findById(orderId)
+        Order order = orderLoadPort.findByIdIncludingDeleted(orderId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.ORDER_NOT_FOUND));
         if (order.getOrderMethod() != OrderMethod.DELIVERY) {
             throw new ApplicationException(WebErrorCode.REVIEW_DELIVERY_RATING_NOT_ALLOWED);

@@ -36,7 +36,7 @@ class PartnershipManagementStatusChangeService implements PartnershipManagementS
     }
 
     private PartnershipRequest findPartnershipRequestOrThrow(PartnershipRequestId partnershipRequestId) {
-        return partnershipLoadPort.findById(partnershipRequestId)
+        return partnershipLoadPort.findActiveById(partnershipRequestId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.PARTNERSHIP_REQUEST_NOT_FOUND));
     }
 }

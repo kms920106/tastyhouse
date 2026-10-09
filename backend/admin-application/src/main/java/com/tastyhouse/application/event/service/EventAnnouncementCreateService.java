@@ -48,7 +48,7 @@ class EventAnnouncementCreateService implements EventAnnouncementCreateUseCase {
     }
 
     private void verifyEventExists(EventId eventId) {
-        eventLoadPort.findById(eventId)
+        eventLoadPort.findActiveById(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
     }
 }

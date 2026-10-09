@@ -65,7 +65,7 @@ class ProductPricePersistenceAdapter implements ProductPriceLoadPort, ProductPri
     }
 
     @Override
-    public List<ProductPrice> findAllByShopId(ShopId shopId) {
+    public List<ProductPrice> findAllOfActiveProductsByShopId(ShopId shopId) {
         return queryFactory
             .select(productPriceJpaEntity)
             .from(productPriceJpaEntity, productJpaEntity, productShopLinkJpaEntity)

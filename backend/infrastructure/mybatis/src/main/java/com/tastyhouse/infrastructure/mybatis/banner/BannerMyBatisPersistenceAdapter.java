@@ -20,7 +20,7 @@ class BannerMyBatisPersistenceAdapter implements BannerLoadPort, BannerSavePort 
     }
 
     @Override
-    public Optional<Banner> findById(BannerId id) {
+    public Optional<Banner> findActiveById(BannerId id) {
         return bannerMyBatisMapper.selectActiveById(id.value()).map(BannerRowMapper::toDomain);
     }
 

@@ -34,7 +34,7 @@ class NoticeUpdateService implements NoticeUpdateUseCase {
     }
 
     private Notice findNoticeOrThrow(NoticeId noticeId) {
-        return noticeLoadPort.findById(noticeId)
+        return noticeLoadPort.findActiveById(noticeId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.NOTICE_NOT_FOUND));
     }
 }

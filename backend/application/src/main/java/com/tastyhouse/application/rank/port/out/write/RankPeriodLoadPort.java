@@ -7,5 +7,5 @@ import com.tastyhouse.domain.rank.vo.RankPeriodId;
 
 public interface RankPeriodLoadPort {
 
-    Optional<RankPeriod> findById(RankPeriodId id);
+    Optional<RankPeriod> findActiveById(RankPeriodId id);
 }

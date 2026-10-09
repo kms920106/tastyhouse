@@ -34,7 +34,7 @@ class EventDeleteService implements EventDeleteUseCase {
     }
 
     private Event findEventOrThrow(EventId eventId) {
-        return eventLoadPort.findById(eventId)
+        return eventLoadPort.findActiveById(eventId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.EVENT_NOT_FOUND));
     }
 }

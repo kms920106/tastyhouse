@@ -18,7 +18,7 @@ class RankPrizeManagementReader {
     }
 
     RankPrize findPrizeOrThrow(RankPrizeId prizeId) {
-        return rankPrizeLoadPort.findById(prizeId)
+        return rankPrizeLoadPort.findActiveById(prizeId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.RANK_PRIZE_NOT_FOUND));
     }
 }

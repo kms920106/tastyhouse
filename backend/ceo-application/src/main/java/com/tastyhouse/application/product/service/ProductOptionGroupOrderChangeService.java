@@ -48,7 +48,7 @@ class ProductOptionGroupOrderChangeService implements ProductOptionGroupOrderCha
     }
 
     private void loadOwnedProduct(Long shopId, Long productId) {
-        Product product = productLoadPort.findById(ProductId.of(productId))
+        Product product = productLoadPort.findActiveById(ProductId.of(productId))
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (!product.getShopId().equals(ShopId.of(shopId))) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);

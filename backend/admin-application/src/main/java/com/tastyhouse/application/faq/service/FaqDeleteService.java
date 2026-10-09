@@ -34,7 +34,7 @@ class FaqDeleteService implements FaqDeleteUseCase {
     }
 
     private Faq findFaqOrThrow(FaqId faqId) {
-        return faqLoadPort.findById(faqId)
+        return faqLoadPort.findActiveById(faqId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_NOT_FOUND));
     }
 }

@@ -167,7 +167,7 @@ public class StorePriceVerificationService {
     public List<StorePriceUnverifiedItem> findUnverifiedItems(ShopId shopId) {
         Map<Long, StorePriceUnverifiedItem> byProductId = new LinkedHashMap<>();
 
-        for (ProductPrice price : productPriceLoadPort.findAllByShopId(shopId)) {
+        for (ProductPrice price : productPriceLoadPort.findAllOfActiveProductsByShopId(shopId)) {
             var reason = price.resolveUnverifiedReason();
             if (reason == null) {
                 continue;
@@ -176,7 +176,7 @@ public class StorePriceVerificationService {
             if (byProductId.containsKey(productId)) {
                 continue;
             }
-            Product product = productLoadPort.findById(price.getProductId()).orElse(null);
+            Product product = productLoadPort.findActiveById(price.getProductId()).orElse(null);
             if (product == null || product.isDeleted()) {
                 continue;
             }
@@ -210,7 +210,7 @@ public class StorePriceVerificationService {
     }
 
     private Product loadOwnedProduct(ShopId shopId, ProductId productId) {
-        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(shopId, List.of(productId));
+        List<Product> found = productLoadPort.findAllActiveByShopIdAndIdIn(shopId, List.of(productId));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);
         }

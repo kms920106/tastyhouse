@@ -7,5 +7,5 @@ import com.tastyhouse.domain.notice.vo.NoticeId;
 
 public interface NoticeLoadPort {
 
-    Optional<Notice> findById(NoticeId noticeId);
+    Optional<Notice> findActiveById(NoticeId noticeId);
 }

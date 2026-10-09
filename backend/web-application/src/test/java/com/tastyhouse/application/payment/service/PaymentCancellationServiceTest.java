@@ -299,7 +299,7 @@ class PaymentCancellationServiceTest {
         }
 
         @Override
-        public Optional<Order> findById(OrderId orderId) {
+        public Optional<Order> findByIdIncludingDeleted(OrderId orderId) {
             return Optional.of(stored);
         }
 

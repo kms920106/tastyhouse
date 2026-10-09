@@ -45,7 +45,7 @@ class ShopDeliveryAreaPolygonDeleteService implements ShopDeliveryAreaPolygonDel
     }
 
     private List<String> resolveRegionNames(Collection<AdminDongId> adminDongIds) {
-        return adminDongLoadPort.findAllByIds(adminDongIds).stream()
+        return adminDongLoadPort.findAllActiveByIds(adminDongIds).stream()
             .map(AdminDong::fullName)
             .toList();
     }

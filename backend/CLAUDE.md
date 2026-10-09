@@ -600,6 +600,19 @@ reference 구현: `order` 도메인의 `OrderQueryService#findOrderDetailById`(�
   (실제로 쓰는 접두어만 허용한다 — `load`·`get`·`update` 같은 것을 미리 열어 두면 `getOrCreate…`처럼 상태를 바꾸는 메서드가 LoadPort에 들어와도 통과한다. 새 접두어가 필요해지면 그때 상수와 이 표를 함께 늘린다)
 
 - **`Save`는 삭제를 포함합니다(사용자 결정).** 이름이 Save여도 `delete`·`remove`는 `SavePort`에 둡니다 — "저장소 상태를 바꾸는 쪽"이라는 뜻이지 insert/update만이라는 뜻이 아닙니다. `DeletePort`를 따로 만들지 않습니다. 새 메서드가 위 두 접두어 목록에 없으면 가드가 실패하므로, 접두어를 맞춰 짓거나 의도적으로 목록을 넓힙니다(`LOAD_PREFIXES`·`SAVE_PREFIXES`).
+- **LoadPort 조회 이름에는 숨은 필터를 드러냅니다.** 메서드 이름만 보고 필터 여부를 알 수 있어야 합니다. 같은 `findById`가 어떤 포트에서는 PK 조회이고 어떤 포트에서는 `deleted = false` 조회이면, 호출부가 이름만 보고 잘못 고를 수 있기 때문입니다.
+
+  | 수식어 | 뜻 | 예 |
+  |---|---|---|
+  | (없음) | 필터 없는 조회 | `findById` = 순수 PK 조회 |
+  | `Active` | 살아 있는 행만(`deleted = false`, 또는 행정동 `active = true`) | `findActiveById`·`existsActiveByShopIdAndName` |
+  | `Visible` | 노출되는 행만. Visible이면 Active이기도 하므로 `Active`를 겹쳐 쓰지 않습니다 | `countVisibleByShopId`·`findVisibleById` |
+  | `IncludingDeleted` | 소프트 삭제 엔티티에서 삭제된 행까지 일부러 읽습니다 | `ProductLoadPort#findByIdIncludingDeleted`·`OrderLoadPort#findByIdIncludingDeleted` |
+
+  - **소프트 삭제 엔티티(`deleted` 컬럼 보유)를 읽는 어댑터는 수식어 없는 `findById`를 공개하지 않습니다.** `Active` 또는 `IncludingDeleted`를 붙입니다.
+  - 도메인 용어가 이미 조건을 담고 있는 이름(`Pending`·`Expirable`·`Blocking`·`Exposed`·`Representative`)과, 상태를 파라미터로 받는 메서드는 그대로 둡니다.
+  - 가드: `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/architecture/LoadMethodNamingConventionTest.java`. 근거와 대상 목록은 `infrastructure/jpa/AGENTS.md`의 "쓰기 어댑터 조회 이름은 숨은 필터를 드러낸다" 항목에 있습니다.
+  - 조회 어댑터(`*QueryAdapter`)는 대상이 아닙니다(화면용 조회).
 - **예외 — 같은 포트를 여러 기술 모듈이 구현할 때는 기술 한정어를 붙입니다.** 이름 짝 규칙(`{Ctx}PersistenceAdapter`)은 구현이 하나일 때의 규칙입니다. 구현이 둘이면 이름만으로 어느 기술인지 구분해야 하므로 `{Ctx}{기술}PersistenceAdapter`로 짓고, 도메인 변환기도 `{Ctx}JpaMapper`(엔티티 ↔ 도메인)·`{Ctx}RowMapper`(MyBatis 행 ↔ 도메인)로 나눕니다. `{Ctx}MyBatisMapper`는 MyBatis SQL 인터페이스 이름이라 변환기에 쓰지 않습니다.
 
   | 항목 | before (구현 1개) | after (JPA·MyBatis 공존) |
@@ -1724,7 +1737,7 @@ reference 구현: `infrastructure:jpa`의 `notice/query/NoticeQueryAdapter`(`tit
 
 | 항목 | before | after |
 |---|---|---|
-| 단일 소스 엔티티 로드 | `selectFrom(x)` | 그대로. `select(x).from(x)`는 쓰지 않는다. 다중 소스 theta join(`from(a, b, c)` — `ProductPricePersistenceAdapter#findAllByShopId`)만 `select(x).from(...)`을 쓴다 |
+| 단일 소스 엔티티 로드 | `selectFrom(x)` | 그대로. `select(x).from(x)`는 쓰지 않는다. 다중 소스 theta join(`from(a, b, c)` — `ProductPricePersistenceAdapter#findAllOfActiveProductsByShopId`)만 `select(x).from(...)`을 쓴다 |
 | 단건 → `Optional` | `Optional.ofNullable(queryFactory …fetchOne())` 인라인 40곳 / 지역 변수 69곳 | **지역 변수로 받은 뒤 `return Optional.ofNullable(var)…`**. 변수명은 JpaEntity면 `entity`, 투영·스칼라면 `result`(의미 있는 이름이 이미 있으면 유지). `queryFactory`로 시작하는 체인이 대상이며, 헬퍼 쿼리 빌더(`selectPayment()` 등)로 시작하는 4곳은 대상 밖이다 |
 | 존재 확인 | 인라인 29곳 / 지역 변수 18곳 / `count() > 0` 1곳 | **`return queryFactory.selectOne().from(x).where(…).fetchFirst() != null;` 한 문장**. `count() > 0`은 전 행을 집계하므로 쓰지 않는다 |
 | `selectOne()` 종결 | `fetchFirst()` | `fetchFirst()`만. `fetchOne()`은 2건 이상이면 예외라 존재 확인에 맞지 않는다 |
@@ -1917,7 +1930,7 @@ reference 구현: `notice` 도메인 — `com.tastyhouse.application.notice.port
 - **소유 검증의 의미를 바꾸지 않는다.** 가격 목록은 원래 `product.shopId` 일치 + 미삭제가 아니면 404였다. 같은 조건을 갖는 `ProductOwnerQueryPort#findExposurePeriod`의 `shopId`를 비교해 재현했고, shop **링크** 기준인 `existsProductInShop`은 의미가 달라 쓰지 않았다.
 - **이 판정은 ArchUnit으로 강제하지 못한다.** "서비스가 write 포트를 읽은 값이 화면으로 나가는가"는 정적으로 판정할 수 없어 리뷰가 지킨다. 조회 유스케이스에 도메인 서비스를 새로 주입할 때 이 표로 확인한다.
 
-reference 구현: `NoticeLoadPort#findById`·`NoticeSavePort#save`(`application/<ctx>/port/out/write/`, 분리 전 `NoticePersistencePort`·그 전 `domain/.../notice/repository/`) 둘만 노출 — 목록·검색·페이징은 전부 `com.tastyhouse.application.notice.port.out.NoticeQueryPort`(구현은 `infrastructure-module/.../notice/query/NoticeQueryAdapter`)가 담당하며, 그 의도를 인터페이스 Javadoc에 명시). 락 획득 조회 사례: `reservation` 도메인의 `ReservationSlotSavePort`(`saveImmediately`로 `@Version` 충돌을 커밋 전에 노출). 기준 위반을 사후 교정한 사례: `file` 도메인의 `UploadedFilePersistencePort`가 응답 URL 변환용으로 `findFilePath`(단건 default)·`findFilePaths`(배치)를 갖고 있었으나, 둘 다 "화면에 뿌릴 값"을 얻는 조회여서 이 기준에 맞지 않았고 조회를 DAO join으로 옮긴 뒤 호출부가 0이 되어 제거했다(현재는 `save`/`findById`만 노출). 애그리거트를 로드해 그 fileId를 표현용으로만 쓰던 5개 경로도 같은 기준으로 `ShopQueryAdapter#findShopImageUrls`·`MemberQueryAdapter#findProfileImageUrl` 투영으로 이관했다 — 다만 그 경로들은 응답의 다른 필드나 소유권 검증(ceo-api `validateOwnership`) 때문에 애그리거트 로드 자체는 계속 필요하므로, **이미지 URL만** 투영으로 분리했다.
+reference 구현: `NoticeLoadPort#findActiveById`·`NoticeSavePort#save`(`application/<ctx>/port/out/write/`, 분리 전 `NoticePersistencePort`·그 전 `domain/.../notice/repository/`) 둘만 노출 — 목록·검색·페이징은 전부 `com.tastyhouse.application.notice.port.out.NoticeQueryPort`(구현은 `infrastructure-module/.../notice/query/NoticeQueryAdapter`)가 담당하며, 그 의도를 인터페이스 Javadoc에 명시). 락 획득 조회 사례: `reservation` 도메인의 `ReservationSlotSavePort`(`saveImmediately`로 `@Version` 충돌을 커밋 전에 노출). 기준 위반을 사후 교정한 사례: `file` 도메인의 `UploadedFilePersistencePort`가 응답 URL 변환용으로 `findFilePath`(단건 default)·`findFilePaths`(배치)를 갖고 있었으나, 둘 다 "화면에 뿌릴 값"을 얻는 조회여서 이 기준에 맞지 않았고 조회를 DAO join으로 옮긴 뒤 호출부가 0이 되어 제거했다(현재는 `save`/`findById`만 노출). 애그리거트를 로드해 그 fileId를 표현용으로만 쓰던 5개 경로도 같은 기준으로 `ShopQueryAdapter#findShopImageUrls`·`MemberQueryAdapter#findProfileImageUrl` 투영으로 이관했다 — 다만 그 경로들은 응답의 다른 필드나 소유권 검증(ceo-api `validateOwnership`) 때문에 애그리거트 로드 자체는 계속 필요하므로, **이미지 URL만** 투영으로 분리했다.
 
 ## 도메인 컨텍스트 경계 규칙 (ArchUnit 강제 — 봉인 목록 방식)
 

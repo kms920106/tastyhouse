@@ -141,7 +141,7 @@ public class ProductShopLinkService {
     }
 
     private Product loadProduct(ProductId productId) {
-        return productLoadPort.findById(productId)
+        return productLoadPort.findActiveById(productId)
             .filter(found -> !found.isDeleted())
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }

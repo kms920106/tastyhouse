@@ -456,7 +456,7 @@ class ProductAvailabilityServiceTest {
     ) implements ProductLoadPort, ProductSavePort {
 
         @Override
-        public Optional<Product> findById(ProductId id) {
+        public Optional<Product> findActiveById(ProductId id) {
             return products.stream().filter(product -> product.getId().equals(id.value())).findFirst();
         }
 
@@ -466,7 +466,7 @@ class ProductAvailabilityServiceTest {
         }
 
         @Override
-        public List<Product> findAllByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
+        public List<Product> findAllActiveByShopIdAndIdIn(ShopId shopId, List<ProductId> ids) {
             List<Long> raw = ids.stream().map(ProductId::value).toList();
             return products.stream().filter(product -> raw.contains(product.getId())).toList();
         }
@@ -482,39 +482,39 @@ class ProductAvailabilityServiceTest {
         }
 
         @Override
-        public long countRepresentativeByShopId(ShopId shopId) {
+        public long countActiveRepresentativeByShopId(ShopId shopId) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public List<Product> findAllSoldOutExpiredBefore(LocalDateTime baseTime) {
+        public List<Product> findAllActiveSoldOutExpiredBefore(LocalDateTime baseTime) {
             return List.of();
         }
 
         @Override
         public Optional<Product> findByIdIncludingDeleted(ProductId id) {
-            return findById(id);
+            return findActiveById(id);
         }
 
         @Override
-        public boolean existsByShopIdAndName(ShopId shopId, String name) {
+        public boolean existsActiveByShopIdAndName(ShopId shopId, String name) {
             return products.stream().anyMatch(product -> product.getName().equals(name));
         }
 
         @Override
-        public boolean existsByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
+        public boolean existsActiveByShopIdAndNameAndIdNot(ShopId shopId, String name, ProductId excludedId) {
             return products.stream()
                 .filter(product -> !product.getId().equals(excludedId.value()))
                 .anyMatch(product -> product.getName().equals(name));
         }
 
         @Override
-        public List<Product> findAllByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
+        public List<Product> findAllActiveByShopIdAndCategoryId(ShopId shopId, ProductCategoryId productCategoryId) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public long countByCategoryId(ProductCategoryId productCategoryId) {
+        public long countActiveByCategoryId(ProductCategoryId productCategoryId) {
             throw new UnsupportedOperationException();
         }
     }

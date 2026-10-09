@@ -18,7 +18,7 @@ class RankPeriodManagementReader {
     }
 
     RankPeriod findPeriodOrThrow(RankPeriodId periodId) {
-        return rankPeriodLoadPort.findById(periodId)
+        return rankPeriodLoadPort.findActiveById(periodId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.RANK_PERIOD_NOT_FOUND));
     }
 }

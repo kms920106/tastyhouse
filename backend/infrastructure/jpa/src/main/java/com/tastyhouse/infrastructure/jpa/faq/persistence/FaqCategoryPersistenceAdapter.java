@@ -25,7 +25,7 @@ class FaqCategoryPersistenceAdapter implements FaqCategoryLoadPort, FaqCategoryS
     }
 
     @Override
-    public Optional<FaqCategory> findById(FaqCategoryId faqCategoryId) {
+    public Optional<FaqCategory> findActiveById(FaqCategoryId faqCategoryId) {
         FaqCategoryJpaEntity entity = queryFactory
             .selectFrom(faqCategoryJpaEntity)
             .where(faqCategoryJpaEntity.id.eq(faqCategoryId.value()), faqCategoryJpaEntity.deleted.isFalse())

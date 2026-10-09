@@ -19,7 +19,7 @@ class OrderPersistenceAdapter implements OrderLoadPort, OrderSavePort {
     }
 
     @Override
-    public Optional<Order> findById(OrderId orderId) {
+    public Optional<Order> findByIdIncludingDeleted(OrderId orderId) {
         return orderJpaRepository.findById(orderId.value()).map(OrderMapper::toDomain);
     }
 

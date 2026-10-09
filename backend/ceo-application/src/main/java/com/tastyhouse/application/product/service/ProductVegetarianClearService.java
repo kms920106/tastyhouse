@@ -45,7 +45,7 @@ class ProductVegetarianClearService implements ProductVegetarianClearUseCase {
 
     private void requireOwnedProduct(Long ceoId, Long shopId, Long productId) {
         shopOwnershipValidator.validateOwnership(ceoId, shopId);
-        List<Product> found = productLoadPort.findAllByShopIdAndIdIn(
+        List<Product> found = productLoadPort.findAllActiveByShopIdAndIdIn(
             ShopId.of(shopId), List.of(ProductId.of(productId)));
         if (found.isEmpty()) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);

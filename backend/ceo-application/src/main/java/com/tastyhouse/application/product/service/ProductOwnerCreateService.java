@@ -114,7 +114,7 @@ class ProductOwnerCreateService implements ProductOwnerCreateUseCase {
     }
 
     private Integer nextSort(Long shopId, ProductCategoryId productCategoryId) {
-        return productLoadPort.findAllByShopIdAndCategoryId(ShopId.of(shopId), productCategoryId).size();
+        return productLoadPort.findAllActiveByShopIdAndCategoryId(ShopId.of(shopId), productCategoryId).size();
     }
 
     private ProductCategoryId toProductCategoryId(Long productCategoryId) {

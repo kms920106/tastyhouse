@@ -6,5 +6,5 @@ import com.tastyhouse.domain.event.model.EventWinner;
 
 public interface EventWinnerLoadPort {
 
-    Optional<EventWinner> findById(Long id);
+    Optional<EventWinner> findActiveById(Long id);
 }

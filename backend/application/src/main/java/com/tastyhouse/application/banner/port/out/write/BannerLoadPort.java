@@ -7,5 +7,5 @@ import com.tastyhouse.domain.banner.vo.BannerId;
 
 public interface BannerLoadPort {
 
-    Optional<Banner> findById(BannerId id);
+    Optional<Banner> findActiveById(BannerId id);
 }

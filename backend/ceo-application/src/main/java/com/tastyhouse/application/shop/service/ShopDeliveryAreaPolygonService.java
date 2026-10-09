@@ -168,7 +168,7 @@ public class ShopDeliveryAreaPolygonService {
 
     public DeliveryAreaProjection.Result project(GeoPolygon polygon) {
         GeoBoundingBox candidateBox = polygon.boundingBox().expand(CANDIDATE_BOX_MARGIN_DEGREES);
-        List<AdminDong> candidates = adminDongLoadPort.findAllWithinBoundingBox(candidateBox);
+        List<AdminDong> candidates = adminDongLoadPort.findAllActiveWithinBoundingBox(candidateBox);
         return DeliveryAreaProjection.project(polygon, candidates);
     }
 

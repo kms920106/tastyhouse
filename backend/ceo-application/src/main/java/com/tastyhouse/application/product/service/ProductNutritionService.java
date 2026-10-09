@@ -98,7 +98,7 @@ public class ProductNutritionService {
     }
 
     private void validateProductExists(ProductId productId) {
-        Product product = productLoadPort.findById(productId)
+        Product product = productLoadPort.findActiveById(productId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
         if (product.isDeleted()) {
             throw new ResourceNotFoundException(ApplicationErrorCode.PRODUCT_NOT_FOUND);

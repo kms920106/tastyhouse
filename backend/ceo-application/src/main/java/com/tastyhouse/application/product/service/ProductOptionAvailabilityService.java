@@ -431,7 +431,7 @@ class ProductOptionAvailabilityService {
     private Map<Long, ShopId> loadShopIdsOf(List<ProductId> productIds) {
         Map<Long, ShopId> shopIdByProductId = new LinkedHashMap<>();
         for (ProductId productId : distinct(productIds)) {
-            productLoadPort.findById(productId)
+            productLoadPort.findActiveById(productId)
                 .ifPresent(product -> shopIdByProductId.put(product.getId(), product.getShopId()));
         }
         return shopIdByProductId;

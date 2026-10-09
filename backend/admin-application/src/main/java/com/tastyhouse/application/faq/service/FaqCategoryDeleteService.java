@@ -36,7 +36,7 @@ class FaqCategoryDeleteService implements FaqCategoryDeleteUseCase {
     }
 
     private FaqCategory findCategoryOrThrow(FaqCategoryId faqCategoryId) {
-        return faqCategoryLoadPort.findById(faqCategoryId)
+        return faqCategoryLoadPort.findActiveById(faqCategoryId)
             .orElseThrow(() -> new ResourceNotFoundException(AdminErrorCode.FAQ_CATEGORY_NOT_FOUND));
     }
 }

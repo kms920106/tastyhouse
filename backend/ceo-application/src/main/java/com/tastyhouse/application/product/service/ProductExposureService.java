@@ -112,7 +112,7 @@ public class ProductExposureService {
     }
 
     private Product loadProduct(ProductId productId) {
-        return productLoadPort.findById(productId)
+        return productLoadPort.findActiveById(productId)
             .orElseThrow(() -> new ApplicationException(ApplicationErrorCode.PRODUCT_NOT_FOUND));
     }
 }

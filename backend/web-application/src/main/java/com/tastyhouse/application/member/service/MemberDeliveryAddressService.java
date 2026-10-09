@@ -145,6 +145,6 @@ public class MemberDeliveryAddressService {
         if (tokens.length < ADDRESS_TOKEN_MIN_COUNT) {
             return Optional.empty();
         }
-        return adminDongLoadPort.findByDongNameMatch(tokens[0], tokens[1], tokens[2]);
+        return adminDongLoadPort.findActiveByDongNameMatch(tokens[0], tokens[1], tokens[2]);
     }
 }
