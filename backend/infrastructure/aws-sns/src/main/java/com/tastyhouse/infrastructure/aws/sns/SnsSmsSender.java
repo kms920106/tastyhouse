@@ -7,11 +7,11 @@ import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
 import software.amazon.awssdk.services.sns.model.SnsException;
 
-import com.tastyhouse.application.sms.port.out.SmsSendFailure;
-import com.tastyhouse.application.sms.port.out.SmsSendResult;
-import com.tastyhouse.application.sms.port.out.SmsSender;
+import com.tastyhouse.application.phoneverification.port.out.SmsSendFailure;
+import com.tastyhouse.application.phoneverification.port.out.SmsSendResult;
+import com.tastyhouse.application.phoneverification.port.out.SmsSenderPort;
 
-class SnsSmsSender implements SmsSender {
+class SnsSmsSender implements SmsSenderPort {
 
     private static final Logger log = LoggerFactory.getLogger(SnsSmsSender.class);
 

@@ -43,7 +43,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | faq | FAQ (Faq/FaqCategory) | 2 | 2 | - | - |
 | file | 파일 업로드/관리 | 1 | 1 | 1 | - |
 | holiday | 공휴일 마스터 | 1 | - | - | - |
-| mail | 메일(이메일 주소) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 1 | 1 | - |
+| emailverification | 메일(이메일 주소) 인증 — 발급 시 발송까지 원자적 수행 | 3 | 1 | 1 | - |
 | member | 회원 관리 (하위 `follow`·`referral` 포함). 다른 모든 BC가 `MemberId`로 참조하는 핵심 도메인 | 12 | 2 | 3 | 1 |
 | menureview | 메뉴 평가(매장 리뷰와 독립된 축) | 1 | 1 | 3 | - |
 | notice | 공지사항 (분리 패턴 reference 도메인) | 1 | 1 | - | - |
@@ -60,7 +60,7 @@ DDD(Domain-Driven Design) 패턴으로 설계된 모든 Bounded Context가 거�
 | review | 리뷰/댓글/답글/이미지/좋아요/태그 (6 애그리거트) | 14 | 5 | 4 | 1 |
 | search | 검색어 (PopularKeyword/SearchKeywordLog) | 2 | - | - | - |
 | shop | 가게/식당 + 자식 애그리거트 다수 — 최대 도메인 | 73 | 8 | - | 20 |
-| sms | SMS(휴대폰번호) 인증 — 발급 시 발송까지 원자적 수행 | 2 | 1 | 1 | - |
+| phoneverification | SMS(휴대폰번호) 인증 — 발급 시 발송까지 원자적 수행 | 2 | 1 | 1 | - |
 
 ## For AI Agents
 
@@ -200,14 +200,14 @@ public interface DomainEventPublisher {
 **출력 포트 — 파일·메일·SMS·결제는 이 모듈에 없다 (번복됨)**: `FileStoragePort`(`file`)·`MailSender`(`mail`)·`SmsSender`(`sms`)·`PgPaymentGateway`/`PgProviderGateway`(+ 입출력 record, `payment`)는 전부 `domain`에서 `application`의 `port/out`으로 이관됐다. 과거에는 이 모듈이 벤더 무관 계약을 직접 선언하고 외부 연동 모듈이 그것을 구현했으나(아래는 그 시절의 형태), 지금은 domain의 write 포트만 남고 아웃바운드 SPI는 `com.tastyhouse.application.<ctx>.port.out`이 소유한다.
 
 ```java
-// application/mail/port/out/MailSender.java        — infrastructure:javamail (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender), 조립은 infrastructure:mail
-// application/sms/port/out/SmsSender.java          — infrastructure:solapi (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender), 조립은 infrastructure:sms
+// application/emailverification/port/out/MailSenderPort.java        — infrastructure:javamail (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender), 조립은 infrastructure:mail
+// application/phoneverification/port/out/SmsSenderPort.java          — infrastructure:solapi (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender), 조립은 infrastructure:sms
 // application/file/port/out/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws-s3 (S3FileStorage) — file.provider 배타 선택
-// application/payment/port/out/PgPaymentGateway.java (+ PgConfirmResult 등) — web-application의 라우터 PgPaymentGatewayRouter(@Service 스캔 등록 — 앱 마커 제거 전에는 application + @WebApp, PgRouterConfig는 삭제됨)가 구현(infrastructure:pg는 코드 없는 채널 스타터). PgPaymentGateway도 지금은 web-application 소유
-// application/payment/port/out/PgProviderGateway.java (벤더 SPI) — infrastructure:tosspayments의 TossPaymentGatewayAdapter(provider() = PgProviderCode.TOSS)가 구현, 조립은 infrastructure:pg
+// application/payment/port/out/PgPaymentGatewayPort.java (+ PgConfirmResult 등) — web-application의 라우터 PgPaymentGatewayRouter(@Service 스캔 등록 — 앱 마커 제거 전에는 application + @WebApp, PgRouterConfig는 삭제됨)가 구현(infrastructure:pg는 코드 없는 채널 스타터). PgPaymentGatewayPort도 지금은 web-application 소유
+// application/payment/port/out/PgProviderGatewayPort.java (벤더 SPI) — infrastructure:tosspayments의 TossPaymentGatewayAdapter(provider() = PgProviderCode.TOSS)가 구현, 조립은 infrastructure:pg
 ```
 
-domain에는 이제 이 네 컨텍스트의 출력 포트가 없다 — `mail`/`sms`/`file`/`payment`의 도메인 서비스(`MailVerificationService`·`SmsVerificationService`·`FileUploadService`·`PaymentConfirmationService`)도 함께 `application`으로 옮겨갔다(~~POJO+마커 등록 패턴~~ 앱 마커 제거 후에는 `@Service` — `MailVerificationService`·`SmsVerificationService`는 `web-application`, `FileUploadService`·`PaymentConfirmationService`는 코어. `backend/application/AGENTS.md` 참고). `PgPaymentGateway`는 domain `PgProvider`가 아니라 application 신설 enum `PgProviderCode`를 쓰며, 라우터(`domain`이 구현체를 소유하던 `PgPaymentGateway`는 여전히 domain `PgProvider`를 쓴다)가 `name()` 기반으로 변환한다(`application`의 `EnumCodeConstantsTest`가 검증).
+domain에는 이제 이 네 컨텍스트의 출력 포트가 없다 — `mail`/`sms`/`file`/`payment`의 도메인 서비스(`MailVerificationService`·`SmsVerificationService`·`FileUploadService`·`PaymentConfirmationService`)도 함께 `application`으로 옮겨갔다(~~POJO+마커 등록 패턴~~ 앱 마커 제거 후에는 `@Service` — `MailVerificationService`·`SmsVerificationService`는 `web-application`, `FileUploadService`·`PaymentConfirmationService`는 코어. `backend/application/AGENTS.md` 참고). `PgPaymentGatewayPort`는 domain `PgProvider`가 아니라 application 신설 enum `PgProviderCode`를 쓰며, 라우터(`domain`이 구현체를 소유하던 `PgPaymentGatewayPort`는 여전히 domain `PgProvider`를 쓴다)가 `name()` 기반으로 변환한다(`application`의 `EnumCodeConstantsTest`가 검증).
 
 **QueryDSL 동적 where 조립은 이 패키지 소관이 아니다**: `BooleanExpression` varargs 헬퍼 패턴은 QueryDSL을 소유한 `infrastructure-module`의 `<ctx>/query/{도메인}QueryAdapter` 규칙이다 — 상세와 reference(`notice/query/NoticeQueryAdapter`)는 `infrastructure-module/AGENTS.md` 참고.
 

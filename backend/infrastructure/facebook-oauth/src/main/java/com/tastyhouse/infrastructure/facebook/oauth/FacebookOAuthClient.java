@@ -5,14 +5,14 @@ import org.springframework.web.client.RestClient;
 
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
-import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.application.auth.port.out.SocialOAuthClientPort;
 import com.tastyhouse.application.auth.port.out.SocialOAuthFailure;
 import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
 
 @Component
-class FacebookOAuthClient implements SocialOAuthClient {
+class FacebookOAuthClient implements SocialOAuthClientPort {
 
     private static final String GRAPH_BASE_URL = "https://graph.facebook.com";
     private static final String USER_FIELDS = "id,name,email,picture.type(large)";

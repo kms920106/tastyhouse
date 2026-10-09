@@ -24,7 +24,7 @@ com.tastyhouse.infrastructure.redis/
     ├── RedisTokenStoreProperties.java   @ConfigurationProperties("security.token-store") — keyPrefix
     ├── RedisRefreshTokenRepository.java  {keyPrefix}rt:{username}
     ├── RedisBlacklistRepository.java     {keyPrefix}bl:{accessToken}
-    └── Redis{Kakao,Naver,Facebook,Apple}TempTokenRepository.java  접두사 고정 (kakao_temp: 등)
+    └── RedisSocialTempTokenRepository.java  {provider.keyPrefix()}{tempToken} (kakao_temp: 등) — (번복됨 — social-login-router) 구 Redis{Kakao,Naver,Facebook,Apple}TempTokenRepository 4개를 대체
 ```
 
 **`token` 패키지는 챕터 01에서 `security-core`로부터 넘어왔다.** 과거에는 구체 Redis 저장소 6종이 `security-core`에 있어 그 모듈이 `implementation project(':infrastructure:redis')`를 의존했는데, "core가 구체 인프라를 의존하는" 역방향 간선이었다. 지금은 계약이 `security-core`, 구현이 여기 있다 — ~~`RedisRateLimitCounter`가 `api-common-module`의 `RateLimitCounterPort`를 구현하는 것과 **동형**이다~~ **(번복됨 — `RateLimitCounterPort`도 `security-core`로 옮겨졌다.)** 지금은 비유가 아니라 **같은 구조**다 — 토큰 저장소 포트 6종과 `RateLimitCounterPort` 모두 계약은 `security-core`, 구현은 이 모듈이다.
@@ -202,8 +202,10 @@ rate limit의 **표현 관심사**(`@RateLimit`·`RateLimitAspect`·`RateLimitEx
 
 ### 토큰 저장소 어댑터 6종의 키 형식
 
+> **(번복됨 — social-login-router)** 어댑터는 이제 3종이다 — 소셜 임시토큰 4종이 `RedisSocialTempTokenRepository` 1개로 합쳐졌다. 키 문자열과 TTL(10분)은 바이트 단위로 같고, 접두사는 security-core enum `SocialTempTokenProvider#keyPrefix()`가 준다(앱별 `security.token-store.key-prefix`는 기존처럼 붙이지 않는다). 검증은 `backend/infrastructure/redis/src/test/java/com/tastyhouse/infrastructure/redis/token/RedisSocialTempTokenRepositoryTest.java`(4개 키·`10, MINUTES` 단언). 아래 표의 어댑터 이름 4개는 과거 이름이고 키·값·TTL 열은 그대로 유효하다.
+
 **대상**: `backend/infrastructure/redis/src/main/java/com/tastyhouse/infrastructure/redis/token/`
-→ `RedisRefreshTokenRepository` · `RedisBlacklistRepository` · `Redis{Kakao,Naver,Facebook,Apple}TempTokenRepository`
+→ `RedisRefreshTokenRepository` · `RedisBlacklistRepository` · `RedisSocialTempTokenRepository`(~~`Redis{Kakao,Naver,Facebook,Apple}TempTokenRepository`~~)
 
 | 어댑터 | 키 | 값 | TTL |
 |---|---|---|---|

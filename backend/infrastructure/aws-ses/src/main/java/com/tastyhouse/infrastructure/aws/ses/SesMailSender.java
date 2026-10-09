@@ -10,10 +10,10 @@ import software.amazon.awssdk.services.ses.model.Message;
 import software.amazon.awssdk.services.ses.model.SendEmailRequest;
 import software.amazon.awssdk.services.ses.model.SesException;
 
-import com.tastyhouse.application.mail.port.out.MailSendResult;
-import com.tastyhouse.application.mail.port.out.MailSender;
+import com.tastyhouse.application.emailverification.port.out.MailSendResult;
+import com.tastyhouse.application.emailverification.port.out.MailSenderPort;
 
-class SesMailSender implements MailSender {
+class SesMailSender implements MailSenderPort {
 
     private static final Logger log = LoggerFactory.getLogger(SesMailSender.class);
 

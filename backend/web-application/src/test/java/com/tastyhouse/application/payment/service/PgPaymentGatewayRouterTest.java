@@ -10,7 +10,7 @@ import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
-import com.tastyhouse.application.payment.port.out.PgProviderGateway;
+import com.tastyhouse.application.payment.port.out.PgProviderGatewayPort;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -76,14 +76,14 @@ class PgPaymentGatewayRouterTest {
     @Test
     @DisplayName("같은 PG의 게이트웨이가 둘이면 생성 시점에 실패한다")
     void duplicateProvider_failsFast() {
-        List<PgProviderGateway> gateways = List.of(new GatewayStub(PgProviderCode.TOSS), new GatewayStub(PgProviderCode.TOSS));
+        List<PgProviderGatewayPort> gateways = List.of(new GatewayStub(PgProviderCode.TOSS), new GatewayStub(PgProviderCode.TOSS));
 
         assertThatThrownBy(() -> new PgPaymentGatewayRouter(gateways))
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("TOSS");
     }
 
-    private static final class GatewayStub implements PgProviderGateway {
+    private static final class GatewayStub implements PgProviderGatewayPort {
 
         private final PgProviderCode provider;
         private final List<String> confirmCalls = new ArrayList<>();

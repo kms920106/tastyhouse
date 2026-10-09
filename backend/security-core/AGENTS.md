@@ -19,7 +19,7 @@
 | Directory | Purpose |
 |-----------|---------|
 | `src/main/java/com/tastyhouse/security/jwt/` | `JwtTokenProvider`(파라미터형 POJO, 서명/파싱), `JwtProperties`, `TokenType`, `JwtPrincipal`/`JwtPrincipalFactory`(앱별 principal 재구성 계약) |
-| `src/main/java/com/tastyhouse/security/token/` | **인터페이스 6종**(챕터 01) — `RefreshTokenRepository`·`BlacklistRepository` + 소셜 임시토큰 4종(`Kakao`/`Naver`/`Apple`/`Facebook`TempTokenRepository). 구현·키 접두사·TTL 정책은 전부 `infrastructure:redis`의 `com.tastyhouse.infrastructure.redis.token`이 소유한다 |
+| `src/main/java/com/tastyhouse/security/token/` | **인터페이스 6종**(챕터 01) — `RefreshTokenRepository`·`BlacklistRepository` + ~~소셜 임시토큰 4종(`Kakao`/`Naver`/`Apple`/`Facebook`TempTokenRepository)~~ **(번복됨 — social-login-router)** 소셜 임시토큰 `SocialTempTokenRepository` 1종 + provider enum `SocialTempTokenProvider`(그래서 인터페이스는 지금 3종). 구현·TTL 정책은 전부 `infrastructure:redis`의 `com.tastyhouse.infrastructure.redis.token`이 소유한다 |
 | `src/main/java/com/tastyhouse/security/ratelimit/` | **`RateLimitCounterPort` 1종** — `boolean isLimitExceeded(String key, int limit, Duration duration)`. `api-common-module`의 `com.tastyhouse.apicommon.ratelimit`에서 본문 그대로 옮겨 왔다. 구현은 `infrastructure:redis`의 `com.tastyhouse.infrastructure.redis.ratelimit.RedisRateLimitCounter`, 소비자는 `api-common-module`의 `RateLimitAspect`·`ApiCommonRateLimitConfig`(~~`ApiCommonRateLimitAutoConfiguration`의 `@ConditionalOnBean(RateLimitCounterPort.class)`~~ — imports 제거로 리네임·조건 삭제) |
 
 자바 패키지는 `com.tastyhouse.security..`로 **`security-module`과 동일**하다(split package — 모듈 재편 선례와 같은 방식으로, 이동 대상만 패키지를 유지한 채 모듈을 옮겼다). 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `"com.tastyhouse.security"`를 스캔하므로 패키지 불변 덕분에 이 모듈의 빈도 그대로 잡힌다. **(번복됨 — imports 제거)** ~~`SecurityModuleAutoConfiguration`(챕터 02로 `SecurityModuleConfig`에서 리네임 + `@AutoConfiguration`)의 `@ComponentScan("com.tastyhouse.security")`가 스캔~~ — 지금 그 설정은 `SecurityModuleConfig`이고 스캔을 갖지 않는다.
@@ -133,18 +133,20 @@ web-api는 이 클래스를 상속해 검증용 토큰(휴대폰/이메일/비�
 `PERSONAL_INFO_VERIFY`·`PASSWORD_RESET`)은 web-api 전용이다. admin-api는 사용하지 않지만 **상수를
 공유해도 무해하므로** 앱별로 쪼개지 않는다.
 
-### 소셜 임시토큰 저장소 4종 — 1회용 토큰의 수명
+### 소셜 임시토큰 저장소 — 1회용 토큰의 수명
+
+> **(번복됨 — social-login-router)** 아래 4개 인터페이스(`KakaoTempTokenRepository` · `NaverTempTokenRepository` · `AppleTempTokenRepository` · `FacebookTempTokenRepository`)는 삭제됐다. 지금은 `SocialTempTokenRepository`(`save(provider, tempToken, credential)`·`findCredential(provider, tempToken)`·`delete(provider, tempToken)`) 1개와 enum `SocialTempTokenProvider{KAKAO,NAVER,FACEBOOK,APPLE}`이다. 이 enum은 web-application의 `SocialProvider`를 이 모듈이 볼 수 없어 신설했고, 상수명·순서가 `SocialProvider`와 같아야 한다(`backend/application/src/test/java/com/tastyhouse/application/architecture/EnumCodeConstantsTest.java` → `socialTempTokenProviderMatchesSocialProvider` — `SocialLoginService`가 `valueOf(provider.name())`로 변환한다). **Redis 키 접두사는 상수마다 명시 필드 `keyPrefix()`로 둔다**(`kakao_temp:` 등 — `name().toLowerCase()`로 만들지 않는다). 접두사 문자열이 바뀌면 배포 시점의 임시토큰이 전부 무효가 되므로 리터럴로 고정한다. 이 접두사만은 어댑터가 아니라 이 enum이 소유한다(위 "구현·키 접두사·TTL은 어댑터 소유" 서술의 예외).
 
 **대상**: `backend/security-core/src/main/java/com/tastyhouse/security/token/`
-→ `KakaoTempTokenRepository` · `NaverTempTokenRepository` · `AppleTempTokenRepository` ·
-`FacebookTempTokenRepository`
+→ `SocialTempTokenRepository` · `SocialTempTokenProvider`(~~`KakaoTempTokenRepository` · `NaverTempTokenRepository` · `AppleTempTokenRepository` ·
+`FacebookTempTokenRepository`~~)
 
 `NEEDS_SIGN_UP` / `NEEDS_LINKING` 응답 시 발급되고, **회원가입·계정 연동 완료 시 삭제되는 1회용
 토큰**이다. 구현은 `infrastructure:redis`의 `token` 패키지에 있으며 키 접두사·TTL 정책은 어댑터가
 소유한다.
 
 **Apple만 저장 대상이 다르다** — Apple은 UserInfo 엔드포인트가 없으므로 accessToken이 아닌
-`id_token`을 저장한다(`AppleTempTokenRepository.save(appleTempToken, appleIdToken)`). 이 id_token은
+`id_token`을 저장한다(~~`AppleTempTokenRepository.save(appleTempToken, appleIdToken)`~~ `SocialTempTokenRepository.save(APPLE, tempToken, idToken)` — 저장하는 값은 서비스가 넘긴 credential 그대로라 인터페이스는 provider별 값 종류를 구분하지 않는다). 이 id_token은
 이미 서버에서 검증 완료된 상태이며, sub/email 재추출 시 재파싱된다.
 
 ### `RefreshTokenRepository.isInvalid`가 default 메서드인 이유

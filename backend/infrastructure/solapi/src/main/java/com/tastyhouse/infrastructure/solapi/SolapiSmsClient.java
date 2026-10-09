@@ -15,13 +15,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
-import com.tastyhouse.application.sms.port.out.SmsSendFailure;
-import com.tastyhouse.application.sms.port.out.SmsSendResult;
-import com.tastyhouse.application.sms.port.out.SmsSender;
+import com.tastyhouse.application.phoneverification.port.out.SmsSendFailure;
+import com.tastyhouse.application.phoneverification.port.out.SmsSendResult;
+import com.tastyhouse.application.phoneverification.port.out.SmsSenderPort;
 
 @ConditionalOnProperty(name = "sms.provider", havingValue = "solapi", matchIfMissing = true)
 @Component
-class SolapiSmsClient implements SmsSender {
+class SolapiSmsClient implements SmsSenderPort {
 
     private static final Logger log = LoggerFactory.getLogger(SolapiSmsClient.class);
 

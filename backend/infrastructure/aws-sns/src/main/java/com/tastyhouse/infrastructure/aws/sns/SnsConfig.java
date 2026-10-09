@@ -9,7 +9,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
 
-import com.tastyhouse.application.sms.port.out.SmsSender;
+import com.tastyhouse.application.phoneverification.port.out.SmsSenderPort;
 
 @Configuration
 @ConditionalOnProperty(name = "sms.provider", havingValue = "sns")
@@ -30,7 +30,7 @@ class SnsConfig {
     }
 
     @Bean
-    public SmsSender awsSnsSmsSender(SnsClient snsClient) {
+    public SmsSenderPort awsSnsSmsSender(SnsClient snsClient) {
         return new SnsSmsSender(snsClient);
     }
 }

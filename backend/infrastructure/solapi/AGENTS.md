@@ -2,7 +2,7 @@
 
 # infrastructure:solapi
 
-Solapi SMS 발송 **벤더 모듈**(`java-library`). 포트 `SmsSender`(`web-application`의 `com.tastyhouse.application.sms.port.out` — 과거 domain 소유, 02-vendor-ports로 `application`, 앱 마커 제거로 `web-application`)를 `SolapiSmsClient`가 구현한다. SMS 채널의 기본 벤더이며, 앱이 아니라 채널 모듈 `infrastructure:sms`가 `runtimeOnly`로 조립한다. AWS 대안은 `infrastructure:aws-sns`다.
+Solapi SMS 발송 **벤더 모듈**(`java-library`). 포트 `SmsSenderPort`(`web-application`의 `com.tastyhouse.application.phoneverification.port.out` — 과거 domain 소유, 02-vendor-ports로 `application`, 앱 마커 제거로 `web-application`)를 `SolapiSmsClient`가 구현한다. SMS 채널의 기본 벤더이며, 앱이 아니라 채널 모듈 `infrastructure:sms`가 `runtimeOnly`로 조립한다. AWS 대안은 `infrastructure:aws-sns`다.
 
 `infrastructure:messaging` 4분할(2026-09-26)로 신설됐다. 패키지는 `external.sms.solapi` → `external.solapi`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.sms")`에 동반 스캔되지 않게 하기 위함이다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.solapi`가 됐고, ~~`request/`·`response/` 두 하위 패키지는 `dto/` 하나로 합쳐졌다(`SolapiMessageRequest`·`SolapiMessageResponse` — 다른 벤더의 `dto/` 관례와 맞춤).~~ **(번복됨 — package-private 적용)** `request/`·`response/` 두 하위 패키지는 `dto/`를 거쳐 지금은 루트 패키지로 평탄화됐고, `SolapiMessageRequest`·`SolapiMessageResponse`는 `SolapiSmsClient`와 같은 패키지의 package-private record다(아래 봉인·가드 목록).
 
@@ -11,7 +11,7 @@ Solapi SMS 발송 **벤더 모듈**(`java-library`). 포트 `SmsSender`(`web-app
 ```
 com.tastyhouse.infrastructure.solapi/
 ├── SolapiModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(SolapiProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 SolapiModuleAutoConfiguration에서 리네임
-├── SolapiSmsClient.java                  SmsSender 구현 @ConditionalOnProperty(sms.provider=solapi, matchIfMissing=true)
+├── SolapiSmsClient.java                  SmsSenderPort 구현 @ConditionalOnProperty(sms.provider=solapi, matchIfMissing=true)
 ├── SolapiProperties.java                 sms.solapi.*
 ├── SolapiMessageRequest.java (package-private, 과거 dto/ 하위)
 └── SolapiMessageResponse.java (package-private, 과거 dto/ 하위)
@@ -26,7 +26,7 @@ com.tastyhouse.infrastructure.solapi/
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. Solapi HTTP 호출은 **동기 `RestClient`**다.
-- `web-application` (implementation) — `SmsSender`·`SmsSendResult`·`SmsSendFailure` 포트의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`** (SMS 발송 포트가 web 전용이라 web 앱 모듈로 옮겨갔다). ~~`domain` (implementation) — `SmsSender` 포트 + `BusinessException`·`ErrorCode`(`SMS_SEND_FAILED`·`SMS_SEND_NO_RESPONSE`·`SMS_SEND_API_ERROR`)~~ (02-vendor-ports 이전 기록. 지금 이 세 상수는 `WebErrorCode`이고 `SmsVerificationService`가 `SmsSendFailure`를 번역한다 — 지금 `build.gradle`의 프로젝트 의존은 `:infrastructure:restclient`·`:web-application`이다)
+- `web-application` (implementation) — `SmsSenderPort`·`SmsSendResult`·`SmsSendFailure` 포트의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`** (SMS 발송 포트가 web 전용이라 web 앱 모듈로 옮겨갔다). ~~`domain` (implementation) — `SmsSenderPort` 포트 + `BusinessException`·`ErrorCode`(`SMS_SEND_FAILED`·`SMS_SEND_NO_RESPONSE`·`SMS_SEND_API_ERROR`)~~ (02-vendor-ports 이전 기록. 지금 이 세 상수는 `WebErrorCode`이고 `SmsVerificationService`가 `SmsSendFailure`를 번역한다 — 지금 `build.gradle`의 프로젝트 의존은 `:infrastructure:restclient`·`:web-application`이다)
 - `infrastructure:sms`를 의존하지 않는다(순환 방지)
 - 테스트: `SolapiSmsClientTest`(4건) — `MockRestServiceServer.bindTo(RestClient.builder())` 기반
 

@@ -7,10 +7,11 @@
 - web 전용 `@Service`/`@Component` 빈 — 유스케이스당 서비스 1개(`{도메인}{동작}Service`/`{도메인}{관점}QueryService`, 예: `payment/service/PaymentConfirmService`·`payment/service/PaymentDetailQueryService`. 유스케이스 분리 전의 `{도메인}CommandService`/`{도메인}QueryService` 쌍과 파사드 `MemberService`는 하나도 남지 않았다)와 web만 쓰는 도메인 서비스(예: `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PaymentCancellationService`)
 - UseCase 인터페이스와 Command record(`<ctx>/port/in/`)
 - **web 전용 SPI 포트**(구현 벤더가 web에만 조립되는 포트):
-  - `mail.port.out.{MailSender,MailSendResult}` — 구현 `infrastructure:javamail`·`aws-ses`
-  - `sms.port.out.{SmsSender,SmsSendResult,SmsSendFailure}` — 구현 `infrastructure:solapi`·`aws-sns`
-  - `payment.port.out.{PgProviderGateway,PgPaymentGateway,PgCancelResult,PgProviderCode}` — 구현 `infrastructure:tosspayments`
-  - `auth.port.out.{SocialOAuthClient,SocialAuthorization,SocialCredential,SocialOAuthResult,SocialOAuthFailure,SocialProfile,SocialProvider}` — 구현 `infrastructure:{kakao,naver,apple,facebook}-oauth`
+  - `emailverification.port.out.{MailSenderPort,MailSendResult}` — 구현 `infrastructure:javamail`·`aws-ses`
+  - `phoneverification.port.out.{SmsSenderPort,SmsSendResult,SmsSendFailure}` — 구현 `infrastructure:solapi`·`aws-sns`
+  - `payment.port.out.{PgProviderGatewayPort,PgPaymentGatewayPort,PgCancelResult,PgProviderCode}` — 구현 `infrastructure:tosspayments`
+  - `auth.port.out.{SocialOAuthClientPort,SocialAuthorization,SocialCredential,SocialOAuthResult,SocialOAuthFailure,SocialProfile,SocialProvider}` — 구현 `infrastructure:{kakao,naver,apple,facebook}-oauth`
+- **소셜 로그인은 `auth/service/SocialOAuthClientRouter`(package-private `@Component`) + `SocialLoginService`(package-private `@Service`) 1벌이다.** ~~provider별 `auth/service/{kakao,naver,apple,facebook}/*SocialLoginService` 4벌이 `@Qualifier("{provider}OAuthClient")`로 벤더를 주입받았다.~~ **(번복됨 — social-login-router)** 라우터는 `List<SocialOAuthClientPort>`를 `SocialProvider` 키 `EnumMap`으로 묶고(같은 provider 중복이거나 `SocialProvider.values()` 누락이면 생성 시 `IllegalStateException` — 기동 시점 완전성 검사) `resolve(provider)`만 제공하며 포트를 구현하지 않는다(PG `PgPaymentGatewayRouter`와 달리 소비처가 이 패키지 하나라 라우팅 포트를 두지 않는다). `Member{Kakao,Naver,Apple,Facebook}LoginService`·`MemberSocialSignUpService`·`MemberSocialAccountLinkService`는 이 서비스에 위임만 한다. provider별 차이는 인자 구성(네이버 `state`, 페이스북 access token)과 `SocialOAuthFailures#tempTokenExpired`, `SocialLoginService#accountNickname`(페이스북은 `SocialProfile.nickname`이 없어 이름을 저장)에만 있다 — 쌍별 diff 조사와 보존 근거는 `docs/tasks/social-login-router/backend.md`. 임시토큰은 security-core `SocialTempTokenRepository` 1개에 `SocialTempTokenProvider`로 구분해 저장한다(`SocialTempTokenProvider.valueOf(provider.name())` — 상수 일치는 코어 `EnumCodeConstantsTest`가 지킨다).
 - 자바 패키지는 코어와 같은 `com.tastyhouse.application.<ctx>..`다(split package). 클래스를 코어와 이 모듈 사이로 옮겨도 import는 바뀌지 않는다.
 
 ## 의존

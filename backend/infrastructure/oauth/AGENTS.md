@@ -19,13 +19,13 @@ backend/infrastructure/oauth/
 
 ## 채널 쪽 빈이 없다 — `pg`와 다른 점
 
-`pg`는 여러 벤더를 `PgPaymentGatewayRouter` 하나로 묶어 앱에 단일 주입점을 준다. 소셜 로그인은 그럴 필요가 없다 — 소비 측(web-api 소셜 로그인 서비스 4종)이 **제공자를 이미 알고** `@Qualifier("kakaoOAuthClient")`처럼 빈 이름으로 주입하기 때문이다. 그래서 이 모듈은 라우터도 DomainConfig도 갖지 않고 조립만 한다. 벤더 클라이언트 클래스명(`KakaoOAuthClient` 등)은 분할 전과 같아 빈 이름도 그대로다.
+`pg`는 여러 벤더를 `PgPaymentGatewayRouter` 하나로 묶어 앱에 단일 주입점을 준다. ~~소셜 로그인은 그럴 필요가 없다 — 소비 측(web-api 소셜 로그인 서비스 4종)이 **제공자를 이미 알고** `@Qualifier("kakaoOAuthClient")`처럼 빈 이름으로 주입하기 때문이다.~~ **(번복됨 — social-login-router)** 소셜 로그인도 이제 라우터가 있다 — `web-application`의 `auth/service/SocialOAuthClientRouter`가 `List<SocialOAuthClientPort>`를 provider 키 Map으로 묶고, `SocialLoginService` 1개가 `resolve(provider)`로 고른다. 라우터는 포트를 구현하지 않고 web-application에 있으므로 이 모듈은 여전히 라우터도 DomainConfig도 갖지 않고 조립만 한다. 벤더 클라이언트 클래스명(`KakaoOAuthClient` 등)은 분할 전과 같아 빈 이름도 그대로다.
 
 ## 벤더 추가·제거 절차
 
 **web-api를 건드리지 않는다.**
 
-1. `infrastructure:{vendor}-oauth` 신설 — 패키지 `com.tastyhouse.infrastructure.{vendor}.oauth`(~~wire DTO는 `.dto` 하위~~ **(번복됨 — package-private 적용)** wire DTO도 루트 패키지에 package-private으로 두고, 최상위 타입 전부에 `public`을 붙이지 않는다 — `VendorLayerRulesTest#topLevelClassesShouldNotBePublic`을 함께 복사한다), 클라이언트가 `SocialOAuthClient`를 구현한다. 자기 auto-configuration(`@ComponentScan(자기 패키지)` + `@EnableConfigurationProperties`)과 `application-{vendor}-oauth.yml`(`oauth.{vendor}.*`)을 갖는다. `SocialProvider`에 상수를 추가하는 것은 `application` 쪽 일이다.
+1. `infrastructure:{vendor}-oauth` 신설 — 패키지 `com.tastyhouse.infrastructure.{vendor}.oauth`(~~wire DTO는 `.dto` 하위~~ **(번복됨 — package-private 적용)** wire DTO도 루트 패키지에 package-private으로 두고, 최상위 타입 전부에 `public`을 붙이지 않는다 — `VendorLayerRulesTest#topLevelClassesShouldNotBePublic`을 함께 복사한다), 클라이언트가 `SocialOAuthClientPort`를 구현한다. 자기 auto-configuration(`@ComponentScan(자기 패키지)` + `@EnableConfigurationProperties`)과 `application-{vendor}-oauth.yml`(`oauth.{vendor}.*`)을 갖는다. `SocialProvider`에 상수를 추가하는 것은 `application` 쪽 일이다.
 2. 이 모듈 `build.gradle`에 `runtimeOnly project(':infrastructure:{vendor}-oauth')` 한 줄.
 3. `application-oauth.yml`에 `classpath:application-{vendor}-oauth.yml` import 한 줄.
 4. `.env`에 벤더 키.
@@ -57,7 +57,7 @@ backend/infrastructure/oauth/
 
 | 역할 | 위치 |
 |---|---|
-| 계약 — `SocialOAuthClient`(`provider()`/`exchange()`/`fetchProfile()`)와 중립 값 타입 `SocialProfile`·`SocialCredential`·`SocialAuthorization`·`SocialProvider` | **`web-application` 모듈**(앱 마커 제거 전에는 `application`)의 `com.tastyhouse.application.auth.port.out` |
+| 계약 — `SocialOAuthClientPort`(`provider()`/`exchange()`/`fetchProfile()`)와 중립 값 타입 `SocialProfile`·`SocialCredential`·`SocialAuthorization`·`SocialProvider` | **`web-application` 모듈**(앱 마커 제거 전에는 `application`)의 `com.tastyhouse.application.auth.port.out` |
 | 구현 — 제공자별 클라이언트 4종 | 벤더 모듈의 `com.tastyhouse.infrastructure.{kakao,naver,apple,facebook}.oauth`(infrastructure 패키지 루트 통일 전 `com.tastyhouse.external.*`) |
 | 조립 | 이 모듈(코드 없음) |
 
@@ -76,10 +76,12 @@ backend/infrastructure/oauth/
 `SocialProfile`은 전 필드 `String`이며, `gender`도 도메인 enum이 아니라 상수명 문자열(`"MALE"`/`"FEMALE"`/`null`)을 담는다. 과거 `KakaoUserInfoResponse`·`NaverUserInfoResponse`가 편의 매퍼에서 도메인 enum `MemberGender`를 직접 반환해 어댑터 → domain 역결합이 있었는데, 소비 측이 곧바로 `.name()`으로 되돌리고 있어 그 결합이 아무 값도 사지 못했다. 지금은 카카오의 `"male"`/`"female"` 같은 제공자 어휘를 어댑터가 `"MALE"`/`"FEMALE"`로 정규화해 넘기고, 도메인 enum 승격은 소비 측이 `MemberGender.from(String)`으로 수행한다. 그 결과 카카오·네이버 벤더 모듈은 `domain` 의존 자체가 없다. DTO별 봉인은 `../kakao-oauth/AGENTS.md`·`../naver-oauth/AGENTS.md`에 있다.
 
 ### 보존해야 하는 것 (통합 금지)
-제공자별 Redis 임시토큰 저장소 4종과 **key prefix**(`kakao_temp:` 등), 제공자별 `*_TEMP_TOKEN_EXPIRED` 에러코드 4종(`WebErrorCode`, 구 단일 `ErrorCode`)은 통합하지 않는다 — prefix를 바꾸면 배포 시점에 진행 중인 임시토큰이 전부 무효화되고, 에러코드는 프론트가 분기할 수 있는 wire 계약이다. (저장소 계약은 이 모듈이 아니라 `security-core`의 포트, Redis 구현은 `infrastructure:redis`에 있다.) 채널·벤더 분할도 이 둘을 건드리지 않았다.
+~~제공자별 Redis 임시토큰 저장소 4종과~~ **(번복됨 — social-login-router)** 임시토큰 저장소는 `SocialTempTokenRepository`/`RedisSocialTempTokenRepository` 1벌로 통합됐다. 통합 후에도 **key prefix**(`kakao_temp:` 등), 제공자별 `*_TEMP_TOKEN_EXPIRED` 에러코드 4종(`WebErrorCode`, 구 단일 `ErrorCode`)은 통합하지 않는다 — prefix를 바꾸면 배포 시점에 진행 중인 임시토큰이 전부 무효화되고, 에러코드는 프론트가 분기할 수 있는 wire 계약이다. (저장소 계약은 이 모듈이 아니라 `security-core`의 포트, Redis 구현은 `infrastructure:redis`에 있다.) 채널·벤더 분할도 이 둘을 건드리지 않았다.
 
 ### 빈 주입
-`SocialOAuthClient` 구현이 4개이므로 소비 측은 `@Qualifier("kakaoOAuthClient")`처럼 빈 이름을 명시한다. **`@Qualifier`는 필드가 아니라 생성자 파라미터에 단다** — 필드에만 달면 생성자 주입 경로에서 조용히 무시되고 주입이 빈 이름 우연 일치에만 의존하게 된다(Lombok 제거로 `lombok.copyableAnnotations`의 복사 효과가 사라진 뒤부터 해당). 빈 이름은 클래스 단순명에서 오므로 **벤더 클라이언트 클래스명을 바꾸면 `@Qualifier`가 조용히 어긋난다.**
+**(번복됨 — social-login-router)** 소비 측은 `@Qualifier`를 쓰지 않는다 — `SocialOAuthClientRouter`가 `provider()`로 고르므로 빈 이름은 더 이상 계약이 아니다(java의 `@Qualifier("…OAuthClient")` 0건). 같은 provider를 반환하는 클라이언트가 둘이면 라우터 생성 시 `IllegalStateException`으로 기동이 실패하고, 하나가 빠져도(`SocialProvider.values()` 완전성 검사) 누락된 provider를 담은 `IllegalStateException`으로 기동이 실패한다. 아래는 과거 서술이다.
+
+~~`SocialOAuthClientPort` 구현이 4개이므로 소비 측은 `@Qualifier("kakaoOAuthClient")`처럼 빈 이름을 명시한다. **`@Qualifier`는 필드가 아니라 생성자 파라미터에 단다** — 필드에만 달면 생성자 주입 경로에서 조용히 무시되고 주입이 빈 이름 우연 일치에만 의존하게 된다(Lombok 제거로 `lombok.copyableAnnotations`의 복사 효과가 사라진 뒤부터 해당). 빈 이름은 클래스 단순명에서 오므로 **벤더 클라이언트 클래스명을 바꾸면 `@Qualifier`가 조용히 어긋난다.**~~
 
 ## Dependencies
 
@@ -112,7 +114,7 @@ backend/infrastructure/oauth/
 
 **대상**: `backend/infrastructure/{kakao,naver,apple,facebook}-oauth/src/main/java/com/tastyhouse/infrastructure/{kakao,naver,apple,facebook}/oauth/*OAuthModuleConfig.java`(imports 제거 전 `*OAuthModuleAutoConfiguration.java`) — 제목의 "벤더 auto-configuration"은 지금 이 설정과 스캔되는 벤더 클래스를 함께 가리킨다
 
-메일·SMS·파일 저장 벤더처럼 provider 조건으로 배타 선택하면 제공자 하나만 뜨고 나머지 `@Qualifier` 주입이 `NoSuchBeanDefinitionException`으로 실패한다. 제공자 선택은 조건이 아니라 이 모듈의 `build.gradle` 조립으로 한다.
+메일·SMS·파일 저장 벤더처럼 provider 조건으로 배타 선택하면 제공자 하나만 뜨고 ~~나머지 `@Qualifier` 주입이 `NoSuchBeanDefinitionException`으로 실패한다.~~ **(번복됨 — social-login-router)** 라우터 생성 시 완전성 검사가 `IllegalStateException`으로 기동을 실패시킨다. 제공자 선택은 조건이 아니라 이 모듈의 `build.gradle` 조립으로 한다.
 
 ### 벤더는 이 모듈을 의존하지 않는다
 

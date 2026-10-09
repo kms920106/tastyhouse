@@ -10,12 +10,12 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
-import com.tastyhouse.application.mail.port.out.MailSendResult;
-import com.tastyhouse.application.mail.port.out.MailSender;
+import com.tastyhouse.application.emailverification.port.out.MailSendResult;
+import com.tastyhouse.application.emailverification.port.out.MailSenderPort;
 
 @ConditionalOnProperty(name = "mail.provider", havingValue = "javamail", matchIfMissing = true)
 @Component
-class JavaMailAdapter implements MailSender {
+class JavaMailAdapter implements MailSenderPort {
 
     private static final Logger log = LoggerFactory.getLogger(JavaMailAdapter.class);
 

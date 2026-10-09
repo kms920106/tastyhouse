@@ -18,7 +18,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.payment.model.PgProvider;
+import com.tastyhouse.application.auth.port.out.SocialProvider;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
+import com.tastyhouse.security.token.SocialTempTokenProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,6 +40,12 @@ class EnumCodeConstantsTest {
     @DisplayName("PgProviderCode는 도메인 PgProvider와 상수명·순서가 같다 — 라우터가 name()으로 변환한다")
     void pgProviderCodeMatchesPgProvider() {
         assertThat(names(PgProviderCode.values())).isEqualTo(names(PgProvider.values()));
+    }
+
+    @Test
+    @DisplayName("SocialTempTokenProvider는 SocialProvider와 상수명·순서가 같다 — SocialLoginService가 name()으로 변환한다")
+    void socialTempTokenProviderMatchesSocialProvider() {
+        assertThat(names(SocialTempTokenProvider.values())).isEqualTo(names(SocialProvider.values()));
     }
 
     @Test

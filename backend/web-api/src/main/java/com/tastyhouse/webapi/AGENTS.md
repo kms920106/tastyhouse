@@ -10,7 +10,7 @@
 | Package | Description |
 |---------|-------------|
 | `auth/` | JWT 발급/검증, OAuth 로그인(Apple/Facebook/Kakao/Naver), 인증 정보 추출. `service/`는 AuthService(일반 로그인), PhoneLoginService, AuthPasswordResetService 포함. OAuth 각 제공자별 하위 디렉토리. request/response 구분 저장. |
-| `config/` | Spring 설정 — SecurityConfig(필터체인, CORS), AsyncConfig(비동기), RedisConfig, OpenApiConfig(Swagger). `WebClientConfig`는 존재하지 않는다 — HTTP 클라이언트 설정은 코어 `infrastructure:restclient`의 `RestClientConfig`가 소유한다. jwt/ 하위에 JwtTokenProvider(발급/검증), JwtAuthenticationFilter, JwtProperties, TokenType. security/ 하위에 JwtAuthenticationEntryPoint, JwtAccessDeniedHandler, CustomUserDetailsService(UserDetailsService 구현), CustomUserDetails(UserDetails 래퍼). PublicPaths 에서 인증 불필요 경로 관리. |
+| `config/` | Spring 설정 — SecurityConfig(필터체인, CORS), RedisConfig, OpenApiConfig(Swagger). `WebClientConfig`는 존재하지 않는다 — HTTP 클라이언트 설정은 코어 `infrastructure:restclient`의 `RestClientConfig`가 소유한다. jwt/ 하위에 JwtTokenProvider(발급/검증), JwtAuthenticationFilter, JwtProperties, TokenType. security/ 하위에 JwtAuthenticationEntryPoint, JwtAccessDeniedHandler, CustomUserDetailsService(UserDetailsService 구현), CustomUserDetails(UserDetails 래퍼). PublicPaths 에서 인증 불필요 경로 관리. |
 | `exception/` | 중앙화된 예외 처리. GlobalExceptionHandler가 BusinessException (abstract, domain `com.tastyhouse.domain.exception` — 에러코드는 던지는 모듈별 enum(`DomainErrorCode`·`ApplicationErrorCode`·`WebErrorCode` 등)이고, 외부 연동 실패 코드(`WebErrorCode.SMS_SEND_*`·`MAIL_SEND_FAILED` 등)도 같은 `BusinessException` 계층이므로 같은 핸들러가 처리. rate limit 상수는 `ApiErrorCode.RATE_LIMIT_EXCEEDED`. **덩어리 01부터 타입으로 잡지 않고 `Exception` 폴백 `handleException`이 `application`의 `ErrorResponses.resolve`로 판정** — 이 모듈은 domain을 import하지 않는다), RateLimitException, Security 예외, 유효성 검사 예외를 처리하며 RFC7807 `ProblemDetail` + `errorCode` property로 응답(조립은 공용 `apicommon.exception.ProblemDetails`). 레거시 `UnauthorizedException`은 제거되고 `AUTH_*`(401) 에러코드(`WebErrorCode`)로 흡수됨. 과거 `ExternalApiException`(BusinessException 상속)은 완전히 삭제됐다. |
 | `logging/` | AOP 기반 요청/응답 로깅. ApiLoggingFilter (서블릿 필터로 전체 요청 추적), ApiLoggingAspect (컨트롤러 진입 로깅), SensitiveFieldMasker (민감정보 마스킹). |
 | `security/` | Spring Security 보조 컴포넌트. CurrentUser (메서드 파라미터 주입 애노테이션). JwtAccessDeniedHandler, JwtAuthenticationEntryPoint, CustomUserDetailsService, CustomUserDetails는 config/security/ 에 위치. |
@@ -31,7 +31,7 @@
 | `notice/` | 공지사항 조회 API |
 | `order/` | 주문 생성, 조회, 취소, 배송 추적 API |
 | `partnership/` | 파트너십/제휴 관리 API |
-| `payment/` | 결제 생성·승인·취소·현장완료·환불. 유스케이스당 서비스 1개(`PaymentCreateService`·`PgPaymentConfirmService`·`PaymentDetailQueryService` 등 10개 — `docs/tasks/usecase-service-split` 01 파일럿). PG 연동은 `web-application`(`payment/service/PgPaymentGatewayRouter` — 앱 마커 제거 전에는 `application` + `@WebApp`)이 `web-application`의 포트 `PgPaymentGateway`(`payment/port/out`)를 구현하고, `infrastructure:tosspayments`의 `TossPaymentGatewayAdapter`가 같은 패키지의 `PgProviderGateway`를 구현(`provider()`는 신설 enum `PgProviderCode`) |
+| `payment/` | 결제 생성·승인·취소·현장완료·환불. 유스케이스당 서비스 1개(`PaymentCreateService`·`PgPaymentConfirmService`·`PaymentDetailQueryService` 등 10개 — `docs/tasks/usecase-service-split` 01 파일럿). PG 연동은 `web-application`(`payment/service/PgPaymentGatewayRouter` — 앱 마커 제거 전에는 `application` + `@WebApp`)이 `web-application`의 포트 `PgPaymentGatewayPort`(`payment/port/out`)를 구현하고, `infrastructure:tosspayments`의 `TossPaymentGatewayAdapter`가 같은 패키지의 `PgProviderGatewayPort`를 구현(`provider()`는 신설 enum `PgProviderCode`) |
 | `policy/` | 약관/정책 조회 API |
 | `product/` | 상품 조회, 검색, 필터링 API |
 | `rank/` | 순위/랭킹 조회 API |

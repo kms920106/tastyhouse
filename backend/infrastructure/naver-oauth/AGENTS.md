@@ -2,7 +2,7 @@
 
 # infrastructure:naver-oauth
 
-네이버 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `NaverOAuthClient`가 구현하고 `provider()`로 `SocialProvider.NAVER`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
+네이버 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClientPort`를 `NaverOAuthClient`가 구현하고 `provider()`로 `SocialProvider.NAVER`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
 옛 `infrastructure:oauth`의 `naver/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.naver` → `com.tastyhouse.external.naver.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.naver.oauth`가 됐고, ~~wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.naver.oauth.dto`로 모였다.~~ **(번복됨 — package-private 적용)** wire DTO도 루트 `com.tastyhouse.infrastructure.naver.oauth`에 평면으로 있고 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명은 그대로라 빈 이름 `naverOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
 
@@ -12,7 +12,7 @@
 com.tastyhouse.infrastructure.naver.oauth/
 ├── NaverOAuthModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(NaverOAuthProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 NaverOAuthModuleAutoConfiguration에서 리네임
 ├── NaverOAuthProperties.java               oauth.naver.* (client-id, client-secret, redirect-uri)
-├── NaverOAuthClient.java                   SocialOAuthClient 구현 — 토큰 교환(nid.naver.com, state 포함) + userinfo(openapi.naver.com), 동기 RestClient
+├── NaverOAuthClient.java                   SocialOAuthClientPort 구현 — 토큰 교환(nid.naver.com, state 포함) + userinfo(openapi.naver.com), 동기 RestClient
 ├── NaverTokenResponse.java             wire DTO (package-private, 과거 dto/ 하위)
 └── NaverUserInfoResponse.java          wire DTO — response 중첩 해제·gender 정규화·birthday 분해 (package-private, 과거 dto/ 하위)
 ```

@@ -8,13 +8,13 @@ import org.springframework.web.client.RestClient;
 
 import com.tastyhouse.application.auth.port.out.SocialAuthorization;
 import com.tastyhouse.application.auth.port.out.SocialCredential;
-import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.application.auth.port.out.SocialOAuthClientPort;
 import com.tastyhouse.application.auth.port.out.SocialOAuthResult;
 import com.tastyhouse.application.auth.port.out.SocialProfile;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
 
 @Component
-class KakaoOAuthClient implements SocialOAuthClient {
+class KakaoOAuthClient implements SocialOAuthClientPort {
 
     private static final String KAUTH_BASE_URL = "https://kauth.kakao.com";
     private static final String KAPI_BASE_URL = "https://kapi.kakao.com";

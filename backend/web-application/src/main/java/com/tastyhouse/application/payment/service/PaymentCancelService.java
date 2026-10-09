@@ -12,7 +12,7 @@ import com.tastyhouse.application.payment.port.in.PaymentCancelCommand;
 import com.tastyhouse.application.payment.port.in.PaymentCancelUseCase;
 import com.tastyhouse.application.payment.port.out.PaymentCancelResult;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
-import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
+import com.tastyhouse.application.payment.port.out.PgPaymentGatewayPort;
 
 @Service
 class PaymentCancelService implements PaymentCancelUseCase {
@@ -22,11 +22,11 @@ class PaymentCancelService implements PaymentCancelUseCase {
     private static final String PG_DB_MISMATCH = "PG_DB_MISMATCH";
 
     private final PaymentCancellationExecutor paymentCancellationExecutor;
-    private final PgPaymentGateway pgPaymentGateway;
+    private final PgPaymentGatewayPort pgPaymentGateway;
 
     public PaymentCancelService(
         PaymentCancellationExecutor paymentCancellationExecutor,
-        PgPaymentGateway pgPaymentGateway
+        PgPaymentGatewayPort pgPaymentGateway
     ) {
         this.paymentCancellationExecutor = paymentCancellationExecutor;
         this.pgPaymentGateway = pgPaymentGateway;

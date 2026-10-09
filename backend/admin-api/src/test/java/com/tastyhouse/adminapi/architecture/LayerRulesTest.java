@@ -10,6 +10,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -20,6 +21,15 @@ class LayerRulesTest {
     private final JavaClasses classes = new ClassFileImporter()
         .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
         .importPackages("com.tastyhouse.adminapi");
+
+    @Test
+    void appModuleShouldNotEnableAsync() {
+        ArchRule rule = noClasses()
+            .should().beAnnotatedWith(EnableAsync.class)
+            .because("@EnableAsync는 코어 application의 AsyncConfig가 소유한다(4앱 공통). 앱 모듈이 중복 선언하지 않는다");
+
+        rule.check(classes);
+    }
 
     @Test
     void controllersShouldNotDependOnPersistencePorts() {

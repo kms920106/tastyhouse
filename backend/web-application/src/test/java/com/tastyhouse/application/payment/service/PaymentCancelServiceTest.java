@@ -12,7 +12,7 @@ import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.application.payment.port.in.PaymentCancelCommand;
 import com.tastyhouse.application.payment.port.out.PaymentCancelResult;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
-import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
+import com.tastyhouse.application.payment.port.out.PgPaymentGatewayPort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,13 +28,13 @@ class PaymentCancelServiceTest {
     private static final Long PAYMENT_ID = 200L;
 
     private PaymentCancellationExecutor cancellationExecutor;
-    private PgPaymentGateway pgPaymentGateway;
+    private PgPaymentGatewayPort pgPaymentGateway;
     private PaymentCancelService service;
 
     @BeforeEach
     void setUp() {
         cancellationExecutor = mock(PaymentCancellationExecutor.class);
-        pgPaymentGateway = mock(PgPaymentGateway.class);
+        pgPaymentGateway = mock(PgPaymentGatewayPort.class);
         service = new PaymentCancelService(cancellationExecutor, pgPaymentGateway);
         when(cancellationExecutor.applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString()))
             .thenReturn(PaymentCancelCode.SUCCESS);

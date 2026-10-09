@@ -10,7 +10,7 @@ import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.application.payment.port.in.PgPaymentConfirmCommand;
 import com.tastyhouse.application.payment.port.in.PgPaymentConfirmUseCase;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
-import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
+import com.tastyhouse.application.payment.port.out.PgPaymentGatewayPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
@@ -22,11 +22,11 @@ class PgPaymentConfirmService implements PgPaymentConfirmUseCase {
     private static final String PG_DB_MISMATCH = "PG_DB_MISMATCH";
 
     private final PaymentConfirmationExecutor paymentConfirmationExecutor;
-    private final PgPaymentGateway pgPaymentGateway;
+    private final PgPaymentGatewayPort pgPaymentGateway;
 
     public PgPaymentConfirmService(
         PaymentConfirmationExecutor paymentConfirmationExecutor,
-        PgPaymentGateway pgPaymentGateway
+        PgPaymentGatewayPort pgPaymentGateway
     ) {
         this.paymentConfirmationExecutor = paymentConfirmationExecutor;
         this.pgPaymentGateway = pgPaymentGateway;

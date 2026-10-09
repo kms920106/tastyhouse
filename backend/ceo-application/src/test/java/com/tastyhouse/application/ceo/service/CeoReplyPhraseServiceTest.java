@@ -16,7 +16,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.domain.shop.model.ProhibitedWord;
-import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
+import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidatorPort;
 import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseLoadPort;
 import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
@@ -101,7 +101,7 @@ class CeoReplyPhraseServiceTest {
     void setUp() {
         ceoReplyPhrasePersistence = new FakeCeoReplyPhrasePersistence();
 
-        ReplyPhraseTextValidator replyPhraseTextValidator =
+        ReplyPhraseTextValidatorPort replyPhraseTextValidator =
             new ProhibitedWordValidator(new FakeProhibitedWordLoadPort())::validate;
         ceoReplyPhraseService = new CeoReplyPhraseService(
             ceoReplyPhrasePersistence,

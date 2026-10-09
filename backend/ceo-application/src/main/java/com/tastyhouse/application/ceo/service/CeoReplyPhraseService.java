@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.domain.ceo.model.CeoReplyPhrase;
 import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.domain.ceo.vo.CeoReplyPhraseId;
-import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidator;
+import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidatorPort;
 import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseLoadPort;
 import com.tastyhouse.application.ceo.port.out.write.CeoReplyPhraseSavePort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
@@ -19,12 +19,12 @@ public class CeoReplyPhraseService {
 
     private final CeoReplyPhraseLoadPort ceoReplyPhraseLoadPort;
     private final CeoReplyPhraseSavePort ceoReplyPhraseSavePort;
-    private final ReplyPhraseTextValidator replyPhraseTextValidator;
+    private final ReplyPhraseTextValidatorPort replyPhraseTextValidator;
 
     public CeoReplyPhraseService(
         CeoReplyPhraseLoadPort ceoReplyPhraseLoadPort,
         CeoReplyPhraseSavePort ceoReplyPhraseSavePort,
-        ReplyPhraseTextValidator replyPhraseTextValidator
+        ReplyPhraseTextValidatorPort replyPhraseTextValidator
     ) {
         this.ceoReplyPhraseLoadPort = ceoReplyPhraseLoadPort;
         this.ceoReplyPhraseSavePort = ceoReplyPhraseSavePort;

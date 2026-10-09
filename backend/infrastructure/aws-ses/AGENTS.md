@@ -2,7 +2,7 @@
 
 # infrastructure:aws-ses
 
-AWS SES 메일 발송 어댑터를 소유하는 모듈(`java-library`). `web-application` 모듈(앱 마커 제거 전에는 `application`)이 소유한 포트 `MailSender`(`com.tastyhouse.application.mail.port.out`)를 `SesMailSender`가 구현한다. 메일 채널의 기본 벤더(JavaMail)는 `infrastructure:javamail`이고, 이 모듈은 그 AWS 대안이다. 조립은 채널 모듈 `infrastructure:mail`이 한다.
+AWS SES 메일 발송 어댑터를 소유하는 모듈(`java-library`). `web-application` 모듈(앱 마커 제거 전에는 `application`)이 소유한 포트 `MailSenderPort`(`com.tastyhouse.application.emailverification.port.out`)를 `SesMailSender`가 구현한다. 메일 채널의 기본 벤더(JavaMail)는 `infrastructure:javamail`이고, 이 모듈은 그 AWS 대안이다. 조립은 채널 모듈 `infrastructure:mail`이 한다.
 
 ## ⚠️ 어느 앱도 이 모듈을 의존하지 않는다
 
@@ -18,15 +18,15 @@ AWS SES 메일 발송 어댑터를 소유하는 모듈(`java-library`). `web-app
 
 `.env`에는 `AWS_SES_ACCESS_KEY`·`AWS_SES_SECRET_KEY`가 이미 있다.
 
-**모듈 없이 provider만 바꾸면 기동 시 실패한다.** `JavaMailAdapter`는 조건으로 빠지고 SES 구현은 클래스패스에 없어, `MailDomainConfig`가 `MailSender` 빈을 찾지 못해 도메인 서비스 빈 생성이 실패한다. 이 "실패로 드러남"이 전환의 안전장치다.
+**모듈 없이 provider만 바꾸면 기동 시 실패한다.** `JavaMailAdapter`는 조건으로 빠지고 SES 구현은 클래스패스에 없어, `MailDomainConfig`가 `MailSenderPort` 빈을 찾지 못해 도메인 서비스 빈 생성이 실패한다. 이 "실패로 드러남"이 전환의 안전장치다.
 
 ## 무엇을 소유하는가
 
 ```
 com.tastyhouse.infrastructure.aws.ses/
 ├── ~~AwsSesModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지)~~ (번복됨 — imports 제거로 삭제. 빈은 앱 ModuleScanConfig의 com.tastyhouse.infrastructure 스캔이 등록)
-├── SesConfig.java                      SesClient 빈 + MailSender 빈   @ConditionalOnProperty(mail.provider=ses)
-└── SesMailSender.java                  MailSender 구현 (POJO — SesConfig가 @Bean으로 등록), 발송 실패는 MailSendResult로 반환
+├── SesConfig.java                      SesClient 빈 + MailSenderPort 빈   @ConditionalOnProperty(mail.provider=ses)
+└── SesMailSender.java                  MailSenderPort 구현 (POJO — SesConfig가 @Bean으로 등록), 발송 실패는 MailSendResult로 반환
 ```
 
 `@ConfigurationProperties` record가 없어 `@EnableConfigurationProperties`를 달지 않는다. `SesConfig`가 `@Value`로 `mail.aws.ses.*`와 채널 값 `mail.sender-address`를 읽는다.
@@ -40,7 +40,7 @@ com.tastyhouse.infrastructure.aws.ses/
 ### Internal
 - **`infrastructure:restclient`(구 `infrastructure:http-client`) 의존이 없다.** 과거에는 그 코어의 `ExternalApiException`/`ExternalApiErrorCode.MAIL_SEND_FAILED`를 쓰느라 의존했으나, 그 예외 계약 자체가 완전히 삭제됐다. 4분할 전에는 messaging을 통해 런타임에 `restclient`가 전이로 실렸으나, 그 의존이 사라져 **직접·전이 모두 없다**.
 - **채널 모듈(`infrastructure:mail`)을 의존하지 않는다.** 과거 `infrastructure:messaging`을 `MailProperties`(`mail.sender-address`) 하나 때문에 의존했으나, 채널 모듈이 이 모듈을 `runtimeOnly`로 조립하는 구조에서는 순환이 되므로 `SesConfig`가 `@Value("${mail.sender-address}")`로 키만 읽는다(`../mail/AGENTS.md` 봉인 목록). 결과적으로 의존은 application + SDK뿐이라 `aws-s3`·`aws-sns`와 동형이다.
-- `web-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — `MailSender` 포트(`com.tastyhouse.application.mail.port.out`)
+- `web-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — `MailSenderPort` 포트(`com.tastyhouse.application.emailverification.port.out`)
 
 `SesMailSender#send`는 `MAIL_SEND_FAILED`로 `BusinessException`을 직접 던지지 않고, `MailSendResult`(`sent()`/`failed(cause)`)를 반환한다 — 실패를 `BusinessException(MAIL_SEND_FAILED)`로 번역하는 책임은 이 어댑터가 아니라 소비 측 `MailVerificationService`(web-application)로 옮겨갔고, 번역 결과 코드는 `WebErrorCode.MAIL_SEND_FAILED`다(단일 `ErrorCode`는 에러코드 모듈 분할로 삭제됨). 이 모듈은 이제 `BusinessException`/에러코드를 전혀 참조하지 않으며, "이 모듈은 도메인만 있으면 충분해졌다"는 과거 서술은 "이 모듈은 application 계약(`MailSendResult`)만 있으면 충분해졌다"로 갱신된다.
 

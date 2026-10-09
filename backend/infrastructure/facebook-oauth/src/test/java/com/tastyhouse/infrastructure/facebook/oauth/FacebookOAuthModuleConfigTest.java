@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.web.client.RestClient;
 
-import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.application.auth.port.out.SocialOAuthClientPort;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,11 +33,11 @@ class FacebookOAuthModuleConfigTest {
     }
 
     @Test
-    @DisplayName("facebookOAuthClient 이름으로 FACEBOOK 제공자 SocialOAuthClient 빈이 등록된다")
+    @DisplayName("facebookOAuthClient 이름으로 FACEBOOK 제공자 SocialOAuthClientPort 빈이 등록된다")
     void registersClientBeanUnderQualifierName() {
         runner.run(context -> {
             assertThat(context).hasBean("facebookOAuthClient");
-            SocialOAuthClient client = context.getBean("facebookOAuthClient", SocialOAuthClient.class);
+            SocialOAuthClientPort client = context.getBean("facebookOAuthClient", SocialOAuthClientPort.class);
             assertThat(client.provider()).isEqualTo(SocialProvider.FACEBOOK);
         });
     }

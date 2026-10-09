@@ -2,7 +2,7 @@
 
 # infrastructure:kakao-oauth
 
-카카오 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `KakaoOAuthClient`가 구현하고 `provider()`로 `SocialProvider.KAKAO`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
+카카오 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClientPort`를 `KakaoOAuthClient`가 구현하고 `provider()`로 `SocialProvider.KAKAO`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
 옛 `infrastructure:oauth`의 `kakao/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.kakao` → `com.tastyhouse.external.kakao.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.kakao.oauth`가 됐고, ~~wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.kakao.oauth.dto`로 모였다.~~ **(번복됨 — package-private 적용)** wire DTO도 루트 `com.tastyhouse.infrastructure.kakao.oauth`에 평면으로 있고 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명은 그대로라 빈 이름 `kakaoOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
 
@@ -12,7 +12,7 @@
 com.tastyhouse.infrastructure.kakao.oauth/
 ├── KakaoOAuthModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(KakaoOAuthProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 KakaoOAuthModuleAutoConfiguration에서 리네임
 ├── KakaoOAuthProperties.java               oauth.kakao.* (client-id, redirect-uri)
-├── KakaoOAuthClient.java                   SocialOAuthClient 구현 — 토큰 교환(kauth.kakao.com) + userinfo(kapi.kakao.com), 동기 RestClient
+├── KakaoOAuthClient.java                   SocialOAuthClientPort 구현 — 토큰 교환(kauth.kakao.com) + userinfo(kapi.kakao.com), 동기 RestClient
 ├── KakaoTokenResponse.java             wire DTO (package-private, 과거 dto/ 하위)
 └── KakaoUserInfoResponse.java          wire DTO — gender 정규화 매퍼 (package-private, 과거 dto/ 하위)
 ```

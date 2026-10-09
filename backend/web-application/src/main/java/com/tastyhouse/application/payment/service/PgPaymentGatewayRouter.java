@@ -9,22 +9,22 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.domain.payment.model.PgProvider;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
-import com.tastyhouse.application.payment.port.out.PgPaymentGateway;
+import com.tastyhouse.application.payment.port.out.PgPaymentGatewayPort;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
-import com.tastyhouse.application.payment.port.out.PgProviderGateway;
+import com.tastyhouse.application.payment.port.out.PgProviderGatewayPort;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
-public class PgPaymentGatewayRouter implements PgPaymentGateway {
+public class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 
-    private final Map<String, PgProviderGateway> gateways;
+    private final Map<String, PgProviderGatewayPort> gateways;
 
-    public PgPaymentGatewayRouter(List<PgProviderGateway> gateways) {
-        Map<String, PgProviderGateway> registered = new HashMap<>();
-        for (PgProviderGateway gateway : gateways) {
+    public PgPaymentGatewayRouter(List<PgProviderGatewayPort> gateways) {
+        Map<String, PgProviderGatewayPort> registered = new HashMap<>();
+        for (PgProviderGatewayPort gateway : gateways) {
             String provider = toPgProvider(gateway.provider()).name();
-            PgProviderGateway previous = registered.putIfAbsent(provider, gateway);
+            PgProviderGatewayPort previous = registered.putIfAbsent(provider, gateway);
             if (previous != null) {
                 throw new IllegalStateException("PG사 " + provider + " 게이트웨이가 중복 등록됐습니다: "
                     + previous.getClass().getName() + ", " + gateway.getClass().getName());
@@ -48,7 +48,7 @@ public class PgPaymentGatewayRouter implements PgPaymentGateway {
         return resolve(pgProvider).cancelPayment(pgTid, cancelReason);
     }
 
-    private PgProviderGateway resolve(String pgProvider) {
+    private PgProviderGatewayPort resolve(String pgProvider) {
         if (!supports(pgProvider)) {
             throw new ApplicationException(WebErrorCode.PG_PROVIDER_UNSUPPORTED,
                 WebErrorCode.PG_PROVIDER_UNSUPPORTED.getDefaultMessage() + ": " + pgProvider);

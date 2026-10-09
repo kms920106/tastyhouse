@@ -6,7 +6,7 @@
 
 ## 왜 WebClient/RestClient를 골랐나
 
-이 모듈을 의존하는 7개 호출부(oauth 4종·payment·messaging의 Solapi·bbq)는 전부 **`.block()`으로 동기 호출**하고 있었다 — 반응형 합성(체이닝·백프레셔·논블로킹 I/O 활용)이 실제로는 0건이었다. 소비 앱 4개(web-api·admin-api·ceo-api·batch-module)도 전부 서블릿 MVC라 리액티브 스택이 프레임워크 차원에서 맞지 않았다. Spring Boot 3.2+가 1급으로 지원하는 동기 클라이언트 `RestClient`(`RestTemplate`은 유지보수 모드)로 통일하면 `.block()` 호출·webflux 의존·reactor-netty가 전부 사라진다. 포트(`MailSender`·`SmsSender`·`SocialOAuthClient` 등)는 프레임워크-프리이므로 어댑터 밖(application·domain)은 애초에 클라이언트 종류를 모른다 — 어댑터가 `RestClient`를 알아도 되는 유일한 층이며, 그래서 자체 래퍼 추상화(어댑터가 공용 인터페이스를 통해서만 HTTP를 부르게 하는 것)는 두 번째 구현체가 없어 비채택했다.
+이 모듈을 의존하는 7개 호출부(oauth 4종·payment·messaging의 Solapi·bbq)는 전부 **`.block()`으로 동기 호출**하고 있었다 — 반응형 합성(체이닝·백프레셔·논블로킹 I/O 활용)이 실제로는 0건이었다. 소비 앱 4개(web-api·admin-api·ceo-api·batch-module)도 전부 서블릿 MVC라 리액티브 스택이 프레임워크 차원에서 맞지 않았다. Spring Boot 3.2+가 1급으로 지원하는 동기 클라이언트 `RestClient`(`RestTemplate`은 유지보수 모드)로 통일하면 `.block()` 호출·webflux 의존·reactor-netty가 전부 사라진다. 포트(`MailSenderPort`·`SmsSenderPort`·`SocialOAuthClientPort` 등)는 프레임워크-프리이므로 어댑터 밖(application·domain)은 애초에 클라이언트 종류를 모른다 — 어댑터가 `RestClient`를 알아도 되는 유일한 층이며, 그래서 자체 래퍼 추상화(어댑터가 공용 인터페이스를 통해서만 HTTP를 부르게 하는 것)는 두 번째 구현체가 없어 비채택했다.
 
 ## 분리 배경 (챕터 01)
 
@@ -19,7 +19,7 @@
 | ceo-api | **File만** |
 | batch-module | File(원격 이미지) · BBQ · 행정동 경계 |
 
-즉 admin/ceo는 파일 저장 하나만 쓰면서 OAuth·Toss·메일·SMS·크롤링 코드와 무거운 SDK(AWS·Firebase)를 전부 클래스패스에 얹고 있었다. admin/ceo/batch가 메일·SMS 어댑터까지 강제로 들여와야 했던 직접 원인은 persistence의 `MailDomainConfig`·`SmsDomainConfig`가 `MailSender`/`SmsSender` 빈을 무조건 요구한 것이며, 그 결합은 두 설정을 `infrastructure:messaging`으로 이관해 함께 끊었다(이후 messaging 4분할로 채널 모듈 `../mail/AGENTS.md`·`../sms/AGENTS.md`로 옮겨졌다).
+즉 admin/ceo는 파일 저장 하나만 쓰면서 OAuth·Toss·메일·SMS·크롤링 코드와 무거운 SDK(AWS·Firebase)를 전부 클래스패스에 얹고 있었다. admin/ceo/batch가 메일·SMS 어댑터까지 강제로 들여와야 했던 직접 원인은 persistence의 `MailDomainConfig`·`SmsDomainConfig`가 `MailSenderPort`/`SmsSenderPort` 빈을 무조건 요구한 것이며, 그 결합은 두 설정을 `infrastructure:messaging`으로 이관해 함께 끊었다(이후 messaging 4분할로 채널 모듈 `../mail/AGENTS.md`·`../sms/AGENTS.md`로 옮겨졌다).
 
 이 분리는 `backend/CLAUDE.md` "external을 infrastructure 아래로 들인 이유" 절의 **비채택 대안 (1) 기술별 추가 분할·(3) AWS 벤더 패키지 모으기를 명시적으로 번복**한 것이다. 번복 근거는 위 실사용 표(admin/ceo가 file 하나)와 무거운 SDK가 두 벤더에 국한된다는 점이다.
 
@@ -92,7 +92,7 @@ com.tastyhouse.infrastructure.restclient/
 
 **경위.** 7모듈 분리(챕터 01) 때 파일 저장은 "코어 SPI + 교체 가능한 벤더 구현" 형태로 나뉘었다. 코어(이 모듈)의 `com.tastyhouse.external.file`에 벤더 전략 인터페이스 `FileStorageStrategy`, 도메인 포트 `com.tastyhouse.domain.file.port.FileStoragePort`를 구현하는 `FileStoragePortAdapter`, `file.*`를 바인딩하는 `FileStorageProperties` 셋을 두고, `infrastructure:firebase`·`infrastructure:aws`(현 `infrastructure:aws-s3`)가 전략을 구현했다. 같은 분리에서 전략의 시그니처가 `MultipartFile` → `byte[]`로 바뀌며 `ByteArrayMultipartFile` 래퍼가 사라지고 코어의 `spring-web` 의존이 끊겼다.
 
-**왜 삭제했나.** 그 `byte[]` 전환의 결과 **`FileStorageStrategy`의 메서드 3개가 `FileStoragePort`와 시그니처가 완전히 같아졌고**, `FileStoragePortAdapter`는 변환 없이 위임만 했다. 중간 두 겹(전략 인터페이스 + 위임 어댑터)이 아무 일도 하지 않았다. `FileStorageProperties`는 주입처가 0건인 죽은 코드였다. 그래서 셋을 삭제하고, 다른 driven 어댑터(`MailSender`·`SmsSender`·`PgPaymentGateway`)처럼 **벤더 구현이 포트를 직접 구현**하는 형태로 통일했다 — `FirebaseFileStorage`·`S3FileStorage`가 `implements FileStoragePort`다. 둘 다 `@ConditionalOnProperty(file.provider)`로 배타 선택되므로 `FileStoragePort` 빈은 항상 하나이며, 주입받는 쪽은 persistence의 `FileUrlResolver`와 `application`의 `FileUploadService`(클래스에 `@SharedApp` 마커만 달아 스캔 등록 — chunk 02-vendor-ports로 persistence의 `FileDomainConfig`에서 `FileServiceConfig`로 이관됐다가, application `*ServiceConfig` 삭제로 그 설정도 없어졌다)다.
+**왜 삭제했나.** 그 `byte[]` 전환의 결과 **`FileStorageStrategy`의 메서드 3개가 `FileStoragePort`와 시그니처가 완전히 같아졌고**, `FileStoragePortAdapter`는 변환 없이 위임만 했다. 중간 두 겹(전략 인터페이스 + 위임 어댑터)이 아무 일도 하지 않았다. `FileStorageProperties`는 주입처가 0건인 죽은 코드였다. 그래서 셋을 삭제하고, 다른 driven 어댑터(`MailSenderPort`·`SmsSenderPort`·`PgPaymentGatewayPort`)처럼 **벤더 구현이 포트를 직접 구현**하는 형태로 통일했다 — `FirebaseFileStorage`·`S3FileStorage`가 `implements FileStoragePort`다. 둘 다 `@ConditionalOnProperty(file.provider)`로 배타 선택되므로 `FileStoragePort` 빈은 항상 하나이며, 주입받는 쪽은 persistence의 `FileUrlResolver`와 `application`의 `FileUploadService`(클래스에 `@SharedApp` 마커만 달아 스캔 등록 — chunk 02-vendor-ports로 persistence의 `FileDomainConfig`에서 `FileServiceConfig`로 이관됐다가, application `*ServiceConfig` 삭제로 그 설정도 없어졌다)다.
 
 **벤더 모듈 분리는 유지한다.** 검토한 대안과 비채택 사유:
 
@@ -123,7 +123,7 @@ com.tastyhouse.infrastructure.restclient/
 이 절은 코어뿐 아니라 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}` 전부에 적용된다(코드 없는 스타터 `file-storage`·`oauth`는 작성할 어댑터가 없다).
 
 - **외부 HTTP 호출은 코어가 customizer로 꾸민 Boot `RestClient.Builder`를 주입받아 생성자에서 한 번 build한다.** `restClientBuilder.baseUrl(...).build()`로 만든 `RestClient`를 필드로 보유한다(스레드 안전). WebClient·webflux·JDK `java.net.http.HttpClient` 직접 사용은 도입하지 않는다 — 타임아웃 있는 요청 팩토리를 만드는 유일한 지점은 코어의 `HttpRequestFactories.withTimeouts(...)`(`SimpleClientHttpRequestFactory`/`HttpURLConnection` 기반)다. **대용량 응답은 `exchange()` 스트리밍이다**(`retrieve().body(String/...)` 금지 — 선례: admdongkor의 `AdminDongBoundaryClient`).
-- **도메인 포트를 구현하되 프레임워크 타입을 시그니처로 누출하지 않는다**: 포트(`MailSender`·`SmsSender`·`FileStoragePort`·`PgPaymentGateway`)는 프레임워크-프리이므로 `RestClient`·SDK 타입·wire DTO가 포트 시그니처에 등장하면 안 된다. 변환은 어댑터 안에서 끝낸다.
+- **도메인 포트를 구현하되 프레임워크 타입을 시그니처로 누출하지 않는다**: 포트(`MailSenderPort`·`SmsSenderPort`·`FileStoragePort`·`PgPaymentGatewayPort`)는 프레임워크-프리이므로 `RestClient`·SDK 타입·wire DTO가 포트 시그니처에 등장하면 안 된다. 변환은 어댑터 안에서 끝낸다.
 - **외부 응답 DTO는 도메인 타입을 보유하지 않는다 (역방향 누수 금지)**: 상세는 `../oauth/AGENTS.md`, DTO별 봉인은 `../kakao-oauth/AGENTS.md`·`../naver-oauth/AGENTS.md`.
 - **자격증명은 코드에 하드코딩하지 않는다**: 환경변수(`.env`)·configtree 시크릿(`SECRETS_DIR`, `../firebase/AGENTS.md`)으로 주입한다.
 - **provider 선택은 `@ConditionalOnProperty`로 한다**: `file.provider`·`mail.provider`·`sms.provider`. 조건 애노테이션은 스캔되는 구현 클래스에 붙어 있고, `{Xxx}ModuleConfig`는 조건을 갖지 않는다.

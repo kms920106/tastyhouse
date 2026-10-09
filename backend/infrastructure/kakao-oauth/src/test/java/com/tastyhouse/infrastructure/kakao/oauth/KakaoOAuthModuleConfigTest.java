@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.web.client.RestClient;
 
-import com.tastyhouse.application.auth.port.out.SocialOAuthClient;
+import com.tastyhouse.application.auth.port.out.SocialOAuthClientPort;
 import com.tastyhouse.application.auth.port.out.SocialProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,11 +33,11 @@ class KakaoOAuthModuleConfigTest {
     }
 
     @Test
-    @DisplayName("kakaoOAuthClient 이름으로 KAKAO 제공자 SocialOAuthClient 빈이 등록된다")
+    @DisplayName("kakaoOAuthClient 이름으로 KAKAO 제공자 SocialOAuthClientPort 빈이 등록된다")
     void registersClientBeanUnderQualifierName() {
         runner.run(context -> {
             assertThat(context).hasBean("kakaoOAuthClient");
-            SocialOAuthClient client = context.getBean("kakaoOAuthClient", SocialOAuthClient.class);
+            SocialOAuthClientPort client = context.getBean("kakaoOAuthClient", SocialOAuthClientPort.class);
             assertThat(client.provider()).isEqualTo(SocialProvider.KAKAO);
         });
     }

@@ -6,7 +6,7 @@
 
 - ceo 전용 `@Service`/`@Component` 빈 — 유스케이스당 서비스 1개(`{도메인}{동작}Service`/`{도메인}{관점}QueryService` 188개 — 명령 120 · 조회 68. 예: `auth/service/CeoLoginService`·`shop/service/ShopRequestListQueryService`. 유스케이스 분리 전의 `{도메인}CommandService`/`{도메인}QueryService` 88개는 하나도 남지 않았다)와 ceo만 쓰는 도메인 서비스·검증기(예: 가게 소유권 검증기 `shop/service/ShopOwnershipValidator`, 요청 취소 도메인 서비스 `shop/service/ShopRequestCancellationService` — 유스케이스 분리 전 이름 `ShopRequestCancelService`)
 - UseCase 인터페이스와 Command record(`<ctx>/port/in/`). multipart 문자열 파트에서 역직렬화되는 `shop/port/in/ShopStorePriceVerificationItemCommand`도 여기 있다 — 정적 참조가 없어도 죽은 코드가 아니다(`shop/service/ShopStorePriceVerificationRequestService`가 `ObjectMapper`로 만든다 — 유스케이스 분리 전 이름 `ShopStorePriceVerificationCommandService`).
-- **ceo 전용 SPI 포트**: `ceo.port.out.ReplyPhraseTextValidator` — 자주 쓰는 답글 문구의 금칙어 검수 포트. 구현 `shop/service/ReplyPhraseProhibitedWordValidatorAdapter`(이 모듈)와 유일한 소비자가 모두 ceo라 코어에서 옮겨왔다. 이 포트를 쓰는 이유(컨텍스트 경계 때문에 `ProhibitedWordValidator`를 직접 부르지 않음)는 `backend/application/AGENTS.md`의 봉인 항목에 있다. 그 밖의 `port.out` 계약(읽기 계약 포함)은 전부 코어에 있다.
+- **ceo 전용 SPI 포트**: `ceo.port.out.ReplyPhraseTextValidatorPort` — 자주 쓰는 답글 문구의 금칙어 검수 포트. 구현 `shop/service/ReplyPhraseProhibitedWordValidatorAdapter`(이 모듈)와 유일한 소비자가 모두 ceo라 코어에서 옮겨왔다. 이 포트를 쓰는 이유(컨텍스트 경계 때문에 `ProhibitedWordValidator`를 직접 부르지 않음)는 `backend/application/AGENTS.md`의 봉인 항목에 있다. 그 밖의 `port.out` 계약(읽기 계약 포함)은 전부 코어에 있다.
 - 자바 패키지는 코어와 같은 `com.tastyhouse.application.<ctx>..`다(split package). 클래스를 코어와 이 모듈 사이로 옮겨도 import는 바뀌지 않는다.
 
 ## 의존

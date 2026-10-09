@@ -35,10 +35,7 @@ class ServiceContextBoundaryTest {
         "com.tastyhouse.application.auth.service.AuthPasswordResetService",
         "com.tastyhouse.application.auth.service.CredentialLoginService",
         "com.tastyhouse.application.auth.service.PhoneLoginService",
-        "com.tastyhouse.application.auth.service.apple.AppleSocialLoginService",
-        "com.tastyhouse.application.auth.service.facebook.FacebookSocialLoginService",
-        "com.tastyhouse.application.auth.service.kakao.KakaoSocialLoginService",
-        "com.tastyhouse.application.auth.service.naver.NaverSocialLoginService",
+        "com.tastyhouse.application.auth.service.SocialLoginService",
         "com.tastyhouse.application.member.service.MemberAuthService",
         "com.tastyhouse.application.payment.service.PaymentCancellationExecutor",
         "com.tastyhouse.application.payment.service.PaymentConfirmationExecutor",
@@ -59,7 +56,7 @@ class ServiceContextBoundaryTest {
     );
 
     private static final Set<String> SEALED_VIOLATIONS = Set.of(
-        "com.tastyhouse.application.mail.service.MailVerificationService",
+        "com.tastyhouse.application.emailverification.service.MailVerificationService",
         "com.tastyhouse.application.member.service.MemberDeliveryAddressService",
         "com.tastyhouse.application.order.service.OrderPlacementService",
         "com.tastyhouse.application.payment.service.PaymentCancellationService",

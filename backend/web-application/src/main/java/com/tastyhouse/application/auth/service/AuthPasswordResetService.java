@@ -5,10 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tastyhouse.domain.mail.model.MailVerificationPurpose;
+import com.tastyhouse.domain.emailverification.model.MailVerificationPurpose;
 import com.tastyhouse.domain.member.model.Member;
 import com.tastyhouse.application.auth.token.MemberJwtTokenProvider;
-import com.tastyhouse.application.mail.service.MailVerificationService;
+import com.tastyhouse.application.emailverification.service.MailVerificationService;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateCommand;
 import com.tastyhouse.application.member.port.in.MemberPasswordUpdateUseCase;
 import com.tastyhouse.application.member.port.out.write.MemberLoadPort;

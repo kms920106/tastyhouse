@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
-import com.tastyhouse.application.payment.port.out.PgProviderGateway;
+import com.tastyhouse.application.payment.port.out.PgProviderGatewayPort;
 import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
 
 @Component
-class TossPaymentGatewayAdapter implements PgProviderGateway {
+class TossPaymentGatewayAdapter implements PgProviderGatewayPort {
 
     private static final Logger log = LoggerFactory.getLogger(TossPaymentGatewayAdapter.class);
 

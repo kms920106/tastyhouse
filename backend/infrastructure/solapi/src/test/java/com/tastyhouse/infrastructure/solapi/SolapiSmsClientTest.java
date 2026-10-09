@@ -9,8 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
-import com.tastyhouse.application.sms.port.out.SmsSendFailure;
-import com.tastyhouse.application.sms.port.out.SmsSendResult;
+import com.tastyhouse.application.phoneverification.port.out.SmsSendFailure;
+import com.tastyhouse.application.phoneverification.port.out.SmsSendResult;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.startsWith;

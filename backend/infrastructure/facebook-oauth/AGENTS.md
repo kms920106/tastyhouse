@@ -2,7 +2,7 @@
 
 # infrastructure:facebook-oauth
 
-페이스북 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClient`를 `FacebookOAuthClient`가 구현하고 `provider()`로 `SocialProvider.FACEBOOK`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
+페이스북 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClientPort`를 `FacebookOAuthClient`가 구현하고 `provider()`로 `SocialProvider.FACEBOOK`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
 옛 `infrastructure:oauth`의 `facebook/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.facebook` → `com.tastyhouse.external.facebook.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.facebook.oauth`가 됐고, ~~wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.facebook.oauth.dto`로 모였다.~~ **(번복됨 — package-private 적용)** wire DTO도 루트 `com.tastyhouse.infrastructure.facebook.oauth`에 평면으로 있고 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명은 그대로라 빈 이름 `facebookOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
 
@@ -12,7 +12,7 @@
 com.tastyhouse.infrastructure.facebook.oauth/
 ├── FacebookOAuthModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(FacebookOAuthProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 FacebookOAuthModuleAutoConfiguration에서 리네임
 ├── FacebookOAuthProperties.java               oauth.facebook.* (app-id, app-secret)
-├── FacebookOAuthClient.java                   SocialOAuthClient 구현 — debug_token 검증 + /me 조회(graph.facebook.com), 동기 RestClient
+├── FacebookOAuthClient.java                   SocialOAuthClientPort 구현 — debug_token 검증 + /me 조회(graph.facebook.com), 동기 RestClient
 ├── FacebookTokenDebugResponse.java        wire DTO (package-private, 과거 dto/ 하위)
 └── FacebookUserInfoResponse.java          wire DTO (package-private, 과거 dto/ 하위)
 ```
@@ -41,7 +41,7 @@ oauth:
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. Graph API 호출은 **동기 `RestClient`**다.
 - `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로)
 
-**`domain` 의존은 없다.** `exchange()`가 `app_id` 불일치를 `BusinessException(SOCIAL_OAUTH_FAILED)`로 직접 던지지 않고, `SocialOAuthResult.failed(SocialOAuthFailure.ACCESS_TOKEN_REJECTED)`(둘 다 `application.auth.port.out` 소유)를 반환한다. 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 `backend/web-application/src/main/java/com/tastyhouse/application/auth/service/SocialOAuthFailures.java`(`WebErrorCode.SOCIAL_OAUTH_FAILED` — 구 단일 `ErrorCode`는 에러코드 모듈 분할로 삭제됨)(소비 측 `*SocialLoginService` 4종이 `.orElseThrow(SocialOAuthFailures::toException)`으로 호출)로 옮겨갔다.
+**`domain` 의존은 없다.** `exchange()`가 `app_id` 불일치를 `BusinessException(SOCIAL_OAUTH_FAILED)`로 직접 던지지 않고, `SocialOAuthResult.failed(SocialOAuthFailure.ACCESS_TOKEN_REJECTED)`(둘 다 `application.auth.port.out` 소유)를 반환한다. 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 `backend/web-application/src/main/java/com/tastyhouse/application/auth/service/SocialOAuthFailures.java`(`WebErrorCode.SOCIAL_OAUTH_FAILED` — 구 단일 `ErrorCode`는 에러코드 모듈 분할로 삭제됨)(소비 측 ~~`*SocialLoginService` 4종~~ **(번복됨 — social-login-router)** `SocialLoginService` 1개가 `.orElseThrow(SocialOAuthFailures::toException)`으로 호출)로 옮겨갔다.
 - `infrastructure:oauth`를 의존하지 않는다(순환 방지)
 
 ## 주의
@@ -88,7 +88,7 @@ oauth:
 
 **대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/infrastructure/facebook/oauth/FacebookOAuthClient.java` → `exchange()`
 
-페이스북은 JS SDK가 클라이언트에서 이미 액세스 토큰을 발급하므로 교환할 것이 없다. 그래서 `exchange()`는 교환 대신 **Facebook 공식 문서가 요구하는 서버측 검증**(`debug_token`으로 토큰의 `app_id`가 우리 앱과 일치하는지 확인)을 수행하고 토큰을 그대로 돌려준다. 검증이 실패하거나 `app_id`가 다르면 `BusinessException(SOCIAL_OAUTH_FAILED)`를 직접 던지지 않고 `SocialOAuthResult.failed(SocialOAuthFailure.ACCESS_TOKEN_REJECTED)`를 반환한다 — `BusinessException`으로의 번역은 `application.auth.service.SocialOAuthFailures`(web-application, `WebErrorCode.SOCIAL_OAUTH_FAILED`)가 소비 측 `*SocialLoginService`의 `.orElseThrow(...)` 호출 지점에서 수행한다. 이 검증 자체(서버측 app_id 확인)는 과거 web-api `FacebookSocialLoginService#validateToken`에 있었으나, `app_id` 설정값과 `debug_token` 호출은 어댑터의 관심사이므로 어댑터로 회수했다. 응답 계약(`SOCIAL_OAUTH_FAILED`)은 무변경이다.
+페이스북은 JS SDK가 클라이언트에서 이미 액세스 토큰을 발급하므로 교환할 것이 없다. 그래서 `exchange()`는 교환 대신 **Facebook 공식 문서가 요구하는 서버측 검증**(`debug_token`으로 토큰의 `app_id`가 우리 앱과 일치하는지 확인)을 수행하고 토큰을 그대로 돌려준다. 검증이 실패하거나 `app_id`가 다르면 `BusinessException(SOCIAL_OAUTH_FAILED)`를 직접 던지지 않고 `SocialOAuthResult.failed(SocialOAuthFailure.ACCESS_TOKEN_REJECTED)`를 반환한다 — `BusinessException`으로의 번역은 `application.auth.service.SocialOAuthFailures`(web-application, `WebErrorCode.SOCIAL_OAUTH_FAILED`)가 소비 측 ~~`*SocialLoginService`~~ **(번복됨 — social-login-router)** `SocialLoginService`의 `.orElseThrow(...)` 호출 지점에서 수행한다. 이 검증 자체(서버측 app_id 확인)는 과거 web-api `FacebookSocialLoginService#validateToken`에 있었으나, `app_id` 설정값과 `debug_token` 호출은 어댑터의 관심사이므로 어댑터로 회수했다. 응답 계약(`SOCIAL_OAUTH_FAILED`)은 무변경이다.
 
 ### 실패 메시지에 앱 시크릿이 남지 않는다
 

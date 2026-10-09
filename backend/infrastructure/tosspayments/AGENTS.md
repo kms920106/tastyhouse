@@ -2,7 +2,7 @@
 
 # infrastructure:tosspayments
 
-토스페이먼츠 **벤더 모듈**(`java-library`). `web-application` 모듈(앱 마커 제거 전에는 `application`)이 소유하는 벤더 SPI `PgProviderGateway`(`com.tastyhouse.application.payment.port.out`)를 `TossPaymentGatewayAdapter`가 구현하고 `provider()`로 `web-application` 소유의 `PgProviderCode.TOSS`(도메인 `PgProvider`와 상수명이 같은 별도 enum — 아래 "포트 반환 타입" 절 참고)를 알린다. 앱이 아니라 PG 채널 모듈 `infrastructure:pg`가 `runtimeOnly`로 조립하며, 결제 건의 `PgProvider`가 `TOSS`면 채널의 라우터(`PgPaymentGatewayRouter`, 지금은 `application/payment/service/`에 있다)가 이 어댑터로 넘긴다.
+토스페이먼츠 **벤더 모듈**(`java-library`). `web-application` 모듈(앱 마커 제거 전에는 `application`)이 소유하는 벤더 SPI `PgProviderGatewayPort`(`com.tastyhouse.application.payment.port.out`)를 `TossPaymentGatewayAdapter`가 구현하고 `provider()`로 `web-application` 소유의 `PgProviderCode.TOSS`(도메인 `PgProvider`와 상수명이 같은 별도 enum — 아래 "포트 반환 타입" 절 참고)를 알린다. 앱이 아니라 PG 채널 모듈 `infrastructure:pg`가 `runtimeOnly`로 조립하며, 결제 건의 `PgProvider`가 `TOSS`면 채널의 라우터(`PgPaymentGatewayRouter`, 지금은 `application/payment/service/`에 있다)가 이 어댑터로 넘긴다.
 
 옛 `infrastructure:payment`의 `toss/` 패키지를 채널·벤더 분리(2026-09-26)로 옮겨 신설됐다. 패키지는 `external.payment.toss` → `com.tastyhouse.external.tosspayments`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.pg")`에 동반 스캔되지 않게 형제 패키지에 둔다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.tosspayments`가 됐다(`dto/` 구성은 불변). **(번복됨 — package-private 적용)** 이후 `dto/`의 wire DTO는 루트 패키지로 옮겨 package-private이 됐고 `dto/` 하위 패키지는 없어졌다(아래 봉인·가드 목록).
 
@@ -11,7 +11,7 @@
 ```
 com.tastyhouse.infrastructure.tosspayments/
 ├── TossPaymentsModuleConfig.java  @Configuration(proxyBeanMethods = false) + @EnableConfigurationProperties(TossPaymentProperties) — 스캔 없음(앱 ModuleScanConfig가 com.tastyhouse.infrastructure를 스캔). imports 제거로 TossPaymentsModuleAutoConfiguration에서 리네임
-├── TossPaymentGatewayAdapter.java            PgProviderGateway 구현, provider()=TOSS
+├── TossPaymentGatewayAdapter.java            PgProviderGatewayPort 구현, provider()=TOSS
 ├── TossPaymentClient.java                    결제 승인(confirmPayment)·취소(cancelPayment) HTTP 호출 — 동기 RestClient
 ├── TossPaymentUtils.java                     카드사 코드 매핑·일시 파싱
 ├── TossPaymentProperties.java                pg.tosspayments.*
@@ -26,7 +26,7 @@ com.tastyhouse.infrastructure.tosspayments/
 
 ## 포트 반환 타입 — `PgProviderCode`(application 소유) vs `PgProvider`(domain 소유)
 
-`PgProviderGateway.provider()`는 도메인 `PgProvider`를 직접 반환하지 않고, `application`이 새로 선언한 `PgProviderCode`(`com.tastyhouse.application.payment.port.out`, 상수명은 `PgProvider`와 동일 — `TOSS`·`KAKAO`·`NICE`·`KG_INICIS`·`NHN_KCP`·`SETTLE_BANK`)를 반환한다. 소비자 쪽 포트 `PgPaymentGateway`(라우터만 구현, web-application의 `PgPaymentConfirmService`·`PaymentCancelService`가 실제로 호출하는 계약)는 그대로 도메인 `PgProvider`를 쓴다.
+`PgProviderGatewayPort.provider()`는 도메인 `PgProvider`를 직접 반환하지 않고, `application`이 새로 선언한 `PgProviderCode`(`com.tastyhouse.application.payment.port.out`, 상수명은 `PgProvider`와 동일 — `TOSS`·`KAKAO`·`NICE`·`KG_INICIS`·`NHN_KCP`·`SETTLE_BANK`)를 반환한다. 소비자 쪽 포트 `PgPaymentGatewayPort`(라우터만 구현, web-application의 `PgPaymentConfirmService`·`PaymentCancelService`가 실제로 호출하는 계약)는 그대로 도메인 `PgProvider`를 쓴다.
 
 라우터 `PgPaymentGatewayRouter`(지금은 `domain`이 아니라 `web-application`의 `payment/service/`에 있다 — 앱 마커 제거 전에는 `application`)가 등록 시점에 `PgProviderCode.name()` → `PgProvider.valueOf(name)`으로 변환해 두 enum을 잇는다. 이 변환이 어긋나지 않는지는 `application`의 `architecture/EnumCodeConstantsTest`가 상수 집합 일치를 검증한다. 벤더가 새 PG사를 추가하면 `PgProviderCode`와 `PgProvider` 양쪽에 같은 이름으로 상수를 추가해야 하며, 한쪽만 추가하면 이 테스트가 실패한다.
 
@@ -51,7 +51,7 @@ pg:
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. 토스 API 호출은 **동기 `RestClient`**다.
-- `web-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — 구현하는 `PgProviderGateway`·`PgCancelResult`·`PgProviderCode`는 `web-application` 소유이고, `PgConfirmResult`·`TossPaymentDetail`은 코어 `application` 소유다(`web-application`이 `api project(':application')`로 함께 노출한다). 패키지는 모두 `com.tastyhouse.application.payment.port.out`. `:domain` 의존은 없다 — 이 모듈은 도메인 `PgProvider`를 참조하지 않는다(위 "포트 반환 타입" 절 참고)
+- `web-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — 구현하는 `PgProviderGatewayPort`·`PgCancelResult`·`PgProviderCode`는 `web-application` 소유이고, `PgConfirmResult`·`TossPaymentDetail`은 코어 `application` 소유다(`web-application`이 `api project(':application')`로 함께 노출한다). 패키지는 모두 `com.tastyhouse.application.payment.port.out`. `:domain` 의존은 없다 — 이 모듈은 도메인 `PgProvider`를 참조하지 않는다(위 "포트 반환 타입" 절 참고)
 - `infrastructure:pg`를 의존하지 않는다(순환 방지)
 - 테스트: `TossPaymentClientTest`(4건) — `MockRestServiceServer.bindTo(RestClient.builder())` 기반
 
@@ -71,11 +71,11 @@ pg:
 
 `external.pg.toss`로 옮기면 채널 모듈 `infrastructure:pg`의 스캔에 동반 등록된다. ~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.tosspayments`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/tosspayments/src/test/java/com/tastyhouse/infrastructure/tosspayments/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다.
 
-### 어댑터는 `PgPaymentGateway`를 직접 구현하지 않는다
+### 어댑터는 `PgPaymentGatewayPort`를 직접 구현하지 않는다
 
 **대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/TossPaymentGatewayAdapter.java`
 
-`PgPaymentGateway`의 구현은 라우터 하나여야 한다. 벤더가 그것을 구현하면 두 번째 벤더가 들어오는 순간 application의 단일 주입이 모호해져 web-api 기동이 실패한다.
+`PgPaymentGatewayPort`의 구현은 라우터 하나여야 한다. 벤더가 그것을 구현하면 두 번째 벤더가 들어오는 순간 application의 단일 주입이 모호해져 web-api 기동이 실패한다.
 
 ### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
 
