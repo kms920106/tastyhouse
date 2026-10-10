@@ -6,6 +6,7 @@ dependencies {
 
 
     runtimeOnly project(':infrastructure:persistence')
+    runtimeOnly project(':infrastructure:mybatis')
     runtimeOnly project(':infrastructure:redis')
     runtimeOnly project(':infrastructure:file-storage')
     runtimeOnly project(':infrastructure:oauth')

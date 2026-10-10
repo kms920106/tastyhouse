@@ -2,9 +2,9 @@ package com.tastyhouse.infrastructure.jpa.notice.persistence;
 
 import com.tastyhouse.domain.notice.model.Notice;
 
-final class NoticeMapper {
+final class NoticeJpaMapper {
 
-    private NoticeMapper() {
+    private NoticeJpaMapper() {
     }
 
     static Notice toDomain(NoticeJpaEntity entity) {

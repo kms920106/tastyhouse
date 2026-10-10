@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -21,11 +22,12 @@ import com.tastyhouse.application.shared.port.out.page.PageResult;
 import static com.tastyhouse.infrastructure.jpa.notice.persistence.QNoticeJpaEntity.noticeJpaEntity;
 
 @Repository
-class NoticeQueryAdapter implements NoticeQueryPort, NoticeManagementQueryPort {
+@Primary
+class NoticeJpaQueryAdapter implements NoticeQueryPort, NoticeManagementQueryPort {
 
     private final JPAQueryFactory queryFactory;
 
-    public NoticeQueryAdapter(JPAQueryFactory queryFactory) {
+    public NoticeJpaQueryAdapter(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
     }
 

@@ -112,7 +112,7 @@ com.tastyhouse.infrastructure.jpa/
   - **모듈 진입점인 `JpaModuleConfig`는 모듈 루트에 그대로 둔다** — `basePackageClasses`로 JPA 스캔 범위를 정하므로 옮기면 범위가 어긋난다. **(번복됨 — imports 제거)** ~~`PersistenceModuleAutoConfiguration`(구 `InfrastructureModuleConfig`)도 루트에 둔다(`AutoConfiguration.imports`가 FQCN으로 참조하므로 경로 변경 금지)~~ — 그 클래스와 imports 파일은 삭제됐다. `<ctx>/config/` 규칙은 신설 도메인 서비스 config에만 적용된다.
 - **(번복됨) 이벤트 리스너를 이 모듈의 `<ctx>/listener/`에 두지 않는다**: 도메인 이벤트 리스너 12종은 `application`의 `com.tastyhouse.application.<ctx>.listener`로 이동했고, ~~리스너 전용 마커 `@SharedApp`으로 4앱 전부가 스캔한다~~ (번복됨 — 앱 마커 제거) 코어 `application`에 있어 4앱 전부가 스캔한다. ~~이 모듈에는 발행 어댑터 `shared/event/SpringDomainEventPublisher`만 남는다.~~ **(03a)** 발행 구현도 `application`의 `shared/event/`로 옮겨가 이 모듈에는 이벤트 관련 코드가 없다. 리스너 작성 규칙·AFTER_COMMIT 유실 경고·배치 근거는 [`backend/application/AGENTS.md`의 도메인 이벤트 리스너 절](../../application/AGENTS.md#ctxlistener--도메인-이벤트-리스너)을 따른다.
 
-reference 구현: `notice` 도메인 — write 어댑터 `notice/persistence/`(`NoticeJpaEntity`/`NoticeMapper`/`NoticeJpaRepository`/`NoticePersistenceAdapter` — 단건 로드·저장만, 짝 application 쪽은 `application/notice/port/out/write/{NoticeLoadPort,NoticeSavePort}`(분리 전 `NoticePersistencePort`). 03b 동안의 `NoticeStatePortImpl`·`NoticeState`·`NoticeStatePort`·`store/{NoticePersistencePort,NoticeStore,NoticeStateMapper}`는 삭제됨), read 어댑터 `notice/query/`(`NoticeQueryAdapter` + `NoticeManagementListItemResult`/`NoticeListItemResult`/`NoticeDetailResult`/`NoticeSearchCondition`).
+reference 구현: `banner` 도메인(구현 1개 기본형) — write 어댑터 `banner/persistence/`(`BannerJpaEntity`/`BannerMapper`/`BannerJpaRepository`/`BannerPersistenceAdapter` — 단건 로드·저장만, 짝 application 쪽은 `application/banner/port/out/write/{BannerLoadPort,BannerSavePort}`), read 어댑터 `banner/query/BannerQueryAdapter`(계약 `application/banner/port/out/`의 `BannerQueryPort`·`BannerManagementQueryPort` + `BannerListItemResult`/`BannerManagementListItemResult`/`BannerDetailResult`/`BannerSearchCondition`). **(번복됨 — notice-mybatis-legacy)** 이 기준 예시는 원래 notice였다. notice는 같은 포트를 MyBatis 구현과 함께 가지게 되어 `Jpa` 한정어와 `@Primary`가 붙은 **예외 사례**(`NoticeJpaPersistenceAdapter`·`NoticeJpaMapper`·`NoticeJpaQueryAdapter`)가 됐으므로, 새 컨텍스트를 만들 때 따라 할 기본형은 banner로 바꿨다. notice의 03b 흔적(`NoticeStatePortImpl`·`NoticeState`·`NoticeStatePort`·`store/{NoticePersistencePort,NoticeStore,NoticeStateMapper}`)은 그 전에 이미 삭제됐다.
 
 ## `<ctx>/query/` — read 어댑터 (CQRS query 측, 개정됨 — 읽기 경로 포트화)
 
@@ -234,7 +234,7 @@ if (condition.title() != null) { where.and(noticeJpaEntity.title.containsIgnoreC
 - 서브쿼리로 ID 집합을 먼저 계산해 교집합하는 등 **where 조립이 아닌 선행 데이터 계산**은 이 규칙 대상이 아니다(계산된 집합을 최종 where에 넣을 때만 `xxxIn(Set<Long>)` 헬퍼를 쓴다).
 - **크로스 도메인 조인은 정식 Q타입으로 한다**: 전 도메인이 이 모듈로 이동해 모든 JPA 엔티티 Q타입이 같은 모듈에 있으므로, 다른 도메인 엔티티를 조인할 때 `QXxxJpaEntity`를 직접 import한다. 과거 전환 과도기에 쓰였던 `PathBuilder<Object>("XxxJpaEntity")` 문자열 우회는 전부 정식 Q타입 조인으로 복원되었으며, 신규 코드에서 이 우회를 다시 도입하지 않는다.
 
-reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.notice.port.out.NoticeQueryPort` implements).
+reference 구현: `notice/query/NoticeJpaQueryAdapter`(`com.tastyhouse.application.notice.port.out.NoticeQueryPort`·`NoticeManagementQueryPort` implements — **(번복됨 — notice-mybatis-legacy)** ~~`NoticeQueryAdapter`~~에서 개명, `@Primary`).
 
 **대형 도메인 용도별 DAO 분리 reference: `shop`** — 소비 모듈 3개(web/admin/ceo)가 함께 쓰는 최대 도메인이라 DAO를 용도별로 5개로 나눴다. 가게별 설정·관리 조회를 혼자 담던 `ShopQueryAdapter`(770줄)를 large-class-split 덩어리 02에서 **함께 바뀌는 쿼리 묶음** 3개로 다시 나눈 결과다(포트도 같은 경계로 다시 잘랐다).
 
@@ -293,22 +293,34 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 - 조립 모듈 `infrastructure:persistence`가 `runtimeOnly project(':infrastructure:jpa')`로 묶는다. 앱 4개(web-api·admin-api·ceo-api·batch-module)는 이 모듈을 직접 의존하지 않고 persistence 조립 모듈만 `runtimeOnly`로 의존한다
 - QueryDSL `io.github.openfeign.querydsl:querydsl-jpa:6.11` (**implementation** — 소비 모듈 전이 차단. OpenFeign 포크는 CVE-2024-49203 대응이며 패키지명 `com.querydsl.*` 유지, 6.x부터 jpa는 `:jakarta` classifier 없이 jakarta 기본·apt만 `:jakarta` 유지) + `querydsl-apt` annotationProcessor
 
-## banner 쓰기 — JPA 구현과 MyBatis 구현의 공존
+## notice 쓰기·조회 — JPA 구현과 MyBatis 구현의 공존
 
-`BannerLoadPort`·`BannerSavePort`(banner 쓰기 포트 — 분리 전 `BannerPersistencePort`)는 이 모듈의 `banner/persistence/BannerJpaPersistenceAdapter`(JPA)와 `infrastructure:mybatis`의 `BannerMyBatisPersistenceAdapter`(MyBatis)가 **둘 다 완전히 구현**한다. ~~어느 쪽이 빈으로 뜨는지는 속성 `persistence.banner.write.provider`(조립 모듈 `infrastructure:persistence`의 `application-persistence.yml`, 기본 `${BANNER_WRITE_PROVIDER:jpa}` — jpa 모듈 분리 전에는 이 모듈 소유)가 정한다.~~ **(번복됨 — banner-write-primary)** 두 구현이 모두 조건 없이 빈으로 뜨고(MyBatis 구현은 mybatis 모듈이 실리는 admin-api에서만), **`@Primary`가 붙은 JPA 구현이 주입된다.** MyBatis로 전환하려면 `@Primary`를 `BannerMyBatisPersistenceAdapter`로 옮기고 재빌드한다. 규칙과 근거는 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙", 작업 기록은 `docs/tasks/banner-write-primary/backend.md`.
+> **(번복됨 — notice-mybatis-legacy)** 이 절은 원래 "banner 쓰기 — JPA 구현과 MyBatis 구현의 공존"이었다. banner의 MyBatis 구현이 삭제되고 공존 대상이 notice(쓰기 + 조회)로 바뀌어 다시 썼다. banner 시절의 이력(MyBatis 파일럿 → provider 키 스위치 → `@Primary`)은 `docs/tasks/README.md`의 `mybatis-banner-pilot`·`banner-write-provider-switch`·`banner-write-primary` 행과 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙" 절에 있다.
 
-| 항목 | before (MyBatis 파일럿 직후) | after (공존 + 전환) |
+notice의 아웃바운드 포트 4개는 이 모듈의 JPA 구현과 `infrastructure:mybatis`의 MyBatis 레거시 구현이 **둘 다 완전히 구현**한다. 두 구현은 조건 없이 모두 빈으로 뜨고(MyBatis 구현은 mybatis 모듈이 실리는 web-api·admin-api에서만), **`@Primary`가 붙은 JPA 구현이 주입된다.** notice는 예전에 MyBatis로 구현돼 있었고 지금은 JPA만 쓴다 — MyBatis 구현은 되돌릴 수 있게 남겨 둔 레거시다. 규칙과 근거는 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙", MyBatis 쪽 설명·전환 절차·JPA와의 의미 비교는 `../mybatis/AGENTS.md`, 작업 기록은 `docs/tasks/notice-mybatis-legacy/backend.md`.
+
+| 포트 | 이 모듈의 JPA 구현 (`@Primary`) | `infrastructure:mybatis`의 MyBatis 구현 |
 |---|---|---|
-| 이 모듈의 banner 쓰기 | MyBatis 어댑터·XML이 이 모듈 안에 있었고 JPA 쓰기 코드는 삭제됨 | JPA 어댑터 복원: `BannerJpaPersistenceAdapter`·`BannerJpaMapper`·`BannerJpaRepository`·`BannerJpaEntity#create/applyChanges` |
-| MyBatis 코드 위치 | 이 모듈 | 신설 모듈 `infrastructure:mybatis`(`backend/infrastructure/mybatis/AGENTS.md`) |
-| `mybatis-spring-boot-starter`·`@MapperScan` | 이 모듈(4앱 전부에서 MyBatis 자동 설정이 켜짐) | mybatis 모듈로 이동 — admin-api에서만 켜진다 |
-| 선택 | — | ~~`BannerJpaPersistenceAdapter`에 `@ConditionalOnProperty(name = "persistence.banner.write.provider", havingValue = "jpa", matchIfMissing = true)`~~ **(번복됨 — banner-write-primary)** `BannerJpaPersistenceAdapter`에 `@Primary`(조건 애노테이션 없음) |
+| `NoticeLoadPort`·`NoticeSavePort` (쓰기) | `notice/persistence/NoticeJpaPersistenceAdapter` + `NoticeJpaMapper` | `notice/persistence/NoticeMyBatisPersistenceAdapter` |
+| `NoticeQueryPort`·`NoticeManagementQueryPort` (조회) | `notice/query/NoticeJpaQueryAdapter` | `notice/query/NoticeMyBatisQueryAdapter` |
 
-- ~~**`matchIfMissing = true`는 JPA 쪽에만 둔다.** MyBatis 쪽에도 두면 속성이 없을 때 admin-api에 구현이 2개 등록돼 `NoUniqueBeanDefinitionException`이 난다.~~ **(번복됨 — banner-write-primary)** **`@Primary`는 쓰는 쪽(지금은 JPA) 하나에만 둔다.** admin-api에는 구현이 2개 등록되므로, 둘 다 없으면 단일 주입에서 `NoUniqueBeanDefinitionException`이, 둘 다 있으면 primary 중복 예외가 난다. 컨텍스트 기동 자체는 성공하고 주입 시점에 터지므로, admin-api 가드 `PersistencePrimaryRulesTest`가 빌드 단계에서 잡는다.
-- ~~**속성을 이 모듈 yml이 소유하는 이유**: 기본 구현(JPA)을 가진 모듈이 기본값도 갖는다.~~ **(번복됨 — jpa 모듈 분리)** ~~속성은 조립 모듈 `infrastructure:persistence`의 `application-persistence.yml`이 소유한다 — 구현을 고르는 스위치는 어느 한 구현이 아니라 구현들을 묶는 조립 모듈의 것이다. 4앱이 모두 이 yml을 import하므로 어디서나 기본은 jpa다.~~ **(번복됨 — banner-write-primary)** 속성 자체가 삭제됐다(메타데이터 json 포함).
-- **mybatis 모듈이 없는 앱(web·ceo·batch)에는 JPA 구현 1개만 뜬다** — 후보가 하나라 `@Primary`는 영향이 없고, 이 포트를 주입하는 모듈은 `admin-application`뿐이다(**(번복됨 — banner-write-primary)** 과거 서술 "`provider=mybatis`로 두면 구현이 0개"는 키 삭제로 해당 없음).
-- **`@Primary`는 단일 주입에만 적용된다** — `List<BannerLoadPort>`처럼 여러 빈을 모으면 admin-api에서는 두 구현이 모두 들어간다. 현재 그런 주입은 0건이다.
-- **JPA 1차 캐시와 섞이지 않는다** — ~~스위치로 둘 중 하나만 등록되므로~~ **(번복됨 — banner-write-primary)** 두 구현이 모두 등록되더라도 `@Primary`로 하나만 주입되고, 한 구현이 두 포트(`BannerLoadPort`·`BannerSavePort`)를 모두 맡으므로(같은 포트 안에서 메서드별로 기술을 섞지 않는다) 같은 행을 두 기술이 동시에 쓰는 일이 없다. 섞으면 JPA 쓰기 지연 동안 같은 트랜잭션의 MyBatis 재조회가 옛 값을 보는 함정이 생긴다. 조회(`banner/query/BannerQueryAdapter`, QueryDSL)는 어느 설정에서도 JPA다.
+**이름 변경 (before / after)** — 동작은 바뀌지 않았다.
+
+| 항목 | before | after |
+|---|---|---|
+| notice 쓰기 어댑터 | `NoticePersistenceAdapter` | `NoticeJpaPersistenceAdapter` + `@Primary` |
+| notice 변환기 | `NoticeMapper` (테스트 `NoticeMapperTest`) | `NoticeJpaMapper` (테스트 `NoticeJpaMapperTest`) |
+| notice 조회 어댑터 | `NoticeQueryAdapter` | `NoticeJpaQueryAdapter` + `@Primary` |
+| banner 쓰기 어댑터 | `BannerJpaPersistenceAdapter` + `@Primary` | `BannerPersistenceAdapter`(`@Primary` 없음 — 구현이 하나라 한정어도 필요 없다) |
+| banner 변환기 | `BannerJpaMapper` (테스트 `BannerJpaMapperTest`) | `BannerMapper` (테스트 `BannerMapperTest`) |
+| banner 등록 테스트 | `BannerJpaPersistenceAdapterRegistrationTest` | 삭제 — 구현이 하나라 `@Primary` 우선을 검증할 대상이 없다 |
+| `NoticeJpaRepository`·`NoticeJpaEntity`·`BannerJpaRepository`·`BannerJpaEntity` | — | 이름 그대로(Spring Data·엔티티 이름 규칙은 공존과 무관) |
+
+- **`@Primary`는 쓰는 쪽(지금은 JPA) 하나에만 둔다.** web-api·admin-api에는 구현이 2개 등록되므로, 둘 다 없으면 단일 주입에서 `NoUniqueBeanDefinitionException`이, 둘 다 있으면 primary 중복 예외가 난다. 컨텍스트 기동 자체는 성공하고 주입 시점에 터지므로, admin-api 가드 `PersistencePrimaryRulesTest`가 빌드 단계에서 잡는다.
+- **mybatis 모듈이 없는 앱(ceo·batch)에는 JPA 구현 1개만 뜬다** — 후보가 하나라 `@Primary`는 영향이 없다. notice 포트를 주입하는 모듈은 `web-application`(`NoticeListQueryService`)과 `admin-application`(notice 서비스 5개)뿐이다.
+- **`@Primary`는 단일 주입에만 적용된다** — `List<NoticeQueryPort>`처럼 여러 빈을 모으면 web·admin에서는 두 구현이 모두 들어간다. 현재 그런 주입은 0건이다.
+- **JPA 1차 캐시와 섞이지 않는다** — 두 구현이 모두 등록되더라도 `@Primary`로 포트마다 하나만 주입되고, 한 구현이 포트 묶음(쓰기 2개 / 조회 2개)을 통째로 맡으므로(같은 포트 안에서 메서드별로 기술을 섞지 않는다) 같은 행을 두 기술이 동시에 쓰는 일이 없다. 섞으면 JPA 쓰기 지연 동안 같은 트랜잭션의 MyBatis 재조회가 옛 값을 보는 함정이 생긴다.
+- **MyBatis로 전환할 때** `@Primary`를 옮기고 등록 테스트 4개(이 모듈 2개 + mybatis 모듈 2개)의 기대값을 함께 뒤집는다. 절차는 `../mybatis/AGENTS.md`의 "전환 방법".
 
 <!-- MANUAL: -->
 
@@ -339,17 +351,17 @@ reference 구현: `notice/query/NoticeQueryAdapter`(`com.tastyhouse.application.
 - **규칙 2**: `findById`라는 public 메서드의 **본문**이 소프트 삭제 엔티티(`private boolean deleted` 필드를 가진 `*JpaEntity`, 하한 12개)를 `{엔티티}JpaRepository.findById(` 또는 `selectFrom({엔티티})`로 읽으면 실패한다. 판정을 어댑터가 아니라 메서드 본문 단위로 하는 이유는 `ProductPricePersistenceAdapter`처럼 다른 메서드의 조인에서만 소프트 삭제 엔티티를 쓰는 어댑터가 있어서다. 엔티티 이름은 대소문자를 구분하고 단어 경계로 매칭한다 — 그러지 않으면 `couponJpaRepository`가 `memberCouponJpaRepository`에, `noticeJpaRepository`가 `shopNoticeJpaRepository`에 잘못 걸린다. 하한 앵커는 셋이다: 소프트 삭제 엔티티 12개, 검사한 `findById` 메서드 40개(현재 43), 소프트 삭제 읽기 패턴이 매칭된 public 메서드 30개(`save`·`delete`의 PK 조회 포함, 현재 30).
 - **`visible` 필터는 규칙 1의 대상이 아니다** — `ProductImagePersistenceAdapter#findRepresentativeImageFileId`는 "대표 이미지"라는 도메인 용어가 이미 "노출 이미지 중 첫 번째"라는 뜻을 담고 있어 그대로 둔다.
 - **상품과 옵션의 품절 해제 조회 이름이 다른 것은 의도다.** `ProductLoadPort#findAllActiveSoldOutExpiredBefore`만 `deleted` 필터가 있고, `ProductOptionLoadPort`·`ProductCommonOptionLoadPort`의 `findAllSoldOutExpiredBefore`는 옵션이 소프트 삭제 대상이 아니라 필터가 없다.
-- **MyBatis 구현은 이 가드 밖이다.** `infrastructure/mybatis`의 `BannerMyBatisPersistenceAdapter`는 jpa 소스 스캔에 잡히지 않지만, 같은 포트를 구현하므로 포트 이름이 바뀌면 컴파일로 함께 강제된다. SQL id도 이미 `selectActiveById`다.
+- **MyBatis 구현은 이 가드 밖이다.** `infrastructure/mybatis`의 ~~`BannerMyBatisPersistenceAdapter`~~ **(번복됨 — notice-mybatis-legacy)** `NoticeMyBatisPersistenceAdapter`는 jpa 소스 스캔에 잡히지 않지만, 같은 포트(`NoticeLoadPort`)를 구현하므로 포트 이름이 바뀌면 컴파일로 함께 강제된다. SQL id도 `selectActiveById`(`is_deleted = false` 조건)다.
 - **조회 어댑터(`..query..`)는 대상이 아니다** — 화면용 읽기 모델이다.
 - **가드는 잡는 형태만 강제한다.** public 메서드 본문의 텍스트만 보므로 private 헬퍼(`notDeleted()`)·Q 별칭 변수에 둔 필터, `deleted.eq(Boolean.FALSE)`·`deleted.ne(true)` 같은 변형, `select(x).from(x)`·`entityManager.find`로 읽는 경우는 잡지 못한다. 지금 쓰기 어댑터에는 이런 형태가 없다. 새로 쓸 때는 위 형태로 쓰고, 다른 형태가 필요하면 가드를 함께 넓힌다.
 
-### `BannerJpaPersistenceAdapterRegistrationTest` — banner 쓰기 JPA 구현이 대표(`@Primary`)다
+### notice JPA 구현이 대표(`@Primary`)다 — 등록 테스트 2개
 
-**대상**: `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/banner/persistence/BannerJpaPersistenceAdapterRegistrationTest.java` → `registersUnconditionallyAndServesBothPorts`·`winsOverNonPrimaryImplementation` · `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/banner/persistence/BannerJpaPersistenceAdapter.java` → 클래스의 `@Primary`
+**대상**: `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/notice/persistence/NoticeJpaPersistenceAdapterRegistrationTest.java` → `registersUnconditionallyAndServesBothPorts`·`winsOverNonPrimaryImplementation` · `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/notice/query/NoticeJpaQueryAdapterRegistrationTest.java` → 같은 이름의 두 메서드 · `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/notice/persistence/NoticeJpaPersistenceAdapter.java`·`backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/notice/query/NoticeJpaQueryAdapter.java` → 클래스의 `@Primary`
 
-원문 취지: 속성 없이 등록되고 같은 빈 하나가 `BannerLoadPort`·`BannerSavePort` 둘 다로 주입된다. `@Primary`가 없는 다른 구현(테스트 중첩 클래스)이 함께 있어도 두 포트 모두 JPA 구현으로 주입된다. mybatis 모듈의 `BannerMyBatisPersistenceAdapterRegistrationTest`와 짝을 이뤄 "구현은 둘 다 뜨고 주입은 JPA"를 증명한다. 단언은 `getBean` 시점에 둔다 — primary가 0개·2개여도 컨텍스트 기동은 성공하기 때문이다. `@Primary`를 지우면 `NoUniqueBeanDefinitionException`으로 실패한다(반증 확인). MyBatis로 전환할 때만 `@Primary`를 MyBatis 어댑터로 옮기고, 이 테스트와 mybatis 쪽 테스트의 기대를 함께 뒤집는다.
+원문 취지: 조건 없이 등록되고 같은 빈 하나가 묶음의 두 포트(쓰기 `NoticeLoadPort`·`NoticeSavePort` / 조회 `NoticeQueryPort`·`NoticeManagementQueryPort`) 둘 다로 주입된다. `@Primary`가 없는 다른 구현(테스트 중첩 클래스)이 함께 있어도 두 포트 모두 JPA 구현으로 주입된다. mybatis 모듈의 `NoticeMyBatisPersistenceAdapterRegistrationTest`·`NoticeMyBatisQueryAdapterRegistrationTest`와 짝을 이뤄 "구현은 둘 다 뜨고 주입은 JPA"를 증명한다. 단언은 `getBean` 시점에 둔다 — primary가 0개·2개여도 컨텍스트 기동은 성공하기 때문이다. `@Primary`를 지우면 `NoUniqueBeanDefinitionException`으로 실패한다. MyBatis로 전환할 때만 `@Primary`를 MyBatis 어댑터로 옮기고, 이 테스트 2개와 mybatis 쪽 테스트 2개의 기대를 함께 뒤집는다.
 
-> **(번복됨 — banner-write-primary)** 이 항목은 `BannerJpaProviderConditionTest`(속성이 없거나 `jpa`이면 등록, `mybatis`·알 수 없는 값이면 미등록 — `matchIfMissing = true`를 JPA에만 두라는 봉인)를 대체했다. 조건 테스트는 `@ConditionalOnProperty` 삭제와 함께 삭제됐다.
+> **(번복됨 — notice-mybatis-legacy)** 이 항목은 `BannerJpaPersistenceAdapterRegistrationTest`(banner 쓰기 JPA 구현이 대표)를 대체했다. banner의 MyBatis 구현이 삭제돼 banner JPA 구현은 `BannerPersistenceAdapter`로 원복됐고 `@Primary`도 뗐으므로, 그 테스트는 검증할 대상이 없어 삭제됐다. 그보다 앞서 **(번복됨 — banner-write-primary)** 그 테스트는 `BannerJpaProviderConditionTest`(provider 속성 조건 테스트)를 대체했었다.
 
 ### `QueryFetchShapeConventionTest` — 단건·존재 확인 쿼리의 모양을 고정한다
 
@@ -1219,7 +1231,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 `publicByNecessityShouldStillBePublic`은 목록의 FQN이 아직 public인지 검사해 낡은 허용을 잡는다. 새 public이 필요하면 FQN을 상수에 추가하고 이 표에 참조하는 쪽을 적는다.
 
-**엔티티를 package-private으로 해도 다른 패키지의 QueryDSL 조회는 동작한다(스파이크 확인).** Q타입이 public이므로 `notice/query/NoticeQueryAdapter`가 package-private `NoticeJpaEntity`의 `QNoticeJpaEntity`로 조회해도 컴파일되고, `ddl-auto: validate`에서 Hibernate가 부팅되며, 쿼리도 실행된다. **막히는 것은 다른 패키지에서 엔티티 타입 이름을 직접 쓰는 경우뿐이다**(`ShopJpaEntity`가 허용 목록에 있는 이유). 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+**엔티티를 package-private으로 해도 다른 패키지의 QueryDSL 조회는 동작한다(스파이크 확인).** Q타입이 public이므로 `notice/query/NoticeJpaQueryAdapter`가 package-private `NoticeJpaEntity`의 `QNoticeJpaEntity`로 조회해도 컴파일되고, `ddl-auto: validate`에서 Hibernate가 부팅되며, 쿼리도 실행된다. **막히는 것은 다른 패키지에서 엔티티 타입 이름을 직접 쓰는 경우뿐이다**(`ShopJpaEntity`가 허용 목록에 있는 이유). 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -2296,7 +2308,7 @@ admin 목록(`findAllCoupons`)과 web 내 쿠폰 목록(`findMemberCoupons`/`fin
 | `ShopDeliveryAreaAdjustmentQueryAdapter` | 가게별 신청 이력은 **가게당 건수가 적고 화면이 시트 안 목록이라 페이징하지 않는다.** 검수 화면 목록만 페이징한다. 동의서 파일은 `UPLOADED_FILE`을 `left join`해 URL까지 완성하므로 소비 Service가 fileId로 재조회하지 않으며 **응답에 `~FileId`가 노출되지 않는다.** `ShopQueryAdapter`에 합치지 않은 것은 작성 당시 그 DAO가 가게 설정 전반과 이미지 변경요청까지 담아 비대했기 때문이며(그 뒤 large-class-split 덩어리 02에서 3분할됐고 이미지 변경요청은 지금 `ShopMediaQueryAdapter`에 있다), `ShopDeliveryAreaQueryAdapter` 선례를 따른다. |
 | `MemberReferralQueryAdapter` | 내가 추천한 회원 목록은 **최근 등록순**이다. |
 | `FaqQueryAdapter` | **도메인당 DAO 1개 원칙에 따라 항목·카테고리 두 애그리거트를 한 클래스에 둔다.** 관리 조회(`findAllCategories`·`findAllFaqs`·상세)는 비노출분을 포함하고, 회원 조회(`findVisibleCategories`·`findVisibleFaqs`)는 노출분만 본다. `findVisibleFaqs`는 `categoryId`가 null이면 전체 카테고리 대상이다. |
-| `NoticeQueryAdapter` | 소비 모듈은 이 DAO가 아니라 계약 `NoticeQueryPort`를 주입하므로 **api 모듈은 QueryDSL도 이 어댑터의 존재도 알지 않는다.** 관리 조회는 비노출 공지를 포함한다. |
+| `NoticeJpaQueryAdapter` | 소비 모듈은 이 DAO가 아니라 계약 `NoticeQueryPort`를 주입하므로 **api 모듈은 QueryDSL도 이 어댑터의 존재도 알지 않는다.** 관리 조회는 비노출 공지를 포함한다. 같은 포트를 `infrastructure:mybatis`의 `NoticeMyBatisQueryAdapter`도 구현하므로 이 클래스에 `@Primary`가 있다(**(번복됨 — notice-mybatis-legacy)** ~~`NoticeQueryAdapter`~~에서 개명). |
 | `PolicyQueryAdapter` | **정책 조회는 노출 제한이 없어**(활성/비활성 모두 공개 조회 가능) admin/web 구분이 필요하지 않으므로 메서드가 하나씩만 있다. `findByTypeAndVersion`은 **과거 버전 열람용이라 현행 여부를 따지지 않는다.** 상세 두 메서드가 투영을 공유한다. |
 | `PointQueryAdapter` | 포인트 계정이 없는 회원이면 잔액 조회가 비어 있고 **소비 측에서 0으로 대체한다.** 전체 이력(`findPointHistories`)과 페이징 검색(`findPointHistoryPage`)은 시그니처로 구분하며, web의 내 포인트 내역 화면이 **페이징 없이 전체를 소비한다.** |
 | `NotificationQueryAdapter` | 알림 목록은 최신순, 미읽음 개수는 헤더 배지용 집계다. |

@@ -12,14 +12,14 @@ import com.tastyhouse.domain.file.vo.UploadedFileId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class BannerJpaMapperTest {
+class BannerMapperTest {
 
     @Test
     @DisplayName("Banner → 엔티티 변환 시 모든 컬럼 값이 옮겨진다")
     void toEntityCopiesColumns() {
         Banner original = fullBanner();
 
-        BannerJpaEntity entity = BannerJpaMapper.toEntity(original);
+        BannerJpaEntity entity = BannerMapper.toEntity(original);
 
         assertThat(entity.getType()).isEqualTo("SIDEBAR");
         assertThat(entity.getTitle()).isEqualTo("배너 제목");
@@ -37,7 +37,7 @@ class BannerJpaMapperTest {
     void toDomainRestoresAllFields() {
         Banner original = fullBanner();
 
-        Banner restored = BannerJpaMapper.toDomain(persisted(original));
+        Banner restored = BannerMapper.toDomain(persisted(original));
 
         assertThat(restored).usingRecursiveComparison().isEqualTo(original);
     }
@@ -48,7 +48,7 @@ class BannerJpaMapperTest {
         Banner original = Banner.reconstitute(
             12L, BannerType.HOME, null, null, null, null, null, 1, false, true, null, null);
 
-        BannerJpaEntity entity = BannerJpaMapper.toEntity(original);
+        BannerJpaEntity entity = BannerMapper.toEntity(original);
 
         assertThat(entity.getType()).isEqualTo("HOME");
         assertThat(entity.getTitle()).isNull();
@@ -58,16 +58,16 @@ class BannerJpaMapperTest {
         assertThat(entity.getEndDate()).isNull();
         assertThat(entity.isVisible()).isFalse();
         assertThat(entity.isDeleted()).isTrue();
-        assertThat(BannerJpaMapper.toDomain(persisted(original))).usingRecursiveComparison().isEqualTo(original);
+        assertThat(BannerMapper.toDomain(persisted(original))).usingRecursiveComparison().isEqualTo(original);
     }
 
     @Test
     @DisplayName("applyChanges는 쓰기 가능한 컬럼을 모두 옮긴다")
     void applyChangesCopiesWritableFields() {
-        BannerJpaEntity entity = BannerJpaMapper.toEntity(Banner.reconstitute(
+        BannerJpaEntity entity = BannerMapper.toEntity(Banner.reconstitute(
             12L, BannerType.HOME, null, null, null, null, null, 1, false, true, null, null));
 
-        BannerJpaMapper.applyChanges(entity, fullBanner());
+        BannerMapper.applyChanges(entity, fullBanner());
 
         assertThat(entity.getType()).isEqualTo("SIDEBAR");
         assertThat(entity.getTitle()).isEqualTo("배너 제목");
@@ -89,7 +89,7 @@ class BannerJpaMapperTest {
     }
 
     private static BannerJpaEntity persisted(Banner banner) {
-        BannerJpaEntity entity = BannerJpaMapper.toEntity(banner);
+        BannerJpaEntity entity = BannerMapper.toEntity(banner);
         ReflectionTestUtils.setField(entity, "id", banner.getId());
         ReflectionTestUtils.setField(entity, "createdAt", banner.getCreatedAt());
         ReflectionTestUtils.setField(entity, "updatedAt", banner.getUpdatedAt());

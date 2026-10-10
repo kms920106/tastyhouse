@@ -121,20 +121,22 @@ presentation + application (web-api / admin-api / ceo-api / batch-module)
 
 **Repository write 포트 + load-copy-save**:
 ```java
-// application/notice/port/out/write/NoticeLoadPort.java (조회 — 03a로 이 패키지에서 이동, 이후 Load/Save 분리 — 인터페이스만)
-public interface NoticeLoadPort {
-    Optional<Notice> findById(NoticeId noticeId);
+// application/banner/port/out/write/BannerLoadPort.java (조회 — 03a로 이 패키지에서 이동, 이후 Load/Save 분리 — 인터페이스만)
+public interface BannerLoadPort {
+    Optional<Banner> findActiveById(BannerId id);
 }
 
-// application/notice/port/out/write/NoticeSavePort.java (변경 — 삭제도 Save에 둔다)
-public interface NoticeSavePort {
-    Notice save(Notice notice);
+// application/banner/port/out/write/BannerSavePort.java (변경 — 삭제도 Save에 둔다)
+public interface BannerSavePort {
+    Banner save(Banner banner);
 }
 
-// infrastructure-module: <ctx>/persistence/NoticePersistenceAdapter (@Repository, NoticeLoadPort·NoticeSavePort 구현)
+// infrastructure-module: <ctx>/persistence/BannerPersistenceAdapter (@Repository, BannerLoadPort·BannerSavePort 구현)
 //  - save: id null이면 insert, 있으면 managed 엔티티 조회 후 Mapper.applyChanges 복사
 //  - detached merge 금지(@CreatedDate(updatable=false) 감사 필드 파손 방지)
 ```
+
+> **(번복됨 — notice-mybatis-legacy)** 위 예시는 원래 notice(`NoticeLoadPort`·`NoticeSavePort`, 어댑터 ~~`NoticePersistenceAdapter`~~)였다. notice는 같은 포트를 MyBatis 레거시 구현과 함께 가지게 되어 어댑터가 `NoticeJpaPersistenceAdapter`(`@Primary`)로 바뀐 **예외 사례**가 됐으므로, 구현 1개 기본형 예시를 banner로 교체했다. 기술 공존 시의 이름 규칙은 `backend/CLAUDE.md`의 "아웃바운드 포트·어댑터 네이밍 규칙" 예외 항목에 있다.
 
 **순수 도메인 모델 (팩토리 2종 + final 필드)**:
 ```java
@@ -209,7 +211,7 @@ public interface DomainEventPublisher {
 
 domain에는 이제 이 네 컨텍스트의 출력 포트가 없다 — `mail`/`sms`/`file`/`payment`의 도메인 서비스(`MailVerificationService`·`SmsVerificationService`·`FileUploadService`·`PaymentConfirmationService`)도 함께 `application`으로 옮겨갔다(~~POJO+마커 등록 패턴~~ 앱 마커 제거 후에는 `@Service` — `MailVerificationService`·`SmsVerificationService`는 `web-application`, `FileUploadService`·`PaymentConfirmationService`는 코어. `backend/application/AGENTS.md` 참고). `PgPaymentGatewayPort`는 domain `PgProvider`가 아니라 application 신설 enum `PgProviderCode`를 쓰며, 라우터(`domain`이 구현체를 소유하던 `PgPaymentGatewayPort`는 여전히 domain `PgProvider`를 쓴다)가 `name()` 기반으로 변환한다(`application`의 `EnumCodeConstantsTest`가 검증).
 
-**QueryDSL 동적 where 조립은 이 패키지 소관이 아니다**: `BooleanExpression` varargs 헬퍼 패턴은 QueryDSL을 소유한 `infrastructure-module`의 `<ctx>/query/{도메인}QueryAdapter` 규칙이다 — 상세와 reference(`notice/query/NoticeQueryAdapter`)는 `infrastructure-module/AGENTS.md` 참고.
+**QueryDSL 동적 where 조립은 이 패키지 소관이 아니다**: `BooleanExpression` varargs 헬퍼 패턴은 QueryDSL을 소유한 `infrastructure-module`의 `<ctx>/query/{도메인}QueryAdapter` 규칙이다 — 상세와 reference(`notice/query/NoticeJpaQueryAdapter` — notice-mybatis-legacy로 개명)는 `infrastructure-module/AGENTS.md` 참고.
 
 ## Dependencies
 

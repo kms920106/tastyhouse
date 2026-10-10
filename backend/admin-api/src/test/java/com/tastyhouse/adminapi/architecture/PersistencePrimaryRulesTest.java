@@ -24,17 +24,17 @@ class PersistencePrimaryRulesTest {
         .importPackages("com.tastyhouse.infrastructure");
 
     @Test
-    @DisplayName("구현이 2개 이상인 쓰기 포트는 @Primary 구현이 정확히 1개다")
-    void eachSharedWritePortHasExactlyOnePrimaryImplementation() {
+    @DisplayName("구현이 2개 이상인 아웃바운드 포트는 @Primary 구현이 정확히 1개다")
+    void eachSharedOutboundPortHasExactlyOnePrimaryImplementation() {
         Map<String, List<JavaClass>> shared = new LinkedHashMap<>();
-        implementationsByWritePort().forEach((port, implementations) -> {
+        implementationsByOutboundPort().forEach((port, implementations) -> {
             if (implementations.size() > 1) {
                 shared.put(port, implementations);
             }
         });
 
         assertThat(shared)
-            .as("JPA·MyBatis가 함께 구현하는 쓰기 포트가 있어야 이 가드가 공허하게 통과하지 않는다")
+            .as("JPA·MyBatis가 함께 구현하는 아웃바운드 포트가 있어야 이 가드가 공허하게 통과하지 않는다")
             .isNotEmpty();
 
         Map<String, List<String>> violations = new TreeMap<>();
@@ -49,19 +49,18 @@ class PersistencePrimaryRulesTest {
         });
 
         assertThat(violations)
-            .as("쓰기 포트별 @Primary 구현 목록 — 정확히 1개여야 한다")
+            .as("아웃바운드 포트별 @Primary 구현 목록 — 정확히 1개여야 한다")
             .isEmpty();
     }
 
-    private Map<String, List<JavaClass>> implementationsByWritePort() {
+    private Map<String, List<JavaClass>> implementationsByOutboundPort() {
         Map<String, List<JavaClass>> implementationsByPort = new TreeMap<>();
         for (JavaClass javaClass : classes) {
             if (!javaClass.isAnnotatedWith(Repository.class)) {
                 continue;
             }
             for (JavaClass port : javaClass.getAllRawInterfaces()) {
-                if (port.getPackageName().startsWith("com.tastyhouse.application.")
-                    && port.getPackageName().contains(".port.out.write")) {
+                if (port.getPackageName().matches("com\\.tastyhouse\\.application\\..*\\.port\\.out(\\..*)?")) {
                     implementationsByPort
                         .computeIfAbsent(port.getName(), key -> new ArrayList<>())
                         .add(javaClass);

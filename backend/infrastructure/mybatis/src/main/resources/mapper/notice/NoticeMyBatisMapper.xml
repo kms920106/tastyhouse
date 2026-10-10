@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tastyhouse.infrastructure.mybatis.notice.persistence.NoticeMyBatisMapper">
+
+    <resultMap id="noticeRow" type="com.tastyhouse.infrastructure.mybatis.notice.persistence.NoticeRow">
+        <constructor>
+            <idArg column="id" javaType="java.lang.Long" name="id"/>
+            <arg column="title" javaType="java.lang.String" name="title"/>
+            <arg column="content" javaType="java.lang.String" name="content"/>
+            <arg column="is_visible" javaType="_boolean" name="visible"/>
+            <arg column="is_deleted" javaType="_boolean" name="deleted"/>
+            <arg column="created_at" javaType="java.time.LocalDateTime" name="createdAt"/>
+            <arg column="updated_at" javaType="java.time.LocalDateTime" name="updatedAt"/>
+        </constructor>
+    </resultMap>
+
+    <select id="selectActiveById" resultMap="noticeRow">
+        SELECT id, title, content, is_visible, is_deleted, created_at, updated_at
+          FROM NOTICE
+         WHERE id = #{id}
+           AND is_deleted = false
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO NOTICE (title, content, is_visible, is_deleted, created_at, updated_at)
+        VALUES (#{title}, #{content}, #{visible}, #{deleted}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <update id="update">
+        UPDATE NOTICE
+           SET title = #{title},
+               content = #{content},
+               is_visible = #{visible},
+               is_deleted = #{deleted},
+               updated_at = #{updatedAt}
+         WHERE id = #{id}
+    </update>
+
+</mapper>

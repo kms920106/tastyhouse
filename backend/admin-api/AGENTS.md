@@ -170,16 +170,23 @@
 
 **시더가 없는 web-api와 `config..`가 없는 batch-module에는 대상 0건이라 두지 않는다(공허 통과 회피).**
 
-### `PersistencePrimaryRulesTest` — 여러 기술이 함께 구현하는 쓰기 포트는 `@Primary`가 정확히 1개 (banner-write-primary)
+### `PersistencePrimaryRulesTest` — 여러 기술이 함께 구현하는 아웃바운드 포트는 `@Primary`가 정확히 1개 (banner-write-primary → notice-mybatis-legacy)
 
-**대상**: `backend/admin-api/src/test/java/com/tastyhouse/adminapi/architecture/PersistencePrimaryRulesTest.java` → `eachSharedWritePortHasExactlyOnePrimaryImplementation`
-· 검사 대상 `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/banner/persistence/BannerJpaPersistenceAdapter.java`(`@Primary`) · `backend/infrastructure/mybatis/src/main/java/com/tastyhouse/infrastructure/mybatis/banner/BannerMyBatisPersistenceAdapter.java`(`@Primary` 없음)
+**대상**: `backend/admin-api/src/test/java/com/tastyhouse/adminapi/architecture/PersistencePrimaryRulesTest.java` → `eachSharedOutboundPortHasExactlyOnePrimaryImplementation`
+· 검사 대상 `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/notice/persistence/NoticeJpaPersistenceAdapter.java`·`backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/notice/query/NoticeJpaQueryAdapter.java`(`@Primary`) · `backend/infrastructure/mybatis/src/main/java/com/tastyhouse/infrastructure/mybatis/notice/persistence/NoticeMyBatisPersistenceAdapter.java`·`backend/infrastructure/mybatis/src/main/java/com/tastyhouse/infrastructure/mybatis/notice/query/NoticeMyBatisQueryAdapter.java`(`@Primary` 없음)
 
-원문 취지: `com.tastyhouse.infrastructure`(테스트 제외)의 `@Repository` 클래스를 그 클래스가 구현하는 application `..port.out.write..` 인터페이스별로 모은다. 구현이 2개 이상인 포트는 `@Primary` 구현이 **정확히 1개**여야 한다 — 0개면 단일 주입에서 `NoUniqueBeanDefinitionException`, 2개면 primary 중복 예외가 나는데, 둘 다 **컨텍스트 기동은 성공하고 주입 시점에야** 드러나므로 빌드 단계에서 잡는다. 규칙 정본은 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙".
+원문 취지: `com.tastyhouse.infrastructure`(테스트 제외)의 `@Repository` 클래스를 그 클래스가 구현하는 application `..port.out..` 인터페이스(쓰기 포트·조회 포트 모두)별로 모은다. 구현이 2개 이상인 포트는 `@Primary` 구현이 **정확히 1개**여야 한다 — 0개면 단일 주입에서 `NoUniqueBeanDefinitionException`, 2개면 primary 중복 예외가 나는데, 둘 다 **컨텍스트 기동은 성공하고 주입 시점에야** 드러나므로 빌드 단계에서 잡는다. 규칙 정본은 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙".
 
-- **이 앱에 두는 이유**: JPA(`infrastructure:jpa`)와 MyBatis(`infrastructure:mybatis`) 구현이 함께 실리는 유일한 앱이다. admin-api의 테스트 클래스패스에만 두 모듈이 다 있어(`runtimeOnly`로 받은 클래스를 ArchUnit이 읽는다) 다른 앱에 두면 공존 포트가 0건이다.
-- **anchor**: 구현이 2개 이상인 포트가 1개 이상이어야 한다(현재 `BannerLoadPort`·`BannerSavePort`). 공존 포트가 사라지면 공허 통과하지 않고 실패한다 — 그때는 이 테스트를 지우는 것이 맞는지(공존 구현 자체를 없앴는지) 먼저 확인한다.
-- **한계**: `@Repository`가 붙은 구현만 수집한다. `@Component`·`@Bean` 메서드로 등록한 구현은 수집 대상 밖이라 이 가드가 보지 못한다 — 영속 어댑터는 `@Repository`로 등록한다는 관례에 기대고 있다. `List<Port>` 주입(두 구현이 모두 들어간다)도 검사하지 않는다(현재 0건).
+| 항목 | before (banner-write-primary) | after (notice-mybatis-legacy) |
+|---|---|---|
+| 메서드명 | `eachSharedWritePortHasExactlyOnePrimaryImplementation` | `eachSharedOutboundPortHasExactlyOnePrimaryImplementation` |
+| 수집 범위 | `..port.out.write..` 쓰기 포트만 | `..port.out..` 전체 — 조회 포트(`{Ctx}QueryPort`)도 같은 포트를 두 기술이 구현하게 됐기 때문 |
+| 공존 포트(anchor 대상) | `BannerLoadPort`·`BannerSavePort` | `NoticeLoadPort`·`NoticeSavePort`·`NoticeQueryPort`·`NoticeManagementQueryPort` |
+| 이 앱에 두는 이유 | "JPA·MyBatis가 함께 실리는 유일한 앱" | 아래 항목 — 이제 web-api에도 함께 실리지만 위치는 그대로 둔다 |
+
+- **이 앱에 두는 이유**: ArchUnit은 **그 앱의 테스트 클래스패스**에 실린 클래스만 읽는다(`runtimeOnly`로 받은 jpa·mybatis 클래스도 읽힌다). ~~JPA·MyBatis 구현이 함께 실리는 유일한 앱이다~~ **(번복됨 — notice-mybatis-legacy)** 지금은 web-api도 `infrastructure:mybatis`를 `runtimeOnly`로 의존하므로 jpa·mybatis가 함께 실리는 앱이 web·admin 둘이다. 두 앱의 클래스패스에 실린 영속 어댑터 집합이 같아 어느 쪽에 둬도 결과가 같으므로, 기존 위치(admin-api)를 유지하고 **web-api에 복제하지 않는다**(복제하면 같은 검사가 두 번 돌 뿐이다). ceo-api·batch-module에 두면 mybatis가 없어 공존 포트가 0건이 된다.
+- **anchor**: 구현이 2개 이상인 포트가 1개 이상이어야 한다(현재 notice 4개). 공존 포트가 사라지면 공허 통과하지 않고 실패한다 — 그때는 이 테스트를 지우는 것이 맞는지(공존 구현 자체를 없앴는지) 먼저 확인한다.
+- **한계**: `@Repository`가 붙은 구현만 수집한다. `@Component`·`@Bean` 메서드로 등록한 구현은 수집 대상 밖이라 이 가드가 보지 못한다 — 영속 어댑터는 `@Repository`로 등록한다는 관례에 기대고 있다(MyBatis 어댑터 2개도 `@Repository`다). `List<Port>` 주입(두 구현이 모두 들어간다)도 검사하지 않는다(현재 0건).
 - **반증 확인**: JPA 어댑터의 `@Primary`를 지우거나 MyBatis 어댑터에도 붙이면 이 테스트가 실패한다.
 
 ### `shouldDependOnOauthSpiOnlyNotProviderPackages`는 이 모듈에 두지 않는다

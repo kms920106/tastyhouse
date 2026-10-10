@@ -6,7 +6,7 @@ DB 영속 계층을 **한 벌로 묶어 앱에 노출하는 조립 모듈(스타
 
 > **용어**
 > - **조립 모듈(스타터)**: 도메인 포트를 하나도 구현하지 않고, "이 앱에 어떤 구현 모듈을 싣는가"만 선언하는 모듈. `spring-boot-starter-data-jpa`가 Hibernate를 골라 싣는 것과 같은 역할이다.
-> - **구현 모듈**: 포트를 실제 기술로 구현한 모듈. DB 쪽은 `infrastructure:jpa`(JPA·QueryDSL — 쓰기 어댑터 + 조회 DAO 전부)와 `infrastructure:mybatis`(banner 쓰기 MyBatis 구현) 둘이다.
+> - **구현 모듈**: 포트를 실제 기술로 구현한 모듈. DB 쪽은 `infrastructure:jpa`(JPA·QueryDSL — 쓰기 어댑터 + 조회 DAO 전부)와 `infrastructure:mybatis`(~~banner 쓰기 MyBatis 구현~~ **(번복됨 — notice-mybatis-legacy)** notice 쓰기·조회 MyBatis 레거시 구현 — JPA가 `@Primary`라 주입되지 않는다) 둘이다.
 > - **DB 연결 코어**: `infrastructure:mysql` — MySQL 드라이버·커넥션 풀(HikariCP)·접속 설정을 소유한다. 구현 모듈이 아니라 그 아래에서 JPA·MyBatis가 함께 쓰는 DataSource를 만든다.
 > - ~~**provider 키**: 같은 포트를 여러 구현 모듈이 구현할 때 어느 쪽을 빈으로 등록할지 고르는 속성(`persistence.banner.write.provider`).~~ **(번복됨 — banner-write-primary)** 이 키는 삭제됐다. 지금은 같은 포트의 구현이 모두 빈으로 등록되고, 그중 **`@Primary`**(여러 후보 빈 중 단일 주입 때 우선 선택되는 쪽을 표시하는 Spring 애노테이션)가 붙은 구현이 주입된다. 이 모듈은 그 선택에 관여하지 않는다.
 
@@ -62,12 +62,12 @@ backend/infrastructure/persistence/
 
 ## 왜 드라이버·datasource는 mysql 모듈에, provider 키는 여기 두나
 
-- **JPA·MyBatis가 같은 DataSource를 쓴다.** admin-api에서는 JPA(`infrastructure:jpa`)와 MyBatis(`infrastructure:mybatis`)가 같은 커넥션 풀을 공유하고, `JpaTransactionManager` 하나가 두 기술을 같은 트랜잭션으로 묶는다. 드라이버·접속 정보는 어느 한 구현 모듈의 것이 아니다. ~~그래서 구현들을 묶는 조립 모듈(이 모듈)이 갖는다.~~ **(번복됨 — mysql 모듈 분리)** 지금은 두 구현 아래의 DB 연결 코어 `infrastructure:mysql`이 갖는다. "어느 구현 모듈의 것도 아니다"라는 근거는 그대로이고, 위치만 이 모듈에서 그 아래 모듈로 내려갔다. 이 모듈이 mysql을 조립하므로 admin-api의 MyBatis도 같은 풀을 받는다.
-- ~~**provider 키는 "어느 구현을 쓸지"를 고르는 스위치다.** 스위치는 선택지 중 하나(jpa)가 아니라 선택지를 조립하는 쪽에 있어야 한다. 4앱이 모두 이 yml을 import하므로 어디서나 기본값은 `jpa`다.~~ **(번복됨 — banner-write-primary)** 제목은 앵커 보존을 위해 그대로 둔다. provider 키는 삭제됐고, 구현 선택은 이제 설정이 아니라 코드(JPA 어댑터의 `@Primary`)가 한다 — 컨텍스트마다 yml 4줄·메타데이터·조건 애노테이션 2개·조건 테스트 2개를 반복하던 비용을 없애기 위해서다. 그래서 이 모듈은 더 이상 선택 스위치를 소유하지 않는다. 규칙은 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙", banner 사례는 `../jpa/AGENTS.md`의 "banner 쓰기 — JPA 구현과 MyBatis 구현의 공존"과 `../mybatis/AGENTS.md`에 있다.
+- **JPA·MyBatis가 같은 DataSource를 쓴다.** ~~admin-api에서는~~ **(번복됨 — notice-mybatis-legacy)** web-api·admin-api에서는 JPA(`infrastructure:jpa`)와 MyBatis(`infrastructure:mybatis`)가 같은 커넥션 풀을 공유하고, `JpaTransactionManager` 하나가 두 기술을 같은 트랜잭션으로 묶는다. 드라이버·접속 정보는 어느 한 구현 모듈의 것이 아니다. ~~그래서 구현들을 묶는 조립 모듈(이 모듈)이 갖는다.~~ **(번복됨 — mysql 모듈 분리)** 지금은 두 구현 아래의 DB 연결 코어 `infrastructure:mysql`이 갖는다. "어느 구현 모듈의 것도 아니다"라는 근거는 그대로이고, 위치만 이 모듈에서 그 아래 모듈로 내려갔다. 이 모듈이 mysql을 조립하므로 web-api·admin-api의 MyBatis도 같은 풀을 받는다.
+- ~~**provider 키는 "어느 구현을 쓸지"를 고르는 스위치다.** 스위치는 선택지 중 하나(jpa)가 아니라 선택지를 조립하는 쪽에 있어야 한다. 4앱이 모두 이 yml을 import하므로 어디서나 기본값은 `jpa`다.~~ **(번복됨 — banner-write-primary)** 제목은 앵커 보존을 위해 그대로 둔다. provider 키는 삭제됐고, 구현 선택은 이제 설정이 아니라 코드(JPA 어댑터의 `@Primary`)가 한다 — 컨텍스트마다 yml 4줄·메타데이터·조건 애노테이션 2개·조건 테스트 2개를 반복하던 비용을 없애기 위해서다. 그래서 이 모듈은 더 이상 선택 스위치를 소유하지 않는다. 규칙은 `backend/CLAUDE.md`의 "영속 포트 기술 중립 규칙", ~~banner 사례는 `../jpa/AGENTS.md`의 "banner 쓰기 — JPA 구현과 MyBatis 구현의 공존"~~ **(번복됨 — notice-mybatis-legacy)** 현재 사례(notice 쓰기·조회)는 `../jpa/AGENTS.md`의 "notice 쓰기·조회 — JPA 구현과 MyBatis 구현의 공존"과 `../mybatis/AGENTS.md`에 있다.
 
 ## mybatis는 조립하지 않는다
 
-이 모듈은 `infrastructure:jpa`·`infrastructure:mysql`만 `runtimeOnly`로 싣는다. `infrastructure:mybatis`는 **admin-api가 직접** `runtimeOnly`로 의존한다. 커밋 79cebac26에서 MyBatis를 별도 모듈로 뗀 이유가 "MyBatis 자동 설정(`mybatis-spring-boot-starter`·`@MapperScan`·XML 파싱)은 admin-api에서만 켜지게 한다"였기 때문이다. 이 모듈에 mybatis를 넣으면 4앱 전부의 클래스패스에 실려 그 판단이 무너진다("클래스패스 존재 = 활성화" — `backend/CLAUDE.md`).
+이 모듈은 `infrastructure:jpa`·`infrastructure:mysql`만 `runtimeOnly`로 싣는다. `infrastructure:mybatis`는 ~~**admin-api가 직접**~~ **(번복됨 — notice-mybatis-legacy)** **web-api·admin-api가 직접** `runtimeOnly`로 의존한다(각 앱 `application.yml`에 `classpath:application-mybatis.yml` import도 함께). 커밋 79cebac26에서 MyBatis를 별도 모듈로 뗀 이유가 "MyBatis 자동 설정(`mybatis-spring-boot-starter`·`@MapperScan`·XML 파싱)은 필요한 앱에서만 켜지게 한다"였기 때문이다(당시는 admin-api 하나, 지금은 notice를 쓰는 web-api·admin-api 둘). 이 모듈에 mybatis를 넣으면 4앱 전부(ceo·batch 포함)의 클래스패스에 실려 그 판단이 무너진다("클래스패스 존재 = 활성화" — `backend/CLAUDE.md`).
 
 ## 구현 모듈을 바꾸거나 추가하는 절차
 

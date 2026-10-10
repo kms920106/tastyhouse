@@ -21,7 +21,7 @@
 | `spring.datasource.hikari.*` | 없음(Hikari 기본값) | 아래 표 — **동작 변경** |
 | 로딩 | persistence yml이 직접 소유 | persistence의 `application-persistence.yml`이 `classpath:application-mysql.yml`을 import |
 
-JPA(`infrastructure:jpa`)와 MyBatis(`infrastructure:mybatis`, admin-api 전용)는 같은 DataSource를 쓴다. 이 모듈은 둘 중 어느 쪽에도 속하지 않고, 조립 모듈 `persistence`가 jpa와 함께 싣는다. admin-api는 persistence를 거쳐 이 모듈을 받으므로 MyBatis도 같은 풀을 쓴다.
+JPA(`infrastructure:jpa`)와 MyBatis(`infrastructure:mybatis`, ~~admin-api 전용~~ **(번복됨 — notice-mybatis-legacy)** web-api·admin-api 전용)는 같은 DataSource를 쓴다. 이 모듈은 둘 중 어느 쪽에도 속하지 않고, 조립 모듈 `persistence`가 jpa와 함께 싣는다. web-api·admin-api는 persistence를 거쳐 이 모듈을 받으므로 MyBatis도 같은 풀을 쓴다.
 
 ## 소유물
 

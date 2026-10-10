@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tastyhouse.infrastructure.mybatis.notice.query.NoticeQueryMyBatisMapper">
+
+    <resultMap id="noticeListItem" type="com.tastyhouse.application.notice.port.out.NoticeListItemResult">
+        <constructor>
+            <idArg column="id" javaType="java.lang.Long" name="id"/>
+            <arg column="title" javaType="java.lang.String" name="title"/>
+            <arg column="content" javaType="java.lang.String" name="content"/>
+            <arg column="created_at" javaType="java.time.LocalDateTime" name="createdAt"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="noticeManagementListItem" type="com.tastyhouse.application.notice.port.out.NoticeManagementListItemResult">
+        <constructor>
+            <idArg column="id" javaType="java.lang.Long" name="id"/>
+            <arg column="title" javaType="java.lang.String" name="title"/>
+            <arg column="content" javaType="java.lang.String" name="content"/>
+            <arg column="is_visible" javaType="_boolean" name="visible"/>
+            <arg column="created_at" javaType="java.time.LocalDateTime" name="createdAt"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="noticeDetail" type="com.tastyhouse.application.notice.port.out.NoticeDetailResult">
+        <constructor>
+            <idArg column="id" javaType="java.lang.Long" name="id"/>
+            <arg column="title" javaType="java.lang.String" name="title"/>
+            <arg column="content" javaType="java.lang.String" name="content"/>
+            <arg column="is_visible" javaType="_boolean" name="visible"/>
+            <arg column="created_at" javaType="java.time.LocalDateTime" name="createdAt"/>
+            <arg column="updated_at" javaType="java.time.LocalDateTime" name="updatedAt"/>
+        </constructor>
+    </resultMap>
+
+    <sql id="managementCondition">
+         WHERE is_deleted = false
+        <if test="titlePattern != null">
+           AND LOWER(title) LIKE #{titlePattern} ESCAPE '!'
+        </if>
+        <if test="contentPattern != null">
+           AND LOWER(content) LIKE #{contentPattern} ESCAPE '!'
+        </if>
+        <if test="visible != null">
+           AND is_visible = #{visible}
+        </if>
+    </sql>
+
+    <select id="countVisible" resultType="long">
+        SELECT COUNT(id)
+          FROM NOTICE
+         WHERE is_deleted = false
+           AND is_visible = true
+    </select>
+
+    <select id="selectVisible" resultMap="noticeListItem">
+        SELECT id, title, content, created_at
+          FROM NOTICE
+         WHERE is_deleted = false
+           AND is_visible = true
+         ORDER BY id DESC
+         LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countManagement" resultType="long">
+        SELECT COUNT(id)
+          FROM NOTICE
+        <include refid="managementCondition"/>
+    </select>
+
+    <select id="selectManagement" resultMap="noticeManagementListItem">
+        SELECT id, title, content, is_visible, created_at
+          FROM NOTICE
+        <include refid="managementCondition"/>
+         ORDER BY id DESC
+         LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="selectDetailById" resultMap="noticeDetail">
+        SELECT id, title, content, is_visible, created_at, updated_at
+          FROM NOTICE
+         WHERE id = #{id}
+           AND is_deleted = false
+    </select>
+
+</mapper>

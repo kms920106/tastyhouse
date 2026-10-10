@@ -17,6 +17,7 @@ spring:
       - classpath:application-mail.yml
       - classpath:application-sms.yml
       - classpath:application-redis.yml
+      - classpath:application-mybatis.yml
       - optional:file:.env[.properties]
       - optional:file:backend/.env[.properties]
   servlet:

@@ -41,4 +41,24 @@ class LayerRulesTest {
 
         rule.check(classes);
     }
+
+    @Test
+    void queryShouldNotDependOnDomain() {
+        ArchRule rule = noClasses()
+            .that().resideInAPackage("com.tastyhouse.infrastructure.mybatis..query..")
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.domain..")
+            .because("조회 어댑터는 domain-free 읽기 계약만 구현한다 — 도메인 모델을 쓰는 것은 영속 어댑터(XxxMyBatisPersistenceAdapter)뿐이다");
+
+        rule.check(classes);
+    }
+
+    @Test
+    void persistenceShouldNotDependOnQuery() {
+        ArchRule rule = noClasses()
+            .that().resideInAPackage("com.tastyhouse.infrastructure.mybatis..persistence..")
+            .should().dependOnClassesThat().resideInAPackage("com.tastyhouse.infrastructure.mybatis..query..")
+            .because("write 어댑터는 read model을 의존하지 않는다(read→write 단방향)");
+
+        rule.check(classes);
+    }
 }

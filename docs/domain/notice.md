@@ -62,3 +62,7 @@
 **관리자** — 목록 조회와 검색, 상세 조회, 등록, 수정, 삭제를 모두 수행한다. 노출이 꺼진 공지도 관리자 목록에서는 확인할 수 있다.
 
 **점주** — 접점이 없다. 점주 전용 화면에는 공지사항 기능이 없다.
+
+## 저장 구현
+
+공지사항 데이터를 DB에 읽고 쓰는 구현은 JPA 구현(`backend/infrastructure/jpa`의 `NoticeJpaPersistenceAdapter`·`NoticeJpaQueryAdapter`)과 예전 방식을 남겨 둔 MyBatis 레거시 구현(`backend/infrastructure/mybatis`의 `NoticeMyBatisPersistenceAdapter`·`NoticeMyBatisQueryAdapter`) 두 벌이 있으며, 실제로 쓰이는 것은 `@Primary`가 붙은 JPA 구현이다 — 업무 규칙과 화면 동작은 어느 쪽이든 같다(상세는 `backend/infrastructure/mybatis/AGENTS.md`).
