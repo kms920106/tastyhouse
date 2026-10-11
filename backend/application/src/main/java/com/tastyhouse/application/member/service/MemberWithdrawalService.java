@@ -17,7 +17,7 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
-public class MemberWithdrawalService {
+class MemberWithdrawalService {
 
     private final MemberLoadPort memberLoadPort;
     private final MemberSavePort memberSavePort;

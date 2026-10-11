@@ -21,7 +21,7 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Service
-public class ProductDeletionService {
+class ProductDeletionService {
 
     private final ProductLoadPort productLoadPort;
     private final ProductSavePort productSavePort;

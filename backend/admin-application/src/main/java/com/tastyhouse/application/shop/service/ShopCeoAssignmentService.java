@@ -14,7 +14,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 
 @Service
-public class ShopCeoAssignmentService {
+class ShopCeoAssignmentService {
 
     private final ShopLoadPort shopLoadPort;
     private final ShopSavePort shopSavePort;

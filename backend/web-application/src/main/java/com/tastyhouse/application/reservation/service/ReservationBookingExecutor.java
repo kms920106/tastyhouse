@@ -11,7 +11,7 @@ import com.tastyhouse.domain.reservation.vo.ReservationId;
 import com.tastyhouse.domain.shop.vo.ShopId;
 
 @Component
-public class ReservationBookingExecutor {
+class ReservationBookingExecutor {
 
     private final ReservationBookingService reservationBookingService;
 

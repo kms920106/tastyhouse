@@ -10,7 +10,7 @@ import com.tastyhouse.domain.payment.model.PaymentCancellationTarget;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 
 @Component
-public class PaymentCancellationExecutor {
+class PaymentCancellationExecutor {
 
     private final PaymentCancellationService paymentCancellationService;
 

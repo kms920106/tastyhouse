@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 
 @Service
-public class StorePriceVerificationAdapter implements StorePriceVerificationPort {
+class StorePriceVerificationAdapter implements StorePriceVerificationPort {
 
     private final ShopLoadPort shopLoadPort;
     private final ShopSavePort shopSavePort;

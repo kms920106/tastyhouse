@@ -21,7 +21,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopPhoneNumberSavePort;
 import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 
 @Service
-public class ShopPhoneNumberRegistryService {
+class ShopPhoneNumberRegistryService {
 
     private static final int MAX_PHONE_NUMBER_COUNT = 10;
 

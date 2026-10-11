@@ -13,7 +13,7 @@ import com.tastyhouse.domain.exception.DomainErrorCode;
 import com.tastyhouse.domain.exception.DomainException;
 
 @Component
-public class ShopImageSpecValidator {
+class ShopImageSpecValidator {
 
     private static final long TRADEMARK_MAX_SIZE_BYTES = 900L * 1024;
     private static final int TRADEMARK_MIN_WIDTH = 560;

@@ -9,7 +9,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopCeoAssignmentHistorySavePort;
 
 @Service
-public class ShopCeoAssignmentRecorder {
+class ShopCeoAssignmentRecorder {
 
     private final ShopCeoAssignmentHistorySavePort shopCeoAssignmentHistorySavePort;
 

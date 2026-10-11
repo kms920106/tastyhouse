@@ -1267,19 +1267,60 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 
 ### UseCase 구현 서비스·리스너·설정에 `public`을 붙이지 않는다 (package-private 적용, 5모듈 공통 정본)
 
-**대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `useCaseImplementationsShouldNotBePublic` · `listenersAndConfigsShouldNotBePublic`
+**대상**: `backend/application/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `useCaseImplementationsShouldNotBePublic` · `serviceClassesShouldNotBePublic` · `publicByNecessityShouldStillBePublic` · `listenersAndConfigsShouldNotBePublic`
 
-5모듈(`application`·`{web,admin,ceo,batch}-application`)에서 215개를 package-private으로 좁혔다 — `..service..`에서 `port.in` UseCase를 구현하는 서비스 202개(web 48 · admin 59 · ceo 88 · batch 7 `*SchedulerService`), 리스너(`<ctx>/listener`) 12개, `SharedBeanConfig` 1개. 컨트롤러·협력 서비스는 UseCase 인터페이스로만 주입받고, 빈은 앱의 `ApplicationLayerScanConfig` 문자열 스캔으로 등록되므로 구현 클래스 이름이 패키지 밖에 나타날 필요가 없다. `useCaseImplementationsShouldNotBePublic`은 대상이 200개 이상인지(하한) 함께 확인해, 술어가 어긋나 대상을 잃고 공허하게 통과하는 것을 막는다. 생성자·메서드의 `public`은 유지한다(`@Transactional`은 public 메서드에만 적용된다).
+5모듈(`application`·`{web,admin,ceo,batch}-application`)에서 215개를 package-private으로 좁혔다 — `..service..`에서 `port.in` UseCase를 구현하는 서비스 202개(web 48 · admin 59 · ceo 88 · batch 7 `*SchedulerService`), 리스너(`<ctx>/listener`) 12개, `SharedBeanConfig` 1개. **후속 적용으로 협력 서비스 73개를 더 좁혔다** — `..service..`의 UseCase 비구현 class 103개 중 다른 패키지의 main·test가 타입으로 참조하지 않는 것(application 22 · web 16 · admin 3 · ceo 27 · batch 5). `useCaseImplementationsShouldNotBePublic`은 UseCase 구현만 걸러서 이들을 검사하지 않는 빈틈이 있었고, `serviceClassesShouldNotBePublic`이 그것을 메운다. 컨트롤러·협력 서비스는 UseCase 인터페이스로만 주입받고, 빈은 앱의 `ApplicationLayerScanConfig` 문자열 스캔으로 등록되므로 구현 클래스 이름이 패키지 밖에 나타날 필요가 없다. `useCaseImplementationsShouldNotBePublic`은 대상이 200개 이상인지(하한) 함께 확인해, 술어가 어긋나 대상을 잃고 공허하게 통과하는 것을 막는다. 생성자·메서드의 `public`은 유지한다(`@Transactional`은 public 메서드에만 적용된다).
 
 **public으로 남는 것**:
 
 | 대상 | 이유 |
 |---|---|
 | `port.in`·`port.out`·`*Result`·`*Command` | 모듈 간 계약 |
-| UseCase 없는 도메인 서비스 | 약 48개가 다른 패키지에서 import된다(리스너→서비스, api 모듈→`CeoUserDetails`·`ShopOwnershipValidator` 등). 같은 패키지에서만 쓰이는 나머지는 **아직 좁히지 않았다**(후속 과제 — 좁히기 전에 다른 패키지 참조가 없는지 확인한다) |
-| `SpringDomainEventPublisher`·`ProhibitedWordValidator`·`CachingProhibitedWordLoadPort` | 다른 패키지의 `SharedBeanConfig`가 참조한다 |
+| ~~UseCase 없는 도메인 서비스(약 48개가 다른 패키지에서 import, 나머지는 후속 과제)~~ **(번복됨 — 협력 서비스 후속 적용)** `..service..`의 협력 서비스 30개 | 다른 패키지가 import한다 — 허용 목록 `PUBLIC_BY_NECESSITY`(아래 표). 같은 패키지에서만 쓰이는 73개는 package-private으로 좁혔다 |
+| `SpringDomainEventPublisher` | 다른 패키지의 `SharedBeanConfig`가 참조한다(`..service..` 밖이라 허용 목록 대상 아님) |
 
-새 UseCase 구현 서비스·리스너·`@Configuration`은 `public` 없이 만든다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+**`serviceClassesShouldNotBePublic`의 대상과 판정**: `..service..` 패키지(하위 패키지 포함)의 최상위 class 중 interface·enum·record(`isAssignableTo(Record.class)`)·중첩 클래스를 뺀 것이다. 허용 목록에 없는 것이 `public`이면 실패하고, 대상이 650개 미만이면 공허 통과로 보고 실패한다(도입 시점 681개 = 711 − 30). 짝 테스트 `publicByNecessityShouldStillBePublic`은 목록의 FQN이 사라졌거나, 더는 검사 대상(`..service..` 최상위 class)이 아니거나, 더는 `public`이 아니면 실패한다. record·enum 6개(`ProductAvailabilityChangeResult` 등)는 반환·계약 타입이라 대상에서 뺐다.
+
+**등재 기준 — 다른 *패키지*가 import할 때만이다.** 코어 클래스를 앱 모듈이 **같은 자바 패키지**에서 쓰는 것(split package)은 등재 사유가 아니다. 이름이 같은 패키지이고 fat jar의 클래스로더가 하나라서 package-private 접근이 성립하기 때문이다(73개 중 20개가 이 형태다 — 예: `shop/service/ShopLifecycleService` ← admin·ceo·web. 선례 `product/service/ProductOptionDepositAmounts`·`ShopCodeDescriptions`).
+
+**`PUBLIC_BY_NECESSITY` 30개와 사유** (`com.tastyhouse.application.` 생략, 참조는 `모듈:패키지`):
+
+| FQN | 참조하는 다른 패키지 |
+|---|---|
+| `coupon.service.CouponIssueService` | web-application:order.service |
+| `emailverification.service.MailVerificationService` | web-application:auth.service |
+| `file.service.FileUploadService` | batch-application:crawling.bbq |
+| `holiday.service.PublicHolidayCalendar` | ceo-application:product.service · web-application:order.service · web-application:shop.service |
+| `member.follow.service.MemberFollowService` | web-application:follow.service |
+| `member.referral.service.ReferralRegistrationService` | web-application:member.service |
+| `member.referral.service.ReferralRewardCompletionService` | application:member.listener |
+| `member.service.GradeSettlementService` | batch-application:grade.service |
+| `member.service.MemberAuthService` | web-application:auth.service |
+| `member.service.MemberDeliveryAddressService` | web-application:order.service |
+| `member.service.MemberRegistrationService` | web-application:auth.service |
+| `member.service.OrdererLookupService` | web-application:order.service |
+| `notification.service.NotificationService` | application:notification.listener |
+| `order.service.OrderTransitionService` | application:payment.service · web-application:payment.service |
+| `payment.service.PaymentConfirmationService` | application:payment.listener |
+| `point.service.PointLedgerService` | application:member.listener · application:payment.listener · web-application:order.service |
+| `product.service.OrderProductValidationService` | web-application:order.service |
+| `product.service.ProductRegistrationService` | batch-application:crawling.bbq |
+| `product.service.ProductReviewStatsService` | application:product.listener |
+| `product.service.StorePriceVerificationService` | ceo-application:shop.service |
+| `review.service.ReviewBlindRequestService` | batch-application:reviewblind.service · ceo-application:shop.service |
+| `review.service.ReviewSortSpecs` | web-application:product.service |
+| `shop.service.CachingProhibitedWordLoadPort` | application:shared.config |
+| `shop.service.OwnedShopIdProvider` | ceo-application:product.service |
+| `shop.service.ProhibitedWordValidator` | application:shared.config · ceo-application:product.service · ceo-application:review.service |
+| `shop.service.ShopFoodTypeCategoryReader` | ceo-application:product.service |
+| `shop.service.ShopOrderAvailabilityService` | web-application:reservation.service |
+| `shop.service.ShopOrderContextService` | web-application:order.service |
+| `shop.service.ShopOwnershipValidator` | ceo-application:product.service · ceo-application:review.service |
+| `shop.service.ShopRequestIndexRecorder` | application:review.service |
+
+목록에 FQN을 추가할 때는 이 표에 사유 행을 함께 추가하고, 참조가 사라져 좁혔으면 두 곳에서 함께 지운다.
+
+새 UseCase 구현 서비스·협력 서비스·리스너·`@Configuration`은 `public` 없이 만든다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
 
 ## 코드 주석에서 이관된 설계 근거
 

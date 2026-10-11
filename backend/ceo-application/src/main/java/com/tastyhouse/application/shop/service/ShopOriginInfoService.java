@@ -20,7 +20,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopOriginInfoSavePort;
 
 @Service
-public class ShopOriginInfoService {
+class ShopOriginInfoService {
 
     private final ShopOriginInfoLoadPort shopOriginInfoLoadPort;
     private final ShopOriginInfoSavePort shopOriginInfoSavePort;

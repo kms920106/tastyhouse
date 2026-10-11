@@ -35,7 +35,7 @@ import com.tastyhouse.application.shop.port.out.write.TagLoadPort;
 import com.tastyhouse.application.shop.port.out.write.TagSavePort;
 
 @Service
-public class ReviewLifecycleService {
+class ReviewLifecycleService {
 
     private final ReviewLoadPort reviewLoadPort;
     private final ReviewSavePort reviewSavePort;

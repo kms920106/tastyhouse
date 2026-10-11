@@ -13,7 +13,7 @@ import com.tastyhouse.application.product.port.out.write.ProductOptionSavePort;
 import com.tastyhouse.application.product.port.out.write.ProductSavePort;
 
 @Component
-public class ProductSoldOutReleaseExecutor {
+class ProductSoldOutReleaseExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(ProductSoldOutReleaseExecutor.class);
 

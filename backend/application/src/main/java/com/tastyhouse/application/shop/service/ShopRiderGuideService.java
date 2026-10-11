@@ -23,7 +23,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopRiderGuideSavePort;
 
 @Service
-public class ShopRiderGuideService {
+class ShopRiderGuideService {
 
     private final ShopRiderGuideLoadPort shopRiderGuideLoadPort;
     private final ShopRiderGuideSavePort shopRiderGuideSavePort;

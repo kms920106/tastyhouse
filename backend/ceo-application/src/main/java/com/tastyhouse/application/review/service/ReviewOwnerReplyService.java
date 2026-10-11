@@ -23,7 +23,7 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shop.service.ProhibitedWordValidator;
 
 @Service
-public class ReviewOwnerReplyService {
+class ReviewOwnerReplyService {
 
     private final ReviewOwnerReplyLoadPort reviewOwnerReplyLoadPort;
     private final ReviewOwnerReplySavePort reviewOwnerReplySavePort;

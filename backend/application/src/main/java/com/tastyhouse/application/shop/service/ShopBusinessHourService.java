@@ -21,7 +21,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopBusinessHourLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopBusinessHourSavePort;
 
 @Service
-public class ShopBusinessHourService {
+class ShopBusinessHourService {
 
     private static final int MAX_REGULAR_CLOSED_DAY_COUNT = 15;
 

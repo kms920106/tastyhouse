@@ -7,7 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestType;
 import com.tastyhouse.application.product.port.out.ShopRequestIndexSyncPort;
 
 @Service
-public class ShopRequestIndexSyncAdapter implements ShopRequestIndexSyncPort {
+class ShopRequestIndexSyncAdapter implements ShopRequestIndexSyncPort {
 
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
 

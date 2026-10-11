@@ -26,7 +26,7 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Service
-public class ProductExposureService {
+class ProductExposureService {
 
     private static final Set<DayType> GROUP_DAY_TYPES =
         Set.of(DayType.DAILY, DayType.WEEKDAY, DayType.WEEKEND, DayType.HOLIDAY);

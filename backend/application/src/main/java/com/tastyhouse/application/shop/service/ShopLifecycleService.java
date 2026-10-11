@@ -28,7 +28,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 import com.tastyhouse.application.shop.port.out.write.StationLoadPort;
 
 @Service
-public class ShopLifecycleService {
+class ShopLifecycleService {
 
     private static final int SHOP_INTRODUCTION_MAX_LENGTH = 500;
 

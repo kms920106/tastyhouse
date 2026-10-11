@@ -36,7 +36,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaSavePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLoadPort;
 
 @Service
-public class ShopDeliveryAreaPolygonService {
+class ShopDeliveryAreaPolygonService {
 
     private static final BigDecimal CANDIDATE_BOX_MARGIN_DEGREES = new BigDecimal("0.05");
 

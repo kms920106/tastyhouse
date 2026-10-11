@@ -11,7 +11,7 @@ import com.tastyhouse.application.region.port.in.SynchronizeAdminDongsUseCase;
 
 @Component
 @ConditionalOnProperty(name = "region.admin-dong.sync-on-startup", havingValue = "true")
-public class AdminDongSyncRunner implements ApplicationRunner {
+class AdminDongSyncRunner implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(AdminDongSyncRunner.class);
 

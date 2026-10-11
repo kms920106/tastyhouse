@@ -350,7 +350,7 @@ static class ModuleScanConfig {
 
 ## 접근 제어자 규칙 (내부 구현은 package-private)
 
-**다른 패키지가 이름으로 참조하지 않는 내부 구현 클래스는 최상위 `public`을 붙이지 않는다(package-private).** 어댑터·JPA 엔티티·JPA 리포지토리·UseCase 구현 서비스·리스너·컨트롤러·설정 클래스가 대상이다. 다른 패키지에서 import하는 순간 **컴파일이 실패**하므로, "이건 내부 구현이니 직접 쓰지 말라"는 약속을 문서·리뷰가 아니라 컴파일러가 지킨다.
+**다른 패키지가 이름으로 참조하지 않는 내부 구현 클래스는 최상위 `public`을 붙이지 않는다(package-private).** 어댑터·JPA 엔티티·JPA 리포지토리·UseCase 구현 서비스·협력 서비스(`..service..`의 UseCase를 구현하지 않는 클래스)·리스너·컨트롤러·설정 클래스가 대상이다. 다른 패키지에서 import하는 순간 **컴파일이 실패**하므로, "이건 내부 구현이니 직접 쓰지 말라"는 약속을 문서·리뷰가 아니라 컴파일러가 지킨다.
 
 **왜 지금 가능한가.** 과거에는 이 클래스들이 `public`이어야 할 이유가 있었다 — 모듈이 자기 `@Configuration`을 `AutoConfiguration.imports`로 등록하고 다른 모듈이 구체 타입을 import해 조립했으며, 협력 서비스가 구체 클래스를 주입받았다. 지금은 두 이유가 모두 사라졌다.
 
@@ -382,6 +382,17 @@ static class ModuleScanConfig {
 
 합계는 persistence 403 + 벤더·redis·restclient 66(이동한 wire DTO 16 포함) + application 215 + 어댑터·공유 모듈 170 = **854**다.
 
+**후속 적용 — 협력 서비스 73개.** 위 854개 적용 때는 UseCase를 구현하지 않는 `..service..` 클래스를 좁히지 않아, 가드(`useCaseImplementationsShouldNotBePublic`)가 이들을 검사하지 않는 빈틈이 있었다. 그 103개 중 다른 패키지의 main·test 코드가 타입으로 참조하지 않는 73개를 좁히고, 나머지 30개는 허용 목록으로 관리한다. **동작 변경은 없다.**
+
+| 범주 | 모듈 | 개수 | before | after |
+|---|---|---|---|---|
+| 협력 서비스(`..service..`의 UseCase 비구현 class — `*Service`·`*Validator`·`*Executor`·`*Adapter`·`*Recorder` 등) | application 22 · web 16 · admin 3 · ceo 27 · batch 5 | 73 | `public class` | `class` |
+| 위 중 다른 패키지가 import하는 것 | `application` 5모듈 | 30 | `public class` | `public class` 유지 + `PUBLIC_BY_NECESSITY` 등재 |
+
+- **73개 중 20개는 코어 `application` 클래스를 앱 모듈이 같은 자바 패키지에서 쓴다**(split package — 예: `shop/service/ShopLifecycleService` ← admin·ceo·web). 이름이 같은 패키지이고 fat jar의 클래스로더가 하나라서 package-private 접근이 컴파일·런타임 모두 성립한다. 선례는 코어의 package-private `product/service/ProductOptionDepositAmounts`·`ShopCodeDescriptions`다. **그래서 "같은 패키지의 모듈 간 참조"는 `PUBLIC_BY_NECESSITY` 등재 사유가 아니다.**
+- `..service..`의 public record·enum(`ProductAvailabilityChangeResult`·`ReviewListType`·`FileUploadCommand`·`PgConfirmation` 등 6개)은 반환·계약 타입이라 대상이 아니다.
+- **가드 범위는 `..service..` 패키지다 — 이름이 `*Service`여도 그 밖에 있으면 검사하지 않는다.** `crawling/bbq/BbqService`·`BbqProductSyncService`, `auth/token/*TokenService`, `*JwtTokenProvider`, `auth/security/*UserDetailsService` 등은 아직 public이며 이번 범위가 아니다(후속 판정 대상).
+
 - **선언 키워드만 바꿨다 — 생성자·메서드의 `public`은 유지한다.** `@Transactional`은 public 메서드에만 적용되고, `RateLimitAspect`·`@PreAuthorize`가 감싸는 컨트롤러 핸들러 메서드도 public이어야 프록시 대상이 된다. 클래스를 package-private으로 좁혀도 메서드 가시성은 손대지 않는다.
 - **벤더 wire DTO는 `{루트}.dto`에서 `{루트}`로 옮겼다.** package-private은 같은 패키지에서만 보이므로, 그 DTO를 쓰는 `*Client`와 같은 패키지에 있어야 한다. 그래서 `dto` 하위 패키지는 더 이상 없다(아래 [infrastructure 패키지 규칙](#infrastructure-패키지-규칙-루트--모듈명)). Jackson은 별도 가시성 설정 없이(기본 `CAN_OVERRIDE_ACCESS_MODIFIERS`) package-private record를 역직렬화한다 — `BbqApiClientTest`·`TossPaymentClientTest`가 증거다.
 - **JPA 엔티티를 package-private으로 해도 다른 패키지의 QueryDSL 조회가 동작한다(스파이크로 확인).** QueryDSL이 생성하는 Q타입(`QNoticeJpaEntity` 등)은 `public`이라, `notice/query/NoticeJpaQueryAdapter`가 package-private `NoticeJpaEntity`의 Q타입으로 조회해도 컴파일되고, `ddl-auto: validate`에서 Hibernate가 부팅되며, 쿼리도 실행된다. **막히는 것은 다른 패키지에서 엔티티 타입 이름을 직접 쓰는 경우뿐이다** — 그런 엔티티만 `public`으로 남긴다(아래 표의 `ShopJpaEntity`).
@@ -395,9 +406,9 @@ static class ModuleScanConfig {
 | `FileUrlResolver`, `MemberReviewCountQueryAdapter`, `MenuReviewStatisticsQueryAdapter`, `SearchQueryAdapter`, `ShopJpaEntity` | `infrastructure:jpa` | 다른 패키지가 타입 이름으로 참조한다(예: `ShopSearchQueryAdapter`가 `List<ShopJpaEntity>`를 쓴다) — 허용 목록 `PUBLIC_BY_NECESSITY` |
 | `HttpRequestFactories` | `infrastructure:restclient` | `bbq`·`admdongkor`가 다른 모듈에서 호출한다 |
 | `token/RedisTokenStoreProperties` | `infrastructure:redis` | 상위 패키지의 `RedisModuleConfig`가 `@EnableConfigurationProperties`로 참조한다 |
-| UseCase 없는 도메인 서비스(약 48개는 다른 패키지에서 import) | `application` 5모듈 | 리스너→서비스, api 모듈→`CeoUserDetails`·`ShopOwnershipValidator`처럼 다른 패키지가 쓴다. 같은 패키지에서만 쓰이는 나머지는 **아직 좁히지 않았다**(후속 과제) |
+| ~~UseCase 없는 도메인 서비스(약 48개는 다른 패키지에서 import)~~ **(번복됨 — 협력 서비스 후속 적용)** `..service..`의 협력 서비스 중 다른 패키지가 import하는 30개 | `application` 5모듈 | 리스너→서비스(`PointLedgerService`), ceo의 `product.service`·`review.service`→`shop.service.ShopOwnershipValidator`, 다른 컨텍스트 서비스→`PublicHolidayCalendar`처럼 다른 패키지가 쓴다 — 허용 목록 `PUBLIC_BY_NECESSITY`. 같은 패키지에서만 쓰이는 73개는 package-private으로 좁혔다. `CeoUserDetails`(`auth/security`)는 `..service..` 밖이라 이 규칙의 대상이 아니다 |
 | `port.in`·`port.out`·`*Result`·`*Command` | `application` 5모듈 | 모듈 간 계약 자체다 |
-| `SpringDomainEventPublisher`·`ProhibitedWordValidator`·`CachingProhibitedWordLoadPort` | `application` | 다른 패키지의 `SharedBeanConfig`가 참조한다 |
+| `SpringDomainEventPublisher` | `application` | 다른 패키지의 `SharedBeanConfig`가 참조한다(`..service..` 밖). ~~`ProhibitedWordValidator`·`CachingProhibitedWordLoadPort`도 이 행에 있었다~~ **(협력 서비스 후속 적용)** 둘은 `..service..`에 있어 위 협력 서비스 30개 행·`PUBLIC_BY_NECESSITY`로 옮겼다 |
 | Request/Response record | `{web,admin,ceo}-api` | 컨트롤러와 다른 하위 패키지(`request/`·`response/`)에 있다 — 옮기지 않기로 결정했다 |
 | `*Application`, `*SeedProperties` | `{web,admin,ceo}-api` | 부트스트랩·`@EnableConfigurationProperties`가 참조한다 |
 | `CurrentUser`, `jwt/*` | `security-module` | 앱 `SecurityConfig`·컨트롤러가 다른 모듈에서 쓴다 |
@@ -410,7 +421,7 @@ static class ModuleScanConfig {
 | 벤더 13개 | `VendorLayerRulesTest#topLevelClassesShouldNotBePublic` | `build/classes/java/main`의 최상위 클래스 전부 public 아님 |
 | `redis`·`restclient` | `architecture/PackageRootTest#topLevelClassesShouldNotBePublic` + `#publicByNecessityShouldStillBePublic` | 허용 목록 `PUBLIC_BY_NECESSITY`(각 FQN 1개) 외 public 금지 + 허용 목록이 낡지 않았는지(아직 public인지) |
 | `infrastructure:jpa` | `architecture/LayerRulesTest#topLevelClassesShouldNotBePublic` + `#publicByNecessityShouldStillBePublic` | 범주 술어 `publicByCategory()`와 허용 목록 `PUBLIC_BY_NECESSITY`(FQN 5개) 외 public 금지 + 허용 목록 낡음 검사 |
-| `application` | `architecture/LayerRulesTest#useCaseImplementationsShouldNotBePublic`(대상 하한 200 이상) + `#listenersAndConfigsShouldNotBePublic` | UseCase 구현 서비스·리스너·설정 public 금지 |
+| `application` | `architecture/LayerRulesTest#useCaseImplementationsShouldNotBePublic`(대상 하한 200 이상) + `#serviceClassesShouldNotBePublic`(대상 하한 650 이상) + `#publicByNecessityShouldStillBePublic` + `#listenersAndConfigsShouldNotBePublic` | UseCase 구현 서비스·리스너·설정 public 금지 + `..service..`의 최상위 class(interface·enum·record·중첩 클래스 제외)는 허용 목록 `PUBLIC_BY_NECESSITY`(FQN 30개) 외 public 금지 + 허용 목록 낡음 검사 |
 | `{web,admin,ceo}-api` | `architecture/LayerRulesTest#controllersAndConfigsShouldNotBePublic` | `@RestController`·`@RestControllerAdvice`·`config` 패키지(`*SeedProperties` 제외) public 금지 |
 | `batch-module` | `LayerRulesTest#schedulersShouldNotBePublic` | `*Scheduler` public 금지 |
 | `security-module` | `LayerRulesTest#configurationsShouldNotBePublic` | `@Configuration` public 금지 |
@@ -419,10 +430,9 @@ static class ModuleScanConfig {
 
 **새 코드 규칙.**
 
-- **새 어댑터·엔티티·JPA 리포지토리·UseCase 구현 서비스·리스너·컨트롤러·설정은 `public` 없이 만든다.** IDE 템플릿이 `public class`를 넣어도 지운다. 위 가드가 빌드에서 잡는다.
+- **새 어댑터·엔티티·JPA 리포지토리·UseCase 구현 서비스·협력 서비스(둘을 합쳐 `..service..`의 모든 class)·리스너·컨트롤러·설정은 `public` 없이 만든다.** IDE 템플릿이 `public class`를 넣어도 지운다. 위 가드가 빌드에서 잡는다.
 - **다른 패키지가 그 타입을 이름으로 참조해야 하면 `public`으로 두고, 해당 모듈 가드의 허용 목록(`PUBLIC_BY_NECESSITY`)에 FQN을 추가하고 그 사유를 그 모듈 `AGENTS.md`의 `## 봉인·가드 목록`에 적는다.** 허용 목록에서 빠진 public은 빌드가 실패하고, 더는 public이 아닌데 목록에 남은 FQN도 `#publicByNecessityShouldStillBePublic`이 실패시킨다.
 - **조회 투영 record는 예외 없이 `public`이다** — 이 규칙으로 좁히면 안 된다([record 파일 분리 규칙](#record-파일-분리-규칙-중첩-record-선언-지양)).
-- **후속 과제**: UseCase 없는 도메인 서비스 중 같은 패키지에서만 쓰이는 것은 아직 public이다. 좁힐 때는 다른 패키지(리스너·api 모듈) 참조가 없는지 먼저 확인한다.
 
 ## 앱 모듈 경계 규칙 (앱 마커 제거 — 앱 소속은 Gradle 모듈이 표현한다)
 

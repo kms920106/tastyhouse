@@ -21,7 +21,7 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
-public class ProductRepresentativeApprovalService {
+class ProductRepresentativeApprovalService {
 
     private static final long MAX_REPRESENTATIVE_COUNT = 6L;
 

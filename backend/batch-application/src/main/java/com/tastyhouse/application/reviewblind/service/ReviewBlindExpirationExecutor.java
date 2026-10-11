@@ -9,7 +9,7 @@ import com.tastyhouse.domain.review.model.ReviewBlindRequest;
 import com.tastyhouse.application.review.service.ReviewBlindRequestService;
 
 @Component
-public class ReviewBlindExpirationExecutor {
+class ReviewBlindExpirationExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(ReviewBlindExpirationExecutor.class);
 

@@ -9,7 +9,7 @@ import com.tastyhouse.domain.ceo.vo.CeoId;
 import com.tastyhouse.application.ceo.port.out.write.CeoLoginHistorySavePort;
 
 @Service
-public class CeoLoginHistoryRecorder {
+class CeoLoginHistoryRecorder {
 
     private static final int USER_AGENT_MAX_LENGTH = 500;
 

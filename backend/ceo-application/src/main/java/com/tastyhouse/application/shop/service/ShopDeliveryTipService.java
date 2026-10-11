@@ -40,7 +40,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipSavePort;
 
 @Service
-public class ShopDeliveryTipService {
+class ShopDeliveryTipService {
 
     private final ShopDeliveryTipLoadPort shopDeliveryTipLoadPort;
     private final ShopDeliveryTipSavePort shopDeliveryTipSavePort;

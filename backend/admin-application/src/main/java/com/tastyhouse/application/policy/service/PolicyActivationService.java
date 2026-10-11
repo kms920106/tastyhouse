@@ -11,7 +11,7 @@ import com.tastyhouse.application.policy.port.out.write.PolicyDocumentSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 
 @Service
-public class PolicyActivationService {
+class PolicyActivationService {
 
     private final PolicyDocumentLoadPort policyDocumentLoadPort;
     private final PolicyDocumentSavePort policyDocumentSavePort;

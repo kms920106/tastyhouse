@@ -34,7 +34,7 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
-public class ProductOptionGroupMergeService {
+class ProductOptionGroupMergeService {
 
     private final ProductOptionGroupLoadPort optionGroupLoadPort;
     private final ProductOptionGroupSavePort optionGroupSavePort;

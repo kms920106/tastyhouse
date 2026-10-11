@@ -20,7 +20,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestLoad
 import com.tastyhouse.application.shop.port.out.write.ShopImageChangeRequestSavePort;
 
 @Service
-public class ShopRequestCancellationService {
+class ShopRequestCancellationService {
 
     private final ShopImageChangeRequestLoadPort shopImageChangeRequestLoadPort;
     private final ShopImageChangeRequestSavePort shopImageChangeRequestSavePort;

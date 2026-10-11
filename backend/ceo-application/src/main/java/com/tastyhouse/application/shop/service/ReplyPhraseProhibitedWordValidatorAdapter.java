@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import com.tastyhouse.application.ceo.port.out.ReplyPhraseTextValidatorPort;
 
 @Service
-public class ReplyPhraseProhibitedWordValidatorAdapter implements ReplyPhraseTextValidatorPort {
+class ReplyPhraseProhibitedWordValidatorAdapter implements ReplyPhraseTextValidatorPort {
 
     private final ProhibitedWordValidator prohibitedWordValidator;
 

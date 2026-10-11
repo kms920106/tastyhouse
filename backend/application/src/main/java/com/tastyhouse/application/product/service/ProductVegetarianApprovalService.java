@@ -18,7 +18,7 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
-public class ProductVegetarianApprovalService {
+class ProductVegetarianApprovalService {
 
     private static final Set<String> DISALLOWED_SHOP_CATEGORIES = Set.of(
         "돈까스/회/일식", "고기/구이", "찜/탕/찌개", "족발/보쌈", "피자", "치킨", "중식", "야식"

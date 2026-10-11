@@ -7,7 +7,7 @@ import com.tastyhouse.domain.shop.model.ShopRequestCommentAuthor;
 import com.tastyhouse.application.shop.port.out.write.ShopRequestCommentSavePort;
 
 @Service
-public class ShopRequestCommentService {
+class ShopRequestCommentService {
 
     private final ShopRequestCommentSavePort shopRequestCommentSavePort;
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;

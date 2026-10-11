@@ -13,7 +13,7 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Component
-public class StorePriceListImageSpecValidator {
+class StorePriceListImageSpecValidator {
 
     private static final long MAX_SIZE_BYTES = 15L * 1024 * 1024;
     private static final int MIN_WIDTH = 750;

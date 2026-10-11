@@ -17,7 +17,7 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
-public class SmsVerificationService {
+class SmsVerificationService {
 
     private final SmsVerificationLoadPort smsVerificationLoadPort;
     private final SmsVerificationSavePort smsVerificationSavePort;

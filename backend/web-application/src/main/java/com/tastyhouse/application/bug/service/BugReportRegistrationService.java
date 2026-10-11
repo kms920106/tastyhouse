@@ -13,7 +13,7 @@ import com.tastyhouse.application.bug.port.out.write.BugReportImageSavePort;
 import com.tastyhouse.application.bug.port.out.write.BugReportSavePort;
 
 @Service
-public class BugReportRegistrationService {
+class BugReportRegistrationService {
 
     private final BugReportSavePort bugReportSavePort;
     private final BugReportImageSavePort bugReportImageSavePort;

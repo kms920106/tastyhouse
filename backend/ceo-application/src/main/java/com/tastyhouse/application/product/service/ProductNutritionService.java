@@ -18,7 +18,7 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
-public class ProductNutritionService {
+class ProductNutritionService {
 
     private final ProductNutritionLoadPort productNutritionLoadPort;
     private final ProductNutritionSavePort productNutritionSavePort;

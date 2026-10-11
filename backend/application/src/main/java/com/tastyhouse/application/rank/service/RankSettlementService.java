@@ -19,7 +19,7 @@ import com.tastyhouse.application.rank.port.out.MemberReviewCountPort;
 import com.tastyhouse.application.rank.port.out.write.MemberReviewRankSavePort;
 
 @Service
-public class RankSettlementService {
+class RankSettlementService {
 
     private static final LocalDateTime ALL_TIME_START = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
 

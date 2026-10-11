@@ -29,7 +29,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopDeliveryAreaSavePort;
 import com.tastyhouse.application.shop.port.out.write.ShopDeliveryTipRegionLoadPort;
 
 @Service
-public class ShopDeliveryAreaService {
+class ShopDeliveryAreaService {
 
     private final ShopDeliveryAreaLoadPort shopDeliveryAreaLoadPort;
     private final ShopDeliveryAreaSavePort shopDeliveryAreaSavePort;

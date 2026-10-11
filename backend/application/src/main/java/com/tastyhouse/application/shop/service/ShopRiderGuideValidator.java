@@ -12,7 +12,7 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
-public class ShopRiderGuideValidator {
+class ShopRiderGuideValidator {
 
     private static final int VISIT_GUIDE_MAX_LENGTH = 200;
 

@@ -11,7 +11,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopOrderNoticeSavePort;
 
 @Service
-public class ShopOrderNoticeService {
+class ShopOrderNoticeService {
 
     private static final int MAX_CONTENT_LENGTH = 500;
 

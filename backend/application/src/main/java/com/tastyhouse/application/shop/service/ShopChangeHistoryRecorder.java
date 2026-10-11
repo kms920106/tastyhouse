@@ -10,7 +10,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.shop.port.out.write.ShopChangeHistorySavePort;
 
 @Service
-public class ShopChangeHistoryRecorder {
+class ShopChangeHistoryRecorder {
 
     private final ShopChangeHistorySavePort shopChangeHistorySavePort;
 

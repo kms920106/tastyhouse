@@ -5,7 +5,7 @@ import com.tastyhouse.application.auth.port.out.SocialProvider;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
-public final class SocialOAuthFailures {
+final class SocialOAuthFailures {
 
     private SocialOAuthFailures() {
     }

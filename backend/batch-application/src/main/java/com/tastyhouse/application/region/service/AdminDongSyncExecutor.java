@@ -10,7 +10,7 @@ import com.tastyhouse.application.region.port.out.write.AdminDongSavePort;
 import com.tastyhouse.application.region.port.out.write.AdminDongSyncResult;
 
 @Component
-public class AdminDongSyncExecutor {
+class AdminDongSyncExecutor {
 
     private final AdminDongSavePort adminDongSavePort;
 

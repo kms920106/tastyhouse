@@ -8,7 +8,7 @@ import com.tastyhouse.application.shared.exception.AdminErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
-public class FaqCategoryDeletionPolicy {
+class FaqCategoryDeletionPolicy {
 
     private final FaqCategoryLoadPort faqCategoryLoadPort;
 

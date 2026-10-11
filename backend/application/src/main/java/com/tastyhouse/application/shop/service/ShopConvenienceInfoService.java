@@ -27,7 +27,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopConvenienceInfoSavePor
 import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 
 @Service
-public class ShopConvenienceInfoService {
+class ShopConvenienceInfoService {
 
     private static final double MAX_DISPLAY_LOCATION_DISTANCE_METERS = 1000;
 

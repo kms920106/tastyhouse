@@ -10,7 +10,7 @@ import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 
 @Component
-public class PaymentConfirmationExecutor {
+class PaymentConfirmationExecutor {
 
     private final PaymentConfirmationService paymentConfirmationService;
 

@@ -14,7 +14,7 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Component
-public class ProductOptionGroupOwnershipValidator {
+class ProductOptionGroupOwnershipValidator {
 
     private final ProductOptionGroupLoadPort productOptionGroupLoadPort;
     private final ProductOptionLoadPort productOptionLoadPort;

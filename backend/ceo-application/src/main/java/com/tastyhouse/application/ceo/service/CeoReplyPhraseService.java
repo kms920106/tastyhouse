@@ -13,7 +13,7 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
-public class CeoReplyPhraseService {
+class CeoReplyPhraseService {
 
     private static final int MAX_PHRASE_COUNT = 5;
 

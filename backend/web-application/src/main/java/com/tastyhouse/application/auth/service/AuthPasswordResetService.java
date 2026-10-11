@@ -17,7 +17,7 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
-public class AuthPasswordResetService {
+class AuthPasswordResetService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthPasswordResetService.class);
 

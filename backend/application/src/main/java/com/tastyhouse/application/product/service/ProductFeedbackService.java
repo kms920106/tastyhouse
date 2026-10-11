@@ -21,7 +21,7 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
-public class ProductFeedbackService {
+class ProductFeedbackService {
 
     public static final int FEEDBACK_WINDOW_DAYS = 7;
 

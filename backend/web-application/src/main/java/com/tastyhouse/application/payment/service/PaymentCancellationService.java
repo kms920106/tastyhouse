@@ -28,7 +28,7 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
-public class PaymentCancellationService {
+class PaymentCancellationService {
 
     private final PaymentLoadPort paymentLoadPort;
     private final PaymentSavePort paymentSavePort;

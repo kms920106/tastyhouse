@@ -21,7 +21,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopSavePort;
 
 @Service
-public class ShopImageApprovalService {
+class ShopImageApprovalService {
 
     private final ShopImageChangeRequestLoadPort shopImageChangeRequestLoadPort;
     private final ShopImageChangeRequestSavePort shopImageChangeRequestSavePort;

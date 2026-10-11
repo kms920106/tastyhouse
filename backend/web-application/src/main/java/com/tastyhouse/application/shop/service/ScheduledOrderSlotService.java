@@ -28,7 +28,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopSuspensionLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureLoadPort;
 
 @Service
-public class ScheduledOrderSlotService {
+class ScheduledOrderSlotService {
 
     private final ShopLoadPort shopLoadPort;
     private final ShopBusinessHourLoadPort shopBusinessHourLoadPort;

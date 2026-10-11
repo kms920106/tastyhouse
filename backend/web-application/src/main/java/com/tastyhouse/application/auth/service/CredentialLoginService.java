@@ -15,7 +15,7 @@ import com.tastyhouse.application.member.service.MemberAuthService;
 import com.tastyhouse.application.member.service.MemberRegistrationService;
 
 @Service
-public class CredentialLoginService {
+class CredentialLoginService {
 
     private final AuthenticationManager authenticationManager;
     private final MemberTokenService tokenService;

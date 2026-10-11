@@ -50,6 +50,39 @@ class LayerRulesTest {
 
     private static final int RESOLVED_FLOOR = 43;
 
+    private static final Set<String> PUBLIC_BY_NECESSITY = Set.of(
+        "com.tastyhouse.application.coupon.service.CouponIssueService",
+        "com.tastyhouse.application.emailverification.service.MailVerificationService",
+        "com.tastyhouse.application.file.service.FileUploadService",
+        "com.tastyhouse.application.holiday.service.PublicHolidayCalendar",
+        "com.tastyhouse.application.member.follow.service.MemberFollowService",
+        "com.tastyhouse.application.member.referral.service.ReferralRegistrationService",
+        "com.tastyhouse.application.member.referral.service.ReferralRewardCompletionService",
+        "com.tastyhouse.application.member.service.GradeSettlementService",
+        "com.tastyhouse.application.member.service.MemberAuthService",
+        "com.tastyhouse.application.member.service.MemberDeliveryAddressService",
+        "com.tastyhouse.application.member.service.MemberRegistrationService",
+        "com.tastyhouse.application.member.service.OrdererLookupService",
+        "com.tastyhouse.application.notification.service.NotificationService",
+        "com.tastyhouse.application.order.service.OrderTransitionService",
+        "com.tastyhouse.application.payment.service.PaymentConfirmationService",
+        "com.tastyhouse.application.point.service.PointLedgerService",
+        "com.tastyhouse.application.product.service.OrderProductValidationService",
+        "com.tastyhouse.application.product.service.ProductRegistrationService",
+        "com.tastyhouse.application.product.service.ProductReviewStatsService",
+        "com.tastyhouse.application.product.service.StorePriceVerificationService",
+        "com.tastyhouse.application.review.service.ReviewBlindRequestService",
+        "com.tastyhouse.application.review.service.ReviewSortSpecs",
+        "com.tastyhouse.application.shop.service.CachingProhibitedWordLoadPort",
+        "com.tastyhouse.application.shop.service.OwnedShopIdProvider",
+        "com.tastyhouse.application.shop.service.ProhibitedWordValidator",
+        "com.tastyhouse.application.shop.service.ShopFoodTypeCategoryReader",
+        "com.tastyhouse.application.shop.service.ShopOrderAvailabilityService",
+        "com.tastyhouse.application.shop.service.ShopOrderContextService",
+        "com.tastyhouse.application.shop.service.ShopOwnershipValidator",
+        "com.tastyhouse.application.shop.service.ShopRequestIndexRecorder"
+    );
+
     private static final List<String> LOAD_PREFIXES = List.of("find", "exists", "count", "filter");
 
     private static final List<String> SAVE_PREFIXES = List.of("save", "delete", "sync", "bulk", "expire");
@@ -618,6 +651,44 @@ class LayerRulesTest {
     }
 
     @Test
+    void serviceClassesShouldNotBePublic() {
+        List<JavaClass> serviceClasses = classes.stream()
+            .filter(LayerRulesTest::isTopLevelServiceClass)
+            .filter(javaClass -> !PUBLIC_BY_NECESSITY.contains(javaClass.getName()))
+            .toList();
+
+        assertThat(serviceClasses)
+            .as("..service.. 최상위 클래스 집합이 비면 이 규칙은 공허하게 통과한다")
+            .hasSizeGreaterThanOrEqualTo(650);
+
+        List<String> violations = serviceClasses.stream()
+            .filter(javaClass -> javaClass.getModifiers().contains(JavaModifier.PUBLIC))
+            .map(JavaClass::getName)
+            .sorted()
+            .toList();
+
+        assertThat(violations)
+            .as("협력 서비스는 같은 패키지의 UseCase 구현이 주입받는 내부 구현이다 — "
+                + "다른 패키지가 구체 타입에 결합하면 컴파일 에러가 나게 한다. "
+                + "다른 패키지가 이름으로 참조해야 하면 PUBLIC_BY_NECESSITY에 등재한다")
+            .isEmpty();
+    }
+
+    @Test
+    void publicByNecessityShouldStillBePublic() {
+        List<String> stale = PUBLIC_BY_NECESSITY.stream()
+            .filter(name -> !classes.contain(name)
+                || !isTopLevelServiceClass(classes.get(name))
+                || !classes.get(name).getModifiers().contains(JavaModifier.PUBLIC))
+            .sorted()
+            .toList();
+
+        assertThat(stale)
+            .as("허용 목록이 낡았습니다 — 더 이상 존재하지 않거나 public이 아니므로 PUBLIC_BY_NECESSITY에서 제거하세요")
+            .isEmpty();
+    }
+
+    @Test
     void listenersAndConfigsShouldNotBePublic() {
         ArchRule rule = classes()
             .that(DescribedPredicate.describe(
@@ -628,6 +699,15 @@ class LayerRulesTest {
             .because("도메인 이벤트 리스너와 @Configuration은 컴포넌트 스캔으로만 등록되고 어떤 클래스도 직접 참조하지 않는다");
 
         rule.check(classes);
+    }
+
+    private static boolean isTopLevelServiceClass(JavaClass javaClass) {
+        String packageName = javaClass.getPackageName();
+        return (packageName.endsWith(".service") || packageName.contains(".service."))
+            && javaClass.getEnclosingClass().isEmpty()
+            && !javaClass.isInterface()
+            && !javaClass.isEnum()
+            && !javaClass.isAssignableTo(Record.class);
     }
 
     private static boolean implementsPortInInterface(JavaClass javaClass) {

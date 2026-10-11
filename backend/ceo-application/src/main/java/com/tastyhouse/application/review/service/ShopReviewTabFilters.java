@@ -3,7 +3,7 @@ package com.tastyhouse.application.review.service;
 import com.tastyhouse.domain.review.model.ReviewListTab;
 import com.tastyhouse.application.review.port.out.ShopReviewTabFilter;
 
-public final class ShopReviewTabFilters {
+final class ShopReviewTabFilters {
 
     private ShopReviewTabFilters() {
     }

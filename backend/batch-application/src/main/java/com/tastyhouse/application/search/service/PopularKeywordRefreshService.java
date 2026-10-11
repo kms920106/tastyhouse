@@ -16,7 +16,7 @@ import com.tastyhouse.application.search.port.out.write.PopularKeywordSavePort;
 import com.tastyhouse.application.search.port.out.write.SearchKeywordLogSavePort;
 
 @Service
-public class PopularKeywordRefreshService {
+class PopularKeywordRefreshService {
 
     private static final int AGGREGATION_WINDOW_DAYS = 7;
 

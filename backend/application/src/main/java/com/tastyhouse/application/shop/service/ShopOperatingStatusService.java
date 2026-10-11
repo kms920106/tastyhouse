@@ -27,7 +27,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopSuspensionLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopTemporaryClosureLoadPort;
 
 @Service
-public class ShopOperatingStatusService {
+class ShopOperatingStatusService {
 
     private static final boolean PUBLIC_HOLIDAY = false;
 

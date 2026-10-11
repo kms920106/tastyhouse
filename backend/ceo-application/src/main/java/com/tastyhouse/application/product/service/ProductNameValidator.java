@@ -11,7 +11,7 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.CeoErrorCode;
 
 @Component
-public class ProductNameValidator {
+class ProductNameValidator {
 
     private static final Pattern ALLOWED_NAME =
         Pattern.compile("^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z0-9\\s:,./~%&()+\\[\\]™®]*$");

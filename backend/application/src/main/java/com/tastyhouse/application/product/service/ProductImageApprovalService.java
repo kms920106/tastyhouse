@@ -22,7 +22,7 @@ import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
 
 @Service
-public class ProductImageApprovalService {
+class ProductImageApprovalService {
 
     private final ProductImageChangeRequestLoadPort requestLoadPort;
     private final ProductImageChangeRequestSavePort requestSavePort;

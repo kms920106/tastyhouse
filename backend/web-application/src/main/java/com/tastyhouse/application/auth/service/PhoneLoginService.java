@@ -16,7 +16,7 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
-public class PhoneLoginService {
+class PhoneLoginService {
 
     private final MemberJwtTokenProvider jwtTokenProvider;
     private final MemberLoadPort memberLoadPort;

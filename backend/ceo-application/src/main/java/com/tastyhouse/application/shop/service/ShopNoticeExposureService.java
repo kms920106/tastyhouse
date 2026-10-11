@@ -8,7 +8,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopNoticeLoadPort;
 import com.tastyhouse.application.shop.port.out.write.ShopNoticeSavePort;
 
 @Service
-public class ShopNoticeExposureService {
+class ShopNoticeExposureService {
 
     private final ShopNoticeLoadPort shopNoticeLoadPort;
     private final ShopNoticeSavePort shopNoticeSavePort;

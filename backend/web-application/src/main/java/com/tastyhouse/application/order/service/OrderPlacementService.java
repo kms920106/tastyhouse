@@ -46,7 +46,7 @@ import com.tastyhouse.application.shared.exception.WebErrorCode;
 import com.tastyhouse.application.shop.service.ShopOrderContextService;
 
 @Service
-public class OrderPlacementService {
+class OrderPlacementService {
 
     private final OrderSavePort orderSavePort;
     private final OrderProductSavePort orderProductSavePort;

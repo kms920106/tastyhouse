@@ -19,7 +19,7 @@ import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageLoa
 import com.tastyhouse.application.shop.port.out.write.ShopMenuCollectionImageSavePort;
 
 @Service
-public class ShopMenuCollectionImageService {
+class ShopMenuCollectionImageService {
 
     private static final int MAX_IMAGE_COUNT = 6;
 

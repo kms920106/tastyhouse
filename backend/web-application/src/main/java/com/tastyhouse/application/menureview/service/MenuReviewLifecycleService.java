@@ -21,7 +21,7 @@ import com.tastyhouse.application.shared.exception.ApplicationException;
 import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
-public class MenuReviewLifecycleService {
+class MenuReviewLifecycleService {
 
     private final MenuReviewLoadPort menuReviewLoadPort;
     private final MenuReviewSavePort menuReviewSavePort;

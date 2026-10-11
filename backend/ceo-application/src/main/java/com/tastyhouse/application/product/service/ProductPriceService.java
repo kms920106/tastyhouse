@@ -29,7 +29,7 @@ import com.tastyhouse.application.shared.exception.CeoErrorCode;
 import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 
 @Service
-public class ProductPriceService {
+class ProductPriceService {
 
     private final ProductPriceLoadPort productPriceLoadPort;
     private final ProductPriceSavePort productPriceSavePort;
