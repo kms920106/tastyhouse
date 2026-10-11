@@ -245,7 +245,7 @@ domain → 의존 없음 (production 의존 0개)
 ### 루트 `build.gradle`이 소유하는 것
 - **버전 단일 관리** — `ext.springBootVersion`(BOM을 직접 import 하는 `domain` 블록용. 위 `plugins` 블록의 플러그인 버전과 **일치시킬 것**)과 `ext.springdocVersion`. springdoc 좌표는 Spring Boot BOM이 관리하지 않으므로 여기서 단일 관리하며, `web/admin/ceo-api`·`api-common-module` 4곳이 이 값을 참조한다.
 - **`ext['commons-lang3.version'] = '3.18.0'`** — Spring Boot 3.2.4 BOM이 고정하는 3.13.0이 **CVE-2025-48924**에 해당해 패치 버전으로 오버라이드한 것이다(BOM 관리 프로퍼티 재정의). 보안 목적이므로 BOM 버전과 맞추려고 되돌리지 않는다.
-- **`ext['netty.version'] = '4.1.137.Final'` · `ext['jackson-bom.version'] = '2.21.6'`** — 같은 기법의 보안 오버라이드다. **Spring Boot 3.2.4 BOM이 netty 4.1.107·jackson 2.15.4를 고정하는 바람에, `firebase-admin`이 요구하는 더 새 버전을 오히려 취약 버전으로 끌어내린다**(CVE-2025-58057/58056, CVE-2025-24970 등). 즉 이 프로젝트가 낡은 라이브러리를 쓰는 것이 아니라 **BOM이 downgrade한 결과**이므로, 해소는 라이브러리 좌표가 아니라 BOM 프로퍼티 재정의로 한다(`commons-lang3`와 동일한 형태).
+- **`ext['netty.version'] = '4.1.137.Final'` · `ext['jackson-bom.version'] = '2.21.7'`** — 같은 기법의 보안 오버라이드다. 같은 블록의 `ext['httpclient5.version'] = '5.6.3'` · `ext['httpcore5.version'] = '5.4.3'` · `ext['opentelemetry.version'] = '1.62.0'` 세 줄도 같은 이유(BOM이 `firebase-admin`이 요구하는 httpclient5 5.3.1 → 5.2.3, opentelemetry-api 1.57.0 → 1.31.0으로 끌어내림)로 두며, 아래 "jackson 핀" 절의 되돌리지 말 것 원칙이 그대로 적용된다. **Spring Boot 3.2.4 BOM이 netty 4.1.107·jackson 2.15.4를 고정하는 바람에, `firebase-admin`이 요구하는 더 새 버전을 오히려 취약 버전으로 끌어내린다**(CVE-2025-58057/58056, CVE-2025-24970 등). 즉 이 프로젝트가 낡은 라이브러리를 쓰는 것이 아니라 **BOM이 downgrade한 결과**이므로, 해소는 라이브러리 좌표가 아니라 BOM 프로퍼티 재정의로 한다(`commons-lang3`와 동일한 형태).
   - **되돌리지 않는다.** "BOM이 관리하는데 왜 버전을 박아뒀나"로 보여 정리 대상처럼 읽히지만, 지우는 순간 세 CVE가 조용히 되살아난다. Boot 버전을 올릴 때는 새 BOM이 고정하는 값이 위 버전 이상인지 확인한 뒤에만 이 두 줄을 걷어낸다.
   - 확인 방법: `./gradlew :web-api:dependencies --configuration runtimeClasspath | grep -E 'netty|jackson-core'`로 해석된 실제 버전을 본다.
 - **`subprojects` 일괄 설정의 제외 대상 2개** — `domain`(프레임워크-프리 컴파일 게이트)과 `:infrastructure`(소스 없는 중첩 프로젝트 컨테이너). 각각의 근거는 [CLAUDE.md](CLAUDE.md#도메인-모델--jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)와 위 [모듈 의존 그래프](#module-dependency-graph)의 "중첩 프로젝트 컨테이너 주의"에 있다.
@@ -452,7 +452,7 @@ api 모듈은 `com.querydsl..`과 `com.tastyhouse.infrastructure.jpa..`(술어�
 
 이 절의 항목은 **코드의 특정 지점을 이렇게 바꾸지 말라는 금지 지시**다. 원문 주석은 챕터 02에서 제거되므로, 이 문서가 그 지시의 유일한 소재지다.
 
-### `ext['jackson-bom.version'] = '2.21.6'` — 내릴 때가 아니라 올릴 때만 손댄다
+### `ext['jackson-bom.version'] = '2.21.7'` — 내릴 때가 아니라 올릴 때만 손댄다
 
 **대상**: `backend/build.gradle`
 → `configure(subprojects.findAll { ... })` 블록의 `ext['jackson-bom.version']`
@@ -468,13 +468,15 @@ api 모듈은 `com.querydsl..`과 `com.tastyhouse.infrastructure.jpa..`(술어�
 | `GHSA-72hv-8253-57qq` (`CVE-2026-18401`) | `2.15.0`~`2.18.5`, `2.19.0`~`2.21.0` | `2.21.1` | `2.18.6` |
 | `GHSA-r7wm-3cxj-wff9` (위 수정이 불완전해 나온 후속) | `2.18.8` 미만, `2.19.0`~`2.21.3` | `2.21.4` | `2.18.8` |
 
-즉 **`2.20.x`는 어느 쪽도 고쳐지지 않았다** — 패치가 올라간 가지는 `2.18.x`와 `2.21.x`뿐이다. 둘 다 닫는 최소 버전은 **`2.21.4`**이고, 현재 값은 그 가지의 최신 패치인 `2.21.6`이다. **`2.20.x`로 되돌리면 두 권고문이 함께 되살아난다.**
+즉 **`2.20.x`는 어느 쪽도 고쳐지지 않았다** — 패치가 올라간 가지는 `2.18.x`와 `2.21.x`뿐이다. 둘 다 닫는 최소 버전은 **`2.21.4`**이다. **`2.20.x`로 되돌리면 두 권고문이 함께 되살아난다.**
+
+**그 뒤 `2.21.6`도 불충분해 `2.21.7`로 올렸다**(2026-10-11). `2.21.6`에는 jackson-core `GHSA-7hhh-6rmp-j9qf`·`GHSA-p6pp-m3f8-5c89`(`CVE-2026-89425`·`CVE-2026-89407`)와 jackson-databind `GHSA-cxp5-3px4-pw24`·`GHSA-wv8q-qhhj-9h54`(`CVE-2026-91777`·`CVE-2026-91776`)가 걸려 있었고, 2.21 가지의 수정 버전이 모두 `2.21.7`이다(2.18 LTS는 `2.18.11`). 현재 값은 그 가지의 최소 안전 버전이다.
 
 검증은 OSV에 버전을 직접 질의해서 한다 — `vulns`가 빈 배열이어야 한다.
 
 ```bash
 curl -s -X POST 'https://api.osv.dev/v1/query' -H 'Content-Type: application/json' \
-  -d '{"package":{"name":"com.fasterxml.jackson.core:jackson-core","ecosystem":"Maven"},"version":"2.21.6"}'
+  -d '{"package":{"name":"com.fasterxml.jackson.core:jackson-core","ecosystem":"Maven"},"version":"2.21.7"}'
 ```
 
 **Boot 버전을 올릴 때의 검증 절차** — 이 핀이 오히려 버전을 낮추고 있지 않은지 확인한다.
@@ -483,6 +485,6 @@ curl -s -X POST 'https://api.osv.dev/v1/query' -H 'Content-Type: application/jso
 cd backend && ./gradlew dependencies --configuration runtimeClasspath
 ```
 
-**표기 주의**: `jackson-annotations`만 patch 자리를 뗀 `'2.21'`로 해석된다(2.20부터 이어진 표기다). **오타가 아니므로 `'2.21.6'`으로 "고치지" 않는다.**
+**표기 주의**: `jackson-annotations`만 patch 자리를 뗀 `'2.21'`로 해석된다(2.20부터 이어진 표기다). **오타가 아니므로 `'2.21.7'`으로 "고치지" 않는다.**
 
 **인접 핀 2건**: 같은 블록의 `ext['commons-lang3.version']`·`ext['netty.version']`은 근거가 코드에 기록된 적이 없다. 성격이 같을 가능성은 있으나 **확인되지 않았으므로 여기에 추측을 적지 않는다.**

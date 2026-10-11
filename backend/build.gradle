@@ -40,7 +40,13 @@ configure(subprojects.findAll { it.name != 'domain' && it.path != ':infrastructu
 
     ext['netty.version'] = '4.1.137.Final'
 
-    ext['jackson-bom.version'] = '2.21.6'
+    ext['jackson-bom.version'] = '2.21.7'
+
+    ext['httpclient5.version'] = '5.6.3'
+
+    ext['httpcore5.version'] = '5.4.3'
+
+    ext['opentelemetry.version'] = '1.62.0'
 
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter'

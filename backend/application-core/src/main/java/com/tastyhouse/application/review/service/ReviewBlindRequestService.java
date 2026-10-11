@@ -45,7 +45,7 @@ public class ReviewBlindRequestService {
     private final ShopRequestIndexRecorder shopRequestIndexRecorder;
     private final DomainEventPublisher domainEventPublisher;
 
-    public ReviewBlindRequestService(
+    ReviewBlindRequestService(
         ReviewBlindRequestLoadPort reviewBlindRequestLoadPort,
         ReviewBlindRequestSavePort reviewBlindRequestSavePort,
         ReviewBlindRequestAttachmentSavePort reviewBlindRequestAttachmentSavePort,
