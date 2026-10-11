@@ -143,7 +143,7 @@ public class PgRouterConfig {
 
 ### 라우터 등록에 `@ConditionalOnBean`을 쓰지 않는다
 
-**대상**: `backend/web-application/src/main/java/com/tastyhouse/application/payment/service/PgPaymentGatewayRouter.java` → 클래스 애노테이션(`@Service`). (앱 마커 제거로 앵커를 옮겼다 — 과거 `backend/application/src/main/java/com/tastyhouse/application/payment/service/PgPaymentGatewayRouter.java` → `@WebApp`) ~~`backend/application/src/main/java/com/tastyhouse/application/payment/config/PgRouterConfig.java` → `pgPaymentGatewayRouter`~~ (번복됨 — application `*ServiceConfig` 삭제로 이 파일이 없어져 앵커를 옮겼다)
+**대상**: `backend/web-application/src/main/java/com/tastyhouse/application/payment/service/PgPaymentGatewayRouter.java` → 클래스 애노테이션(`@Service`). (앱 마커 제거로 앵커를 옮겼다 — 과거 `backend/application-core/src/main/java/com/tastyhouse/application/payment/service/PgPaymentGatewayRouter.java` → `@WebApp`) ~~`backend/application-core/src/main/java/com/tastyhouse/application/payment/config/PgRouterConfig.java` → `pgPaymentGatewayRouter`~~ (번복됨 — application `*ServiceConfig` 삭제로 이 파일이 없어져 앵커를 옮겼다)
 
 사용자 설정 사이의 등록 순서에 따라 조건이 거짓이 되어 라우터가 조용히 빠질 수 있다(`../mail/AGENTS.md`와 같은 판단). 벤더가 0개여도 빈 목록으로 라우터가 생성되고, 첫 결제에서 `PG_PROVIDER_UNSUPPORTED`로 드러난다.
 

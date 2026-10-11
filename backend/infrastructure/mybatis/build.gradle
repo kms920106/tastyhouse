@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation project(':domain')
-    implementation project(':application')
+    implementation project(':application-core')
 
     implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
 

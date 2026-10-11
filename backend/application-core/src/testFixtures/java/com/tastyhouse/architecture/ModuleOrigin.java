@@ -11,7 +11,7 @@ import com.tngtech.archunit.core.domain.Source;
 
 public final class ModuleOrigin {
 
-    public static final String CORE = "application";
+    public static final String CORE = "application-core";
     public static final String WEB = "web-application";
     public static final String ADMIN = "admin-application";
     public static final String CEO = "ceo-application";

@@ -37,7 +37,7 @@ com.tastyhouse.infrastructure.aws.sns/
 
 ### Internal
 - **`infrastructure:restclient`(구 `infrastructure:http-client`) 의존이 없다(직접·전이 모두).** 과거에는 그 코어의 `ExternalApiException`/`ExternalApiErrorCode.SMS_SEND_API_ERROR`·`SMS_SEND_FAILED`를 쓰느라 의존했으나, 그 예외 계약 자체가 완전히 삭제됐다.
-- `web-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — `SmsSenderPort` 포트(`com.tastyhouse.application.phoneverification.port.out`)
+- `web-application` (implementation, 앱 마커 제거로 `:application-core`에서 변경) — `SmsSenderPort` 포트(`com.tastyhouse.application.phoneverification.port.out`)
 
 `SnsSmsSender#send`는 `SMS_SEND_API_ERROR`/`SMS_SEND_FAILED`로 `BusinessException`을 직접 던지지 않고, `SmsSendResult`(`sent()`/`failed(SmsSendFailure, cause)`, `SmsSendFailure`는 `NO_RESPONSE`·`FAILED`·`API_ERROR` 3종)를 반환한다 — 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 소비 측 `SmsVerificationService`(web-application)로 옮겨갔고, 번역 결과 코드는 `WebErrorCode.SMS_SEND_*`다(단일 `ErrorCode`는 에러코드 모듈 분할로 삭제됨). 이 모듈은 `BusinessException`/에러코드를 전혀 참조하지 않는다.
 

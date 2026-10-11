@@ -1,5 +1,5 @@
 dependencies {
-    implementation project(':application')
+    implementation project(':application-core')
     implementation project(':web-application')
     implementation project(':security-module')
     implementation project(':api-common-module')
@@ -18,5 +18,5 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
-    testImplementation(testFixtures(project(':application')))
+    testImplementation(testFixtures(project(':application-core')))
 }

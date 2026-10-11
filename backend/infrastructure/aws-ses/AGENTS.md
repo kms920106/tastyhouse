@@ -40,7 +40,7 @@ com.tastyhouse.infrastructure.aws.ses/
 ### Internal
 - **`infrastructure:restclient`(구 `infrastructure:http-client`) 의존이 없다.** 과거에는 그 코어의 `ExternalApiException`/`ExternalApiErrorCode.MAIL_SEND_FAILED`를 쓰느라 의존했으나, 그 예외 계약 자체가 완전히 삭제됐다. 4분할 전에는 messaging을 통해 런타임에 `restclient`가 전이로 실렸으나, 그 의존이 사라져 **직접·전이 모두 없다**.
 - **채널 모듈(`infrastructure:mail`)을 의존하지 않는다.** 과거 `infrastructure:messaging`을 `MailProperties`(`mail.sender-address`) 하나 때문에 의존했으나, 채널 모듈이 이 모듈을 `runtimeOnly`로 조립하는 구조에서는 순환이 되므로 `SesConfig`가 `@Value("${mail.sender-address}")`로 키만 읽는다(`../mail/AGENTS.md` 봉인 목록). 결과적으로 의존은 application + SDK뿐이라 `aws-s3`·`aws-sns`와 동형이다.
-- `web-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — `MailSenderPort` 포트(`com.tastyhouse.application.emailverification.port.out`)
+- `web-application` (implementation, 앱 마커 제거로 `:application-core`에서 변경) — `MailSenderPort` 포트(`com.tastyhouse.application.emailverification.port.out`)
 
 `SesMailSender#send`는 `MAIL_SEND_FAILED`로 `BusinessException`을 직접 던지지 않고, `MailSendResult`(`sent()`/`failed(cause)`)를 반환한다 — 실패를 `BusinessException(MAIL_SEND_FAILED)`로 번역하는 책임은 이 어댑터가 아니라 소비 측 `MailVerificationService`(web-application)로 옮겨갔고, 번역 결과 코드는 `WebErrorCode.MAIL_SEND_FAILED`다(단일 `ErrorCode`는 에러코드 모듈 분할로 삭제됨). 이 모듈은 이제 `BusinessException`/에러코드를 전혀 참조하지 않으며, "이 모듈은 도메인만 있으면 충분해졌다"는 과거 서술은 "이 모듈은 application 계약(`MailSendResult`)만 있으면 충분해졌다"로 갱신된다.
 

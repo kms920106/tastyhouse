@@ -53,7 +53,7 @@ com.tastyhouse.infrastructure.admdongkor/
 
 ### Internal
 - `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 두지 않는다 — 실패 코드는 번역하는 application 모듈의 에러코드 enum이 소유)
-- `batch-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — 구현하는 아웃바운드 계약 `AdminDongBoundaryPort`·`AdminDongBoundarySource`의 소유 모듈. adapter → port 방향이며 순환이 아니다. batch 전용 포트라 batch 앱 모듈이 소유한다
+- `batch-application` (implementation, 앱 마커 제거로 `:application-core`에서 변경) — 구현하는 아웃바운드 계약 `AdminDongBoundaryPort`·`AdminDongBoundarySource`의 소유 모듈. adapter → port 방향이며 순환이 아니다. batch 전용 포트라 batch 앱 모듈이 소유한다
 - `domain` (implementation) — `shared/geo`의 `GeoPoint`·`GeoRing`·`InteriorPoint`
 
 ### External

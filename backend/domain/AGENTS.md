@@ -6,7 +6,7 @@
 ## Purpose
 모든 도메인의 핵심을 담는 라이브러리 모듈(`java-library`). 순수 POJO 도메인 모델(Aggregate Root), Value Object, DomainEvent 타입, 포트를 주입받지 않는 순수 계산기·정책·검증기(`*Calculator`·`*Policy`·`*Validator`)와 그 입출력 record, 공유 커널(`shared/{vo,geo,model}`), 예외 카탈로그(`exception/`)를 포함한다.
 
-**(번복됨 — 덩어리 03a) write 포트·출력 포트·포트를 주입받는 도메인 서비스는 더 이상 이 모듈에 없다.** 과거에는 Repository **write 포트**(`<ctx>/repository/`), 외부 어댑터용 **출력 포트**(`<ctx>/port/`), 그 포트를 주입받는 도메인 서비스(`<ctx>/service/`의 오케스트레이션), 이벤트 발행 포트 `shared/event/DomainEventPublisher`, `shared/exception/OptimisticLockConflictException`까지 이 모듈이 소유했으나, 엄격 레이어드 전환(infrastructure는 application만 본다)을 위해 전부 `application`으로 옮겼다. (그 뒤 persistence domain 재허용으로 persistence가 다시 이 모듈을 `implementation`으로 보게 됐지만, write 포트는 `application/<ctx>/port/out/write/`에 그대로 둔다.) 옮긴 위치·등록 방식·경계 테스트는 `application/AGENTS.md`의 "덩어리 03a" 절이 정본이다.
+**(번복됨 — 덩어리 03a) write 포트·출력 포트·포트를 주입받는 도메인 서비스는 더 이상 이 모듈에 없다.** 과거에는 Repository **write 포트**(`<ctx>/repository/`), 외부 어댑터용 **출력 포트**(`<ctx>/port/`), 그 포트를 주입받는 도메인 서비스(`<ctx>/service/`의 오케스트레이션), 이벤트 발행 포트 `shared/event/DomainEventPublisher`, `shared/exception/OptimisticLockConflictException`까지 이 모듈이 소유했으나, 엄격 레이어드 전환(infrastructure는 application만 본다)을 위해 전부 `application`으로 옮겼다. (그 뒤 persistence domain 재허용으로 persistence가 다시 이 모듈을 `implementation`으로 보게 됐지만, write 포트는 `application/<ctx>/port/out/write/`에 그대로 둔다.) 옮긴 위치·등록 방식·경계 테스트는 `application-core/AGENTS.md`의 "덩어리 03a" 절이 정본이다.
 
 | 이 모듈에 남는 것 | `application`으로 간 것 (03a) |
 |---|---|
@@ -33,7 +33,7 @@
 
 **프레임워크를 전혀 모른다** — production 의존이 **하나도 없다**(Lombok까지 제거됨). Spring Web뿐 아니라 JPA·QueryDSL·`spring-tx`/`spring-orm`도 없으므로, `@Entity`/`@Transactional`/`@Service`/`@Component`/`com.querydsl.*`가 이 모듈에 단 한 곳도 없다. 예외의 HTTP 상태는 `int httpStatusCode`로, 낙관적 락 충돌은 `OptimisticLockConflictException`으로 표현한다. ~~`web-api`/`admin-api`/`ceo-api`/`batch-module`/`infrastructure:persistence`/외부 연동 모듈~~ **(번복됨 — 엄격 레이어드 01·02·03b)** 지금 이 모듈을 의존하는 것은 `application`과 `infrastructure:jpa`(jpa 모듈 분리 전 `infrastructure:persistence`) 둘이다(둘 다 `implementation`, 전이 노출 없음). presentation은 덩어리 01로, 벤더 16모듈은 02로 domain 의존이 끊겼다. `infrastructure:persistence`는 03b로 끊겼다가 **(번복됨 — persistence domain 재허용)** 다시 `implementation`으로 의존한다 — 쓰기 어댑터 `XxxPersistenceAdapter`이 도메인 모델을 직접 저장하고, 엔티티 ↔ 도메인 변환은 persistence `<ctx>/persistence/XxxMapper`가 한다. 따라서 `reconstitute`를 부르는 "인프라"는 다시 persistence 매퍼다(03b 동안은 `application/<ctx>/store/XxxStateMapper`였다). persistence의 조회 DAO(`..query..`)는 여전히 이 모듈을 모른다(`queryShouldNotDependOnDomain`). 아래는 과거 서술이다: `web-api`/`admin-api`/`ceo-api`/`batch-module`/`infrastructure:persistence`/외부 연동 모듈(`infrastructure:{firebase,aws-s3,aws-ses,aws-sns,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`)/`security-module`이 이 모듈에 의존한다(역방향 의존은 없다). 코어 `infrastructure:restclient`, 코드 없는 스타터 `file-storage`·`oauth`, 도메인 타입을 쓰지 않는 `kakao-oauth`·`naver-oauth`는 이 모듈을 의존하지 않는다.
 
-> 과거 `core-module`(패키지 `com.tastyhouse.core`)이었으며, `application/` 계층(서비스·DTO)을 소비 모듈과 infrastructure-module로 해체하면서 `domain`(패키지 `com.tastyhouse.domain`)로 리네이밍되었다. 전환 기록은 루트 `AGENTS.md`와 `tasks/README.md` 참고.
+> 과거 `core-module`(패키지 `com.tastyhouse.core`)이었으며, `application-core/` 계층(서비스·DTO)을 소비 모듈과 infrastructure-module로 해체하면서 `domain`(패키지 `com.tastyhouse.domain`)로 리네이밍되었다. 전환 기록은 루트 `AGENTS.md`와 `tasks/README.md` 참고.
 
 ## Key Files
 | File | Description |
@@ -74,7 +74,7 @@
 ### Common Patterns
 - Repository write 포트(**03a로 `application/<ctx>/port/out/write/`로 이동, 이후 Load/Save 분리**): `XxxLoadPort`(조회)·`XxxSavePort`(변경, 삭제 포함)(인터페이스; 분리 전 `XxxPersistencePort`) ← `infrastructure:jpa`의 `<ctx>/persistence/XxxPersistenceAdapter`(구현). ~~**(03b)** `application/<ctx>/store/XxxPersistencePort` ← `application/<ctx>/store/XxxStore`(도메인 ↔ `XxxState` 변환) → `application/<ctx>/port/out/write/XxxStatePort` ← persistence `XxxStatePortImpl` 순서다.~~ **(번복됨 — persistence domain 재허용)** 다시 `port/out/write/XxxPersistencePort` ← persistence `XxxPersistenceAdapter`이며 load-copy-save도 `XxxPersistenceAdapter`에 있다. 저장 시맨틱은 load-copy-save(id null이면 insert, 있으면 managed 엔티티 조회 후 `Mapper.applyChanges` 복사 — detached merge 금지).
 - ID 강타입: `<ctx>/vo/XxxId`(`record XxxId(Long value)` + compact constructor 검증 + 정적 팩토리 `of`). ~~JPA 매핑용 `AttributeConverter`는 `infrastructure:persistence`에 있다.~~ **(번복됨 — 정책 B·03b)** `*IdConverter`는 정책 B로, 마지막 `AmountConverter`는 03b로 삭제돼 persistence에 컨버터가 없다. 엔티티는 raw `Long`이고 `XxxId.of`로의 승격은 persistence `<ctx>/persistence/XxxMapper`가 null 가드와 함께 한다(03b 동안은 `XxxState`·`application/<ctx>/store/XxxStateMapper` — **(번복됨 — persistence domain 재허용: 위치만)**).
-- DomainEvent는 `<ctx>/event/`에 record로 정의하고, 발행은 `DomainEventPublisher` 포트를 통한다. 리스너는 코어 `application`의 `<ctx>/listener/`에 `@Component`로 둔다(앱 마커 제거 전에는 `@SharedApp`도 달았다. 코어는 4앱 전부의 클래스패스에 있어 4앱 전부에 뜬다 — 특정 앱 모듈에 두면 다른 앱이 트리거할 때 누락된다. 과거 위치 `infrastructure:persistence`는 번복됨, 근거는 `application/AGENTS.md`).
+- DomainEvent는 `<ctx>/event/`에 record로 정의하고, 발행은 `DomainEventPublisher` 포트를 통한다. 리스너는 코어 `application`의 `<ctx>/listener/`에 `@Component`로 둔다(앱 마커 제거 전에는 `@SharedApp`도 달았다. 코어는 4앱 전부의 클래스패스에 있어 4앱 전부에 뜬다 — 특정 앱 모듈에 두면 다른 앱이 트리거할 때 누락된다. 과거 위치 `infrastructure:persistence`는 번복됨, 근거는 `application-core/AGENTS.md`).
 - 공유 커널: `shared/vo/PhoneNumber`, `shared/model/ApprovalStatus`, `shared/geo/`(`GeoPoint`·`GeoRing`·`GeoPolygon`·`GeoBoundingBox`·`InteriorPoint`·`PointInPolygon` 등 + **03b로 persistence에서 옮겨 온 `GeoPolygonTextCodec`** — 도형 ↔ `LONGTEXT` 문자열 형식, 아래 설계 근거 절). (`shared/event/DomainEventPublisher`·`shared/exception/OptimisticLockConflictException`은 **03a로 `application`의 `shared/event/`·`shared/port/out/`으로 이동**) (페이징 계약 `shared/page/PageQuery`·`PageResult`는 **덩어리 01로 `application`의 `shared/port/out/page/`로 이동** — domain 내 사용처 0건)
 
 ## Dependencies
@@ -97,9 +97,9 @@
 
 ### `SMS_VERIFICATION_CODE_NOT_FOUND` 외 3건 — 이름과 상태코드 불일치 봉인
 
-> **이관 (에러코드 모듈 분할)** — 가드 테스트가 `backend/domain/src/test/java/com/tastyhouse/domain/exception/ErrorCodeConventionTest.java`(삭제됨)에서 `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`로 옮겨졌다. 이 테스트는 7개 카탈로그(`DomainErrorCode`·`ApplicationErrorCode`·`WebErrorCode`·`AdminErrorCode`·`CeoErrorCode`·`BatchErrorCode`·`ApiErrorCode`)를 한꺼번에 검사한다. 봉인 구성원은 같고, 상수가 사는 enum만 소유 모듈 규칙(던지는 가장 안쪽 모듈)에 따라 갈렸다 — 정본은 `backend/application/AGENTS.md`의 봉인·가드 목록 "에러 카탈로그 가드" 항목이다.
+> **이관 (에러코드 모듈 분할)** — 가드 테스트가 `backend/domain/src/test/java/com/tastyhouse/domain/exception/ErrorCodeConventionTest.java`(삭제됨)에서 `backend/application-core/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`로 옮겨졌다. 이 테스트는 7개 카탈로그(`DomainErrorCode`·`ApplicationErrorCode`·`WebErrorCode`·`AdminErrorCode`·`CeoErrorCode`·`BatchErrorCode`·`ApiErrorCode`)를 한꺼번에 검사한다. 봉인 구성원은 같고, 상수가 사는 enum만 소유 모듈 규칙(던지는 가장 안쪽 모듈)에 따라 갈렸다 — 정본은 `backend/application-core/AGENTS.md`의 봉인·가드 목록 "에러 카탈로그 가드" 항목이다.
 
-**대상**: `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`
+**대상**: `backend/application-core/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`
 → `NOT_FOUND_NAME_WITH_NON_404_STATUS`
 
 이름이 `*_NOT_FOUND`인데 404가 아닌 기존 상수들. 이미 프론트엔드가 분기하는 wire 계약(응답 status + code)이므로 지금 고치면 클라이언트가 깨진다. 교정 대상이 아니라 **봉인 대상**이다. **여기에 새 항목을 추가하지 말고, 신규 상수는 규약을 지킨다.**
@@ -115,7 +115,7 @@
 
 ### 에러코드 `code` 문자열이 상수명과 의도적으로 다른 6건 — 봉인
 
-**대상**: `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`(이관 — 과거 domain의 `ErrorCodeConventionTest`)
+**대상**: `backend/application-core/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`(이관 — 과거 domain의 `ErrorCodeConventionTest`)
 → `CODE_INTENTIONALLY_DIFFERS_FROM_NAME`
 
 채널 도메인 어휘 통일(mail/sms)로 상수명은 `SMS_`·`MAIL_` 접두어로 대칭화했지만, 응답 `code` 문자열은 프론트가 분기하는 wire 계약이라 예전 값(`VERIFICATION_CODE_*`·`EMAIL_VERIFICATION_CODE_*`)을 유지했다. 루트 `CLAUDE.md`의 "채널 도메인 어휘 통일 규칙"에 명시된 **의도적 불일치이므로 교정 대상이 아니다.**
@@ -142,7 +142,7 @@ domain에는 25개 바운디드 컨텍스트가 한 모듈에 공존한다. 컨�
 
 - `com.tastyhouse.domain.shop.model.DeliveryAreaProjection` (domain service→model 흡수 전에는 `com.tastyhouse.domain.shop.service.DeliveryAreaProjection`)
 
-**봉인 목록 이력**: 16개 → 14개(덩어리 02 — `MailVerificationService`·`PaymentConfirmationService`가 `application`으로 이동) → **1개(덩어리 03a)**. 03a에서 빠진 13개(`MemberDeliveryAddressService`·`OrderPlacementService`·`PaymentCancellationService`·`ReservationBookingService`·`ReviewBlindRequestService`·`ReviewLifecycleService`·`ReviewOwnerReplyService`·`ShopCeoAssignmentService`·`ShopDeliveryAreaPolygonService`·`ShopDeliveryAreaRadiusService`·`ShopDeliveryAreaService`·`ShopDeliveryTipService`·`ShopRequestCancelService`(당시 이름 — 유스케이스 분리로 `ShopRequestCancellationService`로 개명))는 **위반을 해소한 것이 아니라 대상이 `application`으로 옮겨간 것**이다. 02에서 빠진 2개와 함께 15개 전부가 `application`의 `ServiceContextBoundaryTest.SEALED_VIOLATIONS`로 옮겨가 같은 규칙(봉인 + 짝 테스트)을 계속 받는다 — `application/AGENTS.md` 참고.
+**봉인 목록 이력**: 16개 → 14개(덩어리 02 — `MailVerificationService`·`PaymentConfirmationService`가 `application`으로 이동) → **1개(덩어리 03a)**. 03a에서 빠진 13개(`MemberDeliveryAddressService`·`OrderPlacementService`·`PaymentCancellationService`·`ReservationBookingService`·`ReviewBlindRequestService`·`ReviewLifecycleService`·`ReviewOwnerReplyService`·`ShopCeoAssignmentService`·`ShopDeliveryAreaPolygonService`·`ShopDeliveryAreaRadiusService`·`ShopDeliveryAreaService`·`ShopDeliveryTipService`·`ShopRequestCancelService`(당시 이름 — 유스케이스 분리로 `ShopRequestCancellationService`로 개명))는 **위반을 해소한 것이 아니라 대상이 `application`으로 옮겨간 것**이다. 02에서 빠진 2개와 함께 15개 전부가 `application`의 `ServiceContextBoundaryTest.SEALED_VIOLATIONS`로 옮겨가 같은 규칙(봉인 + 짝 테스트)을 계속 받는다 — `application-core/AGENTS.md` 참고.
 
 **짝 테스트 2종**.
 
@@ -278,7 +278,7 @@ backend 전체 `*.java`를 소스 파일로 읽어(`build`·`bin`·`.gradle` 제
 
 ### 에러 카탈로그 규약 — 그룹 주석에서 이관 (에러코드 모듈 분할로 `ErrorCode` 해체)
 
-**대상**: `domain/src/main/java/com/tastyhouse/domain/exception/DomainErrorCode.java`(이 모듈 소유 153개). 아래 표의 `INVALID_INPUT`은 `backend/application/src/main/java/com/tastyhouse/application/shared/exception/ApplicationErrorCode.java`, `AUTH_REQUIRED`는 `WebErrorCode`(미러 `ApiErrorCode`)로 갔고 `ENTITY_NOT_FOUND`는 호출부가 없어 삭제됐다.
+**대상**: `domain/src/main/java/com/tastyhouse/domain/exception/DomainErrorCode.java`(이 모듈 소유 153개). 아래 표의 `INVALID_INPUT`은 `backend/application-core/src/main/java/com/tastyhouse/application/shared/exception/ApplicationErrorCode.java`, `AUTH_REQUIRED`는 `WebErrorCode`(미러 `ApiErrorCode`)로 갔고 `ENTITY_NOT_FOUND`는 호출부가 없어 삭제됐다.
 
 | 항목 | before | after |
 |---|---|---|

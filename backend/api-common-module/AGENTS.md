@@ -81,7 +81,7 @@
 
   | 항목 | before | after |
   |---|---|---|
-  | 내부 의존 | `api project(':domain')` | `api project(':application')` |
+  | 내부 의존 | `api project(':domain')` | `api project(':application-core')` |
   | 공용 에러 계약 | 이 노출을 타고 `domain.exception`(`BusinessException`·`ErrorCode`)이 api 3모듈의 **공용 에러 계약**이 된다 — **이 서술은 번복됨** | 표현 계층은 `domain.exception`을 보지 않는다. 판정은 `com.tastyhouse.application.shared.error.ErrorResponses#resolve`, 표현 계층이 직접 쓰는 상수는 ~~`ErrorContracts`(`rateLimit()`·`accessDenied()`·`authRequired()`)~~ **(번복됨 — 에러코드 모듈 분할)** 이 모듈의 `com.tastyhouse.apicommon.exception.ApiErrorCode`(`RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`) |
   | presentation 컴파일 클래스패스의 `domain` | 있음(이 `api` 노출 경유) | **없음** — `application`은 `domain`을 `implementation`으로만 가진다 |
 
@@ -182,7 +182,7 @@ rate limiting은 domain에 대응 개념이 없는 순수 보안 관심사이므
 
 - **왜 `application`이 아니라 여기인가**: 429·403·401 응답은 서블릿 필터·`@RestControllerAdvice`가 조립하는 HTTP 표현 계층 계약이고, 어떤 유스케이스도 던지지 않는다. 던지는 가장 안쪽 모듈에 둔다는 분할 규칙에 따라 표현 계층이 소유한다.
 - **`ErrorCodeSpec`을 구현하지 않는다**: api 모듈은 `domain`을 볼 수 없다. 대신 `getHttpStatusCode`·`getCode`·`getDefaultMessage` 3개 getter만 같은 이름으로 둔다.
-- **`AUTH_REQUIRED`는 `WebErrorCode.AUTH_REQUIRED`의 미러**다(web-application 서비스가 던지는 쪽과 필터가 조립하는 쪽이 같은 값이어야 한다). 두 값의 일치는 `backend/application/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`#`mirroredCodesStayIdentical`이 보증한다 — 한쪽만 고치지 않는다.
+- **`AUTH_REQUIRED`는 `WebErrorCode.AUTH_REQUIRED`의 미러**다(web-application 서비스가 던지는 쪽과 필터가 조립하는 쪽이 같은 값이어야 한다). 두 값의 일치는 `backend/application-core/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`#`mirroredCodesStayIdentical`이 보증한다 — 한쪽만 고치지 않는다.
 - **대가**: `security-module`이 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`에서 이 enum을 읽으려고 `api-common-module`을 의존하게 됐다(`security-module → api-common-module`). 순환은 없다(`api-common-module → application, security-core`).
 - 테스트: `backend/api-common-module/src/test/java/com/tastyhouse/apicommon/architecture/LayerRulesTest.java`의 `.because`가 "필터·핸들러 에러 계약 = `ApiErrorCode`, 예외 판정 = `ErrorResponses`"로 이 구조를 서술한다.
 
@@ -244,7 +244,7 @@ web-api가 자체 `com.tastyhouse.webapi.exception.GlobalExceptionHandler`를 �
 
 전용 메서드를 되살리지 않는다 — 되살리면 이 모듈이 다시 `com.tastyhouse.domain.exception`을 import해야 하고
 `shouldNotDependOnDomain`이 실패한다. `resolve`가 `getCause()`를 따라가지 않는 이유(래핑 예외가 500→4xx로
-바뀌는 것 방지)와 정적 유틸인 이유는 `backend/application/AGENTS.md`의 `ErrorResponses` 항목에 있다. 외부 연동 실패도
+바뀌는 것 방지)와 정적 유틸인 이유는 `backend/application-core/AGENTS.md`의 `ErrorResponses` 항목에 있다. 외부 연동 실패도
 최상위가 `BusinessException`이므로 같은 경로로 처리된다.
 
 ### `ProblemDetails`가 static 유틸인 이유

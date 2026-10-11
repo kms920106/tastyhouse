@@ -10,7 +10,7 @@
 
 **관리자 측 application 계층은 `application`이 소유한다 (챕터 03 개정 — 과거 "이 모듈이 관리자 측 application 계층이다"의 번복).** 유스케이스가 관리자 전용이라는 사실은 그대로이고, 그것을 담는 **모듈만 바뀌었다**. web-api와 application 서비스를 공유하지 않는다는 성질도 그대로다(공유되는 것은 `domain`의 도메인 모델·write 포트·도메인 서비스와 `domain`이 소유하는 다중 앱 공유 `{Ctx}QueryPort` 계약이며, 이쪽 변경은 여전히 소비 모듈 전체를 함께 확인해야 한다).
 
-> **챕터 03 — `application`의 자바 패키지가 평탄화됐다.** 과거 `com.tastyhouse.adminapplication`이던 것이 `com.tastyhouse.application` 하나로 4개 앱과 합쳐졌다. 패키지만으로는 이 모듈이 주입하는 UseCase가 admin 것인지 알 수 없으므로, ~~앱 소속은 마커 애노테이션(`@AdminApp`)이 표현한다~~. **(번복됨 — 앱 마커 제거)** 지금은 Gradle 모듈이 표현한다 — admin 전용 UseCase·Command·서비스는 `admin-application` 모듈에 있다. 상세는 `application/AGENTS.md`·`admin-application/AGENTS.md` 참고.
+> **챕터 03 — `application`의 자바 패키지가 평탄화됐다.** 과거 `com.tastyhouse.adminapplication`이던 것이 `com.tastyhouse.application` 하나로 4개 앱과 합쳐졌다. 패키지만으로는 이 모듈이 주입하는 UseCase가 admin 것인지 알 수 없으므로, ~~앱 소속은 마커 애노테이션(`@AdminApp`)이 표현한다~~. **(번복됨 — 앱 마커 제거)** 지금은 Gradle 모듈이 표현한다 — admin 전용 UseCase·Command·서비스는 `admin-application` 모듈에 있다. 상세는 `application-core/AGENTS.md`·`admin-application/AGENTS.md` 참고.
 
 **유스케이스당 서비스 1개 (서비스는 `admin-application` 소유)**: **번복 — 과거 "도메인당 CQRS 분리(Command/Query 서비스 한 쌍)".** 규칙 정본은 [backend/CLAUDE.md](../CLAUDE.md#application-서비스-cqrs-분리-규칙-도메인commandservice도메인queryservice) 상단 번복 표, 진행 순서는 `docs/tasks/usecase-service-split/README.md`다. admin은 전환이 끝나 `{도메인}CommandService`/`{도메인}QueryService`가 하나도 남지 않았다. 연산 하나 = 포트(`<ctx>/port/in/`) 하나 = 서비스(`<ctx>/service/`) 하나다 — 명령 서비스 `{도메인}{동작}Service`(포트 `{도메인}{동작}UseCase`, `@Transactional`, domain write 포트·도메인 서비스만 주입, 생성/수정/삭제/상태전이)와 조회 서비스 `{도메인}{관점}QueryService`(포트 `{도메인}{관점}QueryUseCase`, `@Transactional(readOnly = true)`, `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스만 주입, 조회 전담 — **챕터 06 이후 Response 조립을 하지 않고 `*Result`를 반환한다**). **컨트롤러는 서비스 구현이 아니라 연산마다 그 UseCase 인터페이스(`..port.in..`)를 주입한다** — 구체 서비스 클래스는 이 모듈의 컴파일 클래스패스에 보이지 않는다(`webAdaptersShouldNotDependOnApplicationServices`). 명령 서비스는 조회 포트(`*QueryPort`·`*QueryUseCase`)를, 조회 서비스는 write 포트를 서로 주입하지 않고, command 결과 응답은 커밋 이후 컨트롤러가 조회 포트로 재조회해 조립한다. 컨트롤러는 `com.tastyhouse.domain.*`를 import하지 않는다. **QueryDSL도 infrastructure도 절대 쓰지 않는다 (개정)** — `src/main`에 `com.querydsl.*` import·`@QueryProjection` 선언·`com.tastyhouse.infrastructure..` import가 **전면 0건**이며 `architecture/LayerRulesTest`(ArchUnit)가 이를 차단한다. 챕터 04의 임시 장치였던 `shouldNotDependOnInfrastructureQuery`와 이중 패키지 매칭은 챕터 05에서 제거됐다. reference 구현: `admin-application`의 `notice/service/NoticeCreateService`·`NoticeUpdateService`·`NoticeDeleteService`·`NoticeManagementListQueryService`·`NoticeManagementDetailQueryService`(유스케이스 분리 전에는 `NoticeCommandService`·`NoticeManagementQueryService` 한 쌍, 그 전 이름은 `NoticeQueryService`).
 
@@ -83,8 +83,8 @@
 - `logging-module`, `security-module`
 - `infrastructure:redis` (**runtimeOnly**) — rate limit 카운터와 `StringRedisTemplate` 빈. 부트스트랩 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되며 `@Import`하지 않는다(~~`RedisModuleAutoConfiguration`이 자기 등록~~ — 번복됨, imports 제거. 설정 클래스는 `RedisModuleConfig`)
 - `api-common-module` — `ApiResponse`·`PaginationResponse`·`PageRequest`·`FileService`·공용 `GlobalExceptionHandler`
-- **`domain`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` import가 0건이고(`apiModuleShouldBeDomainModelFree`가 강제), ~~domain 타입이 다시 필요해져도 `api-common-module`이 `api project(':domain')`로 전이 노출하므로 재선언이 필요 없다. web/admin/ceo 3모듈이 모두 같은 상태다(web-api `GlobalExceptionHandler`가 쓰는 `domain.exception..`도 이 전이 경로로 해결된다).~~ **번복됨 (덩어리 01)** — `api-common-module`은 이제 `api project(':application')`이고 `application`은 `domain`을 `implementation`으로만 가지므로, **이 모듈의 컴파일 클래스패스에 `domain`이 아예 없다.** domain 타입이 필요해 보이면 재선언하지 말고 application이 제공하는 대체물을 쓴다 — 에러 판정 `ErrorResponses`/상수 `ErrorContracts`(`com.tastyhouse.application.shared.error`), 페이징 `com.tastyhouse.application.shared.port.out.page`, enum은 `*Result`의 `String`(+ `{field}Description`/`{field}DisplayName`). `domain`을 이 모듈에 선언하는 것은 표현 계층 domain 절단을 되돌리는 것이다.
-- `testFixtures(project(':application'))` — `ApplicationLayerScanAssertions`(스캔 단정·클래스패스 단정)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다. ~~`adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 공유한다(챕터 03)~~ **(번복됨 — 앱 마커 제거)** 그 규칙과 `AppOwnership`은 삭제됐다 — 다른 앱의 UseCase·Command는 이 모듈의 클래스패스에 없어 컴파일 에러다.
+- **`domain`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` import가 0건이고(`apiModuleShouldBeDomainModelFree`가 강제), ~~domain 타입이 다시 필요해져도 `api-common-module`이 `api project(':domain')`로 전이 노출하므로 재선언이 필요 없다. web/admin/ceo 3모듈이 모두 같은 상태다(web-api `GlobalExceptionHandler`가 쓰는 `domain.exception..`도 이 전이 경로로 해결된다).~~ **번복됨 (덩어리 01)** — `api-common-module`은 이제 `api project(':application-core')`이고 `application`은 `domain`을 `implementation`으로만 가지므로, **이 모듈의 컴파일 클래스패스에 `domain`이 아예 없다.** domain 타입이 필요해 보이면 재선언하지 말고 application이 제공하는 대체물을 쓴다 — 에러 판정 `ErrorResponses`/상수 `ErrorContracts`(`com.tastyhouse.application.shared.error`), 페이징 `com.tastyhouse.application.shared.port.out.page`, enum은 `*Result`의 `String`(+ `{field}Description`/`{field}DisplayName`). `domain`을 이 모듈에 선언하는 것은 표현 계층 domain 절단을 되돌리는 것이다.
+- `testFixtures(project(':application-core'))` — `ApplicationLayerScanAssertions`(스캔 단정·클래스패스 단정)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다. ~~`adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 공유한다(챕터 03)~~ **(번복됨 — 앱 마커 제거)** 그 규칙과 `AppOwnership`은 삭제됐다 — 다른 앱의 UseCase·Command는 이 모듈의 클래스패스에 없어 컴파일 에러다.
 
 ### External — starter를 직접 선언하지 않는다
 공유 모듈이 `api`로 전이 노출하므로 이 모듈은 starter 좌표를 직접 쓰지 않는다.
@@ -118,8 +118,8 @@
 ### `ApplicationModuleClasspathTest` — 다른 앱의 application 모듈이 클래스패스에 섞이지 않게 막는다 (앱 마커 제거)
 
 **대상**: `backend/admin-api/src/test/java/com/tastyhouse/adminapi/ApplicationModuleClasspathTest.java` → `loadsOnlyOwnApplicationModule`
-· 단정 본문 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java` → `assertLoadsOnlyOwnApplicationModule(ModuleOrigin.ADMIN)`
-· 출처 판정 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ModuleOrigin.java` → `of(JavaClass)`
+· 단정 본문 `backend/application-core/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java` → `assertLoadsOnlyOwnApplicationModule(ModuleOrigin.ADMIN)`
+· 출처 판정 `backend/application-core/src/testFixtures/java/com/tastyhouse/architecture/ModuleOrigin.java` → `of(JavaClass)`
 
 **무엇을 확인하나**: 이 앱의 테스트 클래스패스에서 `com.tastyhouse.application` 패키지 클래스(main 출력만)를 ArchUnit으로 읽고, 각 클래스의 출처 모듈(`ModuleOrigin.of`)을 모은 집합이 **정확히 `{application, admin-application}`**인지 본다. 클래스가 어느 모듈의 jar·클래스 디렉터리에서 왔는지로 판정하므로 모듈에 별도 표식 파일을 두지 않는다. `ModuleOrigin`은 Gradle 출력만 인정하므로 이 테스트는 Gradle로 실행한다(IntelliJ 자체 빌드 출력 `out/production`이면 예외로 실패).
 
@@ -128,7 +128,7 @@
 | 항목 | before (앱 마커) | after (모듈 경계) |
 |---|---|---|
 | 다른 앱 빈이 뜨는 것을 막는 수단 | 스캔의 마커 include 필터(`{AdminApp, SharedApp}`) | 클래스패스에 다른 앱 모듈이 없음 + 이 테스트 |
-| 의존 | `implementation project(':application')` | 그대로 + `implementation project(':admin-application')` |
+| 의존 | `implementation project(':application-core')` | 그대로 + `implementation project(':admin-application')` |
 
 ### `ApplicationLayerScanConfigTest` — 마커 스캔 설정의 오기입·직접 선언을 막는다
 
@@ -139,7 +139,7 @@
 **대상**: `backend/admin-api/src/test/java/com/tastyhouse/adminapi/ApplicationLayerScanConfigTest.java`
 → `AdminApiApplication`의 static 중첩 클래스 `ApplicationLayerScanConfig`(`backend/admin-api/src/main/java/com/tastyhouse/adminapi/AdminApiApplication.java`)의 `@ComponentScan`
 
-**단정 본문은 `application`의 test fixture 한 곳에 있다**: 이 테스트는 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java`의 두 메서드를 부르는 두 줄뿐이다 — `assertScansOnlyOwnAppAndSharedMarkers(AdminApiApplication.class, AdminApp.class)`와 `assertBootstrapDoesNotDeclareScanOrImport(AdminApiApplication.class)`. 4개 앱이 같은 단정을 복사해 두면 한 앱만 고쳐져 가드가 갈라지므로, `AppOwnership`과 같은 방식(`testFixtures(project(':application'))`)으로 공유한다. **단정을 바꿀 때는 그 fixture 하나만 고치고, 앱 테스트에는 앱마다 다른 값(부트스트랩 클래스·자기 마커)만 둔다.**
+**단정 본문은 `application`의 test fixture 한 곳에 있다**: 이 테스트는 `backend/application-core/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java`의 두 메서드를 부르는 두 줄뿐이다 — `assertScansOnlyOwnAppAndSharedMarkers(AdminApiApplication.class, AdminApp.class)`와 `assertBootstrapDoesNotDeclareScanOrImport(AdminApiApplication.class)`. 4개 앱이 같은 단정을 복사해 두면 한 앱만 고쳐져 가드가 갈라지므로, `AppOwnership`과 같은 방식(`testFixtures(project(':application-core'))`)으로 공유한다. **단정을 바꿀 때는 그 fixture 하나만 고치고, 앱 테스트에는 앱마다 다른 값(부트스트랩 클래스·자기 마커)만 둔다.**
 
 | 항목 | before | after |
 |---|---|---|

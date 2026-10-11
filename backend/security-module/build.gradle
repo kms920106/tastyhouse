@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':application')
+    implementation project(':application-core')
     implementation project(':api-common-module')
     api project(':security-core')
 

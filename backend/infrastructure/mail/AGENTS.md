@@ -107,7 +107,7 @@ backend/infrastructure/mail/
 
 ### 인증 발급이 발송까지 원자적인 이유 (도메인 서비스가 포트를 직접 든다)
 
-**대상**: `backend/application/src/main/java/com/tastyhouse/application/emailverification/service/MailVerificationService.java`
+**대상**: `backend/application-core/src/main/java/com/tastyhouse/application/emailverification/service/MailVerificationService.java`
 
 `MailVerificationService`는 같은 이메일의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식을 갖는다. 발급이 발송까지 원자적으로 수행되도록 `MailSenderPort` 포트를 도메인 서비스에 직접 주입한다(발송 누락 방지). 등록 위치는 chunk 02-vendor-ports로 `infrastructure:mail`의 `MailDomainConfig`에서 `application`의 `MailServiceConfig`로 옮겨갔고 이후 application `*ServiceConfig` 삭제로 `MailVerificationService` 클래스의 `@WebApp` 마커가 등록을 대신하게 됐으나, 이 설계 근거 자체는 바뀌지 않았다.
 

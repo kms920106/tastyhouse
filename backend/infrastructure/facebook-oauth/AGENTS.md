@@ -39,7 +39,7 @@ oauth:
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. Graph API 호출은 **동기 `RestClient`**다.
-- `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로)
+- `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application-core` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로)
 
 **`domain` 의존은 없다.** `exchange()`가 `app_id` 불일치를 `BusinessException(SOCIAL_OAUTH_FAILED)`로 직접 던지지 않고, `SocialOAuthResult.failed(SocialOAuthFailure.ACCESS_TOKEN_REJECTED)`(둘 다 `application.auth.port.out` 소유)를 반환한다. 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 `backend/web-application/src/main/java/com/tastyhouse/application/auth/service/SocialOAuthFailures.java`(`WebErrorCode.SOCIAL_OAUTH_FAILED` — 구 단일 `ErrorCode`는 에러코드 모듈 분할로 삭제됨)(소비 측 ~~`*SocialLoginService` 4종~~ **(번복됨 — social-login-router)** `SocialLoginService` 1개가 `.orElseThrow(SocialOAuthFailures::toException)`으로 호출)로 옮겨갔다.
 - `infrastructure:oauth`를 의존하지 않는다(순환 방지)

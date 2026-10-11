@@ -53,7 +53,7 @@
 | `security-module/` | 공유 보안/인증 지원 라이브러리 — `security-core`를 `api`로 재노출하고, 서블릿 결합 타입(JWT 인증 필터·EntryPoint·AccessDeniedHandler)만 잔류한다. **Redis 연결·템플릿과 Rate Limiting은 `infrastructure:redis`로 이관됐다** (see `security-module/AGENTS.md`) |
 | `api-common-module/` | web-api·admin-api·ceo-api 공유 HTTP 플럼웨어 — `ApiResponse`/`PaginationResponse`/`PageRequest`/`FileService`/`GlobalExceptionHandler`(admin·ceo 전용) (see `api-common-module/AGENTS.md`) |
 | `admin-api/` | 관리자용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `application` 모듈의 `com.tastyhouse.application..`이 소유한다 (see `admin-api/AGENTS.md`) |
-| `application/` | **(앱 마커 제거 후) application 계층의 코어** — 2개 앱 이상이 쓰는 도메인 서비스·리스너·`@Configuration`·`shared/**`·모든 `port.out` 계약을 담고, 앱 하나만 쓰는 UseCase·Command·서비스·앱 전용 SPI 포트는 앱 모듈 `web-application/`·`admin-application/`·`ceo-application/`·`batch-application/`(각 `AGENTS.md`)이 담는다. 앱 소속은 마커가 아니라 모듈이 표현한다. 아래는 앱 마커 제거 전 서술이다 — **4개 앱 공통의 application 계층**(컨텍스트별 인바운드 포트 + CQRS 서비스 + batch 잡 서비스·BBQ 크롤링 + auth 토큰·principal + ceo 소유권·이미지 규격 검증기) + 앱 단독 읽기 계약 271개 + 도메인 이벤트 리스너 12종(`<ctx>/listener`). **자바 패키지는 챕터 03으로 `com.tastyhouse.application` 하나로 평탄화됐다** — ~~앱 소속은 패키지가 아니라 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 리스너 전용 `@SharedApp` = 4앱 전부)이 표현한다~~(번복됨 — 앱 마커 제거, 지금은 5모듈 split package). **`response/`는 각 api 모듈로 승격됐다** — `io.swagger`·`apicommon` import가 0건이고 그 상태를 `applicationShouldNotDependOnSwagger`·`applicationShouldNotDependOnApiCommon`이 고정한다. infra를 컴파일 클래스패스에 두지 않는다 (see `application/AGENTS.md`) |
+| `application-core/` | **(앱 마커 제거 후) application 계층의 코어** — 2개 앱 이상이 쓰는 도메인 서비스·리스너·`@Configuration`·`shared/**`·모든 `port.out` 계약을 담고, 앱 하나만 쓰는 UseCase·Command·서비스·앱 전용 SPI 포트는 앱 모듈 `web-application/`·`admin-application/`·`ceo-application/`·`batch-application/`(각 `AGENTS.md`)이 담는다. 앱 소속은 마커가 아니라 모듈이 표현한다. 아래는 앱 마커 제거 전 서술이다 — **4개 앱 공통의 application 계층**(컨텍스트별 인바운드 포트 + CQRS 서비스 + batch 잡 서비스·BBQ 크롤링 + auth 토큰·principal + ceo 소유권·이미지 규격 검증기) + 앱 단독 읽기 계약 271개 + 도메인 이벤트 리스너 12종(`<ctx>/listener`). **자바 패키지는 챕터 03으로 `com.tastyhouse.application` 하나로 평탄화됐다** — ~~앱 소속은 패키지가 아니라 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`, 리스너 전용 `@SharedApp` = 4앱 전부)이 표현한다~~(번복됨 — 앱 마커 제거, 지금은 5모듈 split package). **`response/`는 각 api 모듈로 승격됐다** — `io.swagger`·`apicommon` import가 0건이고 그 상태를 `applicationShouldNotDependOnSwagger`·`applicationShouldNotDependOnApiCommon`이 고정한다. infra를 컴파일 클래스패스에 두지 않는다 (see `application-core/AGENTS.md`) |
 | `ceo-api/` | 점주(매장 오너)용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/`) + config·security 정책·부트스트랩. application 계층은 `application` 모듈의 `com.tastyhouse.application..`이 소유한다 (see `ceo-api/AGENTS.md`) |
 | `batch-module/` | 배치 앱의 **부트스트랩 + driving adapter**(`@Scheduled` 트리거 7종) 전담 독립 실행 모듈 (see `batch-module/AGENTS.md`) |
 | `docs/` | 설계 문서 — 소셜 로그인 가이드, 결제 연동 가이드 |
@@ -86,7 +86,7 @@
 ```
 ── 실행 앱 4개 (thin adapter — 컨트롤러/트리거 + request/ + config + 부트스트랩) ──
 web-api ──┬─→ application (implementation)             ← 코어(공유 서비스·port.out 계약·리스너)
-          ├─→ web-application (implementation)         ← (앱 마커 제거) 컨트롤러가 자기 앱의 UseCase 포트를 주입. api project(':application')
+          ├─→ web-application (implementation)         ← (앱 마커 제거) 컨트롤러가 자기 앱의 UseCase 포트를 주입. api project(':application-core')
           ├─→ domain (implementation)
           ├─→ infrastructure:persistence (runtimeOnly) ← DAO 구현체는 주입하지 않고, 챕터 02로 빈 스캔용 컴파일 참조도 필요 없어졌다(auto-configuration)
           │     ※ (jpa 모듈 분리) persistence는 코드 없는 조립 모듈 — infrastructure:jpa와 MySQL 드라이버를 전이로 끌어온다
@@ -232,7 +232,7 @@ domain → 의존 없음 (production 의존 0개)
 - QueryDSL Q클래스는 `infrastructure:jpa`에서만 생성된다(`infrastructure/jpa/build/generated/...`) — 경로 변경 시 `./gradlew clean compileJava` 필요. `domain`에는 apt가 없어 Q타입이 생성되지 않는다.
 - 도메인 불변식은 `domain/src/test`의 **순수 단위 테스트**로 검증한다(스프링 컨텍스트·DB 불필요).
 - 레이어 경계는 각 모듈의 `architecture/LayerRulesTest`(ArchUnit)로 검증한다. 이 규칙들은 `allowEmptyShould(true)`를 쓰지 않으므로, 대상 클래스가 0건이면 **공허 통과가 아니라 실패**로 드러난다.
-- **`allowEmptyShould(true)` 금지는 자동 검증된다 (신설)**: `noClasses().that()...` 형태는 대상이 0건이어도 조용히 통과하므로, 원칙을 지켰는지가 사람 눈에만 의존했다. `application/src/test/.../RuleAnchorTest`(앱별 하한)와 `BatchSchedulerRulesTest`(batch exact — `*SchedulerService` 7 · `..port.in..` 7 · response record 4)가 각 규칙의 anchor 개수를 직접 세어, 클래스가 모듈 사이를 옮겨 다니다 대상이 통째로 사라지면 **빌드가 실패**하게 한다. 모듈을 분리·이동하는 후속 챕터에서 같은 패턴을 따른다.
+- **`allowEmptyShould(true)` 금지는 자동 검증된다 (신설)**: `noClasses().that()...` 형태는 대상이 0건이어도 조용히 통과하므로, 원칙을 지켰는지가 사람 눈에만 의존했다. `application-core/src/test/.../RuleAnchorTest`(앱별 하한)와 `BatchSchedulerRulesTest`(batch exact — `*SchedulerService` 7 · `..port.in..` 7 · response record 4)가 각 규칙의 anchor 개수를 직접 세어, 클래스가 모듈 사이를 옮겨 다니다 대상이 통째로 사라지면 **빌드가 실패**하게 한다. 모듈을 분리·이동하는 후속 챕터에서 같은 패턴을 따른다.
 
 ### Common Patterns
 - 계층 배치: `domain`의 `<ctx>/{model,vo,event,repository,service,port}` / `infrastructure:jpa`의 `<ctx>/{persistence,query,listener}` / api 모듈의 `<ctx>/adapter/in/web/`(컨트롤러 + `request/` + **`response/`** — admin 챕터 06 · ceo 챕터 09 · web 챕터 10으로 3개 앱 전부) / `{앱}-application`의 `<ctx>/{port/in,service}`.

@@ -51,7 +51,7 @@ pg:
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. 토스 API 호출은 **동기 `RestClient`**다.
-- `web-application` (implementation, 앱 마커 제거로 `:application`에서 변경) — 구현하는 `PgProviderGatewayPort`·`PgCancelResult`·`PgProviderCode`는 `web-application` 소유이고, `PgConfirmResult`·`TossPaymentDetail`은 코어 `application` 소유다(`web-application`이 `api project(':application')`로 함께 노출한다). 패키지는 모두 `com.tastyhouse.application.payment.port.out`. `:domain` 의존은 없다 — 이 모듈은 도메인 `PgProvider`를 참조하지 않는다(위 "포트 반환 타입" 절 참고)
+- `web-application` (implementation, 앱 마커 제거로 `:application-core`에서 변경) — 구현하는 `PgProviderGatewayPort`·`PgCancelResult`·`PgProviderCode`는 `web-application` 소유이고, `PgConfirmResult`·`TossPaymentDetail`은 코어 `application` 소유다(`web-application`이 `api project(':application-core')`로 함께 노출한다). 패키지는 모두 `com.tastyhouse.application.payment.port.out`. `:domain` 의존은 없다 — 이 모듈은 도메인 `PgProvider`를 참조하지 않는다(위 "포트 반환 타입" 절 참고)
 - `infrastructure:pg`를 의존하지 않는다(순환 방지)
 - 테스트: `TossPaymentClientTest`(4건) — `MockRestServiceServer.bindTo(RestClient.builder())` 기반
 

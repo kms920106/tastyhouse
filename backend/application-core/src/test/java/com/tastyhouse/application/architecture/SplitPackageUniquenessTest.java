@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SplitPackageUniquenessTest {
 
     private static final Map<String, Path> MODULE_SOURCE_ROOTS = Map.of(
-        "application", Path.of("src/main/java"),
+        "application-core", Path.of("src/main/java"),
         "web-application", Path.of("../web-application/src/main/java"),
         "admin-application", Path.of("../admin-application/src/main/java"),
         "ceo-application", Path.of("../ceo-application/src/main/java"),

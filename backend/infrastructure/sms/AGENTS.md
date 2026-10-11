@@ -100,6 +100,6 @@ backend/infrastructure/sms/
 
 ### 인증 발급이 발송까지 원자적인 이유
 
-**대상**: `backend/application/src/main/java/com/tastyhouse/application/phoneverification/service/SmsVerificationService.java`
+**대상**: `backend/application-core/src/main/java/com/tastyhouse/application/phoneverification/service/SmsVerificationService.java`
 
 `SmsVerificationService`는 같은 번호의 기존 미완료 인증을 함께 만료시키는 크로스 인스턴스 불변식을 갖고, 발송 누락을 막으려 `SmsSenderPort`를 직접 주입받는다. 등록 위치는 chunk 02-vendor-ports로 `infrastructure:sms`의 `SmsDomainConfig`에서 `application`의 `SmsServiceConfig`로 옮겨갔고 이후 application `*ServiceConfig` 삭제로 `SmsVerificationService` 클래스의 `@WebApp` 마커가 등록을 대신하게 됐으나, 이 설계 근거 자체는 바뀌지 않았다.

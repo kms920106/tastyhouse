@@ -17,7 +17,7 @@ DB 영속 계층을 **한 벌로 묶어 앱에 노출하는 조립 모듈(스타
 | 항목 | before | after (현행) |
 |---|---|---|
 | 자바 코드 | JPA 엔티티·어댑터·조회 DAO·가드 테스트 전부 | **없음** (테스트·ArchUnit도 없음) |
-| `build.gradle` 의존 | `:domain`·`:application`·`spring-boot-starter-data-jpa`·QueryDSL·`mysql-connector-j` | **`runtimeOnly project(':infrastructure:jpa')` + `runtimeOnly project(':infrastructure:mysql')` 두 줄** (mysql 모듈 분리 전에는 두 번째 줄이 `runtimeOnly 'com.mysql:mysql-connector-j'`) |
+| `build.gradle` 의존 | `:domain`·`:application-core`·`spring-boot-starter-data-jpa`·QueryDSL·`mysql-connector-j` | **`runtimeOnly project(':infrastructure:jpa')` + `runtimeOnly project(':infrastructure:mysql')` 두 줄** (mysql 모듈 분리 전에는 두 번째 줄이 `runtimeOnly 'com.mysql:mysql-connector-j'`) |
 | `application-persistence.yml` | datasource + `spring.jpa.*` + provider 키 + 로그 레벨 한 벌 | `application-mysql.yml`·`application-jpa.yml` import만 (`spring.jpa.*`는 jpa 모듈로, datasource·`spring.sql.init`은 mysql 모듈로. provider 키는 **(번복됨 — banner-write-primary)** 삭제) |
 | 설정 파일명 | `application-infrastructure.yml` (모듈명과 불일치) | **`application-persistence.yml`** — 다른 모듈(`redis`·`mysql`·`jpa` 등)처럼 `application-{모듈명}.yml`로 정렬. 앱 4개의 import 줄만 바뀌었고 동작은 불변 |
 | 자바 패키지 | `com.tastyhouse.infrastructure.persistence..` | 없음 — 코드가 `com.tastyhouse.infrastructure.jpa..`로 갔다 |

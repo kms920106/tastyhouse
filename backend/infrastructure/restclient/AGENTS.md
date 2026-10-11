@@ -111,7 +111,7 @@ com.tastyhouse.infrastructure.restclient/
 ### Internal
 - **이 모듈은 `domain`을 의존하지 않는다.** 예외 계약 해체로 `ErrorCodeSpec`·`BusinessException`을 참조하던 유일한 지점(`exception/`)이 사라졌다. 과거 `FileStoragePortAdapter`가 구현하던 포트(당시 `com.tastyhouse.domain.file.port.FileStoragePort`, chunk 02-vendor-ports 이후 `com.tastyhouse.application.file.port.out.FileStoragePort`)도 이제 벤더 모듈(firebase·aws-s3)이 직접 구현한다.
 
-**`application`에 의존하지 않는다.** 분리 전에는 소셜 로그인 SPI·BBQ·행정동 경계 포트를 구현하느라 `implementation project(':application')`이 있었으나, 그 어댑터들이 전부 oauth·crawling(현 bbq·admdongkor) 모듈로 떠나 코어에는 아웃바운드 계약 소비자가 남지 않았다.
+**`application`에 의존하지 않는다.** 분리 전에는 소셜 로그인 SPI·BBQ·행정동 경계 포트를 구현하느라 `implementation project(':application-core')`이 있었으나, 그 어댑터들이 전부 oauth·crawling(현 bbq·admdongkor) 모듈로 떠나 코어에는 아웃바운드 계약 소비자가 남지 않았다.
 
 ### External
 - `spring-web` (`api`) — `RestClientAutoConfiguration`이 등록하는 `RestClient.Builder`를 코어의 `RestClientCustomizer`가 꾸민다. 벤더 어댑터가 이 좌표를 반복 선언하지 않도록 `api`로 노출한다.

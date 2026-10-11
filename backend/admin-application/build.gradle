@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api project(':application')
+    api project(':application-core')
     implementation project(':domain')
     implementation project(':security-core')
 
@@ -14,7 +14,7 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
-    testImplementation(testFixtures(project(':application')))
+    testImplementation(testFixtures(project(':application-core')))
 }
 
 jar {

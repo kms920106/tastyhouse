@@ -40,7 +40,7 @@ oauth:
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. 네이버 API 호출은 **동기 `RestClient`**다(호스트가 둘이라 baseUrl 없이 `build()`).
-- `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로)
+- `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application-core` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로)
 - **`domain` 의존 없음** — 실패 번역이 없고(`../kakao-oauth/AGENTS.md`의 설계 근거와 같은 상태), gender도 문자열로 넘긴다
 - `infrastructure:oauth`를 의존하지 않는다(순환 방지)
 

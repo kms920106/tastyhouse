@@ -2,7 +2,7 @@
 
 배치 앱의 **부트스트랩과 driving adapter**를 전담하는 **독립 실행 모듈**. `web-api`/`admin-api`/`ceo-api`와 동일하게 자체 `main()`(`BatchApplication`)을 가진 bootJar 실행 단위이며, HTTP 요청과 무관하게 `@Scheduled` cron 트리거로만 동작한다.
 
-> **챕터 01로 application 계층이 떠났다.** 잡 UseCase 인바운드 포트·`*SchedulerService`·`*Executor`·BBQ 크롤링 동기화는 이제 `application` 모듈에 있다(`application/AGENTS.md`). 이 모듈에 남은 것은 `@Scheduled` 트리거 7종과 `BatchApplication`뿐이다. 잡 **로직**을 고치러 왔다면 이 문서가 아니라 `application/AGENTS.md`를 본다.
+> **챕터 01로 application 계층이 떠났다.** 잡 UseCase 인바운드 포트·`*SchedulerService`·`*Executor`·BBQ 크롤링 동기화는 이제 `application` 모듈에 있다(`application-core/AGENTS.md`). 이 모듈에 남은 것은 `@Scheduled` 트리거 7종과 `BatchApplication`뿐이다. 잡 **로직**을 고치러 왔다면 이 문서가 아니라 `application-core/AGENTS.md`를 본다.
 
 ## 신설 배경
 
@@ -40,7 +40,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 
 ## 규칙
 
-- **유스케이스 분리(web·admin·ceo의 `{도메인}CommandService`/`{도메인}QueryService` → 유스케이스당 서비스 1개)에서 batch는 제외했다**: `*SchedulerService` 7개가 이미 잡 UseCase 1개 = 서비스 1개이고, `*SchedulerService` 명명은 `backend/application/src/test/java/com/tastyhouse/application/architecture/BatchSchedulerRulesTest.java`가 지킨다(포트명 기반 `useCaseServiceNameShouldMatchPort`와 맞지 않아 1:1 규칙 4종은 batch 출처를 뺀다). `SearchKeywordSchedulerService`가 UseCase 하나에 메서드 2개인 것은 이번 범위 밖이라 손대지 않았다.
+- **유스케이스 분리(web·admin·ceo의 `{도메인}CommandService`/`{도메인}QueryService` → 유스케이스당 서비스 1개)에서 batch는 제외했다**: `*SchedulerService` 7개가 이미 잡 UseCase 1개 = 서비스 1개이고, `*SchedulerService` 명명은 `backend/application-core/src/test/java/com/tastyhouse/application/architecture/BatchSchedulerRulesTest.java`가 지킨다(포트명 기반 `useCaseServiceNameShouldMatchPort`와 맞지 않아 1:1 규칙 4종은 batch 출처를 뺀다). `SearchKeywordSchedulerService`가 UseCase 하나에 메서드 2개인 것은 이번 범위 밖이라 손대지 않았다.
 - **Scheduler(트리거) + Service(로직) 이분 구조는 이제 모듈 경계와 일치한다 (개정)**: `adapter/in/scheduler/`의 `@Scheduled` 클래스는 cron 트리거와 try/catch 로깅만 담당하고, 실제 로직은 `application`의 `*SchedulerService`(`@Transactional` 경계 소유)로 위임한다. 챕터 01 전에는 두 계층이 같은 모듈 안 다른 패키지였을 뿐이라 규율로만 유지됐으나, 이제 **빌드 그래프가 강제**한다 — 트리거에 잡 로직 한 줄을 적으려 하면 `batch-module`에 없는 domain write 포트·`{Ctx}QueryPort`를 import해야 해서 컴파일이 깨진다.
 - **잡 UseCase 인터페이스(`application`의 `<job>/port/in/`)**: 잡마다 1개(`SettleMemberGradesUseCase`·`AggregateRanksUseCase`·`SyncProductOptionsUseCase`·`ReleaseExpiredSoldOutUseCase`·`ExpireBlindedReviewsUseCase`·`SynchronizeAdminDongsUseCase`·`AggregatePopularKeywordsUseCase`). **배치 잡은 입력이 없으므로 Command record를 두지 않는다** — web/admin/ceo의 `{도메인}CommandUseCase`와 달리 파라미터 없는 메서드 하나만 선언한다. `*SchedulerService`가 이를 implements하고(ArchUnit `schedulerServicesShouldImplementUseCase` — application 모듈 소유), 트리거는 구체 클래스가 아니라 이 인터페이스만 주입한다(이 모듈의 `schedulersShouldDependOnUseCasesOnly`가 강제). 후자는 챕터 01로 **모듈 경계를 넘는** 구체 클래스를 막는 규칙이 되어, 클래스명(`*SchedulerService`)이 아니라 패키지(`com.tastyhouse.application..service..`)로 대상을 잡는다 — 그래야 `*Executor`처럼 이름이 다른 내부 구현까지 함께 막힌다.
 - **도메인 모델은 POJO — 명시적 save 필수** (해당 코드는 `application`): 스케줄러 Service에서 도메인을 변경한 뒤 반드시 `repository.save(domain)`을 호출한다(JPA 더티 체킹이 없어 누락 시 변경이 조용히 유실된다).
@@ -65,8 +65,8 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 - `infrastructure:admdongkor` (**runtimeOnly**) — 행정동 경계 클라이언트 `com.tastyhouse.infrastructure.admdongkor.AdminDongBoundaryClient`. 설정은 `application-admdongkor.yml`
 - 위 두 모듈은 2026-09-26에 옛 `infrastructure:crawling` 한 모듈을 나눈 것이다(근거는 `../infrastructure/admdongkor/AGENTS.md`). **소스 참조는 `application`으로 옮겨갔고**, 두 모듈은 빈 스캔·설정 때문에 유지한다
 - `logging-module` (**runtimeOnly**) — **p6spy를 `exclude`한다**: `logging-module`이 그것을 `api`로 노출하지만 batch는 HTTP 요청이 없어 쓰지 않으므로, 전이 의존을 끊어 datasource 자동 데코레이션(SQL 로그 신규 발생)을 막는다. `runtimeOnly`에 걸린 `exclude`도 동일하게 적용된다(Gradle의 `exclude`는 의존 스코프와 무관하게 동작)
-- **`domain`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` 참조가 0건이다. ~~web/admin/ceo와 달리~~ 전이 경로도 없다(`application`이 `domain`을 `api`가 아닌 `implementation`으로 물고 있고, 이 모듈은 `api-common-module`을 의존하지 않는다). ~~도메인 타입이 다시 필요해지면 여기에 직접 선언한다~~ **(갱신 — 표현 계층 domain 절단 덩어리 01)** 이제 web/admin/ceo도 같은 상태다(`api-common-module`이 `api project(':application')`으로 바뀌어 전이 경로가 사라졌다). 도메인 타입이 필요해 보이면 선언하지 말고 그 판단을 application으로 옮긴다 — presentation 전체가 domain을 컴파일 클래스패스에 두지 않는 것이 현재 규칙이다
-- `testFixtures(project(':application'))` — `ApplicationLayerScanAssertions`(스캔 단정·클래스패스 단정)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다. ~~`adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 공유한다(챕터 03)~~ **(번복됨 — 앱 마커 제거)** 그 규칙과 `AppOwnership`은 삭제됐다 — 다른 앱의 UseCase·Command는 이 모듈의 클래스패스에 없어 컴파일 에러다.
+- **`domain`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` 참조가 0건이다. ~~web/admin/ceo와 달리~~ 전이 경로도 없다(`application`이 `domain`을 `api`가 아닌 `implementation`으로 물고 있고, 이 모듈은 `api-common-module`을 의존하지 않는다). ~~도메인 타입이 다시 필요해지면 여기에 직접 선언한다~~ **(갱신 — 표현 계층 domain 절단 덩어리 01)** 이제 web/admin/ceo도 같은 상태다(`api-common-module`이 `api project(':application-core')`으로 바뀌어 전이 경로가 사라졌다). 도메인 타입이 필요해 보이면 선언하지 말고 그 판단을 application으로 옮긴다 — presentation 전체가 domain을 컴파일 클래스패스에 두지 않는 것이 현재 규칙이다
+- `testFixtures(project(':application-core'))` — `ApplicationLayerScanAssertions`(스캔 단정·클래스패스 단정)를 application 모듈과 공유한다. **복제하면 두 벌이 갈라지므로** test fixture로 받는다. ~~`adaptersShouldOnlyUseOwnAppUseCases`가 Command record의 앱 소속 유도(`AppOwnership`)를 공유한다(챕터 03)~~ **(번복됨 — 앱 마커 제거)** 그 규칙과 `AppOwnership`은 삭제됐다 — 다른 앱의 UseCase·Command는 이 모듈의 클래스패스에 없어 컴파일 에러다.
 
 ### External
 - Spring Boot Starter(루트 `subprojects`가 부여) — `@Scheduled`/`@Transactional` 지원
@@ -152,8 +152,8 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 ### `ApplicationModuleClasspathTest` — 다른 앱의 application 모듈이 클래스패스에 섞이지 않게 막는다 (앱 마커 제거)
 
 **대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/ApplicationModuleClasspathTest.java` → `loadsOnlyOwnApplicationModule`
-· 단정 본문 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java` → `assertLoadsOnlyOwnApplicationModule(ModuleOrigin.BATCH)`
-· 출처 판정 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ModuleOrigin.java` → `of(JavaClass)`
+· 단정 본문 `backend/application-core/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java` → `assertLoadsOnlyOwnApplicationModule(ModuleOrigin.BATCH)`
+· 출처 판정 `backend/application-core/src/testFixtures/java/com/tastyhouse/architecture/ModuleOrigin.java` → `of(JavaClass)`
 
 **무엇을 확인하나**: 이 앱의 테스트 클래스패스에서 `com.tastyhouse.application` 패키지 클래스(main 출력만)를 ArchUnit으로 읽고, 각 클래스의 출처 모듈(`ModuleOrigin.of`)을 모은 집합이 **정확히 `{application, batch-application}`**인지 본다. 클래스가 어느 모듈의 jar·클래스 디렉터리에서 왔는지로 판정하므로 모듈에 별도 표식 파일을 두지 않는다. `ModuleOrigin`은 Gradle 출력만 인정하므로 이 테스트는 Gradle로 실행한다(IntelliJ 자체 빌드 출력 `out/production`이면 예외로 실패).
 
@@ -162,7 +162,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 | 항목 | before (앱 마커) | after (모듈 경계) |
 |---|---|---|
 | 다른 앱 빈이 뜨는 것을 막는 수단 | 스캔의 마커 include 필터(`{BatchApp, SharedApp}`) | 클래스패스에 다른 앱 모듈이 없음 + 이 테스트 |
-| 의존 | `implementation project(':application')` | 그대로 + `implementation project(':batch-application')` |
+| 의존 | `implementation project(':application-core')` | 그대로 + `implementation project(':batch-application')` |
 
 ### `ApplicationLayerScanConfigTest` — 마커 스캔 설정의 오기입·직접 선언을 막는다
 
@@ -173,7 +173,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 **대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/ApplicationLayerScanConfigTest.java`
 → `BatchApplication`의 static 중첩 클래스 `ApplicationLayerScanConfig`(`backend/batch-module/src/main/java/com/tastyhouse/batch/BatchApplication.java`)의 `@ComponentScan`
 
-**단정 본문은 `application`의 test fixture 한 곳에 있다**: 이 테스트는 `backend/application/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java`의 두 메서드를 부르는 두 줄뿐이다 — `assertScansOnlyOwnAppAndSharedMarkers(BatchApplication.class, BatchApp.class)`와 `assertBootstrapDoesNotDeclareScanOrImport(BatchApplication.class)`. 4개 앱이 같은 단정을 복사해 두면 한 앱만 고쳐져 가드가 갈라지므로, `AppOwnership`과 같은 방식(`testFixtures(project(':application'))`)으로 공유한다. **단정을 바꿀 때는 그 fixture 하나만 고치고, 앱 테스트에는 앱마다 다른 값(부트스트랩 클래스·자기 마커)만 둔다.**
+**단정 본문은 `application`의 test fixture 한 곳에 있다**: 이 테스트는 `backend/application-core/src/testFixtures/java/com/tastyhouse/architecture/ApplicationLayerScanAssertions.java`의 두 메서드를 부르는 두 줄뿐이다 — `assertScansOnlyOwnAppAndSharedMarkers(BatchApplication.class, BatchApp.class)`와 `assertBootstrapDoesNotDeclareScanOrImport(BatchApplication.class)`. 4개 앱이 같은 단정을 복사해 두면 한 앱만 고쳐져 가드가 갈라지므로, `AppOwnership`과 같은 방식(`testFixtures(project(':application-core'))`)으로 공유한다. **단정을 바꿀 때는 그 fixture 하나만 고치고, 앱 테스트에는 앱마다 다른 값(부트스트랩 클래스·자기 마커)만 둔다.**
 
 | 항목 | before | after |
 |---|---|---|
@@ -249,7 +249,7 @@ com.tastyhouse.application/       ← application 모듈 (챕터 03으로 4개 �
 **대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/architecture/LayerRulesTest.java`
 → `adaptersShouldOnlyUseOwnAppUseCases`
 
-**이 규칙은 챕터 01이 없앤 컴파일 게이트를 대체한다.** 그전까지 이 모듈의 어댑터가 다른 앱의 UseCase를 주입하는 것은 **빌드가** 막았다 — `build.gradle`에 자기 앱의 application 모듈 하나만 있었으므로 다른 앱의 패키지는 클래스패스에 아예 없었다. 챕터 01이 4개 application 모듈을 `:application` 하나로 합치면서 4개 앱의 클래스가 **전부 이 모듈의 컴파일 클래스패스에 들어왔다.**
+**이 규칙은 챕터 01이 없앤 컴파일 게이트를 대체한다.** 그전까지 이 모듈의 어댑터가 다른 앱의 UseCase를 주입하는 것은 **빌드가** 막았다 — `build.gradle`에 자기 앱의 application 모듈 하나만 있었으므로 다른 앱의 패키지는 클래스패스에 아예 없었다. 챕터 01이 4개 application 모듈을 `:application-core` 하나로 합치면서 4개 앱의 클래스가 **전부 이 모듈의 컴파일 클래스패스에 들어왔다.**
 
 **챕터 03 재작성 — 판정 근거가 패키지에서 마커로 바뀌었다.** 챕터 01의 원본은 자기를 뺀 3개 앱 패키지를 열거해 금지했는데, 평탄화로 그 패키지들이 사라졌다. 이제 소속의 근거는 `BatchApp` 등 마커 애노테이션이므로 규칙도 마커로 판정한다. 세 갈래로 나눠 검사한다.
 

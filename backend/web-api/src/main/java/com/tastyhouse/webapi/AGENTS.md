@@ -4,7 +4,7 @@
 # webapi (presentation layer)
 
 ## Purpose
-사용자 대면 REST API 계층이자, 이 앱의 **application 계층**이다. HTTP 요청을 받아 도메인당 CQRS 서비스(`{도메인}CommandService`/`{도메인}QueryService`)를 호출하고 응답 DTO로 변환하여 반환한다(과거 `core-module`의 `application/` 계층이 하던 역할이 전환으로 이 패키지로 내려왔다). JWT 기반 인증, OAuth 소셜 로그인, 요청/응답 로깅, Rate Limiting, 중앙화된 예외 처리를 제공한다. Spring Security + JWT + Redis 기반의 stateless 아키텍처를 구현하며, 외부 API 연동은 `infrastructure:{file-storage,oauth,pg,mail,sms}` 모듈로 위임한다(파일 저장은 스타터 `file-storage`가 벤더 `firebase`(`FileStoragePort` 구현)를, 소셜 로그인은 스타터 `oauth`가 벤더 `kakao-oauth`·`naver-oauth`·`apple-oauth`·`facebook-oauth`를 묶어 공급하므로 앱이 벤더를 알지 않는다).
+사용자 대면 REST API 계층이자, 이 앱의 **application 계층**이다. HTTP 요청을 받아 도메인당 CQRS 서비스(`{도메인}CommandService`/`{도메인}QueryService`)를 호출하고 응답 DTO로 변환하여 반환한다(과거 `core-module`의 `application-core/` 계층이 하던 역할이 전환으로 이 패키지로 내려왔다). JWT 기반 인증, OAuth 소셜 로그인, 요청/응답 로깅, Rate Limiting, 중앙화된 예외 처리를 제공한다. Spring Security + JWT + Redis 기반의 stateless 아키텍처를 구현하며, 외부 API 연동은 `infrastructure:{file-storage,oauth,pg,mail,sms}` 모듈로 위임한다(파일 저장은 스타터 `file-storage`가 벤더 `firebase`(`FileStoragePort` 구현)를, 소셜 로그인은 스타터 `oauth`가 벤더 `kakao-oauth`·`naver-oauth`·`apple-oauth`·`facebook-oauth`를 묶어 공급하므로 앱이 벤더를 알지 않는다).
 
 ## Cross-cutting Packages
 | Package | Description |
