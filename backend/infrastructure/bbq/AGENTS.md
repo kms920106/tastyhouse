@@ -19,14 +19,14 @@ com.tastyhouse.infrastructure.bbq/
 ├── BbqMenuAdapter.java               BbqMenuPort 구현
 ├── BbqProperties.java                bbq.api.* (base-url만 — timeoutSeconds는 삭제됨)
 ├── RemoteImageDownloader.java        RemoteImagePort 구현 — 원격 이미지 다운로드(I/O만). 본문·Content-Type·파일명을 DownloadedImage로 돌려준다 (RestClient, per-client 5s/30s, 10MB 응답 상한)
-└── BbqMenuCategoryResponse · BbqMenuResponse · BbqMenuSubOptionResponse  wire DTO — package-private (번복됨: 과거 dto/ 하위)
+└── BbqMenuCategoryResponse · BbqMenuResponse · BbqMenuSubOptionResponse  wire DTO — package-private
 ```
 
-패키지는 분리 때 바뀌었다 — `external.crawling.bbq` → **`external.bbq`**, `external.crawling.RemoteImageDownloader` → **`external.bbq.RemoteImageDownloader`**(모듈명과 맞춤). 포트·DTO는 전부 `application` 소유라 소비자 import 변경은 0건이었다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.bbq`가 됐다(`dto/` 구성은 불변). **(번복됨 — package-private 적용)** 이후 `dto/`의 wire DTO는 루트 패키지로 옮겨 package-private이 됐고 `dto/` 하위 패키지는 없어졌다(아래 봉인·가드 목록).
+패키지 루트는 `com.tastyhouse.infrastructure.bbq`다. 포트·DTO 계약은 전부 `application` 소유이고, 외부 API wire DTO는 루트 패키지에 package-private으로 두며 `dto/` 하위 패키지는 없다(아래 봉인·가드 목록). ([ADR-0040](../../../docs/adr/0040-package-private-visibility.md))
 
 ## 어느 앱이 의존하는가
 
-**batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:bbq')`). 클래스패스에 실리면 batch `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다(~~`BbqModuleAutoConfiguration`이 발화~~ — imports 제거, 설정 클래스는 `BbqModuleConfig`). batch는 이 모듈을 경유해 코어 `infrastructure:restclient`(`RestClient.Builder` customizer뿐 — 예외·에러코드 없음)를 전이로 받는다.
+**batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:bbq')`). 클래스패스에 실리면 batch `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다(설정 클래스는 `BbqModuleConfig`). batch는 이 모듈을 경유해 코어 `infrastructure:restclient`(`RestClient.Builder` customizer뿐 — 예외·에러코드 없음)를 전이로 받는다.
 
 ## yml — `application-bbq.yml`
 
@@ -43,7 +43,7 @@ com.tastyhouse.infrastructure.bbq/
 ### Internal
 - `infrastructure:restclient` (implementation) — `RestClient.Builder` customizer만(예외·에러코드는 두지 않는다 — 실패 코드는 번역하는 application 모듈의 에러코드 enum이 소유)
 - `batch-application` (implementation, 앱 마커 제거로 `:application-core`에서 변경) — 구현하는 아웃바운드 계약 `BbqMenuPort`·`RemoteImagePort`와 포트 DTO의 소유 모듈. adapter → port 방향이며 순환이 아니다. batch 전용 포트라 batch 앱 모듈이 소유한다
-- ~~`domain` (implementation) — 예외 계약(`BusinessException`·`ErrorCode`)만~~ **(번복됨 — 에러코드 모듈 분할)** `domain` 의존은 없다(`build.gradle`은 `restclient`·`batch-application`만 선언). 이 모듈은 에러코드를 참조하지 않는다
+- `domain` 의존은 없다(`build.gradle`은 `restclient`·`batch-application`만 선언). 이 모듈은 에러코드를 참조하지 않는다
 
 ### External
 - webflux 없음 — BBQ API 호출은 **동기 `RestClient`**(`BbqApiClient`의 `getMenuCategories`·`getMenusByCategoryId`·`getMenuDetail`·`getMenuSubOptions` 4개 메서드, 과거 Mono 반환 + `...Sync()` 래퍼는 제거됐다). 코어 `infrastructure:restclient`가 `api`로 노출하는 `spring-web`·`spring-boot-starter-json`을 전이로 받는다. `RemoteImageDownloader`도 RestClient(`exchange()`로 상태·헤더·본문을 직접 읽는다)를 쓴다.
@@ -54,25 +54,23 @@ com.tastyhouse.infrastructure.bbq/
 - **크롤링 대상은 남의 서비스다** — `base-url`·응답 형태가 예고 없이 바뀔 수 있고, 그 실패는 빌드가 아니라 배치 실행에서 드러난다. 배치 잡은 실패를 잡아 로그로 남기고 다음 주기에 재실행하는 잡 단위 격리가 정상 설계다.
 - **application 쪽 패키지명에는 `crawling`이 남아 있다**(`com.tastyhouse.application.crawling.bbq`). 이번 분리는 infrastructure 모듈만 대상이었으며, application 패키지 평탄화는 후속 판단 항목이다.
 - **`RemoteImageDownloader`는 URI를 문자열이 아니라 `URI.create(imageUrl)`로 넘긴다** — `.uri(String)` 오버로드는 URI 템플릿 확장 과정에서 `%`를 재인코딩하므로, 원격 이미지 URL이 이미 퍼센트 인코딩(`%20`·한글 인코딩 등)돼 있으면 이중 인코딩되어 404가 났다. `URI.create(...)`로 넘기면 그 문자열을 있는 그대로 쓴다.
-- **`RemoteImageDownloader`는 응답 크기 상한(10MB, `FileUploadService` 업로드 한도와 동일)을 둔다** — `exchange()`로 응답을 받아 초과하면 `ImageDownloadResult.failed(ImageDownloadFailure.SIZE_EXCEEDED)`를 돌려주고, `BbqService`(batch-application)가 `ApplicationErrorCode.FILE_SIZE_EXCEEDED`로 번역한다(과거에는 어댑터가 `BusinessException(ErrorCode.FILE_SIZE_EXCEEDED)`를 직접 던졌다 — 번복됨, 에러코드 모듈 분할). WebClient 시절의 `maxInMemorySize`(2MB) 같은 버퍼 상한이 RestClient에는 없어 생긴 공백을 메운 것이다. 그 밖의 계약은 무변경 — 비정상 상태는 `ImageDownloadFailure.EMPTY`(번역 시 `FILE_EMPTY`), 그 밖의 IO 실패는 `RuntimeException`으로 던진다.
+- **`RemoteImageDownloader`는 응답 크기 상한(10MB, `FileUploadService` 업로드 한도와 동일)을 둔다** — `exchange()`로 응답을 받아 초과하면 `ImageDownloadResult.failed(ImageDownloadFailure.SIZE_EXCEEDED)`를 돌려주고, `BbqService`(batch-application)가 `ApplicationErrorCode.FILE_SIZE_EXCEEDED`로 번역한다(어댑터는 예외를 던지지 않는다). `RestClient`에는 버퍼 상한이 없으므로 어댑터가 직접 응답 크기를 제한한다. 그 밖의 계약은 무변경 — 비정상 상태는 `ImageDownloadFailure.EMPTY`(번역 시 `FILE_EMPTY`), 그 밖의 IO 실패는 `RuntimeException`으로 던진다.
 
 ## 봉인·가드 목록
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
 
-### 자바 패키지 `com.tastyhouse.external.bbq` 봉인
+### 자바 패키지 `com.tastyhouse.infrastructure.bbq` 봉인
 
 **대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/`
 
-~~`com.tastyhouse.infrastructure..` 아래로 옮기지 않는다. `PersistenceModuleAutoConfiguration`이 `com.tastyhouse.infrastructure`를 통째로 스캔하므로, 그 아래로 옮기면 빈 스캔 범위가 어긋나 **admin/ceo/batch 부팅이 깨진다.** 외부 연동 모듈이 `com.tastyhouse.external..`을 유지하는 것은 취향이 아니라 스캔 범위 제약이다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.bbq`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/bbq/src/test/java/com/tastyhouse/infrastructure/bbq/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 옛 위치 `external.crawling`으로도 되돌리지 않는다.
+이 모듈의 루트는 `com.tastyhouse.infrastructure.bbq`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/bbq/src/test/java/com/tastyhouse/infrastructure/bbq/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 옛 위치 `external.crawling`으로도 되돌리지 않는다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
 
-### 진입 설정은 자기 패키지만 스캔한다
+### 진입 설정은 아무것도 스캔하지 않는다
 
-> **(번복됨 — imports 제거)** 이 모듈의 설정 클래스는 이제 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — 삭제됐거나 `@EnableConfigurationProperties`만 남은 `{X}ModuleConfig`). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 그래서 "형제 빈까지 이 설정이 등록한다"는 아래 우려는 대상이 사라졌고, 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 빼야 한다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). 아래는 당시 기록이다.
+이 모듈의 설정 클래스는 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — `@EnableConfigurationProperties`만 갖는 `{X}ModuleConfig`). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 뺀다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다).
 
-**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/BbqModuleConfig.java`(imports 제거 전 `BbqModuleAutoConfiguration.java`)
-
-스캔 범위를 `com.tastyhouse.infrastructure` 루트 등으로 넓히면 같은 클래스패스의 형제 모듈(admdongkor 등) 빈까지 이 설정이 등록하게 되므로 넓히지 않는다.
+**대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/BbqModuleConfig.java`
 
 ### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
 
@@ -106,4 +104,4 @@ com.tastyhouse.infrastructure.bbq/
 
 **대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/RemoteImageDownloader.java`
 
-`external.file.RemoteImageDownloader`(external 7모듈 분리 전) → `external.crawling.RemoteImageDownloader`(crawling 모듈) → `external.bbq.RemoteImageDownloader`(이 모듈) → `com.tastyhouse.infrastructure.bbq.RemoteImageDownloader`(infrastructure 패키지 루트 통일). 첫 이동은 당시 코어가 `external.file`을 스캔해 admin/ceo에도 이 빈이 동반 스캔됐기 때문이고, 두 번째 이동은 소유 모듈의 패키지에 두는 규칙을 따른 것이다. `external.file`로 되돌리지 않는다.
+`external.file.RemoteImageDownloader`로 되돌리지 않는다 — 코어가 `external.file`을 스캔하던 구조에서는 admin/ceo에도 이 빈이 동반 스캔됐다. 소유 모듈(`infrastructure:bbq`)의 루트 패키지 `com.tastyhouse.infrastructure.bbq`에 둔다.

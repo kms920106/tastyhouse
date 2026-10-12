@@ -4,7 +4,7 @@
 
 Solapi SMS 발송 **벤더 모듈**(`java-library`). 포트 `SmsSenderPort`(`web-application`의 `com.tastyhouse.application.phoneverification.port.out` — 과거 domain 소유, 02-vendor-ports로 `application`, 앱 마커 제거로 `web-application`)를 `SolapiSmsClient`가 구현한다. SMS 채널의 기본 벤더이며, 앱이 아니라 채널 모듈 `infrastructure:sms`가 `runtimeOnly`로 조립한다. AWS 대안은 `infrastructure:aws-sns`다.
 
-`infrastructure:messaging` 4분할(2026-09-26)로 신설됐다. 패키지는 `external.sms.solapi` → `external.solapi`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.sms")`에 동반 스캔되지 않게 하기 위함이다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.solapi`가 됐고, ~~`request/`·`response/` 두 하위 패키지는 `dto/` 하나로 합쳐졌다(`SolapiMessageRequest`·`SolapiMessageResponse` — 다른 벤더의 `dto/` 관례와 맞춤).~~ **(번복됨 — package-private 적용)** `request/`·`response/` 두 하위 패키지는 `dto/`를 거쳐 지금은 루트 패키지로 평탄화됐고, `SolapiMessageRequest`·`SolapiMessageResponse`는 `SolapiSmsClient`와 같은 패키지의 package-private record다(아래 봉인·가드 목록).
+`infrastructure:messaging` 4분할로 신설됐다. 패키지 루트는 `com.tastyhouse.infrastructure.solapi`이고 `SolapiMessageRequest`·`SolapiMessageResponse`는 `SolapiSmsClient`와 같은 패키지의 package-private record다(아래 봉인·가드 목록). ([ADR-0040](../../../docs/adr/0040-package-private-visibility.md))
 
 ## 무엇을 소유하는가
 
@@ -26,7 +26,7 @@ com.tastyhouse.infrastructure.solapi/
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. Solapi HTTP 호출은 **동기 `RestClient`**다.
-- `web-application` (implementation) — `SmsSenderPort`·`SmsSendResult`·`SmsSendFailure` 포트의 소유 모듈. **앱 마커 제거로 `:application-core` → `:web-application`** (SMS 발송 포트가 web 전용이라 web 앱 모듈로 옮겨갔다). ~~`domain` (implementation) — `SmsSenderPort` 포트 + `BusinessException`·`ErrorCode`(`SMS_SEND_FAILED`·`SMS_SEND_NO_RESPONSE`·`SMS_SEND_API_ERROR`)~~ (02-vendor-ports 이전 기록. 지금 이 세 상수는 `WebErrorCode`이고 `SmsVerificationService`가 `SmsSendFailure`를 번역한다 — 지금 `build.gradle`의 프로젝트 의존은 `:infrastructure:restclient`·`:web-application`이다)
+- `web-application` (implementation) — `SmsSenderPort`·`SmsSendResult`·`SmsSendFailure` 포트의 소유 모듈(SMS 발송 포트가 web 전용이라 web 앱 모듈에 있다). `SMS_SEND_FAILED`·`SMS_SEND_NO_RESPONSE`·`SMS_SEND_API_ERROR`는 `WebErrorCode`이고 `SmsVerificationService`가 `SmsSendFailure`를 번역한다. `build.gradle`의 프로젝트 의존은 `:infrastructure:restclient`·`:web-application`이다
 - `infrastructure:sms`를 의존하지 않는다(순환 방지)
 - 테스트: `SolapiSmsClientTest`(4건) — `MockRestServiceServer.bindTo(RestClient.builder())` 기반
 
@@ -39,11 +39,11 @@ com.tastyhouse.infrastructure.solapi/
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
 
-### 자바 패키지 `com.tastyhouse.external.solapi` 봉인
+### 자바 패키지 `com.tastyhouse.infrastructure.solapi` 봉인
 
 **대상**: `backend/infrastructure/solapi/src/main/java/com/tastyhouse/infrastructure/solapi/`
 
-`external.sms.solapi`로 되돌리면 채널 모듈 `infrastructure:sms`의 스캔에 동반 스캔된다. ~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.solapi`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/solapi/src/test/java/com/tastyhouse/infrastructure/solapi/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다.
+옛 위치 `external.sms.solapi`로 되돌리지 않는다 — 채널 모듈의 스캔에 동반 스캔된다. 이 모듈의 루트는 `com.tastyhouse.infrastructure.solapi`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/solapi/src/test/java/com/tastyhouse/infrastructure/solapi/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
 
 ### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
 

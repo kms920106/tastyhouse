@@ -4,7 +4,7 @@
 
 카카오 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClientPort`를 `KakaoOAuthClient`가 구현하고 `provider()`로 `SocialProvider.KAKAO`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
-옛 `infrastructure:oauth`의 `kakao/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.kakao` → `com.tastyhouse.external.kakao.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.kakao.oauth`가 됐고, ~~wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.kakao.oauth.dto`로 모였다.~~ **(번복됨 — package-private 적용)** wire DTO도 루트 `com.tastyhouse.infrastructure.kakao.oauth`에 평면으로 있고 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명은 그대로라 빈 이름 `kakaoOAuthClient`(소비 측 `@Qualifier`)도 불변이다.
+채널·벤더 분리로 `infrastructure:oauth`에서 갈라진 벤더 모듈이다. 패키지 루트는 `com.tastyhouse.infrastructure.kakao.oauth`이고 wire DTO도 루트 패키지에 평면으로 있으며 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명이 빈 이름 `kakaoOAuthClient`를 정한다. ([ADR-0040](../../../docs/adr/0040-package-private-visibility.md))
 
 ## 무엇을 소유하는가
 
@@ -19,7 +19,7 @@ com.tastyhouse.infrastructure.kakao.oauth/
 
 `KakaoOAuthClient`는 `@Value`를 쓰지 않는다. 생성자에서 `KakaoOAuthProperties`를 받아 같은 이름의 `final` 필드(`clientId`·`redirectUri`)로 옮긴다.
 
-테스트: `KakaoOAuthModuleConfigTest`(`ApplicationContextRunner`, 4건 — imports 제거로 `KakaoOAuthModuleAutoConfigurationTest`에서 리네임. `withUserConfiguration(KakaoOAuthModuleConfig.class, KakaoOAuthClient.class)`로 띄운다 — 설정 클래스가 더는 스캔하지 않으므로, 앱 스캔이 하던 클라이언트 등록을 테스트가 직접 한다) — 프로퍼티 바인딩(`bindsProperties`), 빈 이름·`provider()`(`registersClientBeanUnderQualifierName`), 키 누락 시 기동 실패(`failsStartupWhenPropertyMissing`), 환경변수 미해석 시 기동 실패(`failsStartupWhenPlaceholderUnresolved`).
+테스트: `KakaoOAuthModuleConfigTest`(`ApplicationContextRunner`, 4건 — `withUserConfiguration(KakaoOAuthModuleConfig.class, KakaoOAuthClient.class)`로 띄운다 — 설정 클래스가 더는 스캔하지 않으므로, 앱 스캔이 하던 클라이언트 등록을 테스트가 직접 한다) — 프로퍼티 바인딩(`bindsProperties`), 빈 이름·`provider()`(`registersClientBeanUnderQualifierName`), 키 누락 시 기동 실패(`failsStartupWhenPropertyMissing`), 환경변수 미해석 시 기동 실패(`failsStartupWhenPlaceholderUnresolved`).
 
 ## 어느 앱이 의존하는가
 
@@ -59,11 +59,11 @@ oauth:
 
 설정 누락을 기동 시점에 드러내는 유일한 장치다. `@Validated` + `@NotBlank`로 바꾸지 않는다 — 해석되지 않은 placeholder는 `${...}` 리터럴이라 공백이 아니어서 통과한다. 검사를 지우면 누락된 환경변수가 조용히 바인딩돼 운영 배포 후 첫 로그인에서야 드러난다. 반증 테스트 `failsStartupWhenPropertyMissing`·`failsStartupWhenPlaceholderUnresolved`가 이 동작을 고정한다.
 
-### 자바 패키지 `com.tastyhouse.external.kakao.oauth` 봉인
+### 자바 패키지 `com.tastyhouse.infrastructure.kakao.oauth` 봉인
 
 **대상**: `backend/infrastructure/kakao-oauth/src/main/java/com/tastyhouse/infrastructure/kakao/oauth/`
 
-~~`com.tastyhouse.infrastructure` 아래로 옮기면 `infrastructure:persistence`의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째로 스캔하므로, 의존하지도 않은 어댑터까지 빈 스캔 범위에 들어와 admin-api·ceo-api·batch-module의 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.kakao.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/kakao-oauth/src/test/java/com/tastyhouse/infrastructure/kakao/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(바꿀 때는 그 규칙의 목록을 함께 고친다 — 루트 통일 때 목록을 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`로 교체했다).
+이 모듈의 루트는 `com.tastyhouse.infrastructure.kakao.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/kakao-oauth/src/test/java/com/tastyhouse/infrastructure/kakao/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(바꿀 때는 그 규칙의 목록을 함께 고친다 — 목록은 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`다). ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
 
 ### 외부 응답 DTO는 도메인 enum을 반환하지 않는다
 

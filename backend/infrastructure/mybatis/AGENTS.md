@@ -2,8 +2,6 @@
 
 # infrastructure:mybatis
 
-> **(번복됨 — notice-mybatis-legacy)** 이 모듈은 원래 banner(배너) 쓰기 포트의 MyBatis 파일럿 구현을 담았다. notice-mybatis-legacy 작업에서 banner MyBatis 코드를 전부 삭제하고(banner는 JPA 구현 하나로 원복), **notice(공지사항) 레거시 MyBatis 구현(쓰기 + 조회)** 으로 교체했다. 아래 본문은 교체 후 기준으로 다시 썼다. 교체 전후 대조는 [교체 이력](#교체-이력-notice-mybatis-legacy) 절에 있다.
-
 **MyBatis로 구현한 영속 어댑터를 담는 모듈(`java-library`).** 지금은 notice 컨텍스트의 아웃바운드 포트 4개 — 쓰기 `NoticeLoadPort`·`NoticeSavePort`, 조회 `NoticeQueryPort`·`NoticeManagementQueryPort` — 의 MyBatis 구현이 있다. 같은 포트 4개를 `infrastructure:jpa`의 JPA 구현(`NoticeJpaPersistenceAdapter`·`NoticeJpaQueryAdapter`)도 갖고 있다. 두 기술의 구현은 조건 없이 모두 빈으로 등록되고, **`@Primary`가 붙은 JPA 구현이 주입된다** — 이 모듈의 구현은 web-api·admin-api에 함께 뜨지만 쓰이지 않는다.
 
 notice는 예전에 MyBatis로 구현돼 있었고 지금은 JPA만 쓴다. 이 모듈은 그 **레거시 구현을 지우지 않고 남겨 둔 것**이다 — 포트가 바뀌면 컴파일 에러로 드러나 함께 유지되고, 필요하면 `@Primary` 한 줄을 옮겨 되돌릴 수 있다.
@@ -150,19 +148,5 @@ MyBatis 구현은 이 모듈을 의존하는 앱에서만 쓸 수 있다. 지금
 - 모든 클래스는 `com.tastyhouse.infrastructure.mybatis..`에 있고 최상위 클래스는 public이 아니다.
 - `shouldNotDependOnApiModules`: application은 `..port.out..`만 참조한다(유스케이스를 침범하지 않는다).
 - `shouldNotDependOnOtherPersistenceAdapters`: `com.tastyhouse.infrastructure.jpa..`를 의존하지 않는다 — 영속 어댑터 모듈끼리는 서로 모르고, "같은 포트의 JPA 구현과 MyBatis 구현은 @Primary로만 갈린다". 이 모듈의 클래스패스에 jpa 모듈이 없어 지금은 위반이 컴파일조차 안 되지만, 의존이 추가되는 회귀를 막는 방어선이라 지우지 않는다.
-- `queryShouldNotDependOnDomain` (notice-mybatis-legacy 신설): `..query..`는 `com.tastyhouse.domain..`을 의존하지 않는다 — 조회 어댑터는 domain-free 읽기 계약만 구현하고, 도메인 모델을 쓰는 것은 영속 어댑터(`XxxMyBatisPersistenceAdapter`)뿐이다. jpa 모듈의 같은 규칙과 짝이다.
-- `persistenceShouldNotDependOnQuery` (notice-mybatis-legacy 신설): `..persistence..`는 `..query..`를 의존하지 않는다 — write 어댑터는 read model을 의존하지 않는다(read → write 단방향).
-
-## 교체 이력 (notice-mybatis-legacy)
-
-| 항목 | before (banner 파일럿) | after (notice 레거시) |
-|---|---|---|
-| 구현 대상 포트 | `BannerLoadPort`·`BannerSavePort` (쓰기 2개) | `NoticeLoadPort`·`NoticeSavePort`·`NoticeQueryPort`·`NoticeManagementQueryPort` (쓰기 2개 + 조회 2개) |
-| 패키지 | `mybatis.banner` (쓰기만 있어 나누지 않음) | `mybatis.notice.persistence` / `mybatis.notice.query` |
-| 클래스 | `BannerMyBatisPersistenceAdapter`·`BannerMyBatisMapper`·`BannerRow`·`BannerWriteRow`·`BannerRowMapper` | 위 [패키지 구조](#패키지-구조)의 7개 |
-| XML | `mapper/banner/BannerMyBatisMapper.xml` | `mapper/notice/NoticeMyBatisMapper.xml`·`mapper/notice/NoticeQueryMyBatisMapper.xml` |
-| JPA 짝 | `BannerJpaPersistenceAdapter`(`@Primary`) | `NoticeJpaPersistenceAdapter`·`NoticeJpaQueryAdapter`(둘 다 `@Primary`). banner JPA는 `BannerPersistenceAdapter`로 이름을 되돌리고 `@Primary`를 뗐다(구현이 하나라 한정어가 필요 없다) |
-| 의존 앱 | admin-api | web-api·admin-api |
-| 가드 | 등록 테스트 1개, `LayerRulesTest` 2규칙 | 등록 테스트 2개, XML 파싱 테스트 2개, 패턴 테스트 1개, `LayerRulesTest` 4규칙 |
-
-banner 파일럿 시절의 이전 이력(`persistence.banner.write.provider` 키로 하나만 등록하던 방식 → banner-write-primary에서 `@Primary`로 전환)은 `docs/tasks/README.md`의 `banner-write-provider-switch`·`banner-write-primary` 행에 있다. 동작 원리(조건 없이 둘 다 등록, `@Primary`가 주입 대상을 고름)는 그대로 이어받았다.
+- `queryShouldNotDependOnDomain`: `..query..`는 `com.tastyhouse.domain..`을 의존하지 않는다 — 조회 어댑터는 domain-free 읽기 계약만 구현하고, 도메인 모델을 쓰는 것은 영속 어댑터(`XxxMyBatisPersistenceAdapter`)뿐이다. jpa 모듈의 같은 규칙과 짝이다.
+- `persistenceShouldNotDependOnQuery`: `..persistence..`는 `..query..`를 의존하지 않는다 — write 어댑터는 read model을 의존하지 않는다(read → write 단방향).

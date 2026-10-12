@@ -16,11 +16,11 @@ com.tastyhouse.infrastructure.firebase/
 
 ## 어느 앱이 의존하는가
 
-**앱은 이 모듈을 직접 의존하지 않는다 (챕터 03 개정).** 스타터 `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 선언하고, 4개 앱(web-api·admin-api·ceo-api·batch-module)은 그 스타터 한 줄(`runtimeOnly project(':infrastructure:file-storage')`)만 갖는다 — 앱은 "파일을 저장한다"까지만 알고 "Firebase로"는 모른다. 이 모듈은 스타터를 통해 4개 앱의 `runtimeClasspath`에 전이로 실린다(챕터 02에서 `implementation` → `runtimeOnly`로 강등된 뒤, 챕터 03에서 선언 위치가 앱에서 스타터로 옮겨간 것이다). 클래스패스에 실리면 4앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다(~~`FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록~~ — 번복됨, imports 제거). **분리된 6개 벤더·채널 모듈 중 결과적으로 전 앱에 실리는 유일한 모듈이다** — 파일 업로드는 네 앱 모두 필요하기 때문이며, 나머지는 web(oauth·payment·mail·javamail·sms·solapi)이나 batch(bbq·admdongkor) 전용이다. 벤더 전환(→ S3)은 이 모듈이 아니라 스타터에서 한다(`../file-storage/AGENTS.md`).
+**앱은 이 모듈을 직접 의존하지 않는다.** 스타터 `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 선언하고, 4개 앱(web-api·admin-api·ceo-api·batch-module)은 그 스타터 한 줄(`runtimeOnly project(':infrastructure:file-storage')`)만 갖는다 — 앱은 "파일을 저장한다"까지만 알고 "Firebase로"는 모른다. 이 모듈은 스타터를 통해 4개 앱의 `runtimeClasspath`에 전이로 실린다. 클래스패스에 실리면 4앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다. **벤더·채널 모듈 중 결과적으로 전 앱에 실리는 유일한 모듈이다** — 파일 업로드는 네 앱 모두 필요하기 때문이며, 나머지는 web(oauth·payment·mail·javamail·sms·solapi)이나 batch(bbq·admdongkor) 전용이다. 벤더 전환(→ S3)은 이 모듈이 아니라 스타터에서 한다(`../file-storage/AGENTS.md`). ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
 
 ## 진입 설정과 스캔 범위
 
-`FirebaseModuleConfig`(`@Configuration(proxyBeanMethods = false)`)가 `@EnableConfigurationProperties(FirebaseStorageProperties.class)`만 갖고, 빈 스캔은 4앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure`가 한다. **(번복됨 — imports 제거)** ~~`FirebaseModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration`, `AutoConfiguration.imports`로 자기 등록)이 `@ComponentScan("com.tastyhouse.infrastructure.firebase")` + `@EnableConfigurationProperties(...)`를 갖는다~~. `@ConfigurationPropertiesScan`을 쓰지 않고 Properties record를 명시 등록하는 것은 이 저장소의 기존 방침이다.
+`FirebaseModuleConfig`(`@Configuration(proxyBeanMethods = false)`)가 `@EnableConfigurationProperties(FirebaseStorageProperties.class)`만 갖고, 빈 스캔은 4앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure`가 한다. `@ConfigurationPropertiesScan`을 쓰지 않고 Properties record를 명시 등록하는 것은 이 저장소의 기존 방침이다.
 
 **`@ConditionalOnProperty(name = "file.provider", havingValue = "firebase")`는 `FirebaseFileStorage`·`FirebaseStorageConfig` 두 구현 클래스에 붙어 있고 진입 설정에는 없다.** 따라서 이 모듈이 클래스패스에 있더라도 `file.provider`가 `firebase`가 아니면 빈이 등록되지 않는다 — 그때는 다른 `FileStoragePort` 구현(S3)이 등록돼 있어야 하며, 구현이 하나도 없으면 `FileStoragePort`를 주입받는 persistence 빈(`FileUrlResolver`·`FileDomainConfig`)이 그 빈을 찾지 못해 **기동 시** 실패한다. 구현은 `file.provider`로 배타 선택되므로 `FileStoragePort` 빈은 항상 하나다.
 
@@ -49,7 +49,7 @@ file:
 ### Internal
 - `application` (implementation) — 구현하는 포트 `FileStoragePort`(`com.tastyhouse.application.file.port.out`). **내부 의존은 이것 하나뿐이다.**
 
-`FirebaseFileStorage#delete`는 (구 단일 `ErrorCode`의) `FILE_DELETE_FAILED`를 던지는 대신 `FileDeleteResult`(성공/실패 + cause)를 반환한다 — 실패를 예외로 전파하지 않고 결과 레코드로 표현하므로, 이 모듈은 `domain`의 `BusinessException`/에러코드를 참조하지 않는다. 다만 지금 `delete()`를 호출하는 소비처가 없어 실패를 번역하는 호출부 자체가 아직 없다. **(번복됨 — 에러코드 모듈 분할)** `FILE_DELETE_FAILED` 상수는 단일 `ErrorCode`와 함께 삭제돼 어느 에러코드 enum에도 남아 있지 않다.
+`FirebaseFileStorage#delete`는 예외를 던지는 대신 `FileDeleteResult`(성공/실패 + cause)를 반환한다 — 실패를 예외로 전파하지 않고 결과 레코드로 표현하므로, 이 모듈은 `BusinessException`/에러코드를 참조하지 않는다. 다만 지금 `delete()`를 호출하는 소비처가 없어 실패를 번역하는 호출부 자체가 아직 없다. `FILE_DELETE_FAILED` 상수는 어느 에러코드 enum에도 없다.
 
 `infrastructure:restclient`(구 `infrastructure:http-client`) 의존은 파일 저장 SPI 삭제와 함께 제거됐다 — 이 모듈은 코어의 SPI도 예외 계약도 쓰지 않는다. 그래서 스타터를 통해 이 모듈만 받는 admin-api·ceo-api의 런타임 클래스패스에 코어(`infrastructure:restclient`)가 딸려 오지 않는다.
 
@@ -59,7 +59,7 @@ file:
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- **빈 배선 (챕터 03 → imports 제거로 개정)**: 이 모듈은 클래스패스에 실리기만 하면 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로(~~`FirebaseModuleAutoConfiguration`이 클래스패스 존재만으로 자동 등록~~), 앱은 스타터 의존 선언(`runtimeOnly project(':infrastructure:file-storage')`)만 하면 되고 `@Import`도, 이 모듈의 직접 선언도 필요 없다 — "배선을 빠뜨려 조용히 무시된다"는 실패 양식 자체가 없다. 다만 `file.provider` 조건은 여전히 살아 있으므로, 의존은 있는데 `file.provider`가 `firebase`도 다른 등록된 구현의 값도 아니면 **기동 시** `FileStoragePort` 빈 부재로 실패한다(주입하는 쪽은 persistence의 `FileDomainConfig`).
+- **빈 배선**: 이 모듈은 클래스패스에 실리기만 하면 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로, 앱은 스타터 의존 선언(`runtimeOnly project(':infrastructure:file-storage')`)만 하면 되고 `@Import`도, 이 모듈의 직접 선언도 필요 없다 — "배선을 빠뜨려 조용히 무시된다"는 실패 양식 자체가 없다. 다만 `file.provider` 조건은 여전히 살아 있으므로, 의존은 있는데 `file.provider`가 `firebase`도 다른 등록된 구현의 값도 아니면 **기동 시** `FileStoragePort` 빈 부재로 실패한다(주입하는 쪽은 persistence의 `FileDomainConfig`).
 - **파일 URL 조립은 이 모듈이 아니라 읽기 경로가 담당한다** — `FirebaseFileStorage#getFileUrl`(`FileStoragePort#getFileUrl` 구현, Firebase 경로 인코딩 + `?alt=media`)을 호출하는 것은 `infrastructure:jpa`(jpa 모듈 분리 전 `infrastructure:persistence`)의 `FileUrlResolver`다. `store`는 상대 경로(예: `2025/02/16/uuid.jpg`)를 반환하고 DB에는 URL이 아니라 그 경로를 저장하므로, `base-url`이 바뀌어도 저장값은 유효하다.
 
 ## 봉인·가드 목록
@@ -72,11 +72,11 @@ file:
 
 서비스 계정 키는 파일 **경로**가 아니라 configtree로 주입된 JSON **내용**(`firebase.service-account` 프로퍼티)을 그대로 읽는다. 경로 기반 로딩(`file:` 상대경로 + `ResourceLoader`)으로 되돌리지 않는다 — 상대경로는 JVM 작업 디렉터리 기준으로 해석되어 **실행 위치마다 성패가 갈렸다**(`gradle -p` 실행 · `java -jar`의 CWD · systemd `WorkingDirectory`). 내용 주입 방식은 CWD와 완전히 무관하며 Kubernetes/Docker secret 마운트 패턴과 코드가 동일하다. 시크릿 디렉터리 규약은 위 "yml — `application-firebase.yml`" 절과 `application-firebase.yml`의 configtree import 선언을 참조한다.
 
-### 자바 패키지 `com.tastyhouse.external.firebase` 봉인
+### 자바 패키지 `com.tastyhouse.infrastructure.firebase` 봉인
 
 **대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/infrastructure/firebase/`
 
-~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 스캔에 걸려 **admin-api·ceo-api·batch-module의 부팅이 깨진다.**~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.firebase`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/firebase/src/test/java/com/tastyhouse/infrastructure/firebase/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.firebase`로도 되돌리지 않는다 — 분리 당시에는 코어 `ExternalModuleAutoConfiguration`의 `com.tastyhouse.external.file` 스캔에 동반 스캔되는 것이 금지 사유였고, 그 스캔이 없어진 지금도 벤더 모듈마다 겹치지 않는 하위 패키지(지금 `com.tastyhouse.infrastructure.firebase` / `com.tastyhouse.infrastructure.aws.s3` — 루트 통일 전 `external.firebase` / `external.aws.s3`)를 소유해 split package를 피하는 구조를 유지하기 위해 이동 금지다.
+이 모듈의 루트는 `com.tastyhouse.infrastructure.firebase`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/firebase/src/test/java/com/tastyhouse/infrastructure/firebase/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.firebase`로도 되돌리지 않는다 — 벤더 모듈마다 겹치지 않는 하위 패키지(`com.tastyhouse.infrastructure.firebase` / `com.tastyhouse.infrastructure.aws.s3`)를 소유해 split package를 피하는 구조를 유지하기 위해 이동 금지다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
 
 ### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
 

@@ -10,7 +10,6 @@ JavaMail(SMTP) 메일 발송 **벤더 모듈**(`java-library`). 포트 `MailSend
 
 ```
 com.tastyhouse.infrastructure.javamail/
-├── ~~JavaMailModuleAutoConfiguration.java  @AutoConfiguration + @ComponentScan(이 패키지)~~ (번복됨 — imports 제거로 삭제. 빈은 앱 ModuleScanConfig의 com.tastyhouse.infrastructure 스캔이 등록)
 └── JavaMailAdapter.java                  MailSenderPort 구현 @ConditionalOnProperty(mail.provider=javamail, matchIfMissing=true)
 ```
 
@@ -22,7 +21,7 @@ com.tastyhouse.infrastructure.javamail/
 
 ## Dependencies
 
-- `web-application` (implementation) — `MailSenderPort`·`MailSendResult` 포트의 소유 모듈. **앱 마커 제거로 `:application-core` → `:web-application`** (메일 발송 포트가 web 전용이라 web 앱 모듈로 옮겨갔다). ~~`domain` (implementation) — `MailSenderPort` 포트 + `BusinessException`·`ErrorCode.MAIL_SEND_FAILED`~~ (02-vendor-ports 이전 기록. 지금 `MAIL_SEND_FAILED`는 `WebErrorCode`이고 `MailVerificationService`가 번역한다 — 지금 `build.gradle`의 프로젝트 의존은 `:web-application` 하나다)
+- `web-application` (implementation) — `MailSenderPort`·`MailSendResult` 포트의 소유 모듈(메일 발송 포트가 web 전용이라 web 앱 모듈에 있다). `MAIL_SEND_FAILED`는 `WebErrorCode`이고 `MailVerificationService`가 번역한다. `build.gradle`의 프로젝트 의존은 `:web-application` 하나다
 - `spring-boot-starter-mail` — `JavaMailSender`. **이 좌표를 클래스패스에 올리는 유일한 모듈이다.**
 - `infrastructure:mail`을 의존하지 않는다 — 발신자 주소는 `@Value("${mail.sender-address}")`로 키만 읽는다(순환 방지, `../mail/AGENTS.md` 봉인 목록)
 
@@ -35,11 +34,11 @@ com.tastyhouse.infrastructure.javamail/
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
 
-### 자바 패키지 `com.tastyhouse.external.javamail` 봉인
+### 자바 패키지 `com.tastyhouse.infrastructure.javamail` 봉인
 
 **대상**: `backend/infrastructure/javamail/src/main/java/com/tastyhouse/infrastructure/javamail/`
 
-`external.mail.javamail`로 되돌리면 채널 모듈 `infrastructure:mail`의 스캔에 동반 스캔된다. ~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.javamail`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/javamail/src/test/java/com/tastyhouse/infrastructure/javamail/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다.
+옛 위치 `external.mail.javamail`로 되돌리지 않는다 — 채널 모듈의 스캔에 동반 스캔된다. 이 모듈의 루트는 `com.tastyhouse.infrastructure.javamail`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/javamail/src/test/java/com/tastyhouse/infrastructure/javamail/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
 
 ### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
 

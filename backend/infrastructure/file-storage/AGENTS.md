@@ -8,7 +8,7 @@
 
 4개 앱(web·admin·ceo·batch)은 파일 저장을 유스케이스 호출로만 쓴다. 컴파일 시점에 어떤 벤더인지 알지 못하고(`runtimeOnly`), 알 이유도 없다. 그런데 챕터 03 이전에는 벤더 선택이 앱마다 **두 곳**(`build.gradle`의 external·firebase 2줄, `application.yml`의 import 2줄)에 드러나 있어 **같은 결정이 8곳에 복제**돼 있었다. 벤더를 바꾸려면 8곳을 고쳐야 했다.
 
-이 모듈이 벤더 구현(`infrastructure:firebase`)을 노출하므로, 앱은 **"파일을 저장한다"** 까지만 알고 **"Firebase로"** 는 모른다. `spring-boot-starter-data-redis`가 Lettuce를 고르는 것과 같은 형태다. 신설 당시에는 코어 SPI(당시 `infrastructure:external`, 현 `infrastructure:restclient`)와 벤더 구현 둘을 묶었으나, 코어 SPI가 삭제되면서(`../restclient/AGENTS.md`의 "과거 판단의 번복 — 파일 저장 SPI 삭제") **조립 대상이 firebase 하나가 됐다** — 벤더 구현이 도메인 포트 `FileStoragePort`를 직접 구현하므로 중간 모듈이 필요 없다.
+이 모듈이 벤더 구현(`infrastructure:firebase`)을 노출하므로, 앱은 **"파일을 저장한다"** 까지만 알고 **"Firebase로"** 는 모른다. `spring-boot-starter-data-redis`가 Lettuce를 고르는 것과 같은 형태다. 조립 대상은 firebase 하나다 — 벤더 구현이 `application-core`의 포트 `FileStoragePort`(`file/port/out`)를 직접 구현하므로 중간 SPI 모듈이 필요 없다(`../restclient/AGENTS.md`의 파일 저장 SPI 삭제 절). ([ADR-0021](../../../docs/adr/0021-file-storage-spi-removal.md))
 
 **조립 대상이 하나여도 이 스타터를 유지한다.** 앱이 firebase를 직접 선언하도록 되돌리면 두 가지를 잃는다.
 
@@ -30,7 +30,7 @@ backend/infrastructure/file-storage/
 
 **중첩 `spring.config.import`**: `application-file-storage.yml`이 다시 `classpath:application-firebase.yml`을 import 한다. config data 파일 안에서 동작하며, `classpath:` 리소스는 다른 jar(firebase)에 있어도 해석된다(분리 전 허브 `application-external.yml`이 같은 방식으로 6개를 import했던 선례). `application-firebase.yml`의 configtree import(`optional:configtree:${SECRETS_DIR}/`)는 그대로 firebase 모듈이 소유한다.
 
-**순환 없음**: file-storage → firebase, firebase → domain. 이 모듈을 의존하는 것은 앱 4개뿐이다. (코어 SPI 삭제 당시 검토한 "SPI를 이 모듈로 옮기는" 대안은 firebase가 이 모듈을 되받아야 해 file-storage ↔ firebase 순환이 되므로 비채택했다 — `../restclient/AGENTS.md`의 [과거 판단의 번복](../restclient/AGENTS.md#과거-판단의-번복--파일-저장-spi-삭제) 절.)
+**순환 없음**: file-storage → firebase, firebase → application-core. 이 모듈을 의존하는 것은 앱 4개뿐이다. SPI를 이 모듈로 옮기는 안은 firebase가 이 모듈을 되받아야 해 file-storage ↔ firebase 순환이 되므로 채택하지 않는다(`../restclient/AGENTS.md`의 파일 저장 SPI 삭제 절).
 
 ## 벤더 전환 절차 (Firebase → S3)
 
@@ -50,9 +50,9 @@ backend/infrastructure/file-storage/
 
 ## ⚠️ 이 모듈에 코드를 넣지 않는다
 
-**(번복됨 — chunk 02-vendor-ports)** 과거에는 메일·SMS 채널 모듈(`infrastructure:mail`·`infrastructure:sms`)이 `MailDomainConfig`/`SmsDomainConfig` 코드를 갖고 이 모듈과 다른 개념이었다 — 그쪽은 포트 구현이 web에만 있어 도메인 서비스 빈을 persistence에 둘 수 없는 채널이고, 파일 저장은 `FileDomainConfig`가 persistence에 남아 이 모듈에 둘 코드가 없다는 것이 그 근거였다(`../mail/AGENTS.md`의 "채널 모듈과 파일 저장 스타터의 차이"). **지금은 `FileDomainConfig`·`MailDomainConfig`·`SmsDomainConfig` 셋 다 삭제됐다** — 도메인 서비스(`FileUploadService`·`MailVerificationService`·`SmsVerificationService`)가 전부 유스케이스 계층으로 재분류되어 `application`의 마커 등록 설정(`FileServiceConfig`·`MailServiceConfig`·`SmsServiceConfig` — **이 세 설정도 이후 application `*ServiceConfig` 삭제로 없어졌고, 지금은 서비스 클래스의 마커(`FileUploadService`는 `@SharedApp`, 나머지 둘은 `@WebApp`)가 등록한다**)이 대신하므로, 파일·메일·SMS 세 채널이 이제 같은 형태(코드 없는 스타터)로 수렴했다.
+**`FileDomainConfig`·`MailDomainConfig`·`SmsDomainConfig`는 없다** — 도메인 서비스(`FileUploadService`·`MailVerificationService`·`SmsVerificationService`)는 유스케이스 계층 클래스이고 `@Service`로 등록된다(`FileUploadService`는 코어 `application`, 나머지 둘은 `web-application`). 그래서 파일·메일·SMS 세 채널이 같은 형태(코드 없는 스타터)다. ([ADR-0036](../../../docs/adr/0036-app-marker-removal.md))
 
-**자바 소스를 추가하지 않는다.** 이 모듈의 존재 이유는 "무엇을 조립하는가"를 한 파일에서 읽히게 하는 것이고, 코드가 들어오는 순간 조립 선언과 구현이 섞여 그 가독성이 사라진다. 또한 이 모듈은 설정 클래스도 `AutoConfiguration.imports`도 갖지 않는다 — 빈 등록은 4앱 부트스트랩 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 조립 대상(firebase)의 클래스를 잡아 수행하고, firebase의 `FirebaseModuleConfig`가 Properties만 등록한다(~~조립 대상인 firebase의 auto-configuration이 수행한다~~ — 번복됨, imports 제거).
+**자바 소스를 추가하지 않는다.** 이 모듈의 존재 이유는 "무엇을 조립하는가"를 한 파일에서 읽히게 하는 것이고, 코드가 들어오는 순간 조립 선언과 구현이 섞여 그 가독성이 사라진다. 또한 이 모듈은 설정 클래스도 `AutoConfiguration.imports`도 갖지 않는다 — 빈 등록은 4앱 부트스트랩 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 조립 대상(firebase)의 클래스를 잡아 수행하고, firebase의 `FirebaseModuleConfig`가 Properties만 등록한다.
 
 파일 저장 관련 코드가 필요해지면 소속은 둘 중 하나다.
 

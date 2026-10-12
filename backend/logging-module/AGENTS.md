@@ -13,14 +13,10 @@ com.tastyhouse.logging/
 
 - `ApiLoggingFilter`는 `@Order(Ordered.HIGHEST_PRECEDENCE)`로 필터 체인 최상단에서 동작하며, `requestId`를 MDC에 등록해 같은 요청에서 발생하는 모든 로그(p6spy 포함)에 자동으로 첨부되게 한다.
 - `ApiLoggingAspect`는 `@RestController`가 붙은 모든 클래스에 AOP로 적용되며, Filter 레이어에서 처리되는 401/403 등은 컨트롤러에 도달하지 않으므로 별도 로깅되지 않는다.
-- ~~**`SensitiveFieldMasker`는 미배선 상태이며, 즉 마스킹이 실제로는 전혀 동작하지 않는다.**~~ **(번복됨 — `@SuppressWarnings` 지양 규칙으로 배선)** `ApiLoggingAspect`가 `SensitiveFieldMasker`를 생성자 주입받아, `[BODY]` 로그의 요청 바디를 **`mask(...)`로 변환한 문자열로 출력한다.** `SENSITIVE_FIELDS`에 있는 필드는 `***`로 바뀐다.
-
-  | 항목 | before | after |
-  |---|---|---|
-  | 배선 | 어디서도 주입·호출되지 않음, 클래스에 `@SuppressWarnings("unused")` | `ApiLoggingAspect#logControllerExecution`이 각 바디를 `sensitiveFieldMasker.mask(...)`로 변환 |
-  | `[BODY]` 로그 형식 | record `toString()` — `LoginRequest[username=a, password=b]` | 마스킹된 JSON — `{"username":"a","password":"***"}` (**동작 변경**: 로그 내용만 바뀌고 요청 처리는 불변) |
-  | 배열 안의 객체 | 재귀하지 않음(배열 원소의 민감 필드가 그대로 남음) | 배열 원소도 재귀해 마스킹 |
-  | 직렬화 실패 | — | 요청은 막지 않고 바디 자리에 `[직렬화 실패]`를 남긴다(로깅이 요청을 막지 않는다는 불변 유지) |
+- **`ApiLoggingAspect`가 `SensitiveFieldMasker`를 생성자 주입받아, `[BODY]` 로그의 요청 바디를 `mask(...)`로 변환한 문자열로 출력한다.** `SENSITIVE_FIELDS`에 있는 필드는 `***`로 바뀐다([ADR-0029](../../docs/adr/0029-no-suppress-warnings.md)).
+  - `[BODY]` 로그 형식은 마스킹된 JSON이다 — 예: `{"username":"a","password":"***"}`.
+  - 배열 원소도 재귀해 마스킹한다.
+  - 직렬화에 실패하면 요청은 막지 않고 바디 자리에 `[직렬화 실패]`를 남긴다(로깅이 요청을 막지 않는다는 불변).
 
   마스킹 규칙은 `logging-module/src/test/java/com/tastyhouse/logging/SensitiveFieldMaskerTest.java`가 검사한다. 마스킹 대상 필드명을 추가할 때는 `SENSITIVE_FIELDS`와 이 테스트를 함께 고친다.
 
@@ -40,10 +36,10 @@ dependencies {
 
 ## 규칙
 
-- **패키지 루트는 `com.tastyhouse.logging`** — 4앱 부트스트랩의 중첩 `ModuleScanConfig`가 이 패키지를 문자열로 스캔해 `ApiLoggingFilter`/`ApiLoggingAspect`를 빈으로 등록한다. 이 모듈에는 설정 클래스가 없다. **(번복됨 — imports 제거)** ~~`LoggingModuleAutoConfiguration`(챕터 02 — `@AutoConfiguration` + `AutoConfiguration.imports`로 자기 등록, 조건 없음)이 이 패키지를 `@ComponentScan`~~ — 그 클래스와 imports 파일은 삭제됐다. **과거에는 `web-api`/`admin-api`/`ceo-api`/`batch-module`의 `scanBasePackages`(admin/ceo는 `@ComponentScan basePackages`에도)에 이 패키지를 직접 등록해야 했으나, auto-configuration 전환으로 그 등록이 필요 없어졌다** — ~~`runtimeOnly` 의존 선언만으로 발화한다~~ **(번복됨 — imports 제거)** 지금은 `runtimeOnly` 의존 선언 + 앱 `ModuleScanConfig`의 `"com.tastyhouse.logging"` 한 항목으로 등록된다(4앱 전부 — batch-module도 의도된 동작). 문자열이라 `runtimeOnly`가 유지된다.
+- **패키지 루트는 `com.tastyhouse.logging`** — 4앱 부트스트랩의 중첩 `ModuleScanConfig`가 이 패키지를 문자열로 스캔해 `ApiLoggingFilter`/`ApiLoggingAspect`를 빈으로 등록한다. 이 모듈에는 설정 클래스가 없다. 앱은 `runtimeOnly` 의존 선언 + `ModuleScanConfig`의 `"com.tastyhouse.logging"` 한 항목으로 이 모듈을 쓴다(4앱 전부 — batch-module도 의도된 동작). 문자열이라 `runtimeOnly`가 유지된다.
 - **실행 가능한 애플리케이션이 아니다**: `bootJar`는 비활성화하고 일반 `jar`만 생성한다(`domain`/`infrastructure:persistence`/`infrastructure:restclient`를 비롯한 외부 연동 모듈 7개/`security-module`과 동일한 라이브러리 모듈 패턴).
 - **바디 로깅은 DEBUG 레벨에서만 활성화**된다 — `com.tastyhouse.logging` 레벨이 `DEBUG`일 때만 요청/응답 바디가 로깅된다. 운영 환경에서 바디가 로그에 그대로 남지 않도록 하는 안전장치이므로, 로그 레벨 설정을 변경할 때 이 전제를 깨지 않도록 주의한다. 이 레벨은 아래 `application-logging.yml`에서 `${API_BODY_LOG_LEVEL:DEBUG}`로 환경변수화되어 있어, 운영에서는 `API_BODY_LOG_LEVEL=INFO`만 지정하면 코드 수정·재빌드 없이 바디 로깅을 끌 수 있다(로컬 기본값은 DEBUG).
-- **민감 필드 마스킹 목록(`SensitiveFieldMasker.SENSITIVE_FIELDS`)은 신규 민감 필드 추가 시 함께 갱신**한다. ~~마스킹이 실사용에 연결되지 않은 현재 상태에서 목록만 갱신해도 즉시 효과는 없으므로, 마스킹을 실제로 적용하려면 `ApiLoggingAspect`의 활성화가 선행되어야 한다.~~ **(번복됨)** 이제 `ApiLoggingAspect`가 마스킹을 거쳐 `[BODY]`를 찍으므로 목록 갱신이 즉시 반영된다.
+- **민감 필드 마스킹 목록(`SensitiveFieldMasker.SENSITIVE_FIELDS`)은 신규 민감 필드 추가 시 함께 갱신**한다. `ApiLoggingAspect`가 마스킹을 거쳐 `[BODY]`를 찍으므로 목록 갱신이 즉시 반영된다.
 - **`domain` 의존 없음**: 이 모듈은 순수 횡단 관심사(로깅/필터/AOP)만 다루며 도메인 모델이나 application 서비스에 의존하지 않는다(사내 모듈 의존이 0인 유일한 모듈).
 
 ## 로깅 설정 소유 (`application-logging.yml`)
@@ -129,13 +125,10 @@ dependencies {
 않는다** — 이 모듈은 `api-common-module`을 의존하지 않고, 의존을 추가하면 방향이 뒤집힌다(로깅은 api
 계층 아래에 있는 횡단 관심사다). 중복을 감수하는 쪽이 의도된 선택이다.
 
-### `LoggingModuleAutoConfiguration`을 끄는 방법
-
-> **(번복됨 — imports 제거)** `LoggingModuleAutoConfiguration`은 삭제됐고 `spring.autoconfigure.exclude`도 더는 통하지 않는다. **지금 끄는 방법은 그 앱 부트스트랩의 중첩 `ModuleScanConfig`에서 `"com.tastyhouse.logging"`을 빼고, 그 앱 `ApplicationLayerScanConfigTest`의 기대 목록도 함께 고치는 것**이다. 제목은 앵커 보존을 위해 그대로 둔다.
+### 이 모듈을 특정 앱에서 끄는 방법
 
 **대상**: 각 앱 부트스트랩(`WebApiApplication`·`AdminApiApplication`·`CeoApiApplication`·`BatchApplication`) → 중첩 `ModuleScanConfig`
 
-~~이 모듈이 앱의 runtimeClasspath에 있으면 **자동으로 활성화되며**(조건 없음), 앱은 `runtimeOnly`로만
-의존한다(4개 앱 전부). 끄려면 `spring.autoconfigure.exclude`를 쓴다.~~
+그 앱 부트스트랩의 중첩 `ModuleScanConfig`에서 `"com.tastyhouse.logging"`을 빼고, 그 앱 `ApplicationLayerScanConfigTest`의 기대 목록도 함께 고친다. 이 모듈에는 자기 등록 설정이 없으므로 `spring.autoconfigure.exclude`로는 끌 수 없다.
 
 <!-- MANUAL: -->

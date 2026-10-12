@@ -2,40 +2,24 @@
 
 # restclient (코어 어댑터 패키지)
 
-`infrastructure:restclient` 코어 모듈의 자바 패키지 루트 `com.tastyhouse.infrastructure.restclient`(구 `com.tastyhouse.external` → `com.tastyhouse.restclient`). **이 디렉터리에는 클래스 3개만 있고 하위 패키지가 없다** — ~~이 디렉터리에는 `config/`만 남는다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** 하나 남아 있던 `config/` 하위 패키지는 루트로 합쳐졌다. 7모듈 분리(챕터 01) 직후에는 `file/`까지 있었으나 파일 저장 SPI 삭제로 사라졌고(모듈 문서의 "과거 판단의 번복 — 파일 저장 SPI 삭제" 절), 이후 `exception/`도 완전히 해체됐다(모듈 문서의 "예외 계약 해체 — 도메인 `ErrorCode`로 흡수" 절). 모듈 리네임(`infrastructure:external` → `infrastructure:restclient`)과 함께 이 코어 패키지도 `com.tastyhouse.restclient`로 옮겨졌다 — ~~벤더 9모듈의 패키지(`com.tastyhouse.external.*`)는 불변이다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** 이후 코어(`com.tastyhouse.restclient.config` → `com.tastyhouse.infrastructure.restclient`)와 벤더 13모듈(`com.tastyhouse.external.*` → `com.tastyhouse.infrastructure.*`)이 함께 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}` 루트로 정렬됐다. 모듈 차원의 배경·분리 근거는 `../../../../../../../AGENTS.md`(= `infrastructure/restclient/AGENTS.md`) 참조.
+`infrastructure:restclient` 코어 모듈의 자바 패키지 루트 `com.tastyhouse.infrastructure.restclient`. **이 디렉터리에는 클래스 2개(`RestClientConfig`·`HttpRequestFactories`)만 있고 하위 패키지가 없다.** 파일 저장 SPI(`file/`)와 예외 계약(`exception/`)은 두지 않는다 — 그 이유는 모듈 문서의 "파일 저장 SPI를 두지 않는 이유"·"예외·에러코드를 두지 않는 이유" 절. 모듈 차원의 배경은 `../../../../../../../AGENTS.md`(= `infrastructure/restclient/AGENTS.md`) 참조.
 
 ## Purpose
-외부 연동 모듈들이 공통으로 쓰는 `RestClient.Builder` customizer(요청 팩토리 타임아웃)를 소유하는 순수 HTTP 코어다. 포트 `FileStoragePort`(`application.file.port.out` — chunk 02-vendor-ports로 `domain`에서 이관)는 이 패키지가 아니라 벤더 모듈(`infrastructure:firebase`의 `FirebaseFileStorage`, `infrastructure:aws-s3`의 `S3FileStorage`)이 직접 구현하고, 외부 연동 실패 코드는 이 패키지가 아니라 그 실패를 번역하는 앱 모듈의 `WebErrorCode`·`BatchErrorCode`가 소유한다(어댑터는 예외를 던지지 않고 결과 record를 돌려준다 — 에러코드 모듈 분할).
+외부 연동 모듈들이 공통으로 쓰는 `RestClient.Builder` customizer(요청 팩토리 타임아웃)를 소유하는 순수 HTTP 코어다. 포트 `FileStoragePort`(`application.file.port.out`)는 이 패키지가 아니라 벤더 모듈(`infrastructure:firebase`의 `FirebaseFileStorage`, `infrastructure:aws-s3`의 `S3FileStorage`)이 직접 구현하고, 외부 연동 실패 코드는 이 패키지가 아니라 그 실패를 번역하는 앱 모듈의 `WebErrorCode`·`BatchErrorCode`가 소유한다(어댑터는 예외를 던지지 않고 결과 record를 돌려준다).
 
 ## Packages
 | Package | Purpose |
 |---------|---------|
-| (루트) `com.tastyhouse.infrastructure.restclient` — 과거 `config/` | ~~`RestClientModuleAutoConfiguration`(진입 설정 — 구 `ExternalModuleAutoConfiguration` → `HttpClientModuleAutoConfiguration`을 거쳐 개명, `@AutoConfiguration`)~~ **(번복됨 — imports 제거로 삭제. 이 패키지는 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 등록한다)** · `RestClientConfig`(`RestClientCustomizer` 빈 — 모든 Boot `RestClient.Builder`에 타임아웃 적용) · `HttpRequestFactories`(`withTimeouts(connect, read)` — 소켓 read timeout이 본문에도 적용되는 `SimpleClientHttpRequestFactory`를 만드는 유일한 지점. per-client override도 이것을 쓴다) |
+| (루트) `com.tastyhouse.infrastructure.restclient` | `RestClientConfig`(`RestClientCustomizer` 빈 — 모든 Boot `RestClient.Builder`에 타임아웃 적용) · `HttpRequestFactories`(`withTimeouts(connect, read)` — 소켓 read timeout이 본문에도 적용되는 `SimpleClientHttpRequestFactory`를 만드는 유일한 지점. per-client override도 이것을 쓴다). 진입 설정 클래스는 없고, 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 등록한다 |
 
-## 다른 모듈로 이동한 패키지
-아래는 과거 이 디렉터리에 있었고, 지금은 각 모듈이 소유한다. 패키지 이름이 바뀐 것은 표에 별도 표시했다(사유는 모듈 문서의 "벤더 패키지를 `external.file` 아래에 두지 않았던 이유" 절). 이 표의 대상은 전부 벤더 패키지(`com.tastyhouse.external.*`)이며, 코어 자신의 `config`가 `com.tastyhouse.restclient`로 옮겨간 것과는 별개다. 표의 `external.*` 이름은 각 시점의 이름이다 — 지금은 전부 `com.tastyhouse.infrastructure.*`로 옮겨졌다(infrastructure 패키지 루트 통일. 예: `external.kakao.oauth` → `com.tastyhouse.infrastructure.kakao.oauth`).
-
-| 과거 패키지 | 현재 |
-|---|---|
-| `oauth/{kakao,naver,apple,facebook}` | → `infrastructure:oauth` (패키지 불변) → 채널·벤더 분할(2026-09-27)로 `infrastructure:{kakao,naver,apple,facebook}-oauth` (패키지 `com.tastyhouse.external.{kakao,naver,apple,facebook}.oauth`로 **변경** — `infrastructure:oauth`는 코드 없는 스타터가 됐다) |
-| `payment/toss` | → `infrastructure:payment` (패키지 불변) → 채널·벤더 분할로 `infrastructure:tosspayments` (패키지 `com.tastyhouse.external.tosspayments`로 **변경**) |
-| `mail/`, `mail/javamail`, `sms/`, `sms/solapi` | → `infrastructure:messaging` (패키지 불변) → 이후 4분할로 `infrastructure:mail`(`external.mail`)·`javamail`(`external.javamail`)·`sms`(`external.sms`)·`solapi`(`external.solapi`) |
-| `mail/ses` | → `infrastructure:aws-ses` (`external.aws.ses`로 **변경**) |
-| `sms/sns` | → `infrastructure:aws-sns` (`external.aws.sns`로 **변경**) |
-| `file/firebase` | → `infrastructure:firebase` (`external.firebase`로 **변경**) |
-| `file/s3` | → `infrastructure:aws-s3` (`external.aws.s3`로 **변경**) |
-| `crawling/bbq`, `region/` | → `infrastructure:crawling` (패키지 불변) → 이후 2분할로 `infrastructure:bbq`(`external.bbq`)·`infrastructure:admdongkor`(`external.admdongkor`) |
-| `file/RemoteImageDownloader` | → `infrastructure:crawling` (`external.crawling`으로 **변경**) → 이후 `infrastructure:bbq`(`external.bbq`) |
-| `file/ByteArrayMultipartFile` | **삭제** — 당시 전략 인터페이스 `FileStorageStrategy`가 `byte[]`를 받게 되어 래퍼가 불필요해졌다 |
-| `file/{FileStorageStrategy,FileStoragePortAdapter,FileStorageProperties}` | **삭제 (벤더 어댑터가 `FileStoragePort`를 직접 구현)** — 전략 시그니처가 도메인 포트와 같아져 위임만 남았고, Properties는 주입처 0건이었다 |
-| `exception/{ExternalApiException,ExternalApiErrorCode}` | **삭제 (5개 상수는 도메인 `ErrorCode`로 이관됐다가 에러코드 모듈 분할로 `WebErrorCode`·`BatchErrorCode`가 소유, 어댑터는 결과 record를 돌려주고 application이 번역한다)** — 상세는 모듈 문서의 "예외 계약 해체" 절 |
+외부 연동 기능별 소유 모듈은 모듈 문서의 "외부 연동 모듈 지도" 표를 본다.
 
 ## For AI Agents
 
 ### Working In This Directory
-- **포트 구현 시 프레임워크 타입을 누출하지 않는다**: 도메인 포트(`FileStoragePort` 등)는 프레임워크-프리이므로 `MultipartFile`·SDK 타입·`RestClient` 타입이 시그니처에 등장하면 안 된다. 과거 코어의 파일 저장 전략이 `byte[]`로 바뀌며 이 모듈의 `spring-web` 의존이 사라졌다가(이후 RestClient 전환으로 `spring-web`이 코어의 정식 `api` 의존으로 되돌아왔다) 그 원칙 자체는 바뀌지 않았다.
-- **파일 저장 코드를 이 디렉터리에 되살리지 않는다**: 벤더 무관 계약은 `application`의 포트 `FileStoragePort`(`application.file.port.out`)가 이미 맡고, 벤더 구현은 별도 모듈(`infrastructure:{벤더}`)이 자기 패키지(`com.tastyhouse.infrastructure.{벤더}`)에서 그 포트를 직접 구현한다. 그 포트와 동형인 전략 인터페이스·위임 어댑터를 다시 두지 않는다.
-- **예외·에러코드를 이 디렉터리에 되살리지 않는다**: 새 예외 타입을 만들어 전역 핸들러에 전용 `@ExceptionHandler`를 추가하지 않는다(`BusinessException` 단일 계층 규칙). 외부 연동 실패 코드가 새로 필요하면 이 패키지가 아니라 그 실패를 번역하는 application 모듈의 에러코드 enum(`backend/web-application/src/main/java/com/tastyhouse/application/shared/exception/WebErrorCode.java` 등)에 추가한다. **(번복됨 — 에러코드 모듈 분할)** 과거 위치였던 단일 도메인 `ErrorCode`는 삭제됐다.
+- **포트 구현 시 프레임워크 타입을 누출하지 않는다**: 포트(`FileStoragePort` 등)는 프레임워크-프리이므로 `MultipartFile`·SDK 타입·`RestClient` 타입이 시그니처에 등장하면 안 된다.
+- **파일 저장 코드를 이 디렉터리에 두지 않는다**: 벤더 무관 계약은 `application`의 포트 `FileStoragePort`(`application.file.port.out`)가 맡고, 벤더 구현은 별도 모듈(`infrastructure:{벤더}`)이 자기 패키지(`com.tastyhouse.infrastructure.{벤더}`)에서 그 포트를 직접 구현한다. 그 포트와 동형인 전략 인터페이스·위임 어댑터를 두지 않는다.
+- **예외·에러코드를 이 디렉터리에 두지 않는다**: 새 예외 타입을 만들어 전역 핸들러에 전용 `@ExceptionHandler`를 추가하지 않는다. 외부 연동 실패 코드가 새로 필요하면 이 패키지가 아니라 그 실패를 번역하는 application 모듈의 에러코드 enum(`backend/web-application/src/main/java/com/tastyhouse/application/shared/exception/WebErrorCode.java` 등)에 추가한다.
 - **자격증명은 코드에 하드코딩하지 않는다**: 환경변수(`.env`) 또는 configtree 시크릿(`SECRETS_DIR`)으로 주입한다.
 
 ### Testing Requirements
@@ -48,7 +32,7 @@
 ## Dependencies
 
 ### Internal
-- **없음.** 예외 계약 해체로 이 모듈은 이제 `domain`을 포함해 어떤 내부 모듈도 의존하지 않는다(`file/port/FileStoragePort`는 벤더 모듈이 직접 구현한다).
+- **없음.** 이 모듈은 `domain`을 포함해 어떤 내부 모듈도 의존하지 않는다(`FileStoragePort`는 벤더 모듈이 직접 구현한다).
 
 ### External
 - `spring-web`(`api`) + `spring-boot-starter-json`(`api`). **webflux·reactor-netty는 없다** — AWS SDK·Firebase Admin·jjwt·starter-mail은 전부 분리된 모듈이 소유한다.
@@ -57,11 +41,11 @@
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
 
-### 벤더 패키지(`com.tastyhouse.external..`)를 `com.tastyhouse.infrastructure` 아래로 옮기지 않는다
+### main 클래스는 전부 `com.tastyhouse.infrastructure.restclient` 아래에 둔다
 
 **대상**: `backend/infrastructure/restclient/src/test/java/com/tastyhouse/infrastructure/restclient/architecture/PackageRootTest.java` → `shouldResideInModuleRootPackage`
 
-~~`infrastructure:persistence`의 `PersistenceModuleAutoConfiguration`이 `@ComponentScan("com.tastyhouse.infrastructure")`로 그 트리를 통째 스캔하므로, 벤더 패키지를 그 아래로 옮기면 **의존하지 않은 어댑터까지 스캔 대상이 되어 admin-api·ceo-api·batch-module의 부팅이 깨진다.** 코어만 `com.tastyhouse.restclient`로 옮긴 것은 코어에 그 스캔 트리에 걸리는 벤더 빈이 없기 때문이며, 벤더 9모듈에는 이 제약이 그대로 적용된다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌고, 코어와 벤더가 모두 `com.tastyhouse.infrastructure.*`로 옮겨졌다. 지금 이 디렉터리의 규칙은 반대 방향이다 — **이 모듈의 main 클래스는 전부 `com.tastyhouse.infrastructure.restclient` 아래에 둔다**(`PackageRootTest`가 강제, ArchUnit은 `testImplementation`으로만 선언). 하위 패키지를 새로 만들 수는 있지만 루트 밖(`com.tastyhouse.restclient` 등)으로 되돌리지 않는다. 모듈 차원의 서술은 `../../../../../../../AGENTS.md`.
+이 모듈의 main 클래스는 전부 `com.tastyhouse.infrastructure.restclient` 아래에 둔다(`PackageRootTest`가 강제, ArchUnit은 `testImplementation`으로만 선언). 하위 패키지를 새로 만들 수는 있지만 루트 밖(`com.tastyhouse.restclient` 등)에 두지 않는다. 모듈 차원의 서술은 `../../../../../../../AGENTS.md`.
 
 ### 최상위 클래스는 `HttpRequestFactories`만 public
 
@@ -77,4 +61,4 @@
 
 **대상**: 이 디렉터리(`com.tastyhouse.infrastructure.restclient`) — `exception/` 부재
 
-과거 `exception/ExternalApiException`은 `BusinessException` 상속이라 각 api 모듈의 기존 `BusinessException` 핸들러가 그대로 처리했다. 독립 예외였던 시절에는 admin-api·ceo-api에 전용 핸들러가 없어 **502로 의도된 외부 연동 실패가 `Exception` 폴백을 타고 500으로 나가는 결함**이 있었다. 이후 그 예외 자체가 생성자 위임만 하는 빈 서브클래스로 확인돼 완전히 해체됐고, 5개 상수(과거 SMS·Mail·Region 세 갈래)는 도메인 `ErrorCode`로 이관됐다(이후 에러코드 모듈 분할로 `WebErrorCode`·`BatchErrorCode`가 소유). 이력 전체는 `backend/CLAUDE.md`의 "예외·에러코드 소유 규칙" 절 참조.
+외부 연동 실패는 채널 발송 실패이지 HTTP 클라이언트 오류가 아니므로, 그 실패 코드는 이 패키지가 아니라 실패를 번역하는 앱 모듈의 `WebErrorCode`·`BatchErrorCode`가 소유한다. 생성자 위임만 하는 전용 예외 서브클래스를 두면 전용 핸들러가 없는 앱에서 의도한 502 대신 `Exception` 폴백의 500으로 응답되는 결함이 생긴다. 상세는 모듈 문서의 "예외·에러코드를 두지 않는 이유" 절과 `backend/CLAUDE.md`의 "예외·에러코드 소유 규칙" 절.

@@ -4,7 +4,7 @@
 
 애플 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClientPort`를 `AppleOAuthClient`가 구현하고 `provider()`로 `SocialProvider.APPLE`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
-옛 `infrastructure:oauth`의 `apple/` 패키지를 채널·벤더 분리(2026-09-27)로 옮겨 신설됐다. 패키지는 `external.oauth.apple` → `com.tastyhouse.external.apple.oauth`로 옮겼다. 이후 infrastructure 패키지 루트 통일로 `com.tastyhouse.infrastructure.apple.oauth`가 됐고, ~~wire DTO는 하위 패키지 `com.tastyhouse.infrastructure.apple.oauth.dto`로 모였다.~~ **(번복됨 — package-private 적용)** wire DTO도 루트 `com.tastyhouse.infrastructure.apple.oauth`에 평면으로 있고 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명은 그대로라 빈 이름 `appleOAuthClient`(소비 측 `@Qualifier`)도 불변이다. **jjwt를 직접 선언하는 유일한 소셜 벤더 모듈이다.**
+채널·벤더 분리로 `infrastructure:oauth`에서 갈라진 벤더 모듈이다. 패키지 루트는 `com.tastyhouse.infrastructure.apple.oauth`이고 wire DTO도 루트 패키지에 평면으로 있으며 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명이 빈 이름 `appleOAuthClient`를 정한다. **jjwt를 직접 선언하는 유일한 소셜 벤더 모듈이다.** ([ADR-0040](../../../docs/adr/0040-package-private-visibility.md))
 
 ## 무엇을 소유하는가
 
@@ -19,7 +19,7 @@ com.tastyhouse.infrastructure.apple.oauth/
 
 `AppleOAuthClient`는 `@Value`를 쓰지 않는다. 생성자에서 `AppleOAuthProperties`를 받아 같은 이름의 `final` 필드로 옮기며, **개인키만 이름이 다르다** — `privateKeyBase64 = properties.privateKey()`(값이 Base64 문자열이라는 것을 필드명이 드러낸다).
 
-테스트: `AppleOAuthModuleConfigTest`(`ApplicationContextRunner`, 4건 — imports 제거로 `AppleOAuthModuleAutoConfigurationTest`에서 리네임. `withUserConfiguration(AppleOAuthModuleConfig.class, AppleOAuthClient.class)`로 띄운다 — 설정 클래스가 더는 스캔하지 않으므로, 앱 스캔이 하던 클라이언트 등록을 테스트가 직접 한다) — 프로퍼티 바인딩(`bindsProperties`), 빈 이름·`provider()`(`registersClientBeanUnderQualifierName`), 키 누락 시 기동 실패(`failsStartupWhenPropertyMissing`), 환경변수 미해석 시 기동 실패(`failsStartupWhenPlaceholderUnresolved`).
+테스트: `AppleOAuthModuleConfigTest`(`ApplicationContextRunner`, 4건 — `withUserConfiguration(AppleOAuthModuleConfig.class, AppleOAuthClient.class)`로 띄운다 — 설정 클래스가 더는 스캔하지 않으므로, 앱 스캔이 하던 클라이언트 등록을 테스트가 직접 한다) — 프로퍼티 바인딩(`bindsProperties`), 빈 이름·`provider()`(`registersClientBeanUnderQualifierName`), 키 누락 시 기동 실패(`failsStartupWhenPropertyMissing`), 환경변수 미해석 시 기동 실패(`failsStartupWhenPlaceholderUnresolved`).
 
 ## 어느 앱이 의존하는가
 
@@ -44,7 +44,7 @@ oauth:
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. 토큰 교환·JWKS 조회는 **동기 `RestClient`**다.
 - `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application-core` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로)
 
-**`domain` 의존은 없다.** `exchange()`/`fetchProfile()`은 id_token 검증 실패를 `BusinessException(APPLE_ID_TOKEN_INVALID)`로 직접 던지지 않고, `SocialOAuthResult.failed(SocialOAuthFailure.ID_TOKEN_INVALID)`(둘 다 `application.auth.port.out` 소유)를 반환한다. 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 `backend/web-application/src/main/java/com/tastyhouse/application/auth/service/SocialOAuthFailures.java`(`WebErrorCode.APPLE_ID_TOKEN_INVALID` — 구 단일 `ErrorCode`는 에러코드 모듈 분할로 삭제됨)(소비 측 ~~`*SocialLoginService` 4종~~ **(번복됨 — social-login-router)** `SocialLoginService` 1개가 `.orElseThrow(SocialOAuthFailures::toException)`으로 호출)로 옮겨갔다.
+**`domain` 의존은 없다.** `exchange()`/`fetchProfile()`은 id_token 검증 실패를 `BusinessException(APPLE_ID_TOKEN_INVALID)`로 직접 던지지 않고, `SocialOAuthResult.failed(SocialOAuthFailure.ID_TOKEN_INVALID)`(둘 다 `application.auth.port.out` 소유)를 반환한다. 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 `backend/web-application/src/main/java/com/tastyhouse/application/auth/service/SocialOAuthFailures.java`(`WebErrorCode.APPLE_ID_TOKEN_INVALID`)에 있고, 소비 측 `SocialLoginService` 1개가 `.orElseThrow(SocialOAuthFailures::toException)`으로 호출한다. ([ADR-0050](../../../docs/adr/0050-social-login-router.md))
 - `io.jsonwebtoken:jjwt-api:0.13.0` (implementation) + `jjwt-impl`·`jjwt-jackson` (runtimeOnly) — client_secret ES256 서명(비공개키 PKCS8, Base64 저장), id_token RS256 검증(Apple JWKS 공개키). **컴파일 시점 격리만이다** — 이 선언으로 다른 소셜 벤더 모듈의 컴파일 클래스패스에 jjwt가 없지만, 런타임에는 `application → security-core`(`api` jjwt-api, `runtimeOnly` impl·jackson) 경로로 jjwt가 web-api 전체에 이미 실려 있다. 분할 전 `infrastructure:oauth`가 카카오·네이버·페이스북까지 jjwt를 컴파일 클래스패스에 두던 것을 애플 한 모듈로 좁힌 것이 이 선언의 의미다.
 - `infrastructure:oauth`를 의존하지 않는다(순환 방지)
 
@@ -64,11 +64,11 @@ oauth:
 
 설정 누락을 기동 시점에 드러내는 유일한 장치다. `@Validated` + `@NotBlank`로 바꾸지 않는다 — 해석되지 않은 placeholder는 `${...}` 리터럴이라 공백이 아니어서 통과한다. 검사를 지우면 누락된 환경변수가 조용히 바인딩돼 운영 배포 후 첫 로그인에서야 드러난다. 반증 테스트 `failsStartupWhenPropertyMissing`·`failsStartupWhenPlaceholderUnresolved`가 이 동작을 고정한다.
 
-### 자바 패키지 `com.tastyhouse.external.apple.oauth` 봉인
+### 자바 패키지 `com.tastyhouse.infrastructure.apple.oauth` 봉인
 
 **대상**: `backend/infrastructure/apple-oauth/src/main/java/com/tastyhouse/infrastructure/apple/oauth/`
 
-~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.apple.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/apple-oauth/src/test/java/com/tastyhouse/infrastructure/apple/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(루트 통일 때 그 목록을 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`로 교체했다).
+이 모듈의 루트는 `com.tastyhouse.infrastructure.apple.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/apple-oauth/src/test/java/com/tastyhouse/infrastructure/apple/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(바꿀 때는 그 규칙의 목록을 함께 고친다 — 목록은 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`다). ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
 
 ### id_token 검증 실패는 `SocialOAuthResult.failed`로 표현하고, `BusinessException` 번역은 `application`이 한다
 

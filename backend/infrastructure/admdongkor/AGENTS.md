@@ -20,11 +20,11 @@ com.tastyhouse.infrastructure.admdongkor/
 └── BoundedInputStream.java                 응답 크기 상한 스트림
 ```
 
-패키지는 분리 때 `com.tastyhouse.external.region`에서 **`com.tastyhouse.external.admdongkor`로 바뀌었다**(모듈명과 맞춤 — `external.file.firebase → external.firebase` 선례). 클래스명·프로퍼티 접두사·환경변수 이름은 불변이다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.admdongkor`가 됐다(클래스명은 역시 불변).
+패키지 루트는 `com.tastyhouse.infrastructure.admdongkor`다. 클래스명·프로퍼티 접두사·환경변수 이름은 모듈 분리 전부터 변하지 않았다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
 
 ## 어느 앱이 의존하는가
 
-**batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:admdongkor')`). 행정동 마스터 동기화(`AdminDongSchedulerService`)가 소비한다. 클래스패스에 실리면 batch `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다(~~`AdmdongkorModuleAutoConfiguration`이 발화~~ — imports 제거, 설정 클래스는 `AdmdongkorModuleConfig`).
+**batch-module 하나뿐이다**(`runtimeOnly project(':infrastructure:admdongkor')`). 행정동 마스터 동기화(`AdminDongSchedulerService`)가 소비한다. 클래스패스에 실리면 batch `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다(설정 클래스는 `AdmdongkorModuleConfig`).
 
 ## 수집 방식
 
@@ -35,7 +35,7 @@ com.tastyhouse.infrastructure.admdongkor/
 - **원천 URL은 버전 디렉터리 단위로 배포되어 "최신"을 가리키는 고정 URL이 없다** — 행정구역 개편이 반영된 새 버전이 나오면 yml의 `source-url` 안 `ver` 날짜를 올린다.
 - **`sidoName` 정규화**: 원천은 `"서울특별시"` 같은 정식 명칭을 쓰지만 이 저장소의 주소 데이터는 `"서울 강남구 …"`처럼 짧은 형태다. 행정동 매칭이 주소 문자열 토큰과 `sido_name`을 직접 비교하므로(회원 배달주소의 행정동 채우기) 저장 시점에 짧은 형태로 맞춘다.
 - 도메인 포트가 없어 `batch-application`(앱 마커 제거 전에는 `application`)이 소유한 아웃바운드 계약(`AdminDongBoundaryPort`·`AdminDongBoundarySource`)을 구현한다.
-- **(번복됨 — 에러코드 모듈 분할)** 어댑터는 실패를 던지지 않고 `AdminDongBoundaryFetchResult.fetchFailed()`를 돌려주며, 번역은 `AdminDongSchedulerService`(batch-application)가 `BatchErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED`(`backend/batch-application/src/main/java/com/tastyhouse/application/shared/exception/BatchErrorCode.java`)로 한다. 에러코드는 wire 계약이라 코드 문자열·HTTP 상태(502)는 그대로다. ~~실패는 도메인 `BusinessException(ErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED)`로 던진다~~(과거 서술 — 단일 도메인 `ErrorCode`는 삭제됨. 그 이전에는 코어 `infrastructure:http-client`의 `ExternalApiException(ExternalApiErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED)`였으나, 그 예외 계약 자체가 완전히 삭제됐다). **RestClient는 다운로드·파싱·용량초과의 `IOException`을 `ResourceAccessException`으로 감싸므로**, `AdminDongBoundaryClient`는 그 예외를 catch해 `fetchFailed()` 결과로 변환한다(최종 코드 `ADMIN_DONG_BOUNDARY_FETCH_FAILED`)(계약 불변 — 과거 WebClient/JDK HttpClient 시절과 응답 계약이 같다).
+- 어댑터는 실패를 던지지 않고 `AdminDongBoundaryFetchResult.fetchFailed()`를 돌려주며, 번역은 `AdminDongSchedulerService`(batch-application)가 `BatchErrorCode.ADMIN_DONG_BOUNDARY_FETCH_FAILED`(`backend/batch-application/src/main/java/com/tastyhouse/application/shared/exception/BatchErrorCode.java`)로 한다. 에러코드는 wire 계약이라 코드 문자열·HTTP 상태(502)는 그대로다. **RestClient는 다운로드·파싱·용량초과의 `IOException`을 `ResourceAccessException`으로 감싸므로**, `AdminDongBoundaryClient`는 그 예외를 catch해 `fetchFailed()` 결과로 변환한다(최종 코드 `ADMIN_DONG_BOUNDARY_FETCH_FAILED`). ([ADR-0042](../../../docs/adr/0042-error-code-module-split.md))
 
 ## yml — `application-admdongkor.yml`
 
@@ -83,19 +83,17 @@ com.tastyhouse.infrastructure.admdongkor/
 
 GeoJSON 좌표 배열은 `[경도, 위도]` 순서이고 `GeoPoint`는 `(위도, 경도)` 순서다. 이 메서드가 **인덱스를 뒤집어** 넣는다(`point.get(1)` → 위도, `point.get(0)` → 경도). 두 값 다 `BigDecimal`이라 **바꿔 넣어도 컴파일·실행이 성공하고 경계만 조용히 엉뚱한 곳에 놓인다.** 이 뒤집기를 "실수처럼 보인다"고 되돌리지 않는다.
 
-### 자바 패키지 `com.tastyhouse.external.admdongkor` 봉인
+### 자바 패키지 `com.tastyhouse.infrastructure.admdongkor` 봉인
 
 **대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/`
 
-~~`com.tastyhouse.infrastructure..` 아래로 옮기지 않는다. `PersistenceModuleAutoConfiguration`이 `com.tastyhouse.infrastructure`를 통째로 스캔하므로, 그 아래로 옮기면 빈 스캔 범위가 어긋나 **admin/ceo/batch 부팅이 깨진다.**~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.admdongkor`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/admdongkor/src/test/java/com/tastyhouse/infrastructure/admdongkor/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 옛 위치 `external.region`으로도 되돌리지 않는다 — 외부 연동 모듈마다 모듈명과 같은 하위 패키지를 소유한다.
+이 모듈의 루트는 `com.tastyhouse.infrastructure.admdongkor`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/admdongkor/src/test/java/com/tastyhouse/infrastructure/admdongkor/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 옛 위치 `external.region`으로도 되돌리지 않는다 — 외부 연동 모듈마다 모듈명과 같은 하위 패키지를 소유한다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
 
-### 진입 설정은 자기 패키지만 스캔한다
+### 진입 설정은 아무것도 스캔하지 않는다
 
-> **(번복됨 — imports 제거)** 이 모듈의 설정 클래스는 이제 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — 삭제됐거나 `@EnableConfigurationProperties`만 남은 `{X}ModuleConfig`). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 그래서 "형제 빈까지 이 설정이 등록한다"는 아래 우려는 대상이 사라졌고, 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 빼야 한다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). 아래는 당시 기록이다.
+이 모듈의 설정 클래스는 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — `@EnableConfigurationProperties`만 갖는 `{X}ModuleConfig`). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 뺀다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
 
-**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/AdmdongkorModuleConfig.java`(imports 제거 전 `AdmdongkorModuleAutoConfiguration.java`)
-
-분리 전 `CrawlingModuleAutoConfiguration`은 `external.crawling`과 `external.region` 두 패키지를 함께 스캔했다. 스캔 범위를 `com.tastyhouse.infrastructure` 루트 등으로 넓히면 같은 클래스패스의 형제 모듈 빈까지 이 설정이 등록하게 되므로 넓히지 않는다.
+**대상**: `backend/infrastructure/admdongkor/src/main/java/com/tastyhouse/infrastructure/admdongkor/AdmdongkorModuleConfig.java`
 
 ### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
 

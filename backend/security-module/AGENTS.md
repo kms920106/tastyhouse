@@ -6,7 +6,7 @@
 ## Purpose
 `web-api`·`admin-api`·`ceo-api`가 공유하는 **서블릿 결합 보안/인증 라이브러리 모듈**(`java-library`). JWT 인증 필터(`OncePerRequestFilter`)·`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler` 등 서블릿 스택에 결합된 타입만 소유한다.
 
-**서블릿-프리 타입(`JwtTokenProvider`·Redis 기반 JWT 세션 저장소 6종)은 챕터 03에서 `security-core`로 분리됐다** — 이 모듈은 `api project(':security-core')`로 그 좌표를 재노출한다(아래 [security-core 분리](#security-core-분리-챕터-03) 참고). API 변경은 없다(JWT 토큰 포맷·Redis key prefix·인증 플로우 불변).
+**서블릿-프리 타입(`JwtTokenProvider`·토큰 저장소 포트)은 `security-core`에 있다** — 이 모듈은 `api project(':security-core')`로 그 좌표를 재노출한다(아래 [security-core 분리](#security-core-분리-챕터-03) 참고). API 변경은 없다(JWT 토큰 포맷·Redis key prefix·인증 플로우 불변).
 
 **Redis 연결·템플릿 빈과 Rate Limiting은 챕터 05에서 `infrastructure:redis`로 이관됐다** — 이 모듈은 그것도 직접 소유하지 않고 `security-core`를 통해 전이로만 접근한다(아래 [Redis 위임](#redis-위임-챕터-05) 참고).
 
@@ -20,25 +20,25 @@
 ## Subdirectories
 | Directory | Purpose |
 |-----------|---------|
-| `src/main/java/com/tastyhouse/security/` | `SecurityModuleConfig`(`@Configuration(proxyBeanMethods = false)` — `@EnableConfigurationProperties(JwtProperties)` + `@Bean JwtAuthenticationFilter`, 스캔 없음). `com.tastyhouse.security` 패키지는 `{web,admin,ceo}-api` 부트스트랩의 중첩 `ModuleScanConfig`가 문자열로 스캔한다(패키지 불변 덕에 `security-core`의 같은 패키지 빈도 함께 잡힌다). **(번복됨 — imports 제거)** ~~`SecurityModuleAutoConfiguration`(챕터 02 — `SecurityModuleConfig`를 리네임 + `@AutoConfiguration`) — `@ComponentScan` 진입점, `AutoConfiguration.imports`에 FQCN 1줄로 자기 등록~~ — imports 파일은 삭제됐고 클래스는 원래 이름으로 돌아왔다 |
+| `src/main/java/com/tastyhouse/security/` | `SecurityModuleConfig`(`@Configuration(proxyBeanMethods = false)` — `@EnableConfigurationProperties(JwtProperties)` + `@Bean JwtAuthenticationFilter`, 스캔 없음). `com.tastyhouse.security` 패키지는 `{web,admin,ceo}-api` 부트스트랩의 중첩 `ModuleScanConfig`가 문자열로 스캔한다(같은 패키지인 `security-core`의 빈도 함께 잡힌다) |
 | `src/main/java/com/tastyhouse/security/jwt/` | 서블릿 결합 JWT 인증 메커니즘만 잔류 — `JwtAuthenticationFilter`(POJO, `OncePerRequestFilter` 상속), `JwtAuthenticationEntryPoint`/`JwtAccessDeniedHandler`(@Component). `JwtTokenProvider`·`JwtProperties`·`TokenType`·`JwtPrincipal`·`JwtPrincipalFactory`는 `security-core`로 이동(패키지는 동일하게 `com.tastyhouse.security.jwt`) |
 
 ## For AI Agents
 
 ### Working In This Directory
 - 이 모듈이 domain 어댑터가 아니라 presentation 공유 유틸이기 때문에 `spring-boot-starter-web` 의존이 허용된다(외부 연동 모듈에는 이런 선례가 없다 — 코어 `infrastructure:restclient`가 한때 `MultipartFile` 1종 때문에 `spring-web` 단일 좌표를 썼으나, `FileStorageStrategy`가 `byte[]`를 받도록 바뀌며 그 의존이 사라졌고, 이후 그 전략 인터페이스 자체가 도메인 포트 `FileStoragePort`와 동형이라 삭제됐다. 이후 RestClient 전환으로 `spring-web`은 코어의 정식 `api` 의존으로 되돌아왔다 — 다만 그것은 벤더 어댑터가 `RestClient.Builder`를 조립하기 위한 것이지, 이 모듈처럼 서블릿 스택(`starter-web`)을 쓰기 위한 것이 아니다).
-- ~~**이 모듈이 `domain`을 의존하는 유일한 이유**는 `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`가 401/403 응답을 조립할 때 쓰는 `com.tastyhouse.domain.exception.ErrorCode` 참조뿐이다(그 밖의 도메인 타입 참조 0건).~~ **번복됨 (덩어리 01)** — 이제 `domain`을 의존하지 않는다. 두 클래스는 `application`의 `com.tastyhouse.application.shared.error.ErrorContracts`(`authRequired()`·`accessDenied()` — `ErrorCode.AUTH_REQUIRED`·`ACCESS_DENIED`의 미러)를 썼고, 의존은 `implementation project(':application-core')`이었다. **(번복됨 — 에러코드 모듈 분할)** `ErrorContracts`는 삭제되어 지금은 `com.tastyhouse.apicommon.exception.ApiErrorCode`(`AUTH_REQUIRED`·`ACCESS_DENIED`)를 쓰고, 그 의존은 `implementation project(':api-common-module')`다. **이 모듈에 `com.tastyhouse.domain..`을 다시 끌어들이지 않는다** — `LayerRulesTest#shouldNotDependOnDomain`이 막는다. 새 401/403 계열 에러코드가 필요하면 `ApiErrorCode`에 추가한다.
-- 새 관심사를 어디에 둘지 판단하는 기준 (챕터 05 개정, 챕터 03으로 세분화): **domain 포트가 있으면** `infrastructure:jpa`(JPA/조회 — jpa 모듈 분리 전 `infrastructure:persistence`) 또는 외부 연동 모듈 — 코어 계약(`RestClientConfig`뿐 — 예외·에러코드는 두지 않고, 실패 코드는 번역하는 application 모듈의 `WebErrorCode`·`BatchErrorCode`가 소유)은 `infrastructure:restclient`(구 `infrastructure:external` → `infrastructure:http-client`), 실제 어댑터(도메인 포트를 직접 구현)는 기술별로 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`(코드 없는 조립 스타터 `file-storage`·`oauth`는 어댑터를 갖지 않는다). **domain 포트가 없는 순수 기술**이면 그 기술의 인프라 모듈(Redis는 `infrastructure:redis`). **domain 포트가 없고 여러 presentation이 공유하는 보안 관심사**면, **서블릿 결합 여부로 다시 갈린다** — 서블릿-프리(토큰 발급/검증·저장소)면 `security-core`, 서블릿 결합(필터·EntryPoint·AccessDeniedHandler)이면 이 모듈. 특정 앱 하나만 쓰면 그 앱 모듈에 잔류.
-- **Redis를 쓴다는 이유만으로 이 모듈에 두지 않는다** — 그것이 챕터 05에서 rate limiting을 내보낸 이유다. 이 모듈에 남는 기준은 "보안 관심사인가"이지 "Redis를 쓰는가"가 아니다.
+- **이 모듈은 `domain`을 의존하지 않는다.** `JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`는 401/403 응답을 `com.tastyhouse.apicommon.exception.ApiErrorCode`(`AUTH_REQUIRED`·`ACCESS_DENIED`)로 조립하고, 그래서 `implementation project(':api-common-module')`을 갖는다. **이 모듈에 `com.tastyhouse.domain..`을 끌어들이지 않는다** — `LayerRulesTest#shouldNotDependOnDomain`이 막는다. 새 401/403 계열 에러코드가 필요하면 `ApiErrorCode`에 추가한다([ADR-0025](../../docs/adr/0025-presentation-domain-cut.md)).
+- 새 관심사를 어디에 둘지 판단하는 기준: **domain 포트가 있으면** `infrastructure:jpa`(JPA/조회 — jpa 모듈 분리 전 `infrastructure:persistence`) 또는 외부 연동 모듈 — 코어 계약(`RestClientConfig`뿐 — 예외·에러코드는 두지 않고, 실패 코드는 번역하는 application 모듈의 `WebErrorCode`·`BatchErrorCode`가 소유)은 `infrastructure:restclient`, 실제 어댑터(도메인 포트를 직접 구현)는 기술별로 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,pg,tosspayments,mail,javamail,sms,solapi,bbq,admdongkor}`(코드 없는 조립 스타터 `file-storage`·`oauth`는 어댑터를 갖지 않는다). **domain 포트가 없는 순수 기술**이면 그 기술의 인프라 모듈(Redis는 `infrastructure:redis`). **domain 포트가 없고 여러 presentation이 공유하는 보안 관심사**면, **서블릿 결합 여부로 다시 갈린다** — 서블릿-프리(토큰 발급/검증·저장소)면 `security-core`, 서블릿 결합(필터·EntryPoint·AccessDeniedHandler)이면 이 모듈. 특정 앱 하나만 쓰면 그 앱 모듈에 잔류.
+- **Redis를 쓴다는 이유만으로 이 모듈에 두지 않는다** — rate limiting이 이 모듈에 없는 이유다. 이 모듈에 남는 기준은 "보안 관심사인가"이지 "Redis를 쓰는가"가 아니다.
 - **`OncePerRequestFilter`·`jakarta.servlet`·`AuthenticationEntryPoint`/`AccessDeniedHandler` 등 서블릿 결합 타입을 새로 추가할 때만 이 모듈에 둔다.** 서블릿-프리 보안 로직(토큰 서명/파싱, 새 Redis 토큰 저장소 등)은 `security-core`로 보낸다 — application 4모듈의 컴파일 클래스패스를 서블릿 스택으로 오염시키지 않기 위해서다(아래 [security-core 분리](#security-core-분리-챕터-03) 참고).
-- **`SecurityModuleConfig`(~~`SecurityModuleAutoConfiguration`~~ — imports 제거로 리네임)는 `@ConditionalOnWebApplication(type = SERVLET)`을 갖는다 (챕터 02, imports 제거 후에도 유지 — 환경 조건이라 일반 `@Configuration`에서도 정확하다)** — batch-module은 jar 자체가 없어 무관하지만, 혹시 이 모듈이 non-servlet 컨텍스트의 클래스패스에 실리는 경우에도 서블릿 필터·EntryPoint 빈이 조용히 발화하지 않도록 조건을 명시했다.
+- **`SecurityModuleConfig`는 `@ConditionalOnWebApplication(type = SERVLET)`을 갖는다** — 환경 조건이라 일반 `@Configuration`에서도 정확하다. batch-module은 jar 자체가 없어 무관하지만, 혹시 이 모듈이 non-servlet 컨텍스트의 클래스패스에 실리는 경우에도 서블릿 필터·EntryPoint 빈이 조용히 등록되지 않도록 조건을 명시한다.
 
 ### `jwt/` JWT 인증 메커니즘 (web/admin/ceo 공유, 서블릿 결합 부분만 이 모듈)
 - **`JwtTokenProvider`는 `security-core`가 소유**하는 `@Component`가 아닌 파라미터형 POJO다. principal 식별자 클레임명(`memberId`/`adminId`)과 principal 재구성 팩토리(`JwtPrincipalFactory`)를 생성자로 받아 앱별 차이를 흡수한다. 각 API는 이 클래스를 상속한 얇은 `@Component` 하위 클래스로 자기 등록한다 — reference: `web-api`/`admin-api`의 `config/jwt/JwtTokenProvider`(`super(props, "memberId"|"adminId", CustomUserDetails::new)`). web은 여기에 검증용 토큰(휴대폰/이메일/개인정보/비밀번호 재설정) 발급 메서드를 **web 전용으로만** 추가한다(admin은 미사용). `key`/`parseClaims`/`jwtProperties`는 `protected`라 하위 클래스가 검증 토큰 발급에 재사용한다.
-- **`JwtAuthenticationFilter`는 이 모듈 소유 POJO**다(`@Component` 아님, 서블릿 `OncePerRequestFilter` 상속이라 이 모듈에 잔류). `JwtTokenProvider`(security-core) + `BlacklistRepository`(security-core 포트) + `ObjectMapper`를 받아 **`SecurityModuleConfig`가 빈 등록**한다(챕터 02 — 당시 이름 `SecurityModuleAutoConfiguration`). 앱 컨텍스트마다 `JwtTokenProvider` 타입 빈이 그 앱의 `{앱}-application`에 있는 하위 클래스 하나뿐이라 타입 주입이 모호하지 않다. ~~`@ConditionalOnMissingBean(JwtAuthenticationFilter.class)`가 붙어 있어, 앱이 자기 필터를 등록하면 이 기본 등록은 물러난다~~ **(번복됨 — imports 제거)** 그 조건은 삭제됐다 — 일반 `@Configuration`에서는 빈 존재 조건이 처리 순서에 좌우돼 믿을 수 없고, 자기 필터를 정의하는 앱도 없다. 앱이 자기 필터를 등록하면 이름이 겹쳐 기동이 실패한다(조용히 덮이지 않는다). 블랙리스트 검사는 저장소를 직접 호출한다(과거 web이 `TokenService.isBlacklisted`를 경유하던 단순 위임을 필터 안으로 흡수).
+- **`JwtAuthenticationFilter`는 이 모듈 소유 POJO**다(`@Component` 아님, 서블릿 `OncePerRequestFilter` 상속이라 이 모듈에 있다). `JwtTokenProvider`(security-core) + `BlacklistRepository`(security-core 포트) + `ObjectMapper`를 받아 **`SecurityModuleConfig`가 빈 등록**한다. 앱 컨텍스트마다 `JwtTokenProvider` 타입 빈이 그 앱의 `{앱}-application`에 있는 하위 클래스 하나뿐이라 타입 주입이 모호하지 않다. 이 등록에는 빈 존재 조건(`@ConditionalOnMissingBean`)을 두지 않는다 — 일반 `@Configuration`에서는 빈 존재 조건이 처리 순서에 좌우돼 믿을 수 없고, 자기 필터를 정의하는 앱도 없다. 앱이 자기 필터를 등록하면 이름이 겹쳐 기동이 실패한다(조용히 덮이지 않는다). 블랙리스트 검사는 저장소를 직접 호출한다.
 
 - **필터 빈은 서블릿 컨테이너에도 `/*`로 자동 등록된다**(Spring Boot가 `Filter` 타입 빈을 `ServletContextInitializerBeans`로 자동 매핑). 즉 시큐리티 체인 안(`addFilterBefore`)과 컨테이너 레벨 양쪽에 걸린다. **챕터 02 이전부터 그랬고**(과거 `JwtConfig`도 `Filter` 타입 빈을 만들었다) 챕터 02가 바꾼 것이 아니다 — 두 시점의 기동 로그 `Mapping filters:` 줄이 동일함을 실측했다. `OncePerRequestFilter`라 요청당 실제 실행은 1회이고, 잘못된 토큰의 401 응답에도 CORS 헤더가 정상적으로 붙는 것을 확인했으므로(`Access-Control-Allow-Origin` 존재) 현재 실害는 없다. 굳이 컨테이너 등록을 끊으려면 `FilterRegistrationBean.setEnabled(false)`를 추가하면 되지만, 동작 변경이라 별도 작업으로 다룬다.
-- **`JwtAuthenticationEntryPoint`/`JwtAccessDeniedHandler`는 이 모듈 소유 `@Component`**다. **앱 부트스트랩의 중첩 `ModuleScanConfig`가 `"com.tastyhouse.security"`를 문자열로 스캔**하므로 앱에는 빈 등록 코드가 없다(~~챕터 02 이후 `SecurityModuleAutoConfiguration`의 `@ComponentScan`이 스캔~~ — 번복됨, imports 제거). `SecurityConfig`는 타입으로 주입만 받는다.
+- **`JwtAuthenticationEntryPoint`/`JwtAccessDeniedHandler`는 이 모듈 소유 `@Component`**다. **앱 부트스트랩의 중첩 `ModuleScanConfig`가 `"com.tastyhouse.security"`를 문자열로 스캔**하므로 앱에는 빈 등록 코드가 없다. `SecurityConfig`는 타입으로 주입만 받는다.
 - **`CustomUserDetails`는 각 API에 잔류**하되 `JwtPrincipal`(security-core 소유 계약)을 구현해 `getPrincipalId()`(web=memberId, admin=adminId)를 노출한다. 공용 provider가 이 계약으로 식별자를 클레임에 싣고 재구성한다.
 - **시크릿은 각 API의 `application.yml`이 소유하며 web-api와 admin-api는 반드시 서로 다른 `jwt.secret`(`JWT_SECRET_WEB` vs `JWT_SECRET_ADMIN`, ceo는 `JWT_SECRET_CEO`)을 써야 한다.** 동일 시크릿이면 한쪽 access 토큰이 다른 쪽 인증을 통과해 권한 상승이 발생한다. 이는 `JwtProperties` Javadoc에도 명시되어 있다.
 - **의존성**: 이 모듈의 서블릿 결합 타입이 Spring Security web·jjwt(전이) 타입에 의존하므로 `build.gradle`에 `spring-boot-starter-security`(api)를 둔다. jjwt 3줄(`jjwt-api`/`jjwt-impl`/`jjwt-jackson`)은 챕터 03에서 `security-core`로 이관되어 이 모듈에서 제거됐고, `api project(':security-core')`를 통해 전이로 수신한다.
@@ -52,7 +52,7 @@
 
 **`application`이 이 모듈(`security-module`)을 의존하면 서블릿 필터·EntryPoint·AccessDeniedHandler까지 컴파일 클래스패스에 딸려 들어와 application 계층이 서블릿 스택으로 오염됐다.** ArchUnit `applicationMustBeServletFree`는 소스 import만 검사하므로 이 클래스패스 오염을 막지 못했다 — 빌드 그래프로 강제해야 했다.
 
-서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, Redis 토큰 저장소 6종)을 신설 모듈 `security-core`로 옮기고, `application`은 `security-module` 대신 `security-core`만 의존하도록 교체했다(batch 유스케이스는 원래 security 의존이 없어 대상 아님). `{web,admin,ceo}-api`는 기존대로 이 모듈(`security-module`)을 의존하며 `security-core`를 전이로 수신한다.
+서블릿-프리 타입(`JwtTokenProvider`·`JwtPrincipal`·`JwtPrincipalFactory`·`JwtProperties`·`TokenType`, 토큰 저장소 포트 3종(`RefreshTokenRepository`·`BlacklistRepository`·`SocialTempTokenRepository`))을 신설 모듈 `security-core`로 옮기고, `application`은 `security-module` 대신 `security-core`만 의존하도록 교체했다(batch 유스케이스는 원래 security 의존이 없어 대상 아님). `{web,admin,ceo}-api`는 기존대로 이 모듈(`security-module`)을 의존하며 `security-core`를 전이로 수신한다.
 
 자바 패키지(`com.tastyhouse.security..`)는 두 모듈 모두 그대로 쓴다(split package — 모듈 재편 선례와 동일). 상세는 `security-core/AGENTS.md`와 루트 [CLAUDE.md 모듈 지도](../CLAUDE.md#모듈-지도-모듈-재편-완료--application-모듈-통합--external-분리--앱-모듈-재분리) 참고.
 
@@ -62,7 +62,7 @@
 
 | 이관된 것 (`infrastructure:redis` 소유) | 잔류한 것 (`security-core`/`security-module`이 나눠 소유, 챕터 03) |
 |---|---|
-| `RedisConfig` — `StringRedisTemplate` 빈 | 토큰 저장소 6종(`RefreshToken`·`Blacklist`·소셜 임시토큰 4종) — **`security-core` 소유** |
+| `RedisConfig` — `StringRedisTemplate` 빈 | 토큰 저장소 포트 3종(`RefreshToken`·`Blacklist`·`SocialTempToken`) — **`security-core` 소유** |
 | `application-redis.yml` — `spring.data.redis`(host/port/password) | `jwt/` 인증 메커니즘 — 서블릿-프리 부분은 `security-core`, 서블릿 결합 부분(필터·EntryPoint·AccessDeniedHandler)은 이 모듈 |
 | `ratelimit/` 전체 — 이후 챕터 02에서 다시 갈렸다: 카운터(`RateLimiterService` → `RedisRateLimitCounter`)만 `infrastructure:redis`에 남고, `RateLimitAspect`·`@RateLimit`·`RateLimitKeyType`·`RateLimitException`은 `api-common-module`로 올라갔다 | |
 
@@ -77,7 +77,7 @@
 ### Internal
 - `api-common-module` (implementation) — `com.tastyhouse.apicommon.exception.ApiErrorCode` 참조(`JwtAuthenticationEntryPoint`·`JwtAccessDeniedHandler`). **before**: `application` — `ErrorContracts` 참조(그 이전은 `domain`의 `ErrorCode`) → **after**: `api-common-module`(에러코드 모듈 분할). 응답 동작 불변. 순환 없음(`api-common-module → application, security-core`)
 - `application` (implementation) — 덩어리 01에서 `domain`을 대체한 의존이며 `build.gradle`에 남아 있다
-- `security-core` (api) — (챕터 03) 서블릿-프리 보안 코어(`JwtTokenProvider`·Redis 토큰 저장소 6종·`JwtProperties` 등) 재노출. 이 모듈에 남은 서블릿 결합 타입이 그 타입들을 쓰고, api 3모듈도 이 좌표를 통해 전이로 수신
+- `security-core` (api) — (챕터 03) 서블릿-프리 보안 코어(`JwtTokenProvider`·토큰 저장소 포트 3종·`JwtProperties` 등) 재노출. 이 모듈에 남은 서블릿 결합 타입이 그 타입들을 쓰고, api 3모듈도 이 좌표를 통해 전이로 수신
 
 ### External
 - `spring-boot-starter-web` (implementation)
@@ -104,20 +104,14 @@
 3. **이 필터는 인증(Authentication)만 담당한다.** 토큰이 없으면 다음 필터로 통과시키고, 인가는 Spring
    Security의 `AuthorizationFilter`가 최종 결정한다.
 
-### `@ConditionalOnMissingBean(JwtAuthenticationFilter.class)`는 provider 모호성을 막아주지 못한다
+### `JwtTokenProvider` 빈이 둘 이상이면 해법은 `@Primary`(또는 한정자)뿐이다
 
-> **(번복됨 — imports 제거)** 이 조건은 삭제됐다(일반 `@Configuration`에서 빈 존재 조건 금지). 대상 클래스도 `SecurityModuleConfig`로 리네임됐다. 아래는 당시 기록이며, "`JwtTokenProvider` 빈이 둘 이상이면 해법은 `@Primary`(또는 한정자)뿐"이라는 결론은 지금도 유효하다.
-
-**대상**: `backend/security-module/src/main/java/com/tastyhouse/security/SecurityModuleConfig.java`(당시 `SecurityModuleAutoConfiguration.java`)
+**대상**: `backend/security-module/src/main/java/com/tastyhouse/security/SecurityModuleConfig.java`
 → `jwtAuthenticationFilter(JwtTokenProvider, BlacklistRepository, ObjectMapper)`
 
-이 조건은 어떤 앱이 자기 필터를 등록해 덮어야 할 때의 **escape hatch**다(현재 그런 앱은 없다). 앱의
-`@Configuration`이 먼저 파싱되므로 앱이 자기 필터 빈을 정의하면 이 기본 등록은 물러난다.
-
-**단, `JwtTokenProvider` 빈이 둘 이상 생기는 경우의 해법은 `@Primary`(또는 한정자)뿐이다** — 이 조건은
-`JwtAuthenticationFilter` **타입**만 보므로 provider가 모호해도 조건은 그대로 통과하고, 빈 메서드를
-실제로 호출하는 시점에 `NoUniqueBeanDefinitionException`으로 기동이 실패한다. 즉 **필터 재정의로
-provider 모호성을 우회하려는 시도는 실패한다.**
+이 `@Bean` 메서드는 `JwtTokenProvider`를 **타입으로** 주입받는다. 한 앱 컨텍스트에 `JwtTokenProvider` 빈이 둘 이상 생기면
+빈 메서드를 호출하는 시점에 `NoUniqueBeanDefinitionException`으로 기동이 실패한다. 해법은 쓰려는 provider에 `@Primary`(또는 한정자)를 다는 것뿐이고,
+**필터를 따로 재정의해 provider 모호성을 우회하려는 시도는 실패한다** — 필터 등록에는 빈 존재 조건이 없어 앱이 같은 이름의 필터를 정의하면 그것도 기동 실패다.
 
 ### 설정 클래스에 `public`을 붙이지 않는다 (package-private 적용)
 
@@ -134,17 +128,15 @@ provider 모호성을 우회하려는 시도는 실패한다.**
 **대상**: `backend/security-module/src/main/java/com/tastyhouse/security/SecurityModuleConfig.java`
 → 클래스 선언
 
-> **(번복됨 — imports 제거)** 과거 이름 `SecurityModuleAutoConfiguration`(imports 파일로 자기 등록). 지금은 일반 `@Configuration(proxyBeanMethods = false)`이고, `com.tastyhouse.security` 패키지를 스캔하는 앱(web-api·admin-api·ceo-api의 `ModuleScanConfig`)에서만 등록된다.
-
-이 모듈을 스캔 목록에 둔 앱(web-api·admin-api·ceo-api)에서만 등록된다.
+이 모듈을 스캔 목록에 둔 앱(web-api·admin-api·ceo-api의 `ModuleScanConfig`)에서만 등록되는 일반 `@Configuration(proxyBeanMethods = false)`이다.
 batch-module은 이 모듈을 의존하지 않아 **jar 자체가 클래스패스에 없다.** 그럼에도
 `@ConditionalOnWebApplication(SERVLET)`을 명시하는 것은, 전이로 끌려오더라도 서블릿 웹 앱이 아니면
-발화하지 않게 하기 위함이다 — 이 모듈의 빈은 **서블릿 필터 체인 전제**이기 때문이다.
+등록되지 않게 하기 위함이다 — 이 모듈의 빈은 **서블릿 필터 체인 전제**이기 때문이다.
 
 `@ConfigurationProperties` record(`JwtProperties`)는 컴포넌트 스캔 대신
 `@EnableConfigurationProperties`로 여기서 명시 등록한다. `JwtAuthenticationFilter`는 POJO라 스캔 대상이
-아니므로 `@Bean` 메서드로 등록하며, 앱 컨텍스트마다 `JwtTokenProvider` 타입 빈이 정확히 하나(~~앱
-마커로 걸러진~~ 그 앱의 `{앱}-application` 모듈에만 있는 하위 클래스 — 앱 마커 제거)여서 타입 주입이 모호하지 않다.
+아니므로 `@Bean` 메서드로 등록하며, 앱 컨텍스트마다 `JwtTokenProvider` 타입 빈이 정확히 하나(그 앱의
+`{앱}-application` 모듈에만 있는 하위 클래스)여서 타입 주입이 모호하지 않다.
 
 ### `JwtAuthenticationEntryPoint` / `JwtAccessDeniedHandler` — 필터 단계 응답의 스키마 일치
 
@@ -158,15 +150,6 @@ property를 함께 담는 이유는 전역 예외 핸들러(advice 단계)의 40
 위해서다** — 필터 단계는 advice를 타지 않아 응답을 직접 직렬화하지만, 클라이언트가 보는 계약은 같아야
 한다. 이 property를 빼면 프론트의 에러 분기가 필터 단계 응답에서만 조용히 실패한다.
 
-**(갱신 — 덩어리 01)** 상태·`errorCode`·메시지의 출처가 `ErrorCode.AUTH_REQUIRED`/`ErrorCode.ACCESS_DENIED`에서
-`ErrorContracts.authRequired()`/`ErrorContracts.accessDenied()`로 바뀌었다. 값은 동일하며 응답 계약은 변경 전후 jar diff로 불변을 확인했다.
+상태·`errorCode`·메시지의 출처는 `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ApiErrorCode.java`의 `AUTH_REQUIRED`(401)·`ACCESS_DENIED`(403)이고, advice 단계(`apicommon`·web-api의 `GlobalExceptionHandler`)도 같은 enum을 쓰므로 두 단계의 값이 한 곳에서 나온다. wire 값(status·errorCode·message)은 `application`의 `ErrorCatalogSnapshotTest`가 보증한다([ADR-0042](../../docs/adr/0042-error-code-module-split.md)).
 
-**(번복됨 — 에러코드 모듈 분할)** `ErrorContracts`는 삭제됐다. 지금 출처는 `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ApiErrorCode.java`의 `AUTH_REQUIRED`(401)·`ACCESS_DENIED`(403)이고, advice 단계(`apicommon`·web-api의 `GlobalExceptionHandler`)도 같은 enum을 쓰므로 두 단계의 값이 한 곳에서 나온다. wire 값(status·errorCode·message)은 불변이며 `application`의 `ErrorCatalogSnapshotTest`가 보증한다.
-
-| 항목 | before | after |
-|---|---|---|
-| 401 출처 | `ErrorContracts.authRequired()` | `ApiErrorCode.AUTH_REQUIRED` |
-| 403 출처 | `ErrorContracts.accessDenied()` | `ApiErrorCode.ACCESS_DENIED` |
-| 이 모듈의 의존 | `application` | `application` + `api-common-module` |
-
-**`AUTH_REQUIRED`는 `WebErrorCode.AUTH_REQUIRED`(web-application)의 미러**다. 둘의 일치는 `backend/application-core/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`#`mirroredCodesStayIdentical`이 보증하므로 한쪽만 고치지 않는다. `ApiErrorCode`가 `api-common-module`에 있는 이유(HTTP 필터·핸들러 계약은 표현 계층 소유)와 그 대가인 `security-module → api-common-module` 간선은 `backend/api-common-module/AGENTS.md`의 `ApiErrorCode` 항목에 있다. 이 모듈의 `LayerRulesTest#shouldNotDependOnDomain`의 `.because`도 "401/403 계약은 api-common-module의 `ApiErrorCode`로 읽는다"로 갱신됐다.
+**`AUTH_REQUIRED`는 `WebErrorCode.AUTH_REQUIRED`(web-application)의 미러**다. 둘의 일치는 `backend/application-core/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest.java`#`mirroredCodesStayIdentical`이 보증하므로 한쪽만 고치지 않는다. `ApiErrorCode`가 `api-common-module`에 있는 이유(HTTP 필터·핸들러 계약은 표현 계층 소유)와 그 대가인 `security-module → api-common-module` 간선은 `backend/api-common-module/AGENTS.md`의 `ApiErrorCode` 항목에 있다. 이 모듈의 `LayerRulesTest#shouldNotDependOnDomain`의 `.because`도 "401/403 계약은 api-common-module의 `ApiErrorCode`로 읽는다"고 서술한다.

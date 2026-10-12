@@ -4,7 +4,7 @@
 
 ## 무엇이 여기 사는가
 
-- admin 전용 `@Service`/`@Component` 빈 — 유스케이스당 서비스 1개(`{도메인}{동작}Service`/`{도메인}{관점}QueryService`, 예: `notice/service/NoticeUpdateService`·`notice/service/NoticeManagementListQueryService`)와 admin만 쓰는 도메인 서비스. 유스케이스 분리 전의 `{도메인}CommandService`/`{도메인}QueryService` 쌍은 하나도 남지 않았다(규칙 정본은 `backend/CLAUDE.md`의 "application 서비스 CQRS 분리 규칙" 절 상단 번복 표)
+- admin 전용 `@Service`/`@Component` 빈 — 유스케이스당 서비스 1개(`{도메인}{동작}Service`/`{도메인}{관점}QueryService`, 예: `notice/service/NoticeUpdateService`·`notice/service/NoticeManagementListQueryService`)와 admin만 쓰는 도메인 서비스. `{도메인}CommandService`/`{도메인}QueryService` 쌍은 없다(규칙 정본은 `backend/CLAUDE.md`의 "application 서비스 CQRS 분리 규칙" 절, 경위는 [ADR-0043](../../docs/adr/0043-usecase-per-service.md))
 - UseCase 인터페이스와 Command record(`<ctx>/port/in/`)
 - admin 전용 SPI 포트는 현재 없다. 읽기 계약을 포함한 `port.out` 계약은 전부 코어에 있다.
 - 자바 패키지는 코어와 같은 `com.tastyhouse.application.<ctx>..`다(split package). 클래스를 코어와 이 모듈 사이로 옮겨도 import는 바뀌지 않는다.

@@ -42,7 +42,7 @@ com.tastyhouse.infrastructure.aws.s3/
 └── S3FileStorageProperties.java       file.aws.s3.* (bucketName · baseUrl)
 ```
 
-~~진입 설정은 `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`로 자기 등록한다.~~ **(번복됨 — imports 제거)** imports 파일은 없다. 이 모듈이 클래스패스에 실리면(스타터 전환 후) 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 빈을 등록하고, `AwsS3ModuleConfig`는 `@EnableConfigurationProperties`만 한다.
+진입 설정은 `AwsS3ModuleConfig`이고, imports 파일은 없다. 이 모듈이 클래스패스에 실리면(스타터 전환 후) 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 빈을 등록하고, `AwsS3ModuleConfig`는 `@EnableConfigurationProperties`만 한다. ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
 
 ## yml — `application-aws-s3.yml`
 
@@ -75,23 +75,21 @@ com.tastyhouse.infrastructure.aws.s3/
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
 
-### 자바 패키지 `com.tastyhouse.external.aws.s3` 봉인
+### 자바 패키지 `com.tastyhouse.infrastructure.aws.s3` 봉인
 
 **대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/`
 
-~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 `@ComponentScan("com.tastyhouse.infrastructure")`가 통째로 스캔해 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.aws.s3`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/aws-s3/src/test/java/com/tastyhouse/infrastructure/aws/s3/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.s3`로도 되돌리지 않는다 — 외부 연동 모듈마다 겹치지 않는 하위 패키지를 소유해 split package를 피하는 구조다(`com.tastyhouse.infrastructure.aws.ses`는 `aws-ses`, `com.tastyhouse.infrastructure.aws.sns`는 `aws-sns` 소유 — 루트 통일 전 `external.aws.*`).
+이 모듈의 루트는 `com.tastyhouse.infrastructure.aws.s3`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/aws-s3/src/test/java/com/tastyhouse/infrastructure/aws/s3/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.s3`로도 되돌리지 않는다 — 외부 연동 모듈마다 겹치지 않는 하위 패키지를 소유해 split package를 피하는 구조다(`com.tastyhouse.infrastructure.aws.ses`는 `aws-ses`, `com.tastyhouse.infrastructure.aws.sns`는 `aws-sns` 소유). ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
 
-### 진입 설정은 자기 하위 패키지만 스캔한다
+### 진입 설정은 아무것도 스캔하지 않는다
 
-> **(번복됨 — imports 제거)** 이 모듈의 설정 클래스는 이제 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — 삭제됐거나 `@EnableConfigurationProperties`만 남은 `{X}ModuleConfig`). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 그래서 "형제 빈까지 이 설정이 등록한다"는 아래 우려는 대상이 사라졌고, 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 빼야 한다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). 아래는 당시 기록이다.
+이 모듈의 설정 클래스 `AwsS3ModuleConfig`는 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — `@EnableConfigurationProperties`만 갖는다). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 뺀다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
 
-**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleConfig.java`(imports 제거 전 `AwsS3ModuleAutoConfiguration.java`)
-
-과거 `AwsModuleAutoConfiguration`은 `com.tastyhouse.external.aws` 루트를 통째로 스캔했다. 세 모듈로 나뉜 뒤 루트(지금은 `com.tastyhouse.infrastructure.aws`)를 스캔하면 형제 모듈이 같은 클래스패스에 있을 때 그 빈까지 이 설정이 등록하게 되므로, 스캔 범위를 자기 패키지(`com.tastyhouse.infrastructure.aws.s3`) 밖으로 넓히지 않는다.
+**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleConfig.java`
 
 ### 위 "S3로 전환하는 절차"는 이 모듈의 유일한 활성화 경로다
 
-**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleConfig.java`(imports 제거 전 `AwsS3ModuleAutoConfiguration.java`)
+**대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleConfig.java`
 
 앱 `build.gradle`에 이 모듈을 직접 추가하지 않는다. 벤더 선택은 스타터가 소유한다(`backend/CLAUDE.md` §벤더 선택은 앱이 아니라 스타터 모듈이 한다).
 

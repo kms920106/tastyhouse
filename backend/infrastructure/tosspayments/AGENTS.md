@@ -4,7 +4,7 @@
 
 토스페이먼츠 **벤더 모듈**(`java-library`). `web-application` 모듈(앱 마커 제거 전에는 `application`)이 소유하는 벤더 SPI `PgProviderGatewayPort`(`com.tastyhouse.application.payment.port.out`)를 `TossPaymentGatewayAdapter`가 구현하고 `provider()`로 `web-application` 소유의 `PgProviderCode.TOSS`(도메인 `PgProvider`와 상수명이 같은 별도 enum — 아래 "포트 반환 타입" 절 참고)를 알린다. 앱이 아니라 PG 채널 모듈 `infrastructure:pg`가 `runtimeOnly`로 조립하며, 결제 건의 `PgProvider`가 `TOSS`면 채널의 라우터(`PgPaymentGatewayRouter`, 지금은 `application/payment/service/`에 있다)가 이 어댑터로 넘긴다.
 
-옛 `infrastructure:payment`의 `toss/` 패키지를 채널·벤더 분리(2026-09-26)로 옮겨 신설됐다. 패키지는 `external.payment.toss` → `com.tastyhouse.external.tosspayments`로 옮겼다 — 채널 모듈의 `@ComponentScan("com.tastyhouse.external.pg")`에 동반 스캔되지 않게 형제 패키지에 둔다. 이후 infrastructure 패키지 루트 통일로 루트가 `com.tastyhouse.infrastructure.tosspayments`가 됐다(`dto/` 구성은 불변). **(번복됨 — package-private 적용)** 이후 `dto/`의 wire DTO는 루트 패키지로 옮겨 package-private이 됐고 `dto/` 하위 패키지는 없어졌다(아래 봉인·가드 목록).
+채널·벤더 분리로 `infrastructure:payment`에서 갈라진 벤더 모듈이다. 패키지 루트는 `com.tastyhouse.infrastructure.tosspayments`이고 wire DTO는 루트 패키지에 package-private으로 있으며 `dto/` 하위 패키지는 없다(아래 봉인·가드 목록). ([ADR-0040](../../../docs/adr/0040-package-private-visibility.md))
 
 ## 무엇을 소유하는가
 
@@ -20,7 +20,7 @@ com.tastyhouse.infrastructure.tosspayments/
 └── TossPaymentConfirmResponse.java (package-private, 과거 dto/ 하위)
 ```
 
-**wire DTO는 이 모듈의 루트 패키지에 package-private으로 잔류한다**(과거 `dto/` 하위 패키지 — **번복됨 — package-private 적용**: `TossPaymentClient`와 같은 패키지여야 해서 옮겼다). 반환 타입은 `application`이 선언한 `PgConfirmResult`·`PgCancelResult`·`TossPaymentDetail`(`com.tastyhouse.application.payment.port.out`, 과거 `domain/payment/port/dto/`에서 이관됨)이며, 토스 응답 → 그 타입으로의 변환은 `TossPaymentGatewayAdapter`가 끝낸다 — `RestClient`·wire DTO 타입이 포트 시그니처로 새어나가지 않는다.
+**wire DTO는 이 모듈의 루트 패키지에 package-private으로 있다**(`TossPaymentClient`와 같은 패키지여야 한다). 반환 타입은 `application`이 선언한 `PgConfirmResult`·`PgCancelResult`·`TossPaymentDetail`(`com.tastyhouse.application.payment.port.out`)이며, 토스 응답 → 그 타입으로의 변환은 `TossPaymentGatewayAdapter`가 끝낸다 — `RestClient`·wire DTO 타입이 포트 시그니처로 새어나가지 않는다.
 
 `TossPaymentDetail`(토스 응답 원본)은 아직 `PgConfirmResult.detail`의 타입이고 `TOSS_PAYMENT_RECORD` 원장으로 저장된다. 이 원장의 PG 중립화는 두 번째 벤더 도입 시 함께 판단할 후속 항목이다. 다른 벤더는 그전까지 `detail`을 null로 돌려주고, 도메인 서비스는 null이면 원장 저장을 건너뛴다.
 
@@ -65,11 +65,11 @@ pg:
 
 <!-- 분류 A. 코드 변경을 금지·제약하는 항목. 역참조 앵커 필수 -->
 
-### 자바 패키지 `com.tastyhouse.external.tosspayments` 봉인
+### 자바 패키지 `com.tastyhouse.infrastructure.tosspayments` 봉인
 
 **대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/`
 
-`external.pg.toss`로 옮기면 채널 모듈 `infrastructure:pg`의 스캔에 동반 등록된다. ~~`com.tastyhouse.infrastructure` 아래로 옮기면 `PersistenceModuleAutoConfiguration`의 통째 스캔에 걸려 admin·ceo·batch 부팅이 깨진다.~~ **(번복됨 — infrastructure 패키지 루트 통일)** persistence가 자기 루트 `com.tastyhouse.infrastructure.persistence`만 스캔하게 되면서 이 제약이 사라졌다. 지금 이 모듈의 루트는 `com.tastyhouse.infrastructure.tosspayments`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/tosspayments/src/test/java/com/tastyhouse/infrastructure/tosspayments/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다.
+옛 위치 `external.pg.toss`로 되돌리지 않는다 — 채널 모듈 `infrastructure:pg`의 스캔에 동반 등록된다. 이 모듈의 루트는 `com.tastyhouse.infrastructure.tosspayments`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/tosspayments/src/test/java/com/tastyhouse/infrastructure/tosspayments/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
 
 ### 어댑터는 `PgPaymentGatewayPort`를 직접 구현하지 않는다
 
