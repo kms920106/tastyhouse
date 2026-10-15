@@ -327,6 +327,11 @@ class PaymentConfirmationServiceTest {
         }
 
         @Override
+        public Optional<Payment> findByIdForUpdate(PaymentId paymentId) {
+            return Optional.of(stored);
+        }
+
+        @Override
         public Optional<Payment> findByPgOrderId(String pgOrderId) {
             return Optional.of(stored);
         }

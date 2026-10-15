@@ -10,6 +10,8 @@ public interface PaymentLoadPort {
 
     Optional<Payment> findById(PaymentId paymentId);
 
+    Optional<Payment> findByIdForUpdate(PaymentId paymentId);
+
     Optional<Payment> findByPgOrderId(String pgOrderId);
 
     boolean existsByOrderId(OrderId orderId);

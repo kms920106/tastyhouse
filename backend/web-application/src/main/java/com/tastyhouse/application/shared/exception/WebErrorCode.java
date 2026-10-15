@@ -27,6 +27,7 @@ public enum WebErrorCode implements ApplicationErrorCodeSpec {
     PAYMENT_APPROVAL_FAILED(400, "PAYMENT_APPROVAL_FAILED", "결제 승인에 실패했습니다."),
     PAYMENT_REFUND_AMOUNT_EXCEEDED(400, "PAYMENT_REFUND_AMOUNT_EXCEEDED", "환불 금액이 결제 금액을 초과할 수 없습니다."),
     PAYMENT_NOT_COMPLETED(400, "PAYMENT_NOT_COMPLETED", "완료된 결제만 환불할 수 있습니다."),
+    PAYMENT_REFUND_ORDER_STATUS_INVALID(400, "PAYMENT_REFUND_ORDER_STATUS_INVALID", "조리가 시작되었거나 완료된 주문만 환불을 요청할 수 있습니다."),
     PG_PROVIDER_UNSUPPORTED(400, "PG_PROVIDER_UNSUPPORTED", "지원하지 않는 PG사입니다."),
 
     MEMBER_USERNAME_DUPLICATED(409, "MEMBER_USERNAME_DUPLICATED", "이미 사용 중인 아이디입니다."),

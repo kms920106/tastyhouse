@@ -100,6 +100,8 @@ grep -rn --include='*.md' -e '번복' -e '~~' -e '후 갱신)' -e '(개정' -e '
 | [0052](0052-banner-write-primary.md) | 같은 포트를 여러 기술이 구현하면 둘 다 등록하고 쓰는 쪽에 @Primary를 단다(provider 키 삭제) | 채택 | `f91ff6659` 2026-10-09 | 0045 |
 | [0053](0053-notice-mybatis-legacy.md) | mybatis 모듈의 banner 파일럿을 지우고 notice 레거시 MyBatis 구현(쓰기+조회)을 둔다 | 채택 | `8ea00a525` 2026-10-10 | 0045 |
 | [0054](0054-collaborator-service-package-private.md) | ..service..의 협력 서비스도 package-private으로 좁히고 다른 패키지가 쓰는 30개만 허용 목록에 둔다 | 채택 | `58774e4a9` 2026-10-11 | 0040(후속 과제) |
+| [0055](0055-payment-refund-pessimistic-lock.md) | 환불 요청 누적액 검사는 PAYMENT 행 비관적 락으로 직렬화한다 | 채택 | 커밋 후 기입 | — |
+| [0056](0056-error-catalog-additive-snapshot.md) | 신규 에러코드는 스냅샷 tsv에 행을 추가하고 개수 단정을 올린다 | 채택 | 커밋 후 기입 | — |
 
 ## 원문 표기 → ADR 대응표
 

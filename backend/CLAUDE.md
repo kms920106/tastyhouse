@@ -674,7 +674,7 @@ reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 �
 |---|---|
 | domain 에러코드 | `domain.exception.DomainErrorCode` 153개 |
 | core 에러코드 | `application.shared.exception.ApplicationErrorCode` 84개 |
-| 앱 에러코드 | 같은 패키지(split package) `WebErrorCode` 86 · `AdminErrorCode` 28 · `CeoErrorCode` 65 · `BatchErrorCode` 1 — 각 `{앱}-application` 모듈 |
+| 앱 에러코드 | 같은 패키지(split package) `WebErrorCode` 87 · `AdminErrorCode` 28 · `CeoErrorCode` 65 · `BatchErrorCode` 1 — 각 `{앱}-application` 모듈 |
 | api 에러코드 | `apicommon.exception.ApiErrorCode`(`RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`) |
 | infrastructure 에러코드 | 없음 — 벤더 어댑터는 실패를 결과 record로 돌려주고 application이 번역한다 |
 | application 코드 계약 | `application.shared.exception.ApplicationErrorCodeSpec extends ErrorCodeSpec` — application 계층 enum 5개가 구현 |
@@ -682,7 +682,7 @@ reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 �
 | domain 예외 | `domain.exception.DomainException` — `DomainErrorCode`만 받는다 |
 | application 예외 | `application.shared.exception.ApplicationException` — `ApplicationErrorCodeSpec`만 받는다 |
 | `ResourceNotFoundException` | `application.shared.exception`, `extends ApplicationException` |
-| wire 계약(status·`errorCode`·message) | `ErrorCatalogSnapshotTest`가 스냅샷 419행과 전수 비교 |
+| wire 계약(status·`errorCode`·message) | `ErrorCatalogSnapshotTest`가 스냅샷 420행과 전수 비교 |
 
 - **배치 규칙**: 코드는 그것을 던지는 **가장 안쪽 모듈**에 둔다.
   - domain이 던지면 `DomainErrorCode`. application이 함께 던져도 여기다(22개).
@@ -698,13 +698,13 @@ reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 �
   - **throw 경로에서 `ErrorCodeSpec`으로 넓히지 않는다** — 넓히면 계층 간 오용을 타입이 막지 못한다.
 - **봉인 예외 1건 — 실패를 담아 나르는 값 객체**: throw하지 않고 응답으로 변환되는 record는 `ErrorCodeSpec` 컴포넌트를 쓸 수 있다. 지금은 `ceo-application/src/main/java/com/tastyhouse/application/product/service/ProductAvailabilityFailure.java` 하나다. domain·core·ceo 코드를 함께 싣기 때문이며, ceo만 생산·소비한다.
 - **왜 계층별 예외 타입이 "빈 서브클래스"가 아닌가**: `DomainException`과 `ApplicationException`은 **받는 코드 타입이 다르다**. 그래서 "도메인이 앱 코드를 던짐", "web 서비스가 ceo 코드를 던짐"이 컴파일 에러가 된다. 생성자를 위임만 하고 받는 타입이 같은 서브클래스는 타입이 막아 주는 것이 없으므로 만들지 않는다(아래 세부 규칙).
-- **HTTP status를 enum의 `int`로 유지한다(의도적 이탈)**: 엄격한 클린 아키텍처에서는 status 매핑을 inbound adapter가 갖는다. 그러려면 코드 enum을 클래스패스에 두지 않은 api 모듈에 매핑 419개를 두어야 한다. `int`라 프레임워크-프리이고 wire 계약 보존이 우선이라 유지한다.
+- **HTTP status를 enum의 `int`로 유지한다(의도적 이탈)**: 엄격한 클린 아키텍처에서는 status 매핑을 inbound adapter가 갖는다. 그러려면 코드 enum을 클래스패스에 두지 않은 api 모듈에 매핑 420개를 두어야 한다. `int`라 프레임워크-프리이고 wire 계약 보존이 우선이라 유지한다.
 - **`ApiErrorCode`가 `api-common-module`에 있는 이유**: 필터·핸들러 단계의 에러 계약(rate limit·인증·인가)은 표현 계층의 것이다. `application.shared.error`에 두면 Gradle 변경이 없지만, application이 HTTP 계약을 소유하는 상태(`ErrorContracts`)가 그대로 남는다. 대가로 `security-module` → `api-common-module` 간선이 생겼다(순환 없음). `ApiErrorCode`는 `ErrorCodeSpec`을 구현하지 않는다 — api 모듈은 domain을 볼 수 없다.
 - **`AUTH_REQUIRED`는 봉인된 미러다**: 필터 단계(`ApiErrorCode`)와 web 유스케이스(`WebErrorCode`)가 같은 code를 낸다. 두 상수의 status·code·message 일치는 `ErrorCatalogConventionTest#mirroredCodesStayIdentical`이 지킨다.
 - **enum 이름은 소유 모듈명을 따른다**(`AdminErrorCode`·`CeoErrorCode`). 헥사고날에서 컴포넌트는 "누가 쓰나"가 아니라 "누가 소유하나"로 이름 짓기 때문이다. 아래 [admin 전용 네이밍 규칙](#admin-전용-네이밍-규칙-메서드타입명에-admin-flavor-admin-접두접미중간어-금지)의 예외로 등재돼 있다.
 - **가드**:
   - `application-core/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest` — 카탈로그 7개 전체가 대상이다. code 전역 유일(봉인 미러 1건), 상수명=code(봉인 6건), `*_NOT_FOUND`→404(봉인 4건), status 4xx·5xx, 메시지 비공백, 계층 계약 구현을 검사하고, 봉인 낡음도 검출한다.
-  - `…/shared/exception/ErrorCatalogSnapshotTest` — 카탈로그 7개의 `(code, status, message)` 합집합이 `application-core/src/test/resources/error-catalog-before.tsv`에서 삭제 23개를 뺀 419행과 같은지 검사한다.
+  - `…/shared/exception/ErrorCatalogSnapshotTest` — 카탈로그 7개의 `(code, status, message)` 합집합이 `application-core/src/test/resources/error-catalog-before.tsv`에서 삭제 23개를 뺀 420행과 같은지 검사한다. 분할 이후 추가하는 신규 에러코드는 tsv에 행을 추가하고 `hasSize`를 함께 올린다(절차는 `application-core/AGENTS.md`의 `ErrorCatalogSnapshotTest` 항목).
   - `…/shared/error/ErrorResponsesTest` — `resolve`의 의미를 검사한다.
   - 이 테스트들 때문에 `application-core/build.gradle`이 `testImplementation project(':api-common-module')`를 가진다.
 

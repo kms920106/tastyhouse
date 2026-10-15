@@ -58,7 +58,7 @@ class ErrorCatalogSnapshotTest {
             .map(entry -> entry.name() + "|" + entry.code() + "|" + entry.status() + "|" + entry.message())
             .collect(Collectors.toSet());
 
-        assertThat(before).hasSize(419);
+        assertThat(before).hasSize(420);
         assertThat(after).isEqualTo(before);
     }
 }

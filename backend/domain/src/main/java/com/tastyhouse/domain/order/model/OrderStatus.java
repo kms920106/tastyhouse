@@ -22,6 +22,10 @@ public enum OrderStatus {
         }
     }
 
+    public boolean allowsRefundRequest() {
+        return this == PREPARING || this == COMPLETED;
+    }
+
     public boolean canTransitionTo(OrderStatus target) {
         return allowedTargets().contains(target);
     }

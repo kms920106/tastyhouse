@@ -14,11 +14,13 @@ import com.tastyhouse.domain.payment.model.PaymentCancelCode;
 import com.tastyhouse.domain.payment.model.PaymentCancellationTarget;
 import com.tastyhouse.domain.payment.model.PaymentRefund;
 import com.tastyhouse.domain.payment.model.PaymentStatus;
+import com.tastyhouse.domain.payment.model.RefundStatus;
 import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PaymentRefundId;
 import com.tastyhouse.application.order.service.OrderTransitionService;
 import com.tastyhouse.application.payment.port.out.write.PaymentLoadPort;
+import com.tastyhouse.application.payment.port.out.write.PaymentRefundLoadPort;
 import com.tastyhouse.application.payment.port.out.write.PaymentRefundSavePort;
 import com.tastyhouse.application.payment.port.out.write.PaymentSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
@@ -32,6 +34,7 @@ class PaymentCancellationService {
 
     private final PaymentLoadPort paymentLoadPort;
     private final PaymentSavePort paymentSavePort;
+    private final PaymentRefundLoadPort paymentRefundLoadPort;
     private final PaymentRefundSavePort paymentRefundSavePort;
     private final OrderTransitionService orderTransitionService;
     private final DomainEventPublisher domainEventPublisher;
@@ -39,12 +42,14 @@ class PaymentCancellationService {
     public PaymentCancellationService(
         PaymentLoadPort paymentLoadPort,
         PaymentSavePort paymentSavePort,
+        PaymentRefundLoadPort paymentRefundLoadPort,
         PaymentRefundSavePort paymentRefundSavePort,
         OrderTransitionService orderTransitionService,
         DomainEventPublisher domainEventPublisher
     ) {
         this.paymentLoadPort = paymentLoadPort;
         this.paymentSavePort = paymentSavePort;
+        this.paymentRefundLoadPort = paymentRefundLoadPort;
         this.paymentRefundSavePort = paymentRefundSavePort;
         this.orderTransitionService = orderTransitionService;
         this.domainEventPublisher = domainEventPublisher;
@@ -104,14 +109,24 @@ class PaymentCancellationService {
         int refundAmount,
         String refundReason
     ) {
-        Payment payment = loadPayment(paymentId);
-        orderTransitionService.loadOwnedBy(payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED);
+        Payment payment = paymentLoadPort.findByIdForUpdate(paymentId)
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
+        Order order = orderTransitionService.loadOwnedBy(
+            payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED
+        );
 
         if (payment.getPaymentStatus() != PaymentStatus.COMPLETED) {
             throw new ApplicationException(WebErrorCode.PAYMENT_NOT_COMPLETED);
         }
 
-        if (refundAmount > payment.getAmount().value()) {
+        if (!order.getOrderStatus().allowsRefundRequest()) {
+            throw new ApplicationException(WebErrorCode.PAYMENT_REFUND_ORDER_STATUS_INVALID);
+        }
+
+        long requestedAmount = paymentRefundLoadPort.findRefundAmountSum(
+            paymentId, RefundStatus.limitOccupyingStatuses()
+        );
+        if (requestedAmount + refundAmount > payment.getAmount().value()) {
             throw new ApplicationException(WebErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED);
         }
 

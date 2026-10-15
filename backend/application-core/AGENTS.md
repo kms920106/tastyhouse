@@ -1641,7 +1641,7 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 
 | 항목 | before | after |
 |---|---|---|
-| 카탈로그 | `domain.exception.ErrorCode` 단일 enum 442개 | 7개 — `DomainErrorCode`(153, domain)·`ApplicationErrorCode`(84, 코어)·`WebErrorCode`(86)·`AdminErrorCode`(28)·`CeoErrorCode`(65)·`BatchErrorCode`(1: `ADMIN_DONG_BOUNDARY_FETCH_FAILED`)·`ApiErrorCode`(`api-common-module`) |
+| 카탈로그 | `domain.exception.ErrorCode` 단일 enum 442개 | 7개 — `DomainErrorCode`(153, domain)·`ApplicationErrorCode`(84, 코어)·`WebErrorCode`(87)·`AdminErrorCode`(28)·`CeoErrorCode`(65)·`BatchErrorCode`(1: `ADMIN_DONG_BOUNDARY_FETCH_FAILED`)·`ApiErrorCode`(`api-common-module`) |
 | 배치 규칙 | 전부 domain | **그 코드를 던지는 가장 안쪽 모듈.** domain이 던지면 `DomainErrorCode`(application도 함께 던지는 22개 포함), 코어 또는 2개 이상 앱 모듈이 던지면 `ApplicationErrorCode`, 앱 하나만 던지면 그 앱의 `{X}ErrorCode` |
 | 예외 | `BusinessException`(구체) · `ResourceNotFoundException`(domain) | `BusinessException`은 abstract. domain은 `DomainException(DomainErrorCode)`, application은 `ApplicationException(ApplicationErrorCodeSpec)` 또는 domain 코드면 `DomainException`. `ResourceNotFoundException`은 `application.shared.exception`으로 이동해 `ApplicationException`을 상속 |
 | 가드 | `domain/.../ErrorCodeConventionTest`(`ErrorCode` 하나), `ErrorContractsConsistencyTest` | `ErrorCatalogConventionTest`(7개 카탈로그 전체), `ErrorCatalogSnapshotTest`, `ErrorResponsesTest` |
@@ -1655,7 +1655,7 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 
 **`ErrorCatalogConventionTest`가 검사하는 것과 봉인 집합** — 전역 code 유일성(봉인: `AUTH_REQUIRED` 미러 1건), `name == code`(봉인: `*_VERIFICATION_CODE_*` 6건 — `SMS_`/`MAIL_` × `NOT_FOUND`·`EXPIRED`·`MISMATCH`), `*_NOT_FOUND → 404`(봉인 4건: `SMS_VERIFICATION_CODE_NOT_FOUND`·`MAIL_VERIFICATION_CODE_NOT_FOUND`·`REFERRAL_REFERRER_NOT_FOUND`·`FOLLOW_NOT_FOUND`), HTTP 상태 400~599, 메시지 비공백, 계층 계약(각 enum이 자기 계층 예외로만 던져지는 구조). 봉인 사유는 프론트가 분기하는 wire 계약이라 지금 고치면 클라이언트가 깨지는 것이다 — `backend/domain/AGENTS.md`의 같은 이름 봉인 항목 참고. **봉인 집합에 새 항목을 추가하지 않는다.** 노후 감지 짝 테스트(`whitelistIsNotStale`)가 고쳐진 봉인을 알려준다.
 
-**`ErrorCatalogSnapshotTest`** — 7개 카탈로그의 `(code, status, message)` 합집합이 분할 전 스냅샷 `error-catalog-before.tsv`(442행)에서 삭제한 23개를 뺀 **419건**과 같음을 단정한다. 분할이 wire 계약을 바꾸지 않았다는 증거다. **스냅샷 파일을 갱신해 테스트를 맞추지 않는다** — 코드·상태·메시지를 바꾸면 이 테스트가 실패해야 정상이다. 의도한 wire 변경이라면 그 사실을 문서에 먼저 적는다. `application`의 build.gradle에 `testImplementation project(':api-common-module')`가 추가됐다(`ApiErrorCode`를 검사하기 위함).
+**`ErrorCatalogSnapshotTest`** — 7개 카탈로그의 `(code, status, message)` 합집합이 스냅샷 `error-catalog-before.tsv`(443행)에서 삭제한 23개를 뺀 **420건**과 같음을 단정한다. 분할이 wire 계약을 바꾸지 않았다는 증거다. **스냅샷 파일을 갱신해 테스트를 맞추지 않는다** — 기존 코드의 코드·상태·메시지를 바꾸면 이 테스트가 실패해야 정상이다. 의도한 wire 변경이라면 그 사실을 문서에 먼저 적는다. **신규 에러코드는 additive라 wire 계약을 깨지 않으므로** 다음 절차로 추가한다 — (1) 소유 카탈로그 enum에 상수 추가, (2) tsv에 `NAME\tstatus\tCODE\tmessage` 한 행 추가, (3) `hasSize`를 1 올림, (4) `backend/CLAUDE.md`의 "예외·에러코드 소유 규칙" 절과 이 문서 위 표의 개수 표기를 함께 갱신. ([ADR-0056](../../docs/adr/0056-error-catalog-additive-snapshot.md)) `application`의 build.gradle에 `testImplementation project(':api-common-module')`가 추가됐다(`ApiErrorCode`를 검사하기 위함).
 
 ### 03a로 domain에서 옮겨 온 설계 근거 (도메인 서비스)
 

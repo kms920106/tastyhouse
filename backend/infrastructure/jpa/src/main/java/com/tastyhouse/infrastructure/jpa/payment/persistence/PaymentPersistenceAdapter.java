@@ -3,6 +3,7 @@ package com.tastyhouse.infrastructure.jpa.payment.persistence;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.LockModeType;
 import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.domain.order.vo.OrderId;
@@ -27,6 +28,16 @@ class PaymentPersistenceAdapter implements PaymentLoadPort, PaymentSavePort {
     @Override
     public Optional<Payment> findById(PaymentId paymentId) {
         return paymentJpaRepository.findById(paymentId.value()).map(PaymentMapper::toDomain);
+    }
+
+    @Override
+    public Optional<Payment> findByIdForUpdate(PaymentId paymentId) {
+        PaymentJpaEntity entity = queryFactory
+            .selectFrom(paymentJpaEntity)
+            .where(paymentJpaEntity.id.eq(paymentId.value()))
+            .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+            .fetchOne();
+        return Optional.ofNullable(entity).map(PaymentMapper::toDomain);
     }
 
     @Override

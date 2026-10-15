@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import com.tastyhouse.application.order.port.out.write.OrderLoadPort;
 import com.tastyhouse.application.order.port.out.write.OrderSavePort;
 import com.tastyhouse.application.order.service.OrderTransitionService;
 import com.tastyhouse.application.payment.port.out.write.PaymentLoadPort;
+import com.tastyhouse.application.payment.port.out.write.PaymentRefundLoadPort;
 import com.tastyhouse.application.payment.port.out.write.PaymentRefundSavePort;
 import com.tastyhouse.application.payment.port.out.write.PaymentSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
@@ -171,12 +173,12 @@ class PaymentCancellationServiceTest {
     @Test
     @DisplayName("환불 요청: 완료된 결제에 대해 환불을 접수하고 요청 이벤트를 발행한다")
     void requestRefund_acceptsForCompletedPayment() {
-        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.PREPARING);
 
         fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 5000, "일부 환불");
 
-        assertThat(fixture.paymentRefundSavePort.saved).hasSize(1);
-        PaymentRefund refund = fixture.paymentRefundSavePort.saved.getFirst();
+        assertThat(fixture.paymentRefundPersistence.saved).hasSize(1);
+        PaymentRefund refund = fixture.paymentRefundPersistence.saved.getFirst();
         assertThat(refund.getRefundAmount().value()).isEqualTo(5000);
         assertThat(refund.getRefundStatus()).isEqualTo(RefundStatus.PENDING);
 
@@ -194,38 +196,141 @@ class PaymentCancellationServiceTest {
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(WebErrorCode.PAYMENT_NOT_COMPLETED.getDefaultMessage());
 
-        assertThat(fixture.paymentRefundSavePort.saved).isEmpty();
+        assertThat(fixture.paymentRefundPersistence.saved).isEmpty();
     }
 
     @Test
     @DisplayName("환불 요청: 결제 금액을 초과하는 환불은 거절한다")
     void requestRefund_rejectsExceedingAmount() {
-        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.PREPARING);
 
         assertThatThrownBy(() -> fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 21001, "사유"))
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(WebErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED.getDefaultMessage());
 
-        assertThat(fixture.paymentRefundSavePort.saved).isEmpty();
+        assertThat(fixture.paymentRefundPersistence.saved).isEmpty();
+    }
+
+    @Test
+    @DisplayName("환불 요청: 결제 행을 잠금 조회로 읽어 같은 결제의 동시 요청을 직렬화한다")
+    void requestRefund_loadsPaymentWithLock() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.PREPARING);
+
+        fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 5000, "일부 환불");
+
+        assertThat(fixture.paymentRefundPersistence.lockedLoadsAtFirstSumQuery).isEqualTo(1);
+        assertThat(fixture.orderPersistence.lockedLoadsAtFirstOrderLoad).isEqualTo(1);
+        assertThat(fixture.paymentPersistence.lockedLoads).isEqualTo(1);
+        assertThat(fixture.paymentPersistence.plainLoads).isZero();
+    }
+
+    @Test
+    @DisplayName("환불 요청: 같은 결제에 전액 환불을 연달아 요청하면 두 번째 요청은 거절한다")
+    void requestRefund_rejectsRepeatedFullRefund() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.PREPARING);
+
+        fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 21000, "전액 환불");
+
+        assertThatThrownBy(() -> fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 21000, "전액 환불"))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining(WebErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED.getDefaultMessage());
+
+        assertThat(fixture.paymentRefundPersistence.saved).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("환불 요청: 이미 접수된 환불과 합친 금액이 결제 금액을 넘으면 거절한다")
+    void requestRefund_rejectsWhenCumulativeAmountExceeds() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.PREPARING);
+        fixture.paymentRefundPersistence.existing(15000, RefundStatus.PENDING);
+
+        assertThatThrownBy(() -> fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 7000, "추가 환불"))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining(WebErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED.getDefaultMessage());
+
+        assertThat(fixture.paymentRefundPersistence.saved).isEmpty();
+        assertThat(fixture.eventPublisher.published).isEmpty();
+    }
+
+    @Test
+    @DisplayName("환불 요청: 누적 금액이 결제 금액과 정확히 같으면 접수한다")
+    void requestRefund_acceptsWhenCumulativeAmountEqualsPayment() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.PREPARING);
+        fixture.paymentRefundPersistence.existing(15000, RefundStatus.PENDING);
+
+        fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 6000, "잔액 환불");
+
+        assertThat(fixture.paymentRefundPersistence.saved).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("환불 요청: 처리 중·완료된 환불도 누적 금액에 포함한다")
+    void requestRefund_countsProcessingAndCompletedRefunds() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.COMPLETED);
+        fixture.paymentRefundPersistence.existing(10000, RefundStatus.PROCESSING);
+        fixture.paymentRefundPersistence.existing(10000, RefundStatus.COMPLETED);
+
+        assertThatThrownBy(() -> fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 1001, "추가 환불"))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining(WebErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED.getDefaultMessage());
+
+        assertThat(fixture.paymentRefundPersistence.saved).isEmpty();
+    }
+
+    @Test
+    @DisplayName("환불 요청: 실패한 환불은 한도를 점유하지 않아 누적 금액에서 뺀다")
+    void requestRefund_excludesFailedRefundsFromCumulativeAmount() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.PREPARING);
+        fixture.paymentRefundPersistence.existing(21000, RefundStatus.FAILED);
+
+        fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 21000, "재요청");
+
+        assertThat(fixture.paymentRefundPersistence.saved).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("환불 요청: 조리 시작 전이거나 취소된 주문은 환불 요청을 거절하고 아무것도 저장하지 않는다")
+    void requestRefund_rejectsOrderStatusBeforePreparingOrCancelled() {
+        for (OrderStatus orderStatus : List.of(OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.CANCELLED)) {
+            Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, orderStatus);
+
+            assertThatThrownBy(() -> fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 5000, "사유"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining(WebErrorCode.PAYMENT_REFUND_ORDER_STATUS_INVALID.getDefaultMessage());
+
+            assertThat(fixture.paymentRefundPersistence.saved).isEmpty();
+            assertThat(fixture.eventPublisher.published).isEmpty();
+        }
+    }
+
+    @Test
+    @DisplayName("환불 요청: 완료된 주문은 환불 요청을 접수한다")
+    void requestRefund_acceptsForCompletedOrder() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.COMPLETED);
+
+        fixture.service.requestRefund(MEMBER_ID, PAYMENT_ID, 5000, "사유");
+
+        assertThat(fixture.paymentRefundPersistence.saved).hasSize(1);
     }
 
     private static final class Fixture {
 
         private final PaymentCancellationService service;
-        private final PaymentPersistenceStub paymentPersistence;
-        private final OrderPersistenceStub orderPersistence;
-        private final PaymentRefundSavePortStub paymentRefundSavePort;
+        private final FakePaymentPersistence paymentPersistence;
+        private final FakeOrderPersistence orderPersistence;
+        private final FakePaymentRefundPersistence paymentRefundPersistence;
         private final DomainEventPublisherStub eventPublisher;
 
         private Fixture(Payment payment, Order order) {
-            this.paymentPersistence = new PaymentPersistenceStub(payment);
-            this.orderPersistence = new OrderPersistenceStub(order);
-            this.paymentRefundSavePort = new PaymentRefundSavePortStub();
+            this.paymentPersistence = new FakePaymentPersistence(payment);
+            this.orderPersistence = new FakeOrderPersistence(order, paymentPersistence);
+            this.paymentRefundPersistence = new FakePaymentRefundPersistence(paymentPersistence);
             this.eventPublisher = new DomainEventPublisherStub();
             this.service = new PaymentCancellationService(
                 paymentPersistence,
                 paymentPersistence,
-                paymentRefundSavePort,
+                paymentRefundPersistence,
+                paymentRefundPersistence,
                 new OrderTransitionService(orderPersistence, orderPersistence),
                 eventPublisher
             );
@@ -258,17 +363,26 @@ class PaymentCancellationServiceTest {
         }
     }
 
-    private static final class PaymentPersistenceStub implements PaymentLoadPort, PaymentSavePort {
+    private static final class FakePaymentPersistence implements PaymentLoadPort, PaymentSavePort {
 
         private final Payment stored;
         private Payment lastSaved;
+        private int lockedLoads;
+        private int plainLoads;
 
-        private PaymentPersistenceStub(Payment stored) {
+        private FakePaymentPersistence(Payment stored) {
             this.stored = stored;
         }
 
         @Override
         public Optional<Payment> findById(PaymentId paymentId) {
+            plainLoads++;
+            return Optional.of(stored);
+        }
+
+        @Override
+        public Optional<Payment> findByIdForUpdate(PaymentId paymentId) {
+            lockedLoads++;
             return Optional.of(stored);
         }
 
@@ -289,17 +403,23 @@ class PaymentCancellationServiceTest {
         }
     }
 
-    private static final class OrderPersistenceStub implements OrderLoadPort, OrderSavePort {
+    private static final class FakeOrderPersistence implements OrderLoadPort, OrderSavePort {
 
         private final Order stored;
+        private final FakePaymentPersistence paymentPersistence;
         private Order lastSaved;
+        private Integer lockedLoadsAtFirstOrderLoad;
 
-        private OrderPersistenceStub(Order stored) {
+        private FakeOrderPersistence(Order stored, FakePaymentPersistence paymentPersistence) {
             this.stored = stored;
+            this.paymentPersistence = paymentPersistence;
         }
 
         @Override
         public Optional<Order> findByIdIncludingDeleted(OrderId orderId) {
+            if (lockedLoadsAtFirstOrderLoad == null) {
+                lockedLoadsAtFirstOrderLoad = paymentPersistence.lockedLoads;
+            }
             return Optional.of(stored);
         }
 
@@ -310,12 +430,39 @@ class PaymentCancellationServiceTest {
         }
     }
 
-    private static final class PaymentRefundSavePortStub implements PaymentRefundSavePort {
+    private static final class FakePaymentRefundPersistence implements PaymentRefundLoadPort, PaymentRefundSavePort {
 
+        private final FakePaymentPersistence paymentPersistence;
+        private final List<PaymentRefund> existing = new ArrayList<>();
         private final List<PaymentRefund> saved = new ArrayList<>();
+        private Integer lockedLoadsAtFirstSumQuery;
+
+        private FakePaymentRefundPersistence(FakePaymentPersistence paymentPersistence) {
+            this.paymentPersistence = paymentPersistence;
+        }
+
+        private void existing(int amount, RefundStatus status) {
+            existing.add(PaymentRefund.reconstitute(
+                (long) existing.size() + 1, PAYMENT_ID, new Amount(amount), "기존 환불", status, null, null,
+                LocalDateTime.of(2026, 7, 31, 9, 45)
+            ));
+        }
+
+        @Override
+        public long findRefundAmountSum(PaymentId paymentId, Set<RefundStatus> statuses) {
+            if (lockedLoadsAtFirstSumQuery == null) {
+                lockedLoadsAtFirstSumQuery = paymentPersistence.lockedLoads;
+            }
+            return existing.stream()
+                .filter(refund -> refund.getPaymentId().equals(paymentId))
+                .filter(refund -> statuses.contains(refund.getRefundStatus()))
+                .mapToLong(refund -> refund.getRefundAmount().value())
+                .sum();
+        }
 
         @Override
         public PaymentRefund save(PaymentRefund paymentRefund) {
+            existing.add(paymentRefund);
             saved.add(PaymentRefund.reconstitute(
                 300L,
                 paymentRefund.getPaymentId(),
