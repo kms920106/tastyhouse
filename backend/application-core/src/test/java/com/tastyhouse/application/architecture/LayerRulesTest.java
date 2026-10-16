@@ -205,7 +205,7 @@ class LayerRulesTest {
 
         assertThat(ports)
             .as("web·admin·ceo의 UseCase 포트가 줄면 출처 판정이 깨져 이 규칙이 공허하게 통과할 수 있다")
-            .hasSizeGreaterThanOrEqualTo(582);
+            .hasSizeGreaterThanOrEqualTo(580);
 
         List<String> violations = ports.stream()
             .filter(port -> abstractOperationsOf(port).size() != 1)
@@ -252,7 +252,7 @@ class LayerRulesTest {
             .toList();
         assertThat(services)
             .as("유스케이스 서비스가 줄면 판정 술어가 깨져 이 규칙들이 공허하게 통과할 수 있다")
-            .hasSizeGreaterThanOrEqualTo(582);
+            .hasSizeGreaterThanOrEqualTo(580);
         return services;
     }
 

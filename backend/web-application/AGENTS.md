@@ -4,7 +4,7 @@
 
 ## 무엇이 여기 사는가
 
-- web 전용 `@Service`/`@Component` 빈 — 유스케이스당 서비스 1개(`{도메인}{동작}Service`/`{도메인}{관점}QueryService`, 예: `payment/service/PaymentConfirmService`·`payment/service/PaymentDetailQueryService`. 유스케이스 분리 전의 `{도메인}CommandService`/`{도메인}QueryService` 쌍과 파사드 `MemberService`는 하나도 남지 않았다)와 web만 쓰는 도메인 서비스(예: `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PaymentCancellationService`)
+- web 전용 `@Service`/`@Component` 빈 — 유스케이스당 서비스 1개(`{도메인}{동작}Service`/`{도메인}{관점}QueryService`, 예: `payment/service/PgPaymentConfirmService`·`payment/service/PaymentDetailQueryService`. 유스케이스 분리 전의 `{도메인}CommandService`/`{도메인}QueryService` 쌍과 파사드 `MemberService`는 하나도 남지 않았다)와 web만 쓰는 도메인 서비스(예: `MailVerificationService`·`SmsVerificationService`·`PgPaymentGatewayRouter`·`PaymentCancellationService`)
 - UseCase 인터페이스와 Command record(`<ctx>/port/in/`)
 - **web 전용 SPI 포트**(구현 벤더가 web에만 조립되는 포트):
   - `emailverification.port.out.{MailSenderPort,MailSendResult}` — 구현 `infrastructure:javamail`·`aws-ses`

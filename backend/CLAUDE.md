@@ -309,7 +309,7 @@ static class ModuleScanConfig {
 | 위 중 다른 패키지가 import하는 것 | `application` 5모듈 | 30 | `public class` | `public class` 유지 + `PUBLIC_BY_NECESSITY` 등재 |
 
 - **73개 중 20개는 코어 `application` 클래스를 앱 모듈이 같은 자바 패키지에서 쓴다**(split package — 예: `shop/service/ShopLifecycleService` ← admin·ceo·web). 이름이 같은 패키지이고 fat jar의 클래스로더가 하나라서 package-private 접근이 컴파일·런타임 모두 성립한다. 선례는 코어의 package-private `product/service/ProductOptionDepositAmounts`·`ShopCodeDescriptions`다. **그래서 "같은 패키지의 모듈 간 참조"는 `PUBLIC_BY_NECESSITY` 등재 사유가 아니다.**
-- `..service..`의 public record·enum(`ProductAvailabilityChangeResult`·`ReviewListType`·`FileUploadCommand`·`PgConfirmation` 등 6개)은 반환·계약 타입이라 대상이 아니다.
+- `..service..`의 public record·enum(`ProductAvailabilityChangeResult`·`ReviewListType`·`FileUploadCommand` 등 5개)은 반환·계약 타입이라 대상이 아니다.
 - **가드 범위는 `..service..` 패키지다 — 이름이 `*Service`여도 그 밖에 있으면 검사하지 않는다.** `batch-application`의 `crawling/bbq/BbqService`·`BbqProductSyncService`, `auth/token/*TokenService`, `*JwtTokenProvider`, `auth/security/*UserDetailsService` 등은 아직 public이며 이번 범위가 아니다(후속 판정 대상).
 
 - **선언 키워드만 바꿨다 — 생성자·메서드의 `public`은 유지한다.** `@Transactional`은 public 메서드에만 적용되고, `RateLimitAspect`·`@PreAuthorize`가 감싸는 컨트롤러 핸들러 메서드도 public이어야 프록시 대상이 된다. 클래스를 package-private으로 좁혀도 메서드 가시성은 손대지 않는다.
@@ -421,7 +421,7 @@ static class ModuleScanConfig {
 | `@Configuration`의 이중 등록 | `#configurationsShouldNotRegisterStereotypedClasses` |
 | `commandRecordsShouldBeBoundaryTyped`의 batch 예외 | 클래스의 출처 모듈(`batch-application`)로 판정 |
 | `BatchSchedulerRulesTest` 대상 | `batch-application` 출처 클래스 |
-| 개수 anchor(`RuleAnchorTest`) | `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥187 · admin ≥207 · ceo ≥188 · batch =7 · core =0) |
+| 개수 anchor(`RuleAnchorTest`) | `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥185 · admin ≥207 · ceo ≥188 · batch =7 · core =0) |
 | 스캔 형태(`ApplicationLayerScanConfigTest`) | `assertScansApplicationLayerWithoutFilters` — basePackages가 정확히 `com.tastyhouse.application`, `useDefaultFilters = true`, include/exclude 필터 없음 |
 | 다른 앱 모듈의 클래스패스 유입 | 4앱 각 `ApplicationModuleClasspathTest` + `ApplicationLayerScanAssertions#assertLoadsOnlyOwnApplicationModule(ModuleOrigin.XXX)` — 앱 테스트 클래스패스의 `com.tastyhouse.application` 클래스(main 출력)를 ArchUnit으로 읽어 출처 모듈 집합이 **정확히 `{application-core, 자기 앱 모듈}`**인지 `ModuleOrigin`으로 판정한다. 테스트 전용 표식 리소스를 main 산출물에 싣지 않는다 |
 
@@ -1763,7 +1763,7 @@ reference 구현: `infrastructure/jpa/src/test/.../architecture/LayerRulesTest`.
 | `commandRecordsShouldNotHoldMultipartFile` | application | `..port.in..`의 **필드**로 `MultipartFile` 금지 |
 | `portInShouldNotDependOnWebPlumbing` | application | `..port.in..`은 `web.bind`·`web.servlet`·`http`·`jakarta.servlet` 의존 금지 |
 
-유스케이스 서비스 1:1 규칙 4개는 대상 하한 582를 스스로 단정하고, 각각 반증 probe(포트 2개를 구현하는 임시 클래스 등)로 실패를 확인했다.
+유스케이스 서비스 1:1 규칙 4개는 대상 하한 580을 스스로 단정하고, 각각 반증 probe(포트 2개를 구현하는 임시 클래스 등)로 실패를 확인했다.
 
 ### 규칙의 현재 위치 — 모듈 재편 후 인벤토리 (챕터 06 갱신)
 
@@ -1777,7 +1777,7 @@ reference 구현: `infrastructure/jpa/src/test/.../architecture/LayerRulesTest`.
 | `batch-module/.../architecture/LayerRulesTest` | `@Scheduled` 트리거 |
 | `infrastructure/jpa/.../architecture/LayerRulesTest` | infra 계층 방향(위 절) |
 | `domain/.../architecture/{DomainPurityTest,ContextBoundaryTest}` | 프레임워크 순수성 · 컨텍스트 수평 경계 |
-| `application-core/.../architecture/RuleAnchorTest` | 공허 통과 검출(아래) — **앱별 하한**을 유지해 한 앱이 통째로 사라지는 것을 잡는다. `commandServicesExist`(≥314)·`queryServicesExist`(≥268)는 `UseCaseServices` 술어로 센다. `moduleUseCaseCounts` web ≥187 · admin ≥207 · ceo ≥188 · batch =7 · core =0, `inboundPortsExist` ≥891 |
+| `application-core/.../architecture/RuleAnchorTest` | 공허 통과 검출(아래) — **앱별 하한**을 유지해 한 앱이 통째로 사라지는 것을 잡는다. `commandServicesExist`(≥313)·`queryServicesExist`(≥267)는 `UseCaseServices` 술어로 센다. `moduleUseCaseCounts` web ≥185 · admin ≥207 · ceo ≥188 · batch =7 · core =0, `inboundPortsExist` ≥891 |
 
 **계층을 모듈로 분리했기에 표현 가능한 규칙** — 한 모듈에 두 계층이 함께 있으면 컨트롤러가 정당하게 서블릿 타입을 쓰므로 모듈 전역 금지를 걸 수 없다:
 
@@ -1814,17 +1814,17 @@ reference 구현: `infrastructure/jpa/src/test/.../architecture/LayerRulesTest`.
 
 | 항목 | 규칙 |
 |---|---|
-| 명령 포트·서비스 | `{도메인}{동작}UseCase` / `{도메인}{동작}Service` — 예: `PaymentConfirmUseCase` / `PaymentConfirmService`. Command record와 이름이 한 줄로 맞물린다(`PaymentConfirmCommand`) |
+| 명령 포트·서비스 | `{도메인}{동작}UseCase` / `{도메인}{동작}Service` — 예: `PaymentCreateUseCase` / `PaymentCreateService`. Command record와 이름이 한 줄로 맞물린다(`PaymentCreateCommand`) |
 | 조회 포트·서비스 | `{도메인}{관점}QueryUseCase` / `{도메인}{관점}QueryService` — 예: `PaymentDetailQueryUseCase` / `PaymentDetailQueryService` |
 | 명령/조회 판별 | **구현한 포트 이름이 `QueryUseCase`로 끝나는가** (testFixtures `com.tastyhouse.architecture.UseCaseServices#commands()`·`#queries()`) |
 | 트랜잭션 | 클래스 레벨 — 명령은 `@Transactional`, 조회는 `@Transactional(readOnly = true)`. PG 왕복·재시도 루프·인증처럼 트랜잭션을 걸면 안 되는 서비스는 걸지 않는다 — 예: `PgPaymentConfirmService`·`PaymentCancelService`는 트랜잭션 없음 |
 | 공유 헬퍼 | 한 연산 전용이면 그 서비스로, 순수 변환이면 대상 record의 `from(...)`(예: `PaymentViewResult.from(PaymentResult)`), 포트가 필요하면 같은 패키지의 `{도메인}{명사}Reader` |
 | 가드 — 판별 술어 | testFixtures `com.tastyhouse.architecture.UseCaseServices` — `isUseCaseService`(`..service..`의 비인터페이스 + `port.in` 인터페이스 구현 + batch 출처 제외) / `isQueryService`(구현 포트명이 `QueryUseCase`로 끝남) / `isCommandService`(나머지). `commandServicesShouldNotDependOnQueryPorts`·`queryServicesShouldNotDependOnWritePorts`·`commandServicesShouldNotDependOnRequestRecords`가 `commands()`/`queries()`로 대상을 고른다 |
-| 가드 — 1:1 강제 | application `LayerRulesTest`: `useCaseServicesShouldImplementExactlyOneUseCase`(`port.in` 인터페이스 정확히 1개 구현) · `useCasesShouldDeclareSingleOperation`(web·admin·ceo 출처 `port.in` `*UseCase`는 추상 메서드 1개 — 오버로드도 금지) · `useCaseServiceNameShouldMatchPort`(서비스명 = 포트명의 `UseCase`→`Service`) · `useCaseServicesShouldHaveSinglePublicOperation`(생성자를 뺀 public 메서드 1개). 대상 하한 582 |
-| 가드 — anchor(`RuleAnchorTest`) | 술어 기반 `commandServicesExist` ≥314 · `queryServicesExist` ≥268, `moduleUseCaseCounts` web ≥187 · admin ≥207 · ceo ≥188 · batch =7 · core =0, `inboundPortsExist` ≥891 |
+| 가드 — 1:1 강제 | application `LayerRulesTest`: `useCaseServicesShouldImplementExactlyOneUseCase`(`port.in` 인터페이스 정확히 1개 구현) · `useCasesShouldDeclareSingleOperation`(web·admin·ceo 출처 `port.in` `*UseCase`는 추상 메서드 1개 — 오버로드도 금지) · `useCaseServiceNameShouldMatchPort`(서비스명 = 포트명의 `UseCase`→`Service`) · `useCaseServicesShouldHaveSinglePublicOperation`(생성자를 뺀 public 메서드 1개). 대상 하한 580 |
+| 가드 — anchor(`RuleAnchorTest`) | 술어 기반 `commandServicesExist` ≥313 · `queryServicesExist` ≥267, `moduleUseCaseCounts` web ≥185 · admin ≥207 · ceo ≥188 · batch =7 · core =0, `inboundPortsExist` ≥891 |
 
-- **도메인 서비스는 명사형, 유스케이스 서비스는 동사형이다** — `PaymentConfirmationService`(도메인) vs `PaymentConfirmService`(유스케이스).
-- **오버로드는 이름으로 나눈다** — `getPayment(memberId, id)`/`getPayment(id)` → `PaymentDetailQueryUseCase`/`PaymentDetailByIdQueryUseCase`.
+- **도메인 서비스는 명사형, 유스케이스 서비스는 동사형이다** — `PaymentConfirmationService`(도메인) vs `PgPaymentConfirmService`(유스케이스).
+- **오버로드는 이름으로 나눈다** — 소유자 검증 조회와 식별자만으로의 조회 → `ReservationDetailQueryUseCase`/`ReservationDetailByIdQueryUseCase`.
 - **유스케이스 1:1 분리(포트당 연산 1개·서비스 1개)는 인바운드(`port.in` UseCase·서비스)에만 적용한다** — 아웃바운드 `port.out`과 jpa `*QueryAdapter`는 대상이 아니다. 포트는 쓰는 쪽 기준(ISP)으로, 어댑터는 응집도로 크기를 정한다. 근거는 `infrastructure/jpa/AGENTS.md`의 [`<ctx>/query/` 절](infrastructure/jpa/AGENTS.md#ctxquery--read-어댑터-cqrs-query-측-개정됨--읽기-경로-포트화) "유스케이스 1:1 분리는 read 어댑터에 적용하지 않는다" 항목에 있다. 1:1 규칙의 근거는 `backend/application-core/AGENTS.md`의 "유스케이스 서비스 1:1 규칙 4종" 항목.
 - reference: `backend/web-application/src/main/java/com/tastyhouse/application/payment/service/`의 결제 유스케이스 서비스들과 `backend/web-api/src/main/java/com/tastyhouse/webapi/payment/adapter/in/web/PaymentApiController.java`.
 

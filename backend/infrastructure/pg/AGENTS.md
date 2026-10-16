@@ -59,7 +59,7 @@ public class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 
 - 벤더가 둘 이상 떠도 `PgPaymentGatewayPort` 구현은 라우터 하나라 **빈 모호성이 없다.** 벤더 어댑터가 `PgPaymentGatewayPort`를 직접 구현하게 하지 않는다 — 두 번째 벤더가 들어오는 순간 `NoUniqueBeanDefinitionException`으로 web-api가 뜨지 않는다.
 - 라우터는 `web-application`의 `payment/service/PgPaymentGatewayRouter`에 있다 — 이 라우터가 다루는 계약(`PgProviderGatewayPort`·`PgConfirmResult`·`PgCancelResult` 등)이 application 계층 소유이므로 계약과 같은 계층에 둔다. 같은 `provider()`를 반환하는 벤더가 둘이면 생성자가 `IllegalStateException`으로 기동을 멈추고, 미등록 PG로 승인·취소를 요청하면 `BusinessException(WebErrorCode.PG_PROVIDER_UNSUPPORTED)`를 던진다.
-- 취소는 `supports`로 먼저 묻는다. PG 콜백 경로(`POST /api/payments/v1/confirm`)는 요청 본문의 아무 PG명으로나 결제를 완료시킬 수 있어서, 담당 벤더가 없는 PG의 완료 결제가 존재한다. 그런 결제는 지금처럼 PG 취소 없이 DB만 취소한다(`PaymentCancelService#doCancelPayment`). 이 정책이 옳은지는 콜백 엔드포인트 정리와 함께 판단할 후속 항목이다.
+- 취소는 `supports`로 먼저 묻는다. 결제 완료 경로는 PG 승인(`POST /api/payments/v1/toss/confirm`)과 현장결제 완료뿐이지만, 담당 벤더가 없는 PG 이름으로 완료된 결제가 과거 데이터에 남아 있을 수 있다. 그런 결제는 PG 취소 없이 DB만 취소한다(`PaymentCancelService#doCancelPayment`).
 
 ## 벤더 추가 절차 (예: 다날)
 

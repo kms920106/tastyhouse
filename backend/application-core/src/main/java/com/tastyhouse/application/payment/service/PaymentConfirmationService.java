@@ -75,28 +75,6 @@ public class PaymentConfirmationService {
         return paymentSavePort.save(payment).getPaymentId();
     }
 
-    public PaymentId confirm(PaymentId paymentId, PgConfirmation confirmation) {
-        Payment payment = loadPendingPayment(paymentId);
-        Order order = orderTransitionService.load(payment.getOrderId());
-
-        payment.updatePgInfo(confirmation.pgProvider(), confirmation.pgTid(), confirmation.pgOrderId());
-
-        if (confirmation.cardCompany() != null) {
-            payment.updateCardInfo(
-                confirmation.cardCompany(),
-                confirmation.cardNumber(),
-                confirmation.installmentMonths()
-            );
-        }
-
-        payment.complete(confirmation.pgTid(), LocalDateTime.now(), confirmation.receiptUrl());
-
-        Payment savedPayment = paymentSavePort.save(payment);
-        orderTransitionService.confirm(order);
-
-        return savedPayment.getPaymentId();
-    }
-
     public PgConfirmationTarget preparePgConfirmation(MemberId memberId, String pgOrderId, int amount) {
         Payment payment = paymentLoadPort.findByPgOrderId(pgOrderId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
@@ -213,16 +191,6 @@ public class PaymentConfirmationService {
 
     public int earnRate() {
         return CASH_POINT_EARN_RATE;
-    }
-
-    private Payment loadPendingPayment(PaymentId paymentId) {
-        Payment payment = paymentLoadPort.findById(paymentId)
-            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
-
-        if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
-        }
-        return payment;
     }
 
     private boolean isOnSitePayment(PaymentMethod paymentMethod) {

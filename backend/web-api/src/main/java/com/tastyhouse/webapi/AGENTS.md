@@ -31,7 +31,7 @@
 | `notice/` | 공지사항 조회 API |
 | `order/` | 주문 생성, 조회, 취소, 배송 추적 API |
 | `partnership/` | 파트너십/제휴 관리 API |
-| `payment/` | 결제 생성·승인·취소·현장완료·환불. 유스케이스당 서비스 1개(`PaymentCreateService`·`PgPaymentConfirmService`·`PaymentDetailQueryService` 등 10개 — `docs/tasks/usecase-service-split` 01 파일럿). PG 연동은 `web-application`(`payment/service/PgPaymentGatewayRouter` — 앱 마커 제거 전에는 `application` + `@WebApp`)이 `web-application`의 포트 `PgPaymentGatewayPort`(`payment/port/out`)를 구현하고, `infrastructure:tosspayments`의 `TossPaymentGatewayAdapter`가 같은 패키지의 `PgProviderGatewayPort`를 구현(`provider()`는 신설 enum `PgProviderCode`) |
+| `payment/` | 결제 생성·승인·취소·현장완료·환불. 유스케이스당 서비스 1개(`PaymentCreateService`·`PgPaymentConfirmService`·`PaymentDetailQueryService` 등 8개 — `docs/tasks/usecase-service-split` 01 파일럿). PG 연동은 `web-application`(`payment/service/PgPaymentGatewayRouter` — 앱 마커 제거 전에는 `application` + `@WebApp`)이 `web-application`의 포트 `PgPaymentGatewayPort`(`payment/port/out`)를 구현하고, `infrastructure:tosspayments`의 `TossPaymentGatewayAdapter`가 같은 패키지의 `PgProviderGatewayPort`를 구현(`provider()`는 신설 enum `PgProviderCode`) |
 | `policy/` | 약관/정책 조회 API |
 | `product/` | 상품 조회, 검색, 필터링 API |
 | `rank/` | 순위/랭킹 조회 API |

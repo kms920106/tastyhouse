@@ -46,37 +46,6 @@ class PaymentConfirmationServiceTest {
     private static final PaymentId PAYMENT_ID = PaymentId.of(200L);
 
     @Test
-    @DisplayName("PG 콜백 승인: 결제를 완료 전이하고 주문을 확정해 둘 다 저장한다")
-    void confirm_completesPaymentAndConfirmsOrder() {
-        Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
-
-        PaymentId confirmed = fixture.service.confirm(PAYMENT_ID, PgConfirmation.of(
-            PgProvider.TOSS, "tid-1", "pg-order-1", "신한카드", "1234-****", 0, "https://receipt"
-        ));
-
-        assertThat(confirmed.value()).isEqualTo(PAYMENT_ID.value());
-        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
-        assertThat(fixture.paymentPersistence.lastSaved.getPgTid()).isEqualTo("tid-1");
-        assertThat(fixture.paymentPersistence.lastSaved.getCardCompany()).isEqualTo("신한카드");
-        assertThat(fixture.orderPersistence.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
-    }
-
-    @Test
-    @DisplayName("PG 콜백 승인: 승인 대기 상태가 아니면 결제도 주문도 바뀌지 않는다")
-    void confirm_rejectsWhenNotPending() {
-        Fixture fixture = Fixture.withCompletedPayment();
-
-        assertThatThrownBy(() -> fixture.service.confirm(PAYMENT_ID, PgConfirmation.of(
-            PgProvider.TOSS, "tid-1", "pg-order-1", null, null, null, null
-        )))
-            .isInstanceOf(BusinessException.class)
-            .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL.getDefaultMessage());
-
-        assertThat(fixture.paymentPersistence.lastSaved).isNull();
-        assertThat(fixture.orderPersistence.lastSaved).isNull();
-    }
-
-    @Test
     @DisplayName("토스 반영(성공): 결제 완료·주문 확정·원장 기록·완료 이벤트가 모두 일어난다")
     void applyPgConfirmation_completesAndPublishesEvent() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
@@ -287,10 +256,6 @@ class PaymentConfirmationServiceTest {
 
         private static Fixture withPendingPayment(OrderStatus orderStatus, PaymentMethod paymentMethod) {
             return new Fixture(payment(PaymentStatus.PENDING, paymentMethod), order(orderStatus));
-        }
-
-        private static Fixture withCompletedPayment() {
-            return new Fixture(payment(PaymentStatus.COMPLETED, PaymentMethod.CREDIT_CARD), order(OrderStatus.CONFIRMED));
         }
 
         private static Payment payment(PaymentStatus paymentStatus, PaymentMethod paymentMethod) {

@@ -221,7 +221,6 @@ web-api에는 시더가 없어 대상 0건이므로(**공허 통과 회피**) ad
 - `member/.../request/UpdatePasswordRequest.java` → `toCommand(Long)`
 - `member/.../request/UpdatePersonalInfoRequest.java` → `toCommand(Long)`
 - `order/.../request/OrderCreateRequest.java` → `toCommand(Long)`
-- `payment/.../request/PaymentConfirmRequest.java` → `toCommand()`
 - `payment/.../request/RefundRequest.java` → `toCommand(Long, Long)`
 - `payment/.../request/TossPaymentConfirmApiRequest.java` → `toCommand(Long)`
 - `review/.../request/ReplyCreateRequest.java` → `toCommand(Long, Long)`
@@ -236,19 +235,13 @@ web-api에는 시더가 없어 대상 0건이므로(**공허 통과 회피**) ad
 - 주소 `String` 4개 + 좌표 `BigDecimal` 2개 — 위경도가 뒤바뀌면 배달팁이 엉뚱하게 산출된다
 - `UpdatePasswordRequest` — 두 `String`이 뒤바뀌어도 확인값 일치 검사는 **대칭이라 그대로 통과한다**
 - `ReplyCreateRequest` — `memberId`·`commentId`·`replyToMemberId` 세 `Long`이 연달아 있어 작성자와 답글 대상이 뒤바뀐다
-- 평점 3종(`Integer`)·`cardCompany`/`cardNumber`/`receiptUrl`(`String`)·`paymentKey`/`pgOrderId`(`String`) 동종 연속
+- 평점 3종(`Integer`)·`paymentKey`/`pgOrderId`(`String`) 동종 연속
 ### `OrderCreateRequest`의 필드 선언 순서는 `OrderCreateCommand`와 다르다 (봉인)
 
 **대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/order/adapter/in/web/request/OrderCreateRequest.java`
 → `toCommand(Long)`
 
 이 record는 `deliveryAddressId`가 `usePoint`보다 먼저 선언돼 있어 `OrderCreateCommand`와 순서가 **일치하지 않는다.** 위치 기반 전달로 옮기면 두 값이 조용히 뒤바뀐다. 순서를 "맞추는" 리팩터링도 wire 계약(요청 JSON 필드 순서와 Swagger 스키마)에 영향을 주므로 하지 않고, 이름 기반 접근자 조립을 유지한다.
-### `PaymentConfirmRequest.paymentId`는 본문 필드다 — 경로 변수로 옮기지 않는다
-
-**대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/payment/adapter/in/web/request/PaymentConfirmRequest.java`
-→ `paymentId`, `toCommand()`
-
-이 엔드포인트는 경로에 식별자를 두지 않으므로 `toCommand()`에 주입 파라미터가 없다. 다른 결제 요청 record(`PaymentCancelRequest`·`RefundRequest`)와 시그니처가 다른 것이 정상이며, 대칭을 맞추려고 경로 변수로 승격하지 않는다.
 ### `TODO(보안)` 4건 — 점주 본인 검증 미구현 (실코드 결함, 제거 시 소실 주의)
 
 **대상**: `backend/web-api/src/main/java/com/tastyhouse/webapi/reservation/adapter/in/web/ReservationApiController.java`

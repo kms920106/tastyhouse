@@ -46,7 +46,7 @@ class RuleAnchorTest {
 
     @Test
     void moduleUseCaseCounts() {
-        assertThat(countUseCases(ModuleOrigin.WEB)).as("web-application UseCase").isGreaterThanOrEqualTo(187);
+        assertThat(countUseCases(ModuleOrigin.WEB)).as("web-application UseCase").isGreaterThanOrEqualTo(185);
         assertThat(countUseCases(ModuleOrigin.ADMIN)).as("admin-application UseCase").isGreaterThanOrEqualTo(207);
         assertThat(countUseCases(ModuleOrigin.CEO)).as("ceo-application UseCase").isGreaterThanOrEqualTo(188);
         assertThat(countUseCases(ModuleOrigin.BATCH)).as("batch-application UseCase").isEqualTo(7);
@@ -57,14 +57,14 @@ class RuleAnchorTest {
     void commandServicesExist() {
         assertThat(classes.stream().filter(UseCaseServices::isCommandService).count())
             .as("명령 유스케이스 서비스가 0건이면 명령 서비스 대상 규칙들이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(314);
+            .isGreaterThanOrEqualTo(313);
     }
 
     @Test
     void queryServicesExist() {
         assertThat(classes.stream().filter(UseCaseServices::isQueryService).count())
             .as("조회 유스케이스 서비스가 0건이면 조회 서비스 대상 규칙들이 공허하게 통과한다")
-            .isGreaterThanOrEqualTo(268);
+            .isGreaterThanOrEqualTo(267);
     }
 
     @Test

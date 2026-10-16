@@ -55,7 +55,7 @@
 | 앱 간 수평 의존 · 앱 전용 포트 소비자 | 컴파일 게이트(다른 앱 모듈이 클래스패스에 없다) + 각 앱 `ApplicationModuleClasspathTest` |
 | 코어에 둘 것·두지 않을 것 | `LayerRulesTest#listenersAndConfigsShouldResideInCore`·`#coreShouldNotContainUseCasesOrOrchestrators`·`#coreBeansShouldOnlyDependOnCoreVisibleTypes`·`#configurationsShouldNotRegisterStereotypedClasses` |
 | batch 선별 | `commandRecordsShouldBeBoundaryTyped`의 batch 제외와 `BatchSchedulerRulesTest` 대상 모두 출처 모듈(`batch-application`)로 판정 |
-| 모듈별 개수 anchor | `RuleAnchorTest#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥187 · admin ≥207 · ceo ≥188 · batch =7 · core =0) |
+| 모듈별 개수 anchor | `RuleAnchorTest#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥185 · admin ≥207 · ceo ≥188 · batch =7 · core =0) |
 | 도메인 서비스 경계 대상 | `ServiceContextBoundaryTest#domainServices()` — 구조 조건 − `EXCLUDED_COLLABORATORS` 21개, 하한은 `domainServicesShouldExist`, 짝 `excludedCollaboratorsShouldNotBeStale` |
 | 앱 부트스트랩 스캔 | testFixtures `ApplicationLayerScanAssertions#assertScansApplicationLayerWithoutFilters`·`#assertLoadsOnlyOwnApplicationModule(appModule)` |
 | 출처 모듈 판정 | testFixtures `com.tastyhouse.architecture.ModuleOrigin`(`ModuleOrigin.from(module)` 술어) + `ModuleOriginTest` |
@@ -88,7 +88,7 @@
 | file | `file/port/out/FileStoragePort`(+`FileDeleteResult`) | `file/service/FileUploadService`(+`FileUploadCommand`) | `domain.file.port.FileStoragePort`, `domain.file.service.FileUploadService` |
 | emailverification | `emailverification/port/out/MailSenderPort`(+`MailSendResult`) | `emailverification/service/MailVerificationService`(+package-private `MailVerificationMessage`) | `domain.mail.port.MailSender`, `domain.mail.service.MailVerificationService` |
 | phoneverification | `phoneverification/port/out/SmsSenderPort`(+`SmsSendResult`, enum `SmsSendFailure{NO_RESPONSE,FAILED,API_ERROR}`) | `phoneverification/service/SmsVerificationService` | `domain.sms.port.SmsSender`, `domain.sms.service.SmsVerificationService` |
-| payment | `payment/port/out/{PgPaymentGatewayPort,PgProviderGatewayPort}` + `PgConfirmResult`·`PgCancelResult`·`TossPaymentDetail` + 신설 enum `PgProviderCode` | `payment/service/{PaymentConfirmationService,PgPaymentGatewayRouter}`(+`PgConfirmation`·`PgConfirmationTarget`) | `domain.payment.port.{PgPaymentGatewayPort,PgProviderGatewayPort}`, `domain.payment.service.{PaymentConfirmationService,PgPaymentGatewayRouter}` |
+| payment | `payment/port/out/{PgPaymentGatewayPort,PgProviderGatewayPort}` + `PgConfirmResult`·`PgCancelResult`·`TossPaymentDetail` + 신설 enum `PgProviderCode` | `payment/service/{PaymentConfirmationService,PgPaymentGatewayRouter}`(+`PgConfirmationTarget`) | `domain.payment.port.{PgPaymentGatewayPort,PgProviderGatewayPort}`, `domain.payment.service.{PaymentConfirmationService,PgPaymentGatewayRouter}` |
 
 **왜 서비스까지 옮겼나 — 포트만으로는 끝나지 않는다.** 이 네 서비스는 순수 POJO라는 점에서 기존 도메인 서비스와 다르지 않지만, 이관된 포트를 생성자로 주입받는다. 포트가 `application`으로 옮겨간 채 서비스만 `domain`에 남으면 `domain`이 `application`의 포트 인터페이스를 참조해야 해 **의존 방향이 뒤집힌다**(안쪽이 바깥쪽을 아는 상태). 그래서 포트를 쓰는 서비스 자체도 함께 옮겼다 — "이 서비스가 도메인 불변식을 오케스트레이션하는가"라는 기존 배치 기준(`domain/AGENTS.md`의 "도메인 서비스(`<ctx>/service/`)는 순수 POJO다" 절)은 여전히 참이지만, **아웃바운드 포트가 domain 밖에 있으면 그 포트를 쓰는 오케스트레이션도 domain 밖에 있어야 한다**는 조건이 우선한다.
 
@@ -420,7 +420,7 @@ batch는 CQRS 분리를 쓰지 않는다 — `*CommandService`/`*QueryService`�
 
 ### anchor 하한
 
-빈·UseCase 하한은 `RuleAnchorTest`가 **모듈별로** 갖는다 — `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47), `#moduleUseCaseCounts`(web ≥187 · admin ≥207 · ceo ≥188 · batch =7 · core =0). 유스케이스 서비스 하한은 `#commandServicesExist` ≥314 · `#queryServicesExist` ≥268(`UseCaseServices` 술어로 센다), `..port.in..` 하한은 `#inboundPortsExist` ≥891. **모듈별로 두는 이유**: 합계 하나로 두면 한 앱의 빈·UseCase가 통째로 사라져도 나머지 앱이 하한을 떠받쳐 조용히 통과한다. core UseCase =0은 "코어에 UseCase가 새지 않는다"를 고정한다.
+빈·UseCase 하한은 `RuleAnchorTest`가 **모듈별로** 갖는다 — `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47), `#moduleUseCaseCounts`(web ≥185 · admin ≥207 · ceo ≥188 · batch =7 · core =0). 유스케이스 서비스 하한은 `#commandServicesExist` ≥313 · `#queryServicesExist` ≥267(`UseCaseServices` 술어로 센다), `..port.in..` 하한은 `#inboundPortsExist` ≥891. **모듈별로 두는 이유**: 합계 하나로 두면 한 앱의 빈·UseCase가 통째로 사라져도 나머지 앱이 하한을 떠받쳐 조용히 통과한다. core UseCase =0은 "코어에 UseCase가 새지 않는다"를 고정한다.
 
 write 포트는 **≥ 192**(`RuleAnchorTest#writePortsExist` — `port.out.write`의 `*LoadPort`·`*SavePort` 인터페이스. 보조 record `AdminDongSyncResult`는 인터페이스가 아니라 세지 않는다). 읽기 계약 하한은 `#readContractsExist` ≥441(`..port.out..` 중 `..port.out.write..` 제외), 5모듈 전체 클래스 하한은 `#moduleIsNotEmpty` ≥1,500이다.
 
@@ -563,7 +563,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 - **리스너와 `@Configuration`은 코어에만 둔다**(`listenersAndConfigsShouldResideInCore`). 리스너가 앱 모듈에 있으면 다른 앱이 같은 이벤트를 발행할 때 후속 처리가 조용히 사라진다(AFTER_COMMIT 실패는 예외도 남지 않는다). `@Configuration`이 스테레오타입 클래스를 `@Bean`으로 다시 등록하면 스캔 빈과 이름이 겹쳐 기동이 실패한다(`configurationsShouldNotRegisterStereotypedClasses`).
 - **코어에 UseCase·오케스트레이터를 두지 않는다**(`coreShouldNotContainUseCasesOrOrchestrators`, `moduleUseCaseCounts`의 core =0). 코어는 4앱 전부에 뜨므로 거기 둔 UseCase는 쓰지 않는 앱에도 뜬다.
 - **빈은 자기가 뜨는 앱 컨텍스트에서 보이지 않는 구현에 의존하지 않는다**(`coreBeansShouldOnlyDependOnCoreVisibleTypes`). 컴파일은 통과해도(인터페이스가 코어에 있으면) 그 구현이 없는 앱에서 기동이 실패한다. 판정: 모든 `@Service`/`@Component` 빈(코어·앱 모듈 모두)의 생성자 파라미터 중 `com.tastyhouse.application.` 인터페이스마다 **후보** = 그 인터페이스의 추상이 아닌 스테레오타입 구현체(같은 인터페이스를 생성자로 받는 데코레이터는 제외) + 그 타입을 반환하는 `@Bean` 메서드. 후보가 1개 이상이면, 그 빈이 뜨는 **각 앱 컨텍스트**(코어 빈 → 4앱 전부, 앱 빈 → 자기 앱. 컨텍스트 = 코어 + 그 앱 모듈)에서 보이는 후보가 0개면 위반(구현이 다른 앱 모듈에만 있어 그 앱이 기동하지 못한다), 2개 이상이면 모호 위반이다. 위반은 Set으로 모아 한 번에 보고한다. anchor: 검사한 의존 ≥ 300, 후보가 1개 이상인 의존(`RESOLVED_FLOOR`) ≥ 43. **알려진 한계**: `@Primary`/`@Qualifier`는 모델링하지 않는다. infrastructure 구현체는 import 대상이 아니어서 후보 0인 의존(persistence·벤더가 구현하는 포트)은 건너뛴다. **anchor 하한(300 / `RESOLVED_FLOOR` 43)을 낮추지 않는다** — 후보 계산이 깨지면 모든 의존이 "후보 0, 건너뜀"이 되어 규칙이 공허 통과한다.
-- **`moduleBeanCounts`·`moduleUseCaseCounts` 하한을 낮추지 않는다**(빈: web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47 / UseCase: web ≥187 · admin ≥207 · ceo ≥188 · batch =7 · core =0). 한 모듈의 클래스가 통째로 사라지거나 엉뚱한 모듈로 옮겨지면 깨지는 것이 의도다.
+- **`moduleBeanCounts`·`moduleUseCaseCounts` 하한을 낮추지 않는다**(빈: web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47 / UseCase: web ≥185 · admin ≥207 · ceo ≥188 · batch =7 · core =0). 한 모듈의 클래스가 통째로 사라지거나 엉뚱한 모듈로 옮겨지면 깨지는 것이 의도다. 유스케이스를 의도적으로 삭제할 때만 삭제 후 실측값으로 맞추며, 클래스 이동·출처 판정 오류로 줄어든 경우는 낮추지 않는다([ADR-0057](../../docs/adr/0057-anchor-floor-on-intentional-deletion.md)).
 - **`ModuleOrigin`은 main 출력만 인정하고, 나머지는 예외를 던져야 한다.** 규칙은 `ModuleOrigin.from(module)`(`DescribedPredicate`)로 대상을 고른다. 인정하는 것은 클래스 디렉터리 `.../{module}/build/classes/java/main/...`와 main jar `{module}-<버전>.jar`뿐이다. testFixtures 출력(`build/classes/java/testFixtures`, `*-test-fixtures.jar`), IntelliJ 자체 빌드 출력(`out/production/...`), opaque·형식이 깨진 URI는 전부 `IllegalStateException`이다. 모르는 형태에서 빈 값이나 기본값을 돌려주면, 출처로 고르는 규칙(batch 선별 등)이 대상을 잃고 공허하게 통과한다. **그래서 아키텍처 테스트는 Gradle로 실행한다** — IntelliJ 자체 빌드로 돌리면 `out/production/...` 출력 때문에 예외로 실패한다. IntelliJ에서는 Settings → Build Tools → Gradle → "Build and run using: Gradle"(테스트 실행도 Gradle)로 둔다. 이 예외를 피하려고 `out/production`을 인정하도록 넓히지 않는다.
 - **`EXCLUDED_COLLABORATORS` 21개의 근거** — 모든 서비스가 `@Service`를 달므로 "스테레오타입이 없으면 도메인 서비스"라는 술어를 쓸 수 없다. 그래서 `ServiceContextBoundaryTest#domainServices()`는 구조 조건(`..service..`, 인터페이스 아님, `@Configuration` 아님, `port.in` 구현 아님 — 유스케이스 서비스는 전부 `port.in`을 구현하므로 이 조건이 걸러 낸다)으로 고르고, **원래부터 스테레오타입이 있어 검사 대상이 아니던 협력 빈 21개**(Executor 6 · `SocialLoginService` 1 · Validator 7 · Reader 1(`ShopFoodTypeCategoryReader`) · `OwnedShopIdProvider` · `MemberAuthService` · `CredentialLoginService` · `PhoneLoginService` · `AuthPasswordResetService` · `AdminDongSyncRunner`)를 FQN으로 뺀다. `SocialLoginService`는 `member.service.MemberRegistrationService`·`member.port.out.write.*`를 직접 참조하므로 제외 대상이고, 같은 컨텍스트의 `auth.service.SocialOAuthClientRouter`는 auth 타입만 참조해 경계 검사를 통과하므로 넣지 않는다. 유스케이스 분리로 생긴 `{도메인}{명사}Reader`·`Validator`(예: ceo `ShopNoticeOwnerReader`·`ShopContentBoardOwnerReader`·`ShopBusinessHourOwnerValidator`)와 `ProductSoldOutUntilValidator`는 이 목록에 넣지 않았다 — **새 협력 빈은 경계 검사를 받게 두며 목록은 줄어들기만 한다.** 이 목록에서 항목을 빼면 그 협력 빈이 처음으로 경계 검사를 받아 봉인 밖 위반이 드러날 수 있다 — 빼려면 위반부터 확인한다. 새 협력 빈을 만들 때는 도메인 서비스인지 협력 빈인지 판단해 넣을지 정한다. 낡은 항목은 `excludedCollaboratorsShouldNotBeStale`이 잡는다 — **알려진 한계**: 이 짝 테스트는 더 이상 존재하지 않거나 구조 조건에 맞지 않게 된 항목만 잡고, "목록에서 빼도 경계 규칙을 통과할 항목"은 잡지 못한다. **이 술어는 사실상 "구조 + 이름 목록"이다.**
 - **앱 테스트 클래스패스의 `com.tastyhouse.application` 클래스는 코어와 자기 앱 모듈에서만 와야 한다**(각 앱 `ApplicationModuleClasspathTest` → `assertLoadsOnlyOwnApplicationModule(ModuleOrigin.{WEB,ADMIN,CEO,BATCH})`, 출처 모듈 집합 == `{application-core, 자기 앱 모듈}`). 스캔에 필터가 없으므로 다른 앱 모듈이 의존에 섞이면 그 앱의 빈이 전부 뜬다("클래스패스 존재 = 활성화"). 판정은 클래스 출처(`ModuleOrigin`)로 하며, 앱 모듈에 표식 리소스(`META-INF/tastyhouse/application-module.properties` 같은 것)를 두지 않는다. 판정 대상에서 자기 앱 모듈이 빠져도 실패하므로 공허 통과가 없다.
@@ -630,14 +630,14 @@ testFixtures에는 두 패키지가 있다 — `com.tastyhouse.architecture`(`Ap
 
 - **변경 내용**: 금지 대상에 이름 접미어 `QueryUseCase`를 추가했다. 기존 금지 대상은 `QueryPort`·`QueryService`였다.
 - **변경 이유**: 조회 협력 메서드가 `*QueryUseCase`에 올라가자, CommandService가 구체 `*QueryService` 대신 `*QueryUseCase`를 주입하면 이름 기준 규칙을 우회할 수 있게 됐다.
-- **(유스케이스 분리) 대상 쪽 판정이 바뀌었다**: 규칙의 대상은 이름 접미어 `*CommandService`가 아니라 `UseCaseServices.commands()`(구현 포트가 `…QueryUseCase`가 아닌 유스케이스 서비스)다. 명령 서비스 이름에서 `Command`가 사라져(`PaymentConfirmService` 등) 접미어로는 대상을 고를 수 없기 때문이다. 금지 대상 쪽(`QueryPort`·`QueryService`·`QueryUseCase` 접미어)은 그대로다.
+- **(유스케이스 분리) 대상 쪽 판정이 바뀌었다**: 규칙의 대상은 이름 접미어 `*CommandService`가 아니라 `UseCaseServices.commands()`(구현 포트가 `…QueryUseCase`가 아닌 유스케이스 서비스)다. 명령 서비스 이름에서 `Command`가 사라져(`PgPaymentConfirmService` 등) 접미어로는 대상을 고를 수 없기 때문이다. 금지 대상 쪽(`QueryPort`·`QueryService`·`QueryUseCase` 접미어)은 그대로다.
 - **위반 현황**: 도입 시점 위반은 0건이고, probe로 규칙이 실패하는 것을 확인했다. 이 확장을 되돌리지 않는다.
 
 ### 유스케이스 서비스 1:1 규칙 4종 — 포트 하나 = 연산 하나 = 서비스 하나 (유스케이스 분리)
 
 **대상**:
 - `backend/application-core/src/testFixtures/java/com/tastyhouse/architecture/UseCaseServices.java` → `isUseCaseService` · `isQueryService` · `isCommandService` · `commands()` · `queries()`
-- `backend/application-core/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `useCaseServicesShouldImplementExactlyOneUseCase` · `useCasesShouldDeclareSingleOperation` · `useCaseServiceNameShouldMatchPort` · `useCaseServicesShouldHaveSinglePublicOperation` · `useCaseServices()`(하한 582)
+- `backend/application-core/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java` → `useCaseServicesShouldImplementExactlyOneUseCase` · `useCasesShouldDeclareSingleOperation` · `useCaseServiceNameShouldMatchPort` · `useCaseServicesShouldHaveSinglePublicOperation` · `useCaseServices()`(하한 580)
 - `backend/application-core/src/test/java/com/tastyhouse/application/architecture/RuleAnchorTest.java` → `commandServicesExist` · `queryServicesExist` · `moduleUseCaseCounts` · `inboundPortsExist`
 
 | 항목 | before | after |
@@ -645,15 +645,15 @@ testFixtures에는 두 패키지가 있다 — `com.tastyhouse.architecture`(`Ap
 | 명령/조회 서비스 판별 | 클래스명 접미어 `*CommandService`/`*QueryService` | `UseCaseServices` 술어 — 유스케이스 서비스 = `..service..`의 비인터페이스 + `port.in` 인터페이스 구현 + batch 출처 아님. 그중 구현 포트명이 `QueryUseCase`로 끝나면 조회, 나머지는 명령 |
 | 포트 구현 개수 | "최소 1개"(`commandServicesShouldImplementUseCase`·`queryServicesShouldImplementUseCase`) | **정확히 1개**(`useCaseServicesShouldImplementExactlyOneUseCase`) — 두 옛 규칙은 삭제 |
 | 포트의 연산 수 | 제한 없음(`PaymentCommandUseCase` 메서드 6개 등) | web·admin·ceo 출처 `port.in` `*UseCase`는 추상 메서드 1개(`useCasesShouldDeclareSingleOperation`) — 의미가 다른 오버로드도 이름을 나눈 별도 포트로 둔다 |
-| 서비스 이름 | 도메인당 `{도메인}CommandService`/`{도메인}QueryService` | 포트명의 `UseCase`를 `Service`로 바꾼 이름(`useCaseServiceNameShouldMatchPort`) — `PaymentConfirmUseCase` → `PaymentConfirmService` |
+| 서비스 이름 | 도메인당 `{도메인}CommandService`/`{도메인}QueryService` | 포트명의 `UseCase`를 `Service`로 바꾼 이름(`useCaseServiceNameShouldMatchPort`) — `PgPaymentConfirmUseCase` → `PgPaymentConfirmService` |
 | 서비스의 public 메서드 | 제한 없음 | 생성자를 뺀 public 메서드 1개(`useCaseServicesShouldHaveSinglePublicOperation`, static·synthetic·bridge 제외) |
-| anchor | `countSuffix` 기반 `commandServicesExist` ≥91 · `queryServicesExist` ≥100 | `countSuffix` 삭제. 술어 기반 ≥314 · ≥268, `moduleUseCaseCounts` web ≥187 · admin ≥207 · ceo ≥188 · batch =7 · core =0, `inboundPortsExist` ≥891 |
+| anchor | `countSuffix` 기반 `commandServicesExist` ≥91 · `queryServicesExist` ≥100 | `countSuffix` 삭제. 술어 기반 ≥313 · ≥267, `moduleUseCaseCounts` web ≥185 · admin ≥207 · ceo ≥188 · batch =7 · core =0, `inboundPortsExist` ≥891 |
 
 원문 취지:
 - **왜 1:1인가**: 도메인당 한 쌍이던 시절 서비스 하나가 연산 수십 개를 떠안았다(web shop 조회 서비스 하나가 714줄·public 메서드 20개, admin shop 명령 서비스 하나가 UseCase 37개를 구현했다). 그러면 트랜잭션 속성·주입 의존이 그 클래스의 모든 연산에 묶이고, 한 연산을 고칠 때 무관한 연산이 같은 diff에 섞인다. 『만들면서 배우는 클린 아키텍처』의 `SendMoneyService implements SendMoneyUseCase` 형태로 바꿔, 주입 목록이 곧 그 연산 하나의 의존을 증명하게 했다. 네 규칙 중 하나만 빠져도 1:1이 무너진다 — 포트 2개를 구현하는 서비스, 연산 2개짜리 포트, 포트와 이름이 어긋난 서비스, public 헬퍼를 노출한 서비스가 각각 다른 규칙에서 잡힌다.
-- **왜 판별을 서비스 이름이 아니라 구현 포트 이름으로 하나**: 명령 서비스 이름에서 `Command`가 빠졌다(`PaymentConfirmService`). 접미어로 고르던 CQRS 교차 주입 규칙(`commandServicesShouldNotDependOnQueryPorts`·`queryServicesShouldNotDependOnWritePorts`·`commandServicesShouldNotDependOnRequestRecords`)이 대상을 통째로 잃고 공허 통과하므로, 판별자를 포트 이름 끝의 `QueryUseCase` 하나로 옮겼다.
+- **왜 판별을 서비스 이름이 아니라 구현 포트 이름으로 하나**: 명령 서비스 이름에서 `Command`가 빠졌다(`PgPaymentConfirmService`). 접미어로 고르던 CQRS 교차 주입 규칙(`commandServicesShouldNotDependOnQueryPorts`·`queryServicesShouldNotDependOnWritePorts`·`commandServicesShouldNotDependOnRequestRecords`)이 대상을 통째로 잃고 공허 통과하므로, 판별자를 포트 이름 끝의 `QueryUseCase` 하나로 옮겼다.
 - **왜 batch는 제외하나**: `*SchedulerService` 7개는 이미 UseCase 1개 = 서비스 1개다. 이름은 `BatchSchedulerRulesTest`가 `*SchedulerService`로 지키므로 `useCaseServiceNameShouldMatchPort`(포트명 기반)와 충돌한다. `SearchKeywordSchedulerService`는 UseCase 하나에 메서드 2개라 `useCaseServicesShouldHaveSinglePublicOperation`·`useCasesShouldDeclareSingleOperation`에 걸리는데, 이번 분할의 범위 밖이라 손대지 않았다. 그래서 `isUseCaseService`와 `useCasesShouldDeclareSingleOperation`이 `ModuleOrigin.BATCH` 출처를 뺀다.
-- **하한 582를 낮추지 않는다**: 출처 판정이나 `port.in` 판정이 깨지면 대상이 줄어 네 규칙이 공허 통과한다. 하한은 분할 직후 실측(web 187 · admin 207 · ceo 188)이다.
+- **하한 580을 낮추지 않는다**: 출처 판정이나 `port.in` 판정이 깨지면 대상이 줄어 네 규칙이 공허 통과한다. 하한은 실측(web 185 · admin 207 · ceo 188)이다. 유스케이스를 의도적으로 삭제할 때만 삭제 후 실측값으로 맞춘다([ADR-0057](../../docs/adr/0057-anchor-floor-on-intentional-deletion.md)).
 - **`allowEmptyShould`를 쓰지 않고, 위반은 손으로 모아 한 번에 보고한다**(`assertThat(violations).isEmpty()`).
 - **반증**: 네 규칙 모두 위반 probe(포트 2개를 구현하는 임시 클래스, 추상 메서드 2개짜리 포트, 포트와 이름이 다른 서비스, public 메서드 2개짜리 서비스)로 실패를 확인하고 probe를 지웠다.
 - **이 규칙이 생긴 김에 함께 바뀐 이름**: ceo 도메인 서비스 `ShopRequestCancelService`(요청 유형별 취소 분기)를 `ShopRequestCancellationService`로 개명했다(`backend/ceo-application/src/main/java/com/tastyhouse/application/shop/service/ShopRequestCancellationService.java`, 테스트 `ShopRequestCancellationServiceTest`). 유스케이스 `cancelRequest`의 서비스 이름이 `ShopRequestCancelService`가 되어 완전히 같은 이름이 생기기 때문이다 — **도메인 서비스는 명사형, 유스케이스 서비스는 동사형**으로 구분한다. `ServiceContextBoundaryTest.SEALED_VIOLATIONS`의 해당 FQN도 함께 바뀌었고 항목 수는 그대로다.
@@ -1183,7 +1183,7 @@ DB 원자성이 필요 없는 단계(JWT 서명 검증·Redis 접근)까지 DB �
 
 **대상**: `backend/web-application/src/main/java/com/tastyhouse/application/payment/service/PgPaymentConfirmService.java` · `.../payment/service/PaymentCancelService.java` · `.../payment/service/PaymentConfirmationExecutor.java` · `.../payment/service/PaymentCancellationExecutor.java`
 
-**PG 왕복이 있는 두 유스케이스 서비스(`PgPaymentConfirmService`·`PaymentCancelService`)에 `@Transactional`이 없는 것은 의도다.** 같은 결제 컨텍스트의 나머지 네 서비스(`PaymentCreateService`·`PaymentConfirmService`·`PaymentOnSiteCompleteService`·`PaymentRefundRequestService`)는 PG 왕복이 없어 클래스 레벨 `@Transactional`을 단다. (유스케이스 분리 전에는 이 여섯 연산이 `PaymentCommandService` 한 클래스에 있었고, 그래서 클래스 레벨 대신 메서드 레벨로 트랜잭션을 나눠 달았다.) PG 승인·결제 취소는 PG사와의 HTTP 왕복을
+**PG 왕복이 있는 두 유스케이스 서비스(`PgPaymentConfirmService`·`PaymentCancelService`)에 `@Transactional`이 없는 것은 의도다.** 같은 결제 컨텍스트의 나머지 세 서비스(`PaymentCreateService`·`PaymentOnSiteCompleteService`·`PaymentRefundRequestService`)는 PG 왕복이 없어 클래스 레벨 `@Transactional`을 단다. (유스케이스 분리 전에는 이 여섯 연산이 `PaymentCommandService` 한 클래스에 있었고, 그래서 클래스 레벨 대신 메서드 레벨로 트랜잭션을 나눠 달았다.) PG 승인·결제 취소는 PG사와의 HTTP 왕복을
 포함하는데, 그 왕복이 DB 트랜잭션 안에 있으면 (1) 커넥션과 결제·주문 행 락을 네트워크 지연만큼
 점유하고, (2) PG 처리가 성공한 뒤 커밋이 실패하면 **"PG는 승인/취소, DB는 미반영"이라는 보상 불가
 불일치**가 남는다. **취소는 `pgCancelRequired && pgPaymentGateway.supports(pgProvider)`일 때만 PG를 호출한다** —
@@ -1204,7 +1204,7 @@ DB 원자성이 필요 없는 단계(JWT 서명 검증·Redis 접근)까지 DB �
   상태에서 `FAILED`로 단정하면 PG는 승인인데 DB는 실패인 **반대 방향 불일치**를 만든다.
 - `failInNewTx`의 트랜잭션은 **커밋되어야 한다** — 실패 사실과 PG 응답 원본을 남기는 것이 목적이라
   예외 변환은 커밋 이후 호출자가 수행한다.
-- PG 왕복을 포함하지 않는 명령(결제 개시·PG 콜백 반영·현장결제 완료·환불 요청)은 DB만 다루므로
+- PG 왕복을 포함하지 않는 명령(결제 개시·현장결제 완료·환불 요청)은 DB만 다루므로
   메서드 단위 `@Transactional` 하나로 충분하다.
 
 ### Executor를 별도 빈으로 분리하는 이유 — self-invocation은 프록시를 거치지 않는다
@@ -1768,9 +1768,9 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 
 #### 결제 승인 — PG HTTP 왕복은 트랜잭션 밖
 
-**대상**: `backend/application-core/src/main/java/com/tastyhouse/application/payment/service/PaymentConfirmationService.java`(+`PgConfirmation`·`PgConfirmationTarget`, `@Service`). `PgPaymentGatewayPort`/`PgProviderGatewayPort`는 `web-application`의 `payment/port/out`에 있다. 이 서비스는 이 모듈 `ServiceContextBoundaryTest`의 봉인 목록에 있다.
+**대상**: `backend/application-core/src/main/java/com/tastyhouse/application/payment/service/PaymentConfirmationService.java`(+`PgConfirmationTarget`, `@Service`). `PgPaymentGatewayPort`/`PgProviderGatewayPort`는 `web-application`의 `payment/port/out`에 있다. 이 서비스는 이 모듈 `ServiceContextBoundaryTest`의 봉인 목록에 있다.
 
-결제 승인은 결제 애그리거트의 상태 전이와 주문 애그리거트의 확정 전이를 한 트랜잭션에서 반드시 함께 수행해야 하는 원자 연산이다. 한쪽만 반영되면 **"결제는 됐지만 주문은 대기"** 이거나 **"주문은 확정인데 결제는 미승인"** 인 정합성 붕괴가 남는다. 승인 경로는 세 가지(PG 콜백 · PG 승인 · 현장결제 완료)인데 규칙은 하나여야 하므로 유스케이스 계층에 둔다.
+결제 승인은 결제 애그리거트의 상태 전이와 주문 애그리거트의 확정 전이를 한 트랜잭션에서 반드시 함께 수행해야 하는 원자 연산이다. 한쪽만 반영되면 **"결제는 됐지만 주문은 대기"** 이거나 **"주문은 확정인데 결제는 미승인"** 인 정합성 붕괴가 남는다. 승인 경로는 두 가지(PG 승인 · 현장결제 완료)인데 규칙은 하나여야 하므로 유스케이스 계층에 둔다.
 
 주문 상태 전이는 직접 `order.confirm()`을 호출하지 않고 `OrderTransitionService`(03a로 이 모듈의 `order/service/`로 이동)에 위임한다 — **전이와 저장을 항상 함께 수행한다는 규칙의 단일 원천을 주문 도메인에 유지하기 위함**이다.
 

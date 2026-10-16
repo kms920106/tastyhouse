@@ -15,11 +15,8 @@ import com.tastyhouse.application.auth.security.MemberUserDetails;
 import com.tastyhouse.application.payment.port.in.PaymentByOrderQueryUseCase;
 import com.tastyhouse.application.payment.port.in.PaymentCancelCommand;
 import com.tastyhouse.application.payment.port.in.PaymentCancelUseCase;
-import com.tastyhouse.application.payment.port.in.PaymentConfirmCommand;
-import com.tastyhouse.application.payment.port.in.PaymentConfirmUseCase;
 import com.tastyhouse.application.payment.port.in.PaymentCreateCommand;
 import com.tastyhouse.application.payment.port.in.PaymentCreateUseCase;
-import com.tastyhouse.application.payment.port.in.PaymentDetailByIdQueryUseCase;
 import com.tastyhouse.application.payment.port.in.PaymentDetailQueryUseCase;
 import com.tastyhouse.application.payment.port.in.PaymentOnSiteCompleteCommand;
 import com.tastyhouse.application.payment.port.in.PaymentOnSiteCompleteUseCase;
@@ -31,7 +28,6 @@ import com.tastyhouse.application.payment.port.in.PgPaymentConfirmUseCase;
 import com.tastyhouse.apicommon.common.ApiResponse;
 import com.tastyhouse.webapi.security.CurrentUser;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentCancelRequest;
-import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentConfirmRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.PaymentCreateRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.RefundRequest;
 import com.tastyhouse.webapi.payment.adapter.in.web.request.TossPaymentConfirmApiRequest;
@@ -45,36 +41,30 @@ import com.tastyhouse.webapi.payment.adapter.in.web.response.PaymentResponse;
 class PaymentApiController {
 
     private final PaymentCreateUseCase paymentCreateUseCase;
-    private final PaymentConfirmUseCase paymentConfirmUseCase;
     private final PgPaymentConfirmUseCase pgPaymentConfirmUseCase;
     private final PaymentOnSiteCompleteUseCase paymentOnSiteCompleteUseCase;
     private final PaymentCancelUseCase paymentCancelUseCase;
     private final PaymentRefundRequestUseCase paymentRefundRequestUseCase;
     private final PaymentDetailQueryUseCase paymentDetailQueryUseCase;
-    private final PaymentDetailByIdQueryUseCase paymentDetailByIdQueryUseCase;
     private final PaymentByOrderQueryUseCase paymentByOrderQueryUseCase;
     private final PaymentRefundDetailQueryUseCase paymentRefundDetailQueryUseCase;
 
     public PaymentApiController(
         PaymentCreateUseCase paymentCreateUseCase,
-        PaymentConfirmUseCase paymentConfirmUseCase,
         PgPaymentConfirmUseCase pgPaymentConfirmUseCase,
         PaymentOnSiteCompleteUseCase paymentOnSiteCompleteUseCase,
         PaymentCancelUseCase paymentCancelUseCase,
         PaymentRefundRequestUseCase paymentRefundRequestUseCase,
         PaymentDetailQueryUseCase paymentDetailQueryUseCase,
-        PaymentDetailByIdQueryUseCase paymentDetailByIdQueryUseCase,
         PaymentByOrderQueryUseCase paymentByOrderQueryUseCase,
         PaymentRefundDetailQueryUseCase paymentRefundDetailQueryUseCase
     ) {
         this.paymentCreateUseCase = paymentCreateUseCase;
-        this.paymentConfirmUseCase = paymentConfirmUseCase;
         this.pgPaymentConfirmUseCase = pgPaymentConfirmUseCase;
         this.paymentOnSiteCompleteUseCase = paymentOnSiteCompleteUseCase;
         this.paymentCancelUseCase = paymentCancelUseCase;
         this.paymentRefundRequestUseCase = paymentRefundRequestUseCase;
         this.paymentDetailQueryUseCase = paymentDetailQueryUseCase;
-        this.paymentDetailByIdQueryUseCase = paymentDetailByIdQueryUseCase;
         this.paymentByOrderQueryUseCase = paymentByOrderQueryUseCase;
         this.paymentRefundDetailQueryUseCase = paymentRefundDetailQueryUseCase;
     }
@@ -88,17 +78,6 @@ class PaymentApiController {
         PaymentCreateCommand command = request.toCommand(userDetails.getMemberId());
         Long paymentId = paymentCreateUseCase.createPayment(command);
         return ResponseEntity.ok(ApiResponse.success(paymentId));
-    }
-
-    @Operation(summary = "결제 승인 (PG 콜백)", description = "PG사로부터 결제 승인을 처리합니다.")
-    @PostMapping("/v1/confirm")
-    public ResponseEntity<ApiResponse<PaymentResponse>> confirmPayment(
-        @Valid @RequestBody PaymentConfirmRequest request
-    ) {
-        PaymentConfirmCommand command = request.toCommand();
-        Long paymentId = paymentConfirmUseCase.confirmPayment(command);
-        PaymentResponse response = PaymentResponse.from(paymentDetailByIdQueryUseCase.getPayment(paymentId));
-        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @Operation(summary = "토스 결제 승인", description = "토스페이먼츠 결제를 승인합니다. 프론트엔드에서 /success 리다이렉트 후 호출합니다.")
