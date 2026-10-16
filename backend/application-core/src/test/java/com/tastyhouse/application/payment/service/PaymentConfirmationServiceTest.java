@@ -255,12 +255,12 @@ class PaymentConfirmationServiceTest {
         }
 
         private static Fixture withPendingPayment(OrderStatus orderStatus, PaymentMethod paymentMethod) {
-            return new Fixture(payment(PaymentStatus.PENDING, paymentMethod), order(orderStatus));
+            return new Fixture(pendingPayment(paymentMethod), order(orderStatus));
         }
 
-        private static Payment payment(PaymentStatus paymentStatus, PaymentMethod paymentMethod) {
+        private static Payment pendingPayment(PaymentMethod paymentMethod) {
             return Payment.reconstitute(
-                PAYMENT_ID.value(), ORDER_ID, paymentMethod, paymentStatus, new Amount(21000),
+                PAYMENT_ID.value(), ORDER_ID, paymentMethod, PaymentStatus.PENDING, new Amount(21000),
                 PgProvider.TOSS, null, "pg-order-1", null, null, null, null, null, null, null,
                 LocalDateTime.of(2026, 7, 31, 9, 0)
             );
