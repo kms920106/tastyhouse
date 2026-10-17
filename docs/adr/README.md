@@ -103,6 +103,7 @@ grep -rn --include='*.md' -e '번복' -e '~~' -e '후 갱신)' -e '(개정' -e '
 | [0055](0055-payment-refund-pessimistic-lock.md) | 환불 요청 누적액 검사는 PAYMENT 행 비관적 락으로 직렬화한다 | 채택 | 커밋 후 기입 | — |
 | [0056](0056-error-catalog-additive-snapshot.md) | 신규 에러코드는 스냅샷 tsv에 행을 추가하고 개수 단정을 올린다 | 채택 | 커밋 후 기입 | — |
 | [0057](0057-anchor-floor-on-intentional-deletion.md) | 개수 anchor 하한은 유스케이스를 의도적으로 삭제할 때만 실측값으로 내린다 | 채택 | 커밋 후 기입 | — |
+| [0058](0058-point-balance-pessimistic-lock.md) | 포인트 잔액 변경은 POINT 행 비관적 락으로 직렬화한다 | 채택 | 커밋 후 기입 | — |
 
 ## 원문 표기 → ADR 대응표
 

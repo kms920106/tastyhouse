@@ -51,8 +51,8 @@ public class PointLedgerService {
     }
 
     public void earnPoints(MemberId memberId, int pointAmount, String reason) {
-        Point point = pointLoadPort.findByMemberId(memberId)
-            .orElseGet(() -> pointSavePort.save(Point.of(memberId)));
+        pointSavePort.saveIfAbsent(memberId);
+        Point point = findPointOrThrow(memberId);
 
         point.addPoints(pointAmount);
         pointSavePort.save(point);
@@ -101,7 +101,7 @@ public class PointLedgerService {
     }
 
     private Point findPointOrThrow(MemberId memberId) {
-        return pointLoadPort.findByMemberId(memberId)
+        return pointLoadPort.findByMemberIdForUpdate(memberId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.POINT_NOT_FOUND,
                 "포인트 정보를 찾을 수 없습니다. memberId=" + memberId.value()));
     }

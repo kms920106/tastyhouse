@@ -641,8 +641,7 @@ CREATE TABLE POINT
     available_points        INT      NOT NULL DEFAULT 0,         -- 사용 가능 포인트
     expired_this_month      INT      NOT NULL DEFAULT 0,         -- 이번 달 만료 예정 포인트
     created_at              DATETIME NOT NULL,                   -- 생성 일시
-    updated_at              DATETIME NOT NULL,                   -- 수정 일시
-    INDEX idx_point_member_id (member_id)                        -- 인덱스: 회원별 조회
+    updated_at              DATETIME NOT NULL                    -- 수정 일시
 );
 
 CREATE TABLE POINT_HISTORY

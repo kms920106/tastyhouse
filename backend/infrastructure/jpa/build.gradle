@@ -18,7 +18,26 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mysql'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+    testRuntimeOnly 'com.mysql:mysql-connector-j'
+}
+
+tasks.named('test') {
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    systemProperty 'tastyhouse.schema', rootProject.file('schema.sql').absolutePath
+    shouldRunAfter tasks.named('test')
 }
 
 tasks.withType(JavaCompile).configureEach {

@@ -7,5 +7,5 @@ import com.tastyhouse.domain.point.model.Point;
 
 public interface PointLoadPort {
 
-    Optional<Point> findByMemberId(MemberId memberId);
+    Optional<Point> findByMemberIdForUpdate(MemberId memberId);
 }

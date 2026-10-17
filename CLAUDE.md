@@ -299,6 +299,7 @@ backend는 실행 파일(jar)이 있어야 위 명령이 동작합니다. jar가
 
   이 규칙을 어겨도 **그 순간에는 아무 일도 일어나지 않습니다.** 이미 로드된 클래스로 계속 동작하다가, 나중에 처음 필요해지는 클래스에서 `NoClassDefFoundError`가 터집니다. 증상과 원인의 시간 간격이 몇 시간까지 벌어지므로 아래 "간헐적으로 응답하지 않을 때" 절을 함께 참고합니다.
 - **`build`는 테스트를 함께 실행하며, 테스트가 실패하면 jar가 만들어지지 않습니다.** 이 저장소에는 ArchUnit 레이어 규칙(`LayerRulesTest`)·`ErrorCatalogConventionTest`·`ErrorCatalogSnapshotTest`·`EmbeddedRecordComponentOrderTest` 등 규약 위반을 잡는 가드 테스트가 있으므로, 빌드 실패 시 테스트 출력을 먼저 확인합니다 — 대개 코드가 아니라 규약을 어긴 것입니다.
+- **Testcontainers 통합 테스트는 `build`에 포함되지 않습니다.** `@Tag("integration")`이 붙은 테스트는 `test` 태스크에서 빠지고, `backend`에서 `./gradlew :infrastructure:jpa:integrationTest`로 따로 실행합니다(Docker 필요 — 없으면 이 태스크가 실패합니다). DB 잠금·동시성처럼 mock으로 검증할 수 없는 동작이 여기 있으므로, 그 영역을 고쳤으면 이 태스크를 함께 돌립니다. 상세는 `backend/infrastructure/jpa/AGENTS.md`의 비관적 락 항목.
 
 #### 실행 디렉터리(CWD) 주의
 

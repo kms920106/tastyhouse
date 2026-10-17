@@ -5,18 +5,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
 import com.tastyhouse.infrastructure.jpa.shared.persistence.BaseEntity;
 
 @Entity
-@Table(
-    name = "POINT",
-    indexes = {
-        @Index(name = "idx_point_member_id", columnList = "member_id")
-    }
-)
+@Table(name = "POINT")
 class PointJpaEntity extends BaseEntity {
 
     @Id
