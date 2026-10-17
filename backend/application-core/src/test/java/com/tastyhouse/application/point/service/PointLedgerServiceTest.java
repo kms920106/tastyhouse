@@ -48,7 +48,7 @@ class PointLedgerServiceTest {
 
         assertThat(points.calls).containsExactly(
             "lockingLoad", "lockingLoad", "lockingLoad", "lockingLoad");
-        assertThat(points.balanceOf(MEMBER_ID)).isEqualTo(3000);
+        assertThat(points.memberBalance()).isEqualTo(3000);
     }
 
     @Test
@@ -59,7 +59,7 @@ class PointLedgerServiceTest {
         ledger.earnPoints(MEMBER_ID, 300, "현장 결제 적립");
 
         assertThat(points.calls).containsExactly("saveIfAbsent", "lockingLoad");
-        assertThat(points.balanceOf(MEMBER_ID)).isEqualTo(1300);
+        assertThat(points.memberBalance()).isEqualTo(1300);
     }
 
     @Test
@@ -68,7 +68,7 @@ class PointLedgerServiceTest {
         ledger.earnPoints(MEMBER_ID, 1000, "추천받기 보상");
 
         assertThat(points.calls).containsExactly("saveIfAbsent", "lockingLoad");
-        assertThat(points.balanceOf(MEMBER_ID)).isEqualTo(1000);
+        assertThat(points.memberBalance()).isEqualTo(1000);
         assertThat(histories).hasSize(1);
     }
 
@@ -81,7 +81,7 @@ class PointLedgerServiceTest {
         assertThatThrownBy(() -> ledger.usePoints(MEMBER_ID, 1000))
             .isInstanceOf(DomainException.class)
             .hasFieldOrPropertyWithValue("errorCode", DomainErrorCode.POINT_INSUFFICIENT);
-        assertThat(points.balanceOf(MEMBER_ID)).isZero();
+        assertThat(points.memberBalance()).isZero();
         assertThat(histories).hasSize(1);
     }
 
@@ -95,8 +95,8 @@ class PointLedgerServiceTest {
             rows.put(memberId.value(), Point.reconstitute(nextId++, memberId, balance, 0));
         }
 
-        int balanceOf(MemberId memberId) {
-            return rows.get(memberId.value()).getAvailablePoints();
+        int memberBalance() {
+            return rows.get(MEMBER_ID.value()).getAvailablePoints();
         }
 
         @Override

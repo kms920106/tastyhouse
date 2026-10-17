@@ -88,8 +88,8 @@ class PointConcurrencyIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        jdbc.update("DELETE FROM POINT_HISTORY");
-        jdbc.update("DELETE FROM POINT");
+        jdbc.update("DELETE FROM POINT_HISTORY WHERE id > 0");
+        jdbc.update("DELETE FROM POINT WHERE id > 0");
         tx = new TransactionTemplate(transactionManager);
         ledger = new PointLedgerService(pointLoadPort, pointSavePort, pointHistorySavePort, event -> {
         });
