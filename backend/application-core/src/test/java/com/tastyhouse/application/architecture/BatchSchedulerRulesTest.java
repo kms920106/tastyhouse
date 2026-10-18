@@ -69,7 +69,7 @@ class BatchSchedulerRulesTest {
             .filter(c -> c.getSimpleName().endsWith("SchedulerService"))
             .count())
             .as("batch-application의 *SchedulerService가 0건이면 두 규칙이 공허하게 통과한다")
-            .isEqualTo(7);
+            .isEqualTo(8);
     }
 
     @Test
@@ -80,6 +80,6 @@ class BatchSchedulerRulesTest {
             .filter(c -> resideInAPackage("..port.in..").test(c))
             .count())
             .as("batch-application UseCase가 0건이면 경계 타입 규칙이 공허하게 통과한다")
-            .isEqualTo(7);
+            .isEqualTo(8);
     }
 }

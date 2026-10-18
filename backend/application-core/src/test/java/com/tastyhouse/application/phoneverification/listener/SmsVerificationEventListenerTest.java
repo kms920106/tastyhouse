@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.phoneverification.event.SmsVerifiedEvent;
 import com.tastyhouse.domain.phoneverification.vo.SmsVerificationId;
-import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.logging.LogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,11 +17,11 @@ class SmsVerificationEventListenerTest {
 
     private final SmsVerificationEventListener listener = new SmsVerificationEventListener();
 
-    private ListenerLogCapture logCapture;
+    private LogCapture logCapture;
 
     @BeforeEach
     void attachLogCapture() {
-        logCapture = ListenerLogCapture.attachTo(SmsVerificationEventListener.class);
+        logCapture = LogCapture.attachTo(SmsVerificationEventListener.class);
     }
 
     @AfterEach

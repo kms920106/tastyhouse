@@ -49,7 +49,7 @@ class RuleAnchorTest {
         assertThat(countUseCases(ModuleOrigin.WEB)).as("web-application UseCase").isGreaterThanOrEqualTo(185);
         assertThat(countUseCases(ModuleOrigin.ADMIN)).as("admin-application UseCase").isGreaterThanOrEqualTo(207);
         assertThat(countUseCases(ModuleOrigin.CEO)).as("ceo-application UseCase").isGreaterThanOrEqualTo(188);
-        assertThat(countUseCases(ModuleOrigin.BATCH)).as("batch-application UseCase").isEqualTo(7);
+        assertThat(countUseCases(ModuleOrigin.BATCH)).as("batch-application UseCase").isEqualTo(8);
         assertThat(countUseCases(ModuleOrigin.CORE)).as("core에는 UseCase가 없다").isZero();
     }
 

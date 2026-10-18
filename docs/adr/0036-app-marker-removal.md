@@ -1,6 +1,6 @@
 # ADR-0036: 앱 마커 애노테이션을 제거하고 앱 소속을 Gradle 모듈(core + {앱}-application 4개)로 표현한다
 
-- 상태: 채택
+- 상태: 채택(PG SPI 포트·라우터 배치 → [ADR-0061](0061-pg-ports-to-core-batch-reconcile.md))
 - 결정 커밋: `d4688a682` (2026-10-04). 후속 `406c34ebe`(같은 날, `application-module.properties` 표식 제거 → `ModuleOrigin` 판정)도 이 결정에 포함합니다.
 - 대체한 결정: [ADR-0013](0013-application-module-merge.md), [ADR-0014](0014-package-flattening-app-markers.md), [ADR-0034](0034-service-config-removal.md). [ADR-0024](0024-event-listeners-in-application.md)·[ADR-0025](0025-presentation-domain-cut.md)의 `@SharedApp` 부분도 대체합니다.
 

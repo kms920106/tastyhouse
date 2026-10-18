@@ -24,8 +24,18 @@ class PaymentConfirmationExecutor {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
+    public void recordPgAttemptInNewTx(String pgOrderId, PgProvider pgProvider) {
+        paymentConfirmationService.recordPgAttempt(pgOrderId, pgProvider);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
     public PaymentId applyInNewTx(MemberId memberId, PgProvider pgProvider, String pgOrderId, PgConfirmResult result) {
         return paymentConfirmationService.applyPgConfirmation(memberId, pgProvider, pgOrderId, result);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public PgReconcileResult reconcileApprovedInNewTx(String pgOrderId, PgProvider pgProvider, PgConfirmResult approval) {
+        return paymentConfirmationService.reconcileApproved(pgOrderId, pgProvider, approval);
     }
 
     @Transactional(propagation = Propagation.REQUIRED)

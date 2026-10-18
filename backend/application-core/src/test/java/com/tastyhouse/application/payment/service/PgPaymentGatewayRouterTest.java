@@ -9,9 +9,11 @@ import org.junit.jupiter.api.Test;
 import com.tastyhouse.domain.exception.BusinessException;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
+import com.tastyhouse.application.payment.port.out.PgPaymentLookupResult;
+import com.tastyhouse.application.payment.port.out.PgPaymentLookupStatus;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
 import com.tastyhouse.application.payment.port.out.PgProviderGatewayPort;
-import com.tastyhouse.application.shared.exception.WebErrorCode;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,16 +45,40 @@ class PgPaymentGatewayRouterTest {
     }
 
     @Test
+    @DisplayName("결제 조회: 요청한 PG의 게이트웨이로 그대로 위임하고 결과를 돌려준다")
+    void lookupPayment_routesToMatchingGateway() {
+        GatewayStub toss = new GatewayStub(PgProviderCode.TOSS);
+        GatewayStub kakao = new GatewayStub(PgProviderCode.KAKAO);
+        PgPaymentGatewayRouter router = new PgPaymentGatewayRouter(List.of(toss, kakao));
+
+        PgPaymentLookupResult lookup = router.lookupPayment("TOSS", "pg-order-1");
+
+        assertThat(lookup.status()).isEqualTo(PgPaymentLookupStatus.APPROVED);
+        assertThat(toss.lookupCalls).containsExactly("pg-order-1");
+        assertThat(kakao.lookupCalls).isEmpty();
+    }
+
+    @Test
+    @DisplayName("미등록 PG로 결제 조회를 요청하면 PG_PROVIDER_UNSUPPORTED로 거절한다")
+    void lookupPayment_rejectsUnregisteredProvider() {
+        PgPaymentGatewayRouter router = new PgPaymentGatewayRouter(List.of(new GatewayStub(PgProviderCode.TOSS)));
+
+        assertThatThrownBy(() -> router.lookupPayment("KAKAO", "pg-order-1"))
+            .isInstanceOf(BusinessException.class)
+            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(ApplicationErrorCode.PG_PROVIDER_UNSUPPORTED));
+    }
+
+    @Test
     @DisplayName("미등록 PG로 승인·취소를 요청하면 PG_PROVIDER_UNSUPPORTED로 거절한다")
     void unregisteredProvider_isRejected() {
         PgPaymentGatewayRouter router = new PgPaymentGatewayRouter(List.of(new GatewayStub(PgProviderCode.TOSS)));
 
         assertThatThrownBy(() -> router.confirmPayment("KAKAO", 1L, "payment-key", "pg-order-1", 21000))
             .isInstanceOf(BusinessException.class)
-            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(WebErrorCode.PG_PROVIDER_UNSUPPORTED));
+            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(ApplicationErrorCode.PG_PROVIDER_UNSUPPORTED));
         assertThatThrownBy(() -> router.cancelPayment(null, "tid-1", "고객 변심"))
             .isInstanceOf(BusinessException.class)
-            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(WebErrorCode.PG_PROVIDER_UNSUPPORTED));
+            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(ApplicationErrorCode.PG_PROVIDER_UNSUPPORTED));
     }
 
     @Test
@@ -88,6 +114,7 @@ class PgPaymentGatewayRouterTest {
         private final PgProviderCode provider;
         private final List<String> confirmCalls = new ArrayList<>();
         private final List<String> cancelCalls = new ArrayList<>();
+        private final List<String> lookupCalls = new ArrayList<>();
 
         private GatewayStub(PgProviderCode provider) {
             this.provider = provider;
@@ -101,13 +128,22 @@ class PgPaymentGatewayRouterTest {
         @Override
         public PgConfirmResult confirmPayment(Long paymentId, String paymentKey, String pgOrderId, int amount) {
             confirmCalls.add(pgOrderId);
-            return new PgConfirmResult(true, paymentKey, "DONE", amount, null, null, null, null, null, null, null, null);
+            return new PgConfirmResult(true, paymentKey, "DONE", amount, null, null, null, null, null, null, null, null, null);
         }
 
         @Override
         public PgCancelResult cancelPayment(String pgTid, String cancelReason) {
             cancelCalls.add(pgTid);
             return new PgCancelResult(true, null, null);
+        }
+
+        @Override
+        public PgPaymentLookupResult lookupPayment(String pgOrderId) {
+            lookupCalls.add(pgOrderId);
+            return new PgPaymentLookupResult(
+                PgPaymentLookupStatus.APPROVED,
+                new PgConfirmResult(true, "payment-key", "DONE", 21000, null, null, null, null, null, null, null, null, null)
+            );
         }
     }
 }

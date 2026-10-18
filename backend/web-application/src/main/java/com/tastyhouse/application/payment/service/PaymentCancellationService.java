@@ -73,8 +73,13 @@ class PaymentCancellationService {
         );
     }
 
-    public PaymentCancelCode applyCancellation(MemberId memberId, PaymentId paymentId, String cancelReason) {
-        Payment payment = loadPayment(paymentId);
+    public PaymentCancelCode applyCancellation(
+        MemberId memberId,
+        PaymentId paymentId,
+        String cancelReason,
+        boolean pgCancelRequiredAtPrepare
+    ) {
+        Payment payment = loadPaymentForUpdate(paymentId);
         Order order = orderTransitionService.loadOwnedBy(
             payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED
         );
@@ -82,6 +87,14 @@ class PaymentCancellationService {
         PaymentCancelCode cancelCode = resolveCancelCode(order.getOrderStatus());
         if (cancelCode != PaymentCancelCode.SUCCESS) {
             return cancelCode;
+        }
+
+        if (isAwaitingPgResult(payment)) {
+            throw new ApplicationException(WebErrorCode.PAYMENT_CANCEL_UNCONFIRMED);
+        }
+
+        if (!pgCancelRequiredAtPrepare && isPgCancelRequired(payment)) {
+            throw new ApplicationException(WebErrorCode.PAYMENT_CANCEL_UNCONFIRMED);
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -109,8 +122,7 @@ class PaymentCancellationService {
         int refundAmount,
         String refundReason
     ) {
-        Payment payment = paymentLoadPort.findByIdForUpdate(paymentId)
-            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = loadPaymentForUpdate(paymentId);
         Order order = orderTransitionService.loadOwnedBy(
             payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED
         );
@@ -152,6 +164,11 @@ class PaymentCancellationService {
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
     }
 
+    private Payment loadPaymentForUpdate(PaymentId paymentId) {
+        return paymentLoadPort.findByIdForUpdate(paymentId)
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
+    }
+
     private PaymentCancelCode resolveCancelCode(OrderStatus orderStatus) {
         return switch (orderStatus) {
             case PREPARING -> PaymentCancelCode.ALREADY_PREPARING;
@@ -159,6 +176,11 @@ class PaymentCancellationService {
             case COMPLETED -> PaymentCancelCode.ORDER_COMPLETED;
             case PENDING, CONFIRMED -> PaymentCancelCode.SUCCESS;
         };
+    }
+
+    private boolean isAwaitingPgResult(Payment payment) {
+        return payment.getPaymentStatus() == PaymentStatus.PENDING
+            && payment.getPgProvider() != null;
     }
 
     private boolean isPgCancelRequired(Payment payment) {

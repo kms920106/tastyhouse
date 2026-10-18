@@ -5,10 +5,12 @@
 ## 무엇이 여기 사는가
 
 - batch 전용 `@Service`/`@Component` 빈 — `*SchedulerService`(잡 오케스트레이터)와 batch만 쓰는 도메인 서비스·러너(예: `AdminDongSyncRunner`)
-- 잡 UseCase 인터페이스 7개와 Command record(`<ctx>/port/in/`)
+- 잡 UseCase 인터페이스 8개와 Command record(`<ctx>/port/in/`)
 - **batch 전용 SPI 포트**(구현 벤더가 batch에만 조립되는 포트):
   - `crawling.bbq.port.out.*` — `BbqMenuPort`·`RemoteImagePort`와 DTO. 구현 `infrastructure:bbq`
   - `region.port.out.{AdminDongBoundaryPort,AdminDongBoundaryFetchResult,AdminDongBoundarySource,BoundaryCoordinate,BoundaryRing}` — 구현 `infrastructure:admdongkor`
+- **PG 결제 조회 포트는 이 모듈이 아니라 코어에 있다** — 주기 대사 잡(`payment/service/PaymentReconcileSchedulerService`)이 쓰는 `PgPaymentGatewayPort`와 라우터 `PgPaymentGatewayRouter`는 web도 함께 쓰므로 `application-core` 소유다. 구현 벤더는 `batch-module`이 `runtimeOnly ':infrastructure:pg'`로 조립한다([ADR-0061](../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md)).
+- **대사 재시도 일정은 `payment/service/PaymentReconcileExecutor`가 기록하고, 다음 시각 계산은 `payment/service/PaymentReconcileBackoffPolicy`가 한다** — `claimNextAttemptInNewTx`(트랜잭션)가 `PaymentLoadPort#findReconcileAttemptCount`로 이전 시도 횟수를 읽고 `PaymentSavePort#saveReconcileScheduleIfDue`로 "횟수가 읽은 값 그대로이고 다음 시각이 실행 시작 시각 기준으로 비었거나 지났을 때만" 횟수+1과 다음 시각(`PaymentReconcileBackoffPolicy#nextAttemptAt` — `max(실행 시작 시각 + min(10분 × 2^이전 횟수, 24시간) − 1분, 선점 시각 + 2분)`)을 저장한다. 앞항은 cron 격자에 맞춰 같은 주기에 선점된 결제가 선점 순서와 무관하게 같은 다음 실행에서 재시도되게 하고, 뒤항(`CLAIM_GUARD` 2분)은 주기가 길어져 늦게 선점했을 때 그 사이 시작하는 다른 실행이 처리 중인 결제를 다시 선점하지 못하게 한다. `CLAIM_GUARD`는 선점 뒤 한 결제의 최악 처리 시간(토스 조회 소켓 타임아웃 연결 5초 + 읽기 10초(`infrastructure:restclient`의 `RestClientConfig`), 반영의 행 잠금 대기 — `innodb_lock_wait_timeout` 미설정이라 MySQL 기본 50초, 커넥션 획득 3초(`application-mysql.yml`) ≈ 68초)보다 길어야 하므로, 이 타임아웃 중 하나를 늘리면 `CLAIM_GUARD`도 함께 검토한다. 대가로 주기 시작 8분 뒤 이후 선점분은 한 주기 늦게 재시도된다. 저장이 0건이면 다른 실행(다른 batch 인스턴스)이 먼저 차례를 가져갔거나 web 승인 시도가 일정을 초기화한 것이라 빈 값을 돌려주고, 1건이면 `PaymentReconcileClaim(attemptCount, nextAttemptAt)`을 돌려준다([ADR-0064](../../docs/adr/0064-payment-reconcile-claim.md)). 계산을 Executor 밖에 두는 이유는 Executor가 트랜잭션 경계만 갖는 얇은 위임이어야 하기 때문이다(`backend/CLAUDE.md`의 "낙관적 락 재시도 배치 규칙" 절). `PaymentReconcileSchedulerService`는 건마다 PG 조회 **전에** 이것을 부르고, 차례를 얻은 결제만 PG에 묻는다(선점 예외면 그 결제를 건너뛰고, 3건 연속이면 주기를 중단한다. Executor의 세 메서드는 모두 `*InNewTx`라 `application-core`의 `ExecutorCallerTransactionRulesTest`가 이 서비스의 `@Transactional`을 금지한다), 대상 조회는 다음 시각이 비었거나 지난 결제만 고른다. 간격 표는 `PaymentReconcileBackoffPolicyTest`가 고정한다([ADR-0062](../../docs/adr/0062-payment-reconcile-backoff.md)).
 - 자바 패키지는 코어와 같은 `com.tastyhouse.application.<ctx>..`다(split package). 클래스를 코어와 이 모듈 사이로 옮겨도 import는 바뀌지 않는다.
 
 ## 의존

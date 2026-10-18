@@ -55,7 +55,7 @@ class PaymentCancellationServiceTest {
     void applyCancellation_cancelsPaymentAndOrderTogether() {
         Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
 
-        PaymentCancelCode code = fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심");
+        PaymentCancelCode code = fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심", true);
 
         assertThat(code).isEqualTo(PaymentCancelCode.SUCCESS);
         assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELLED);
@@ -145,12 +145,64 @@ class PaymentCancellationServiceTest {
     void applyCancellation_rejectsWhenOrderMovedDuringPgRoundTrip() {
         Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.PREPARING);
 
-        PaymentCancelCode code = fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심");
+        PaymentCancelCode code = fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심", true);
 
         assertThat(code).isEqualTo(PaymentCancelCode.ALREADY_PREPARING);
         assertThat(fixture.paymentPersistence.lastSaved).isNull();
         assertThat(fixture.orderPersistence.lastSaved).isNull();
         assertThat(fixture.eventPublisher.published).isEmpty();
+    }
+
+    @Test
+    @DisplayName("반영 거절: PG 시도가 기록된 대기 결제는 결과가 확정될 때까지 PAYMENT_CANCEL_UNCONFIRMED(409)로 거절하고 아무것도 바꾸지 않는다")
+    void applyCancellation_rejectsPendingPaymentWithPgAttempt() {
+        Fixture fixture = Fixture.with(PgProvider.TOSS, PaymentStatus.PENDING, OrderStatus.PENDING);
+
+        assertThatThrownBy(() -> fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심", false))
+            .isInstanceOf(BusinessException.class)
+            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(WebErrorCode.PAYMENT_CANCEL_UNCONFIRMED));
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+        assertThat(fixture.eventPublisher.published).isEmpty();
+    }
+
+    @Test
+    @DisplayName("반영 거절: 사전 판정은 대기 결제라 PG 취소 없이 진행했는데 그사이 승인이 끝나 완료 결제가 됐으면 환불 없이 취소하지 않고 PAYMENT_CANCEL_UNCONFIRMED(409)로 거절한다")
+    void applyCancellation_rejectsWhenPaymentCompletedAfterPrepare() {
+        Fixture fixture = Fixture.with(PgProvider.TOSS, PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
+
+        assertThatThrownBy(() -> fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심", false))
+            .isInstanceOf(BusinessException.class)
+            .satisfies(e -> assertThat(((BusinessException) e).getErrorCode()).isEqualTo(WebErrorCode.PAYMENT_CANCEL_UNCONFIRMED));
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+        assertThat(fixture.eventPublisher.published).isEmpty();
+    }
+
+    @Test
+    @DisplayName("반영: PG를 거치지 않은 현장결제 완료 결제는 사전 판정이 PG 취소 불필요여도 기존처럼 취소한다")
+    void applyCancellation_cancelsCompletedOnSitePaymentWithoutPgCancel() {
+        Fixture fixture = Fixture.with(null, PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
+
+        PaymentCancelCode code = fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심", false);
+
+        assertThat(code).isEqualTo(PaymentCancelCode.SUCCESS);
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELLED);
+        assertThat(fixture.orderPersistence.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
+    }
+
+    @Test
+    @DisplayName("반영: PG 시도가 없는 대기 결제(결제창을 닫고 떠난 경우)는 기존처럼 취소한다")
+    void applyCancellation_cancelsPendingPaymentWithoutPgAttempt() {
+        Fixture fixture = Fixture.with(null, PaymentStatus.PENDING, OrderStatus.PENDING);
+
+        PaymentCancelCode code = fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심", false);
+
+        assertThat(code).isEqualTo(PaymentCancelCode.SUCCESS);
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.CANCELLED);
+        assertThat(fixture.orderPersistence.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CANCELLED);
     }
 
     @Test
@@ -162,7 +214,7 @@ class PaymentCancellationServiceTest {
             .hasMessageContaining(ApplicationErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
         Fixture applyFixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
-        assertThatThrownBy(() -> applyFixture.service.applyCancellation(OTHER_MEMBER_ID, PAYMENT_ID, "사유"))
+        assertThatThrownBy(() -> applyFixture.service.applyCancellation(OTHER_MEMBER_ID, PAYMENT_ID, "사유", true))
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ApplicationErrorCode.PAYMENT_ACCESS_DENIED.getDefaultMessage());
 
@@ -209,6 +261,29 @@ class PaymentCancellationServiceTest {
             .hasMessageContaining(WebErrorCode.PAYMENT_REFUND_AMOUNT_EXCEEDED.getDefaultMessage());
 
         assertThat(fixture.paymentRefundPersistence.saved).isEmpty();
+    }
+
+    @Test
+    @DisplayName("취소 반영: 결제 행을 트랜잭션 첫 조회에서 잠금 조회로 읽어 같은 결제의 PG 승인 시도 기록과 직렬화한다")
+    void applyCancellation_loadsPaymentWithLock() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
+
+        fixture.service.applyCancellation(MEMBER_ID, PAYMENT_ID, "고객 변심", true);
+
+        assertThat(fixture.orderPersistence.lockedLoadsAtFirstOrderLoad).isEqualTo(1);
+        assertThat(fixture.paymentPersistence.lockedLoads).isEqualTo(1);
+        assertThat(fixture.paymentPersistence.plainLoads).isZero();
+    }
+
+    @Test
+    @DisplayName("취소 준비: PG 왕복 전 사전 확인은 결제 행을 잠그지 않는다")
+    void prepareCancellation_doesNotLockPayment() {
+        Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
+
+        fixture.service.prepareCancellation(MEMBER_ID, PAYMENT_ID);
+
+        assertThat(fixture.paymentPersistence.lockedLoads).isZero();
+        assertThat(fixture.paymentPersistence.plainLoads).isEqualTo(1);
     }
 
     @Test
@@ -392,14 +467,43 @@ class PaymentCancellationServiceTest {
         }
 
         @Override
+        public Optional<Payment> findByPgOrderIdForUpdate(String pgOrderId) {
+            return Optional.of(stored);
+        }
+
+        @Override
         public boolean existsByOrderId(OrderId orderId) {
             return true;
+        }
+
+        @Override
+        public List<Payment> findAllPgAttemptedReconcileDueByStatusCreatedBetween(
+            PaymentStatus status, LocalDateTime from, LocalDateTime to, LocalDateTime dueAt, int limit
+        ) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int findReconcileAttemptCount(PaymentId paymentId) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public Payment save(Payment payment) {
             this.lastSaved = payment;
             return payment;
+        }
+
+        @Override
+        public void saveReconcileSchedule(PaymentId paymentId, int attemptCount, LocalDateTime nextAttemptAt) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean saveReconcileScheduleIfDue(
+            PaymentId paymentId, int expectedAttemptCount, LocalDateTime dueAt, LocalDateTime nextAttemptAt
+        ) {
+            throw new UnsupportedOperationException();
         }
     }
 

@@ -11,7 +11,7 @@ import com.tastyhouse.domain.member.vo.MemberId;
 import com.tastyhouse.domain.point.event.PointEarnedEvent;
 import com.tastyhouse.domain.point.event.PointRefundedEvent;
 import com.tastyhouse.domain.point.event.PointUsedEvent;
-import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.logging.LogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,11 +19,11 @@ class PointEventListenerTest {
 
     private final PointEventListener listener = new PointEventListener();
 
-    private ListenerLogCapture logCapture;
+    private LogCapture logCapture;
 
     @BeforeEach
     void attachLogCapture() {
-        logCapture = ListenerLogCapture.attachTo(PointEventListener.class);
+        logCapture = LogCapture.attachTo(PointEventListener.class);
     }
 
     @AfterEach

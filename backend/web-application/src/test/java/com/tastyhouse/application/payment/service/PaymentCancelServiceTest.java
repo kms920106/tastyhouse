@@ -13,10 +13,15 @@ import com.tastyhouse.application.payment.port.in.PaymentCancelCommand;
 import com.tastyhouse.application.payment.port.out.PaymentCancelResult;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgPaymentGatewayPort;
+import com.tastyhouse.application.shared.exception.ApplicationException;
+import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -36,7 +41,7 @@ class PaymentCancelServiceTest {
         cancellationExecutor = mock(PaymentCancellationExecutor.class);
         pgPaymentGateway = mock(PgPaymentGatewayPort.class);
         service = new PaymentCancelService(cancellationExecutor, pgPaymentGateway);
-        when(cancellationExecutor.applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString()))
+        when(cancellationExecutor.applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString(), anyBoolean()))
             .thenReturn(PaymentCancelCode.SUCCESS);
     }
 
@@ -52,7 +57,7 @@ class PaymentCancelServiceTest {
 
         assertThat(result.cancelCode()).isEqualTo(PaymentCancelCode.SUCCESS.name());
         verify(pgPaymentGateway).cancelPayment("TOSS", "tid-1", "고객 변심");
-        verify(cancellationExecutor).applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString());
+        verify(cancellationExecutor).applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString(), eq(true));
     }
 
     @Test
@@ -65,7 +70,7 @@ class PaymentCancelServiceTest {
 
         assertThat(result.cancelCode()).isEqualTo(PaymentCancelCode.SUCCESS.name());
         verify(pgPaymentGateway, never()).cancelPayment(any(), any(), any());
-        verify(cancellationExecutor).applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString());
+        verify(cancellationExecutor).applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString(), eq(true));
     }
 
     @Test
@@ -79,7 +84,7 @@ class PaymentCancelServiceTest {
         PaymentCancelResult result = service.cancelPayment(command());
 
         assertThat(result.cancelCode()).isEqualTo(PaymentCancelCode.CANCEL_FAILED.name());
-        verify(cancellationExecutor, never()).applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString());
+        verify(cancellationExecutor, never()).applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString(), anyBoolean());
     }
 
     @Test
@@ -91,6 +96,20 @@ class PaymentCancelServiceTest {
 
         assertThat(result.cancelCode()).isEqualTo(PaymentCancelCode.SUCCESS.name());
         verify(pgPaymentGateway, never()).supports(any());
+        verify(pgPaymentGateway, never()).cancelPayment(any(), any(), any());
+        verify(cancellationExecutor).applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString(), eq(false));
+    }
+
+    @Test
+    @DisplayName("취소: 사전 판정이 대기 결제였는데 반영 단계에서 승인 완료가 드러나 409가 나면 PG 취소를 부르지 않고 예외를 그대로 전한다")
+    void cancelPayment_propagatesConflictWhenApprovedDuringCancel() {
+        givenTarget(PaymentCancellationTarget.cancellable(false, PgProvider.TOSS, null));
+        ApplicationException conflict = new ApplicationException(WebErrorCode.PAYMENT_CANCEL_UNCONFIRMED);
+        when(cancellationExecutor.applyInNewTx(any(MemberId.class), any(PaymentId.class), anyString(), eq(false)))
+            .thenThrow(conflict);
+
+        assertThatThrownBy(() -> service.cancelPayment(command())).isSameAs(conflict);
+
         verify(pgPaymentGateway, never()).cancelPayment(any(), any(), any());
     }
 

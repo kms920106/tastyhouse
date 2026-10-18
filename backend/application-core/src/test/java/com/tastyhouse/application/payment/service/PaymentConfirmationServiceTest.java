@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +31,7 @@ import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.order.port.out.write.OrderLoadPort;
 import com.tastyhouse.application.order.port.out.write.OrderSavePort;
 import com.tastyhouse.application.order.service.OrderTransitionService;
+import com.tastyhouse.application.payment.port.out.PgConfirmFailure;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
 import com.tastyhouse.application.payment.port.out.write.PaymentLoadPort;
@@ -34,6 +39,7 @@ import com.tastyhouse.application.payment.port.out.write.PaymentSavePort;
 import com.tastyhouse.application.payment.port.out.write.TossPaymentRecordSavePort;
 import com.tastyhouse.application.shared.event.DomainEventPublisher;
 import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
+import com.tastyhouse.testsupport.shared.logging.LogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -44,6 +50,18 @@ class PaymentConfirmationServiceTest {
     private static final MemberId OTHER_MEMBER_ID = MemberId.of(99L);
     private static final OrderId ORDER_ID = OrderId.of(100L);
     private static final PaymentId PAYMENT_ID = PaymentId.of(200L);
+
+    private LogCapture logCapture;
+
+    @BeforeEach
+    void attachLogCapture() {
+        logCapture = LogCapture.attachTo(PaymentConfirmationService.class);
+    }
+
+    @AfterEach
+    void detachLogCapture() {
+        logCapture.detach();
+    }
 
     @Test
     @DisplayName("토스 반영(성공): 결제 완료·주문 확정·원장 기록·완료 이벤트가 모두 일어난다")
@@ -68,7 +86,7 @@ class PaymentConfirmationServiceTest {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
         PgConfirmResult withoutDetail = new PgConfirmResult(
             true, "payment-key", "DONE", 21000, LocalDateTime.of(2026, 7, 31, 10, 0),
-            "https://receipt", null, null, null, null, null, null
+            "https://receipt", null, null, null, null, null, null, null
         );
 
         fixture.service.applyPgConfirmation(MEMBER_ID, PgProvider.KAKAO, "pg-order-1", withoutDetail);
@@ -83,7 +101,8 @@ class PaymentConfirmationServiceTest {
     void failPgConfirmation_savesFailedWithoutConfirmingOrder() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
         PgConfirmResult rejected = new PgConfirmResult(
-            false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과", detail()
+            false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과",
+            PgConfirmFailure.REJECTED, detail()
         );
 
         fixture.service.failPgConfirmation("pg-order-1", rejected);
@@ -99,12 +118,307 @@ class PaymentConfirmationServiceTest {
     void failPgConfirmation_doesNotThrow() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
         PgConfirmResult rejected = new PgConfirmResult(
-            false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과", detail()
+            false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과",
+            PgConfirmFailure.REJECTED, detail()
         );
 
         fixture.service.failPgConfirmation("pg-order-1", rejected);
 
         assertThat(fixture.tossPaymentRecordSavePort.saved).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("토스 반영(실패): 이미 처리된 결제라는 응답이면 대기 결제를 실패로 바꾸지 않고 원장만 남긴다")
+    void failPgConfirmation_keepsPendingWhenAlreadyProcessed() {
+        Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+
+        fixture.service.failPgConfirmation("pg-order-1", alreadyProcessedResult());
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.paymentPersistence.stored.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(fixture.tossPaymentRecordSavePort.saved).hasSize(1);
+        assertThat(logCapture.events()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("토스 반영(실패): 결제가 완료된 뒤의 이미 처리됨 거절은 상태를 바꾸지 않고 로그도 남기지 않는다")
+    void failPgConfirmation_keepsCompletedWhenAlreadyProcessed() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.COMPLETED), Fixture.order(OrderStatus.CONFIRMED));
+
+        fixture.service.failPgConfirmation("pg-order-1", alreadyProcessedResult());
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.paymentPersistence.stored.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(logCapture.events()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("토스 반영(실패): 결제가 실패 상태일 때의 이미 처리됨 거절은 상태를 바꾸지 않고 원장만 남긴다")
+    void failPgConfirmation_keepsFailedWhenAlreadyProcessed() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.FAILED), Fixture.order(OrderStatus.PENDING));
+
+        fixture.service.failPgConfirmation("pg-order-1", alreadyProcessedResult());
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.paymentPersistence.stored.getPaymentStatus()).isEqualTo(PaymentStatus.FAILED);
+        assertThat(fixture.tossPaymentRecordSavePort.saved).hasSize(1);
+        assertThat(logCapture.events()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("토스 반영(실패): 실패 분류가 없는 결과는 거절로 확정할 수 없으므로 대기 결제를 실패로 바꾸지 않는다")
+    void failPgConfirmation_keepsPendingWhenFailureIsMissing() {
+        Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+        PgConfirmResult unclassified = new PgConfirmResult(
+            false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과",
+            null, detail()
+        );
+
+        fixture.service.failPgConfirmation("pg-order-1", unclassified);
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.paymentPersistence.stored.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(fixture.tossPaymentRecordSavePort.saved).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("토스 반영(실패): 먼저 커밋된 승인으로 결제가 이미 완료됐으면 실패로 덮어쓰지 않는다")
+    void failPgConfirmation_doesNotOverwriteCompletedPayment() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.COMPLETED), Fixture.order(OrderStatus.CONFIRMED));
+        PgConfirmResult rejected = new PgConfirmResult(
+            false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과",
+            PgConfirmFailure.REJECTED, detail()
+        );
+
+        fixture.service.failPgConfirmation("pg-order-1", rejected);
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.paymentPersistence.stored.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+    }
+
+    @Test
+    @DisplayName("토스 반영(성공): 중복 요청의 실패 반영이 먼저 커밋돼 결제가 실패여도 PG 승인 성공으로 완료하고 주문을 확정한다")
+    void applyPgConfirmation_recoversFailedPayment() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.FAILED), Fixture.order(OrderStatus.PENDING));
+
+        fixture.service.applyPgConfirmation(MEMBER_ID, PgProvider.TOSS, "pg-order-1", successConfirmResult());
+
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(fixture.orderPersistence.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(fixture.eventPublisher.published).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("토스 반영(성공): 이미 완료된 결제의 중복 승인은 PAYMENT_NOT_PENDING_APPROVAL로 거절한다")
+    void applyPgConfirmation_rejectsCompletedPayment() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.COMPLETED), Fixture.order(OrderStatus.CONFIRMED));
+
+        assertThatThrownBy(() -> fixture.service.applyPgConfirmation(MEMBER_ID, PgProvider.TOSS, "pg-order-1", successConfirmResult()))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL.getDefaultMessage());
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+    }
+
+    @Test
+    @DisplayName("토스 반영: 승인·실패 반영 모두 결제 행을 잠금 조회로만 읽고 잠금 없는 조회를 앞세우지 않는다")
+    void applyAndFail_loadPaymentWithLock() {
+        Fixture applyFixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+        applyFixture.service.applyPgConfirmation(MEMBER_ID, PgProvider.TOSS, "pg-order-1", successConfirmResult());
+
+        Fixture failFixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+        failFixture.service.failPgConfirmation("pg-order-1", new PgConfirmResult(
+            false, null, null, null, null, null, null, null, null, "REJECT", "한도 초과",
+            PgConfirmFailure.REJECTED, detail()
+        ));
+
+        assertThat(applyFixture.paymentPersistence.lockedLoadCount).isEqualTo(1);
+        assertThat(failFixture.paymentPersistence.lockedLoadCount).isEqualTo(1);
+        assertThat(applyFixture.paymentPersistence.unlockedLoadCount).isZero();
+        assertThat(failFixture.paymentPersistence.unlockedLoadCount).isZero();
+    }
+
+    @Test
+    @DisplayName("토스 반영(성공): 이미 완료된 결제의 pgTid가 이번 paymentKey와 같으면 원장을 더 쌓지 않고 그 결제 식별자를 돌려준다(멱등)")
+    void applyPgConfirmation_isIdempotentForSamePaymentKey() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.COMPLETED, "payment-key"), Fixture.order(OrderStatus.CONFIRMED));
+
+        PaymentId paymentId = fixture.service.applyPgConfirmation(MEMBER_ID, PgProvider.TOSS, "pg-order-1", successConfirmResult());
+
+        assertThat(paymentId).isEqualTo(PAYMENT_ID);
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+        assertThat(fixture.tossPaymentRecordSavePort.saved).isEmpty();
+        assertThat(fixture.eventPublisher.published).isEmpty();
+    }
+
+    @Test
+    @DisplayName("토스 반영(성공): 이미 완료된 결제의 pgTid가 이번 paymentKey와 다르면 PAYMENT_NOT_PENDING_APPROVAL로 거절한다")
+    void applyPgConfirmation_rejectsCompletedPaymentWithDifferentPaymentKey() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.COMPLETED, "other-key"), Fixture.order(OrderStatus.CONFIRMED));
+
+        assertThatThrownBy(() -> fixture.service.applyPgConfirmation(MEMBER_ID, PgProvider.TOSS, "pg-order-1", successConfirmResult()))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL.getDefaultMessage());
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+    }
+
+    @Test
+    @DisplayName("토스 반영(실패): 결과를 알 수 없음(UNKNOWN)이면 결제를 대기로 두고 원장과 PG_CONFIRM_UNKNOWN 경고를 남긴다")
+    void failPgConfirmation_keepsPendingWhenUnknown() {
+        Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+
+        fixture.service.failPgConfirmation("pg-order-1", unknownResult());
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.paymentPersistence.stored.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(fixture.tossPaymentRecordSavePort.saved).hasSize(1);
+        List<ILoggingEvent> events = logCapture.events();
+        assertThat(events).hasSize(1);
+        assertThat(events.getFirst().getLevel()).isEqualTo(Level.WARN);
+        assertThat(events.getFirst().getFormattedMessage()).contains("PG_CONFIRM_UNKNOWN", "pg-order-1", "paymentId=200", "PG_SERVER_ERROR");
+    }
+
+    @Test
+    @DisplayName("PG 시도 기록: 결제를 잠금 조회로 읽어 담당 PG만 남기고 저장한다")
+    void recordPgAttempt_recordsProviderWithLock() {
+        Fixture fixture = new Fixture(paymentWithoutProvider(), Fixture.order(OrderStatus.PENDING));
+
+        fixture.service.recordPgAttempt("pg-order-1", PgProvider.TOSS);
+
+        assertThat(fixture.paymentPersistence.lastSaved.getPgProvider()).isEqualTo(PgProvider.TOSS);
+        assertThat(fixture.paymentPersistence.lastSaved.getPgTid()).isNull();
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(fixture.paymentPersistence.lockedLoadCount).isEqualTo(1);
+        assertThat(fixture.paymentPersistence.unlockedLoadCount).isZero();
+    }
+
+    @Test
+    @DisplayName("PG 시도 기록: batch 대사 일정을 횟수 0, 다음 시각 지금+10분으로 초기화한다")
+    void recordPgAttempt_resetsReconcileSchedule() {
+        Fixture fixture = new Fixture(paymentWithoutProvider(), Fixture.order(OrderStatus.PENDING));
+        LocalDateTime before = LocalDateTime.now();
+
+        fixture.service.recordPgAttempt("pg-order-1", PgProvider.TOSS);
+
+        assertThat(fixture.paymentPersistence.reconcileScheduledPaymentId).isEqualTo(PAYMENT_ID);
+        assertThat(fixture.paymentPersistence.reconcileScheduledAttemptCount).isZero();
+        assertThat(fixture.paymentPersistence.reconcileScheduledNextAt)
+            .isBetween(before.plusMinutes(10), LocalDateTime.now().plusMinutes(10));
+    }
+
+    @Test
+    @DisplayName("PG 시도 기록: 잠금 조회 결과가 취소된 결제면 PAYMENT_NOT_PENDING_APPROVAL로 거절하고 저장하지 않는다")
+    void recordPgAttempt_rejectsCancelledPayment() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.CANCELLED), Fixture.order(OrderStatus.CANCELLED));
+
+        assertThatThrownBy(() -> fixture.service.recordPgAttempt("pg-order-1", PgProvider.TOSS))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL.getDefaultMessage());
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.paymentPersistence.reconcileScheduledAttemptCount).isNull();
+        assertThat(fixture.paymentPersistence.lockedLoadCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("조회 대사: 대기 결제·금액 일치·주문 확정 가능이면 결제 완료·주문 확정·완료 이벤트까지 반영한다(COMPLETED)")
+    void reconcileApproved_completesPendingPayment() {
+        Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+
+        PgReconcileResult result = fixture.service.reconcileApproved("pg-order-1", PgProvider.TOSS, successConfirmResult());
+
+        assertThat(result.outcome()).isEqualTo(PgReconcileOutcome.COMPLETED);
+        assertThat(result.paymentId()).isEqualTo(PAYMENT_ID);
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(fixture.paymentPersistence.lastSaved.getPgTid()).isEqualTo("payment-key");
+        assertThat(fixture.orderPersistence.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
+        assertThat(fixture.tossPaymentRecordSavePort.saved).hasSize(1);
+        PaymentCompletedEvent event = (PaymentCompletedEvent) fixture.eventPublisher.published.getFirst();
+        assertThat(event.memberId()).isEqualTo(MEMBER_ID);
+        assertThat(fixture.paymentPersistence.lockedLoadCount).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("조회 대사: 실패로 기록된 결제도 승인 확인이면 완료로 바로잡는다(COMPLETED)")
+    void reconcileApproved_recoversFailedPayment() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.FAILED), Fixture.order(OrderStatus.PENDING));
+
+        PgReconcileResult result = fixture.service.reconcileApproved("pg-order-1", PgProvider.TOSS, successConfirmResult());
+
+        assertThat(result.outcome()).isEqualTo(PgReconcileOutcome.COMPLETED);
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+    }
+
+    @Test
+    @DisplayName("조회 대사: 이미 완료된 결제는 아무것도 바꾸지 않는다(ALREADY_COMPLETED)")
+    void reconcileApproved_returnsAlreadyCompleted() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.COMPLETED, "payment-key"), Fixture.order(OrderStatus.CONFIRMED));
+
+        PgReconcileResult result = fixture.service.reconcileApproved("pg-order-1", PgProvider.TOSS, successConfirmResult());
+
+        assertThat(result.outcome()).isEqualTo(PgReconcileOutcome.ALREADY_COMPLETED);
+        assertThat(result.paymentId()).isEqualTo(PAYMENT_ID);
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+        assertThat(fixture.tossPaymentRecordSavePort.saved).isEmpty();
+        assertThat(fixture.eventPublisher.published).isEmpty();
+    }
+
+    @Test
+    @DisplayName("조회 대사: PG 금액이 결제 금액과 다르면 상태도 토스 상세 기록도 남기지 않고 PG_DB_MISMATCH 에러를 남긴다(AMOUNT_MISMATCH)")
+    void reconcileApproved_keepsStateOnAmountMismatch() {
+        Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING);
+        PgConfirmResult differentAmount = new PgConfirmResult(
+            true, "payment-key", "DONE", 9000, LocalDateTime.of(2026, 7, 31, 10, 0),
+            "https://receipt", null, null, null, null, null, null, detail()
+        );
+
+        PgReconcileResult result = fixture.service.reconcileApproved("pg-order-1", PgProvider.TOSS, differentAmount);
+
+        assertThat(result.outcome()).isEqualTo(PgReconcileOutcome.AMOUNT_MISMATCH);
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.tossPaymentRecordSavePort.saved).isEmpty();
+        assertThat(fixture.paymentPersistence.stored.getPaymentStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+        assertThat(fixture.eventPublisher.published).isEmpty();
+        List<ILoggingEvent> events = logCapture.events();
+        assertThat(events).hasSize(1);
+        assertThat(events.getFirst().getLevel()).isEqualTo(Level.ERROR);
+        assertThat(events.getFirst().getFormattedMessage()).contains("PG_DB_MISMATCH", "pg-order-1", "paymentAmount=21000", "pgAmount=9000");
+    }
+
+    @Test
+    @DisplayName("조회 대사: 주문이 이미 취소돼 확정할 수 없으면 결제만 완료로 바꾸고 주문 확정·이벤트는 생략하며 PG_DB_MISMATCH 에러를 남긴다(ORDER_NOT_CONFIRMABLE)")
+    void reconcileApproved_completesPaymentOnlyWhenOrderCancelled() {
+        Fixture fixture = Fixture.withPendingPayment(OrderStatus.CANCELLED);
+
+        PgReconcileResult result = fixture.service.reconcileApproved("pg-order-1", PgProvider.TOSS, successConfirmResult());
+
+        assertThat(result.outcome()).isEqualTo(PgReconcileOutcome.ORDER_NOT_CONFIRMABLE);
+        assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+        assertThat(fixture.eventPublisher.published).isEmpty();
+        List<ILoggingEvent> events = logCapture.events();
+        assertThat(events).hasSize(1);
+        assertThat(events.getFirst().getLevel()).isEqualTo(Level.ERROR);
+        assertThat(events.getFirst().getFormattedMessage()).contains("PG_DB_MISMATCH", "pg-order-1", "orderStatus=CANCELLED");
+    }
+
+    @Test
+    @DisplayName("조회 대사: 취소된 결제는 PAYMENT_NOT_PENDING_APPROVAL로 거절하고 아무것도 바꾸지 않는다")
+    void reconcileApproved_rejectsCancelledPayment() {
+        Fixture fixture = new Fixture(paymentIn(PaymentStatus.CANCELLED), Fixture.order(OrderStatus.CANCELLED));
+
+        assertThatThrownBy(() -> fixture.service.reconcileApproved("pg-order-1", PgProvider.TOSS, successConfirmResult()))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL.getDefaultMessage());
+
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+        assertThat(fixture.eventPublisher.published).isEmpty();
     }
 
     @Test
@@ -211,10 +525,44 @@ class PaymentConfirmationServiceTest {
             .hasMessageContaining(ApplicationErrorCode.PAYMENT_ALREADY_IN_PROGRESS.getDefaultMessage());
     }
 
+    private static Payment paymentIn(PaymentStatus paymentStatus) {
+        return paymentIn(paymentStatus, null);
+    }
+
+    private static Payment paymentIn(PaymentStatus paymentStatus, String pgTid) {
+        return Payment.reconstitute(
+            PAYMENT_ID.value(), ORDER_ID, PaymentMethod.CREDIT_CARD, paymentStatus, new Amount(21000),
+            PgProvider.TOSS, pgTid, "pg-order-1", null, null, null, null, null, null, null,
+            LocalDateTime.of(2026, 7, 31, 9, 0)
+        );
+    }
+
+    private static Payment paymentWithoutProvider() {
+        return Payment.reconstitute(
+            PAYMENT_ID.value(), ORDER_ID, PaymentMethod.CREDIT_CARD, PaymentStatus.PENDING, new Amount(21000),
+            null, null, "pg-order-1", null, null, null, null, null, null, null,
+            LocalDateTime.of(2026, 7, 31, 9, 0)
+        );
+    }
+
+    private static PgConfirmResult unknownResult() {
+        return new PgConfirmResult(
+            false, null, null, null, null, null, null, null, null, "PG_SERVER_ERROR", "결제 승인하기 API 호출에 실패했습니다: 500",
+            PgConfirmFailure.UNKNOWN, detail()
+        );
+    }
+
     private static PgConfirmResult successConfirmResult() {
         return new PgConfirmResult(
             true, "payment-key", "DONE", 21000, LocalDateTime.of(2026, 7, 31, 10, 0),
-            "https://receipt", "신한카드", "1234-****", 0, null, null, detail()
+            "https://receipt", "신한카드", "1234-****", 0, null, null, null, detail()
+        );
+    }
+
+    private static PgConfirmResult alreadyProcessedResult() {
+        return new PgConfirmResult(
+            false, null, null, null, null, null, null, null, null, "ALREADY_PROCESSED_PAYMENT", "이미 처리된 결제 입니다.",
+            PgConfirmFailure.ALREADY_PROCESSED, detail()
         );
     }
 
@@ -281,6 +629,11 @@ class PaymentConfirmationServiceTest {
         private final Payment stored;
         private Payment lastSaved;
         private boolean existsByOrderId;
+        private int lockedLoadCount;
+        private int unlockedLoadCount;
+        private PaymentId reconcileScheduledPaymentId;
+        private Integer reconcileScheduledAttemptCount;
+        private LocalDateTime reconcileScheduledNextAt;
 
         private PaymentPersistenceStub(Payment stored) {
             this.stored = stored;
@@ -298,6 +651,13 @@ class PaymentConfirmationServiceTest {
 
         @Override
         public Optional<Payment> findByPgOrderId(String pgOrderId) {
+            unlockedLoadCount++;
+            return Optional.of(stored);
+        }
+
+        @Override
+        public Optional<Payment> findByPgOrderIdForUpdate(String pgOrderId) {
+            lockedLoadCount++;
             return Optional.of(stored);
         }
 
@@ -307,9 +667,35 @@ class PaymentConfirmationServiceTest {
         }
 
         @Override
+        public List<Payment> findAllPgAttemptedReconcileDueByStatusCreatedBetween(
+            PaymentStatus status, LocalDateTime from, LocalDateTime to, LocalDateTime dueAt, int limit
+        ) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int findReconcileAttemptCount(PaymentId paymentId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public Payment save(Payment payment) {
             this.lastSaved = payment;
             return payment;
+        }
+
+        @Override
+        public void saveReconcileSchedule(PaymentId paymentId, int attemptCount, LocalDateTime nextAttemptAt) {
+            this.reconcileScheduledPaymentId = paymentId;
+            this.reconcileScheduledAttemptCount = attemptCount;
+            this.reconcileScheduledNextAt = nextAttemptAt;
+        }
+
+        @Override
+        public boolean saveReconcileScheduleIfDue(
+            PaymentId paymentId, int expectedAttemptCount, LocalDateTime dueAt, LocalDateTime nextAttemptAt
+        ) {
+            throw new UnsupportedOperationException();
         }
     }
 

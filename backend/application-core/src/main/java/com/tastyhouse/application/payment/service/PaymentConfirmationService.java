@@ -2,6 +2,8 @@ package com.tastyhouse.application.payment.service;
 
 import java.time.LocalDateTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.exception.DomainErrorCode;
@@ -20,6 +22,7 @@ import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PgOrderId;
 import com.tastyhouse.application.order.service.OrderTransitionService;
+import com.tastyhouse.application.payment.port.out.PgConfirmFailure;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
 import com.tastyhouse.application.payment.port.out.write.PaymentLoadPort;
@@ -33,7 +36,11 @@ import com.tastyhouse.application.shared.exception.ResourceNotFoundException;
 @Service
 public class PaymentConfirmationService {
 
+    private static final Logger log = LoggerFactory.getLogger(PaymentConfirmationService.class);
+
     private static final int CASH_POINT_EARN_RATE = 10;
+
+    private static final int RECONCILE_SETTLE_MINUTES = 10;
 
     private final PaymentLoadPort paymentLoadPort;
     private final PaymentSavePort paymentSavePort;
@@ -92,54 +99,98 @@ public class PaymentConfirmationService {
         return new PgConfirmationTarget(payment.getId(), pgOrderId, amount);
     }
 
+    public void recordPgAttempt(String pgOrderId, PgProvider pgProvider) {
+        Payment payment = loadForUpdate(pgOrderId);
+        if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
+            throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
+        }
+        payment.recordPgAttempt(pgProvider);
+        paymentSavePort.save(payment);
+        paymentSavePort.saveReconcileSchedule(
+            payment.getPaymentId(), 0, LocalDateTime.now().plusMinutes(RECONCILE_SETTLE_MINUTES)
+        );
+    }
+
     public PaymentId applyPgConfirmation(
         MemberId memberId,
         PgProvider pgProvider,
         String pgOrderId,
         PgConfirmResult result
     ) {
-        Payment payment = paymentLoadPort.findByPgOrderId(pgOrderId)
-            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = loadForUpdate(pgOrderId);
 
         Order order = orderTransitionService.loadOwnedBy(
             payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED
         );
 
+        if (isAlreadyAppliedApproval(payment, result)) {
+            return payment.getPaymentId();
+        }
+
         recordTossDetail(payment.getPaymentId(), result.detail());
 
-        if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
+        if (!isAwaitingPgApproval(payment.getPaymentStatus())) {
             throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
 
-        payment.updatePgInfo(pgProvider, result.paymentKey(), pgOrderId);
-
-        if (result.cardCompany() != null) {
-            payment.updateCardInfo(result.cardCompany(), result.cardNumber(), result.installmentPlanMonths());
-        }
-
-        payment.complete(result.paymentKey(), result.approvedAt(), result.receiptUrl());
-
-        Payment savedPayment = paymentSavePort.save(payment);
-        orderTransitionService.confirm(order);
-
-        domainEventPublisher.publish(new PaymentCompletedEvent(
-            savedPayment.getPaymentId(),
-            savedPayment.getOrderId(),
-            memberId,
-            savedPayment.getAmount(),
-            savedPayment.getPaymentMethod(),
-            false,
-            savedPayment.getApprovedAt()
-        ));
-
+        Payment savedPayment = markApproved(payment, pgProvider, pgOrderId, result);
+        confirmOrderAndPublish(savedPayment, order, memberId);
         return savedPayment.getPaymentId();
     }
 
+    public PgReconcileResult reconcileApproved(String pgOrderId, PgProvider pgProvider, PgConfirmResult approval) {
+        Payment payment = loadForUpdate(pgOrderId);
+
+        if (payment.getPaymentStatus() == PaymentStatus.COMPLETED) {
+            return new PgReconcileResult(payment.getPaymentId(), PgReconcileOutcome.ALREADY_COMPLETED);
+        }
+
+        if (!isAwaitingPgApproval(payment.getPaymentStatus())) {
+            throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
+        }
+
+        if (approval.totalAmount() == null || !approval.totalAmount().equals(payment.getAmount().value())) {
+            log.error(
+                "{} PG 조회로 승인을 확인했으나 금액이 결제와 다름 — pgOrderId={}, paymentId={}, paymentAmount={}, pgAmount={}, paymentKey={}",
+                PaymentLogMarkers.PG_DB_MISMATCH, pgOrderId, payment.getId(), payment.getAmount().value(),
+                approval.totalAmount(), approval.paymentKey()
+            );
+            return new PgReconcileResult(payment.getPaymentId(), PgReconcileOutcome.AMOUNT_MISMATCH);
+        }
+
+        recordTossDetail(payment.getPaymentId(), approval.detail());
+
+        Order order = orderTransitionService.load(payment.getOrderId());
+        Payment savedPayment = markApproved(payment, pgProvider, pgOrderId, approval);
+
+        if (!order.getOrderStatus().canTransitionTo(OrderStatus.CONFIRMED)) {
+            log.error(
+                "{} PG 조회로 승인을 확인했으나 주문을 확정할 수 없어 결제만 완료로 반영(환불 필요) — pgOrderId={}, paymentId={}, orderStatus={}, paymentKey={}",
+                PaymentLogMarkers.PG_DB_MISMATCH, pgOrderId, payment.getId(), order.getOrderStatus(), approval.paymentKey()
+            );
+            return new PgReconcileResult(savedPayment.getPaymentId(), PgReconcileOutcome.ORDER_NOT_CONFIRMABLE);
+        }
+
+        confirmOrderAndPublish(savedPayment, order, order.getMemberId());
+        return new PgReconcileResult(savedPayment.getPaymentId(), PgReconcileOutcome.COMPLETED);
+    }
+
     public void failPgConfirmation(String pgOrderId, PgConfirmResult result) {
-        Payment payment = paymentLoadPort.findByPgOrderId(pgOrderId)
-            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
+        Payment payment = loadForUpdate(pgOrderId);
 
         recordTossDetail(payment.getPaymentId(), result.detail());
+
+        if (result.failure() == PgConfirmFailure.UNKNOWN) {
+            log.warn(
+                "{} PG 승인 결과를 확인하지 못해 결제 상태를 바꾸지 않음 — pgOrderId={}, paymentId={}, paymentStatus={}, errorCode={}",
+                PaymentLogMarkers.PG_CONFIRM_UNKNOWN, pgOrderId, payment.getId(), payment.getPaymentStatus(), result.errorCode()
+            );
+            return;
+        }
+
+        if (result.failure() != PgConfirmFailure.REJECTED) {
+            return;
+        }
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
             return;
@@ -191,6 +242,46 @@ public class PaymentConfirmationService {
 
     public int earnRate() {
         return CASH_POINT_EARN_RATE;
+    }
+
+    private Payment loadForUpdate(String pgOrderId) {
+        return paymentLoadPort.findByPgOrderIdForUpdate(pgOrderId)
+            .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
+    }
+
+    private boolean isAlreadyAppliedApproval(Payment payment, PgConfirmResult result) {
+        return payment.getPaymentStatus() == PaymentStatus.COMPLETED
+            && payment.getPgTid() != null
+            && payment.getPgTid().equals(result.paymentKey());
+    }
+
+    private Payment markApproved(Payment payment, PgProvider pgProvider, String pgOrderId, PgConfirmResult result) {
+        payment.updatePgInfo(pgProvider, result.paymentKey(), pgOrderId);
+
+        if (result.cardCompany() != null) {
+            payment.updateCardInfo(result.cardCompany(), result.cardNumber(), result.installmentPlanMonths());
+        }
+
+        payment.complete(result.paymentKey(), result.approvedAt(), result.receiptUrl());
+        return paymentSavePort.save(payment);
+    }
+
+    private void confirmOrderAndPublish(Payment savedPayment, Order order, MemberId memberId) {
+        orderTransitionService.confirm(order);
+
+        domainEventPublisher.publish(new PaymentCompletedEvent(
+            savedPayment.getPaymentId(),
+            savedPayment.getOrderId(),
+            memberId,
+            savedPayment.getAmount(),
+            savedPayment.getPaymentMethod(),
+            false,
+            savedPayment.getApprovedAt()
+        ));
+    }
+
+    private boolean isAwaitingPgApproval(PaymentStatus paymentStatus) {
+        return paymentStatus == PaymentStatus.PENDING || paymentStatus == PaymentStatus.FAILED;
     }
 
     private boolean isOnSitePayment(PaymentMethod paymentMethod) {

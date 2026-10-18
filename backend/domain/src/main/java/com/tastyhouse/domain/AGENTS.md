@@ -194,7 +194,7 @@ public interface DomainEventPublisher {
 // application/emailverification/port/out/MailSenderPort.java        — infrastructure:javamail (JavaMailAdapter) / infrastructure:aws-ses (SesMailSender), 조립은 infrastructure:mail
 // application/phoneverification/port/out/SmsSenderPort.java          — infrastructure:solapi (SolapiSmsClient) / infrastructure:aws-sns (SnsSmsSender), 조립은 infrastructure:sms
 // application/file/port/out/FileStoragePort.java   — infrastructure:firebase (FirebaseFileStorage) / infrastructure:aws-s3 (S3FileStorage) — file.provider 배타 선택
-// application/payment/port/out/PgPaymentGatewayPort.java — web-application의 라우터 PgPaymentGatewayRouter(@Service)가 구현
+// application/payment/port/out/PgPaymentGatewayPort.java — application-core의 라우터 PgPaymentGatewayRouter(@Service)가 구현
 // application/payment/port/out/PgProviderGatewayPort.java (벤더 SPI) — infrastructure:tosspayments의 TossPaymentGatewayAdapter(provider() = PgProviderCode.TOSS)가 구현, 조립은 infrastructure:pg
 ```
 

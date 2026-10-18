@@ -19,8 +19,6 @@ class PaymentCancelService implements PaymentCancelUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentCancelService.class);
 
-    private static final String PG_DB_MISMATCH = "PG_DB_MISMATCH";
-
     private final PaymentCancellationExecutor paymentCancellationExecutor;
     private final PgPaymentGatewayPort pgPaymentGateway;
 
@@ -57,12 +55,14 @@ class PaymentCancelService implements PaymentCancelUseCase {
 
         PaymentCancelCode cancelCode;
         try {
-            cancelCode = paymentCancellationExecutor.applyInNewTx(memberIdVo, paymentId, cancelReason);
+            cancelCode = paymentCancellationExecutor.applyInNewTx(
+                memberIdVo, paymentId, cancelReason, target.pgCancelRequired()
+            );
         } catch (RuntimeException e) {
             if (pgCancelAttempted) {
                 log.error(
                     "{} PG 취소 성공 후 DB 반영 실패 — pgProvider={}, paymentId={}, pgTid={}",
-                    PG_DB_MISMATCH, target.pgProvider(), id, target.pgTid(), e
+                    PaymentLogMarkers.PG_DB_MISMATCH, target.pgProvider(), id, target.pgTid(), e
                 );
             }
             throw e;
@@ -73,7 +73,7 @@ class PaymentCancelService implements PaymentCancelUseCase {
             if (pgCancelAttempted) {
                 log.error(
                     "{} PG 취소 성공 후 재판정 거절 — pgProvider={}, paymentId={}, pgTid={}, cancelCode={}",
-                    PG_DB_MISMATCH, target.pgProvider(), id, target.pgTid(), cancelCode
+                    PaymentLogMarkers.PG_DB_MISMATCH, target.pgProvider(), id, target.pgTid(), cancelCode
                 );
             }
             log.error("결제 취소 실패 — paymentId={}, cancelCode={}", id, cancelCode);

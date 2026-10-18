@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation project(':infrastructure:restclient')
-    implementation project(':web-application')
+    implementation project(':application-core')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 

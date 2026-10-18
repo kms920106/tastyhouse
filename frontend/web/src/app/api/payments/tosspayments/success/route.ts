@@ -3,6 +3,9 @@ import { PAGE_PATHS } from '@/lib/paths'
 import { confirmPaymentToss } from '@/actions/payment'
 import { NextRequest, NextResponse } from 'next/server'
 
+// 프록시·로드밸런서가 본문 없이 돌려주는 게이트웨이 오류 — 요청이 web-api에 도달해 승인됐을 수 있다
+const GATEWAY_ERROR_STATUSES = new Set([502, 503, 504])
+
 /**
  * 토스페이먼츠 결제 성공 콜백 API
  *
@@ -42,10 +45,23 @@ export async function GET(request: NextRequest) {
       amount: amountNumber,
     })
 
+    // 응답을 받지 못함(타임아웃·네트워크 오류, status 0) — 서버가 승인했을 수 있으므로 실패가 아니라 '확인 중'으로 안내
+    if (result.status === 0) {
+      return redirectToUnconfirmed(origin)
+    }
+
+    // 게이트웨이 오류(errorCode 없는 502·503·504) — 승인 여부를 알 수 없으므로 실패가 아니라 '확인 중'으로 안내
+    if (!result.errorCode && GATEWAY_ERROR_STATUSES.has(result.status)) {
+      return redirectToUnconfirmed(origin)
+    }
+
     // API 응답 에러 처리
     if (result.error || !result.data) {
       const failUrl = new URL('/payments/fail', origin)
       failUrl.searchParams.set('message', result.error || '결제 승인에 실패했습니다.')
+      if (result.errorCode) {
+        failUrl.searchParams.set('code', result.errorCode)
+      }
       return NextResponse.redirect(failUrl)
     }
 
@@ -63,8 +79,14 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('결제 승인 중 오류 발생:', error)
 
-    const failUrl = new URL('/payments/fail', origin)
-    failUrl.searchParams.set('message', '결제 승인 중 오류가 발생했습니다.')
-    return NextResponse.redirect(failUrl)
+    // 승인 요청이 서버에 도달해 처리됐을 수 있으므로 실패로 단정하지 않는다
+    return redirectToUnconfirmed(origin)
   }
+}
+
+function redirectToUnconfirmed(origin: string) {
+  const failUrl = new URL('/payments/fail', origin)
+  failUrl.searchParams.set('code', 'PAYMENT_APPROVAL_UNCONFIRMED')
+  failUrl.searchParams.set('message', '결제 승인 응답을 받지 못했습니다. 잠시 후 주문 내역에서 결제 상태를 확인해 주세요.')
+  return NextResponse.redirect(failUrl)
 }

@@ -19,6 +19,7 @@ public enum ApplicationErrorCode implements ApplicationErrorCodeSpec {
     PAYMENT_NOT_PENDING_APPROVAL(400, "PAYMENT_NOT_PENDING_APPROVAL", "승인 대기 중인 결제만 처리할 수 있습니다."),
     PAYMENT_AMOUNT_MISMATCH(400, "PAYMENT_AMOUNT_MISMATCH", "결제 금액이 일치하지 않습니다."),
     PAYMENT_NOT_ON_SITE(400, "PAYMENT_NOT_ON_SITE", "현장결제만 완료 처리할 수 있습니다."),
+    PG_PROVIDER_UNSUPPORTED(400, "PG_PROVIDER_UNSUPPORTED", "지원하지 않는 PG사입니다."),
 
     MEMBER_NOT_FOUND(404, "MEMBER_NOT_FOUND", "회원을 찾을 수 없습니다."),
     MEMBER_COUPON_NOT_FOUND(404, "MEMBER_COUPON_NOT_FOUND", "회원 쿠폰을 찾을 수 없습니다."),

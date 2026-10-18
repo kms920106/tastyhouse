@@ -1,4 +1,4 @@
-package com.tastyhouse.testsupport.shared.listener;
+package com.tastyhouse.testsupport.shared.logging;
 
 import java.util.List;
 
@@ -8,23 +8,23 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.slf4j.LoggerFactory;
 
-public final class ListenerLogCapture {
+public final class LogCapture {
 
     private final Logger logger;
     private final ListAppender<ILoggingEvent> appender;
 
-    private ListenerLogCapture(Logger logger, ListAppender<ILoggingEvent> appender) {
+    private LogCapture(Logger logger, ListAppender<ILoggingEvent> appender) {
         this.logger = logger;
         this.appender = appender;
     }
 
-    public static ListenerLogCapture attachTo(Class<?> target) {
+    public static LogCapture attachTo(Class<?> target) {
         Logger logger = (Logger) LoggerFactory.getLogger(target);
         ListAppender<ILoggingEvent> appender = new ListAppender<>();
         appender.start();
         logger.setLevel(Level.INFO);
         logger.addAppender(appender);
-        return new ListenerLogCapture(logger, appender);
+        return new LogCapture(logger, appender);
     }
 
     public void detach() {

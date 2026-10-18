@@ -81,7 +81,7 @@ grep -rn --include='*.md' -e '번복' -e '~~' -e '후 갱신)' -e '(개정' -e '
 | [0033](0033-usecase-interface-injection.md) | 서비스 간 협력도 UseCase 인터페이스로 주입하고 구체 클래스를 주입하지 않는다 | 채택 | `9b0582c33` 2026-10-01 | — |
 | [0034](0034-service-config-removal.md) | application *ServiceConfig를 지우고 도메인 서비스 클래스에 앱 마커만 단다 | 대체됨(→ 0036) | `251c74c06` 2026-10-02 | 0026, 0027 |
 | [0035](0035-application-config-into-bootstrap.md) | application *ApplicationConfig를 지우고 스캔 설정을 각 앱 부트스트랩의 중첩 설정으로 옮긴다 | 채택 | `deae9a8e0` 2026-10-03 | — |
-| [0036](0036-app-marker-removal.md) | 앱 마커 애노테이션을 제거하고 앱 소속을 Gradle 모듈(core + {앱}-application 4개)로 표현한다 | 채택 | `d4688a682` 2026-10-04 | 0013, 0014, 0034 |
+| [0036](0036-app-marker-removal.md) | 앱 마커 애노테이션을 제거하고 앱 소속을 Gradle 모듈(core + {앱}-application 4개)로 표현한다 | 채택(PG SPI 포트·라우터 배치 → 0061) | `d4688a682` 2026-10-04 | 0013, 0014, 0034 |
 | [0037](0037-infrastructure-package-root.md) | infrastructure 모듈의 자바 패키지 루트를 com.tastyhouse.infrastructure.{모듈}로 통일한다 | 채택 | `e03a0df33` 2026-10-04 | — |
 | [0038](0038-autoconfiguration-imports-removal.md) | AutoConfiguration.imports를 제거하고 앱 ModuleScanConfig 문자열 스캔으로 조립한다 | 채택 | `a400ec42e` 2026-10-04 | 0017 |
 | [0039](0039-querydsl-tuple-removal.md) | 조회 DAO에서 QueryDSL Tuple을 전면 제거하고 public Row record로 투영한다 | 채택 | `a373e0a4d` 2026-10-04 | — |
@@ -104,6 +104,12 @@ grep -rn --include='*.md' -e '번복' -e '~~' -e '후 갱신)' -e '(개정' -e '
 | [0056](0056-error-catalog-additive-snapshot.md) | 신규 에러코드는 스냅샷 tsv에 행을 추가하고 개수 단정을 올린다 | 채택 | 커밋 후 기입 | — |
 | [0057](0057-anchor-floor-on-intentional-deletion.md) | 개수 anchor 하한은 유스케이스를 의도적으로 삭제할 때만 실측값으로 내린다 | 채택 | 커밋 후 기입 | — |
 | [0058](0058-point-balance-pessimistic-lock.md) | 포인트 잔액 변경은 POINT 행 비관적 락으로 직렬화한다 | 채택 | 커밋 후 기입 | — |
+| [0059](0059-payment-confirm-race-lock.md) | PG 승인·실패 반영은 결제 행을 잠그고, PG 승인 성공을 사실로 삼는다 | 채택(부분 → 0060) | 커밋 후 기입 | — |
+| [0060](0060-pg-confirm-unknown-lookup.md) | PG 승인 결과 불명은 실패가 아니라 대기로 두고, 즉시 조회로 대사한다 | 채택(부분 → 0063) | 커밋 후 기입 | 0059(통신 오류 FAILED·"이미 처리됨" 400 부분) |
+| [0061](0061-pg-ports-to-core-batch-reconcile.md) | PG 포트·라우터를 코어로 옮기고, batch가 미확정 결제를 주기적으로 대사한다 | 채택(부분 → 0062) | 커밋 후 기입 | 0036(PG SPI를 web-application에 두던 부분) |
+| [0062](0062-payment-reconcile-backoff.md) | batch 미확정 결제 대사에 결제별 재시도 백오프를 둔다 | 채택(부분 → 0064) | 커밋 후 기입 | 0061(같은 결제를 매 주기 다시 고르고 반복 ERROR를 감수하던 부분) |
+| [0063](0063-pg-confirm-unreadable-4xx-unknown.md) | 본문을 해석할 수 없는 PG 승인 4xx는 거절이 아니라 결과 불명으로 분류한다 | 채택 | 커밋 후 기입 | 0060(결과 불명을 5xx·예외·빈 응답으로 한정하던 부분) |
+| [0064](0064-payment-reconcile-claim.md) | batch 대사는 조건부 UPDATE로 결제별 차례를 선점한 뒤에만 PG에 묻는다 | 채택 | 커밋 후 기입 | 0062(일정 기록 실패 시 조회 계속·횟수 비원자화 부분) |
 
 ## 원문 표기 → ADR 대응표
 

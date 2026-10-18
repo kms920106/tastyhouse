@@ -5,7 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
+import com.tastyhouse.application.payment.port.out.PgConfirmFailure;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
+import com.tastyhouse.application.payment.port.out.PgPaymentLookupResult;
+import com.tastyhouse.application.payment.port.out.PgPaymentLookupStatus;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
 import com.tastyhouse.application.payment.port.out.PgProviderGatewayPort;
 import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
@@ -14,6 +17,10 @@ import com.tastyhouse.application.payment.port.out.TossPaymentDetail;
 class TossPaymentGatewayAdapter implements PgProviderGatewayPort {
 
     private static final Logger log = LoggerFactory.getLogger(TossPaymentGatewayAdapter.class);
+
+    private static final String ALREADY_PROCESSED_PAYMENT = "ALREADY_PROCESSED_PAYMENT";
+    private static final String NOT_FOUND_PAYMENT = "NOT_FOUND_PAYMENT";
+    private static final String ORDER_ID_MISMATCH = "ORDER_ID_MISMATCH";
 
     private final TossPaymentClient tossPaymentClient;
 
@@ -33,14 +40,74 @@ class TossPaymentGatewayAdapter implements PgProviderGatewayPort {
         TossPaymentDetail detail = buildTossPaymentDetail(response);
 
         if (response.isError()) {
-            log.error("Toss confirm failed. pgOrderId: {}, errorCode: {}, msg: {}",
-                pgOrderId, response.getCode(), response.getMessage());
-            return new PgConfirmResult(
-                false, null, null, null, null, null, null, null, null,
-                response.getCode(), response.getMessage(), detail
-            );
+            PgConfirmFailure failure = toFailure(response.getCode());
+            if (failure == PgConfirmFailure.ALREADY_PROCESSED) {
+                log.warn("Toss confirm already processed. pgOrderId: {}, errorCode: {}, msg: {}",
+                    pgOrderId, response.getCode(), response.getMessage());
+            } else {
+                log.error("Toss confirm failed. pgOrderId: {}, errorCode: {}, msg: {}",
+                    pgOrderId, response.getCode(), response.getMessage());
+            }
+            return failureResult(response.getCode(), response.getMessage(), failure, detail);
         }
 
+        return approvedResult(response, detail);
+    }
+
+    @Override
+    public PgPaymentLookupResult lookupPayment(String pgOrderId) {
+        TossPaymentConfirmResponse response = tossPaymentClient.lookupPaymentByOrderId(pgOrderId);
+
+        TossPaymentDetail detail = buildTossPaymentDetail(response);
+
+        if (response.isError()) {
+            if (NOT_FOUND_PAYMENT.equals(response.getCode())) {
+                return notApproved(failureResult(response.getCode(), response.getMessage(), PgConfirmFailure.REJECTED, detail));
+            }
+            log.warn("Toss lookup unconfirmed. pgOrderId: {}, errorCode: {}, msg: {}",
+                pgOrderId, response.getCode(), response.getMessage());
+            return unknown(failureResult(response.getCode(), response.getMessage(), PgConfirmFailure.UNKNOWN, detail));
+        }
+
+        if (!pgOrderId.equals(response.getOrderId())) {
+            log.error("Toss lookup returned another order. requested pgOrderId: {}, response orderId: {}",
+                pgOrderId, response.getOrderId());
+            return unknown(failureResult(ORDER_ID_MISMATCH, "토스 조회 응답의 주문번호가 요청과 다릅니다.", PgConfirmFailure.UNKNOWN, null));
+        }
+
+        String status = response.getStatus();
+        if ("DONE".equals(status)) {
+            return new PgPaymentLookupResult(PgPaymentLookupStatus.APPROVED, approvedResult(response, detail));
+        }
+        if ("ABORTED".equals(status) || "EXPIRED".equals(status) || "CANCELED".equals(status)) {
+            return notApproved(failureResult(status, "토스 결제 상태: " + status, PgConfirmFailure.REJECTED, detail));
+        }
+
+        log.warn("Toss lookup returned unexpected status. pgOrderId: {}, status: {}", pgOrderId, status);
+        return unknown(failureResult(status, "토스 결제 상태: " + status, PgConfirmFailure.UNKNOWN, detail));
+    }
+
+    private static PgPaymentLookupResult notApproved(PgConfirmResult result) {
+        return new PgPaymentLookupResult(PgPaymentLookupStatus.NOT_APPROVED, result);
+    }
+
+    private static PgPaymentLookupResult unknown(PgConfirmResult result) {
+        return new PgPaymentLookupResult(PgPaymentLookupStatus.UNKNOWN, result);
+    }
+
+    private static PgConfirmResult failureResult(
+        String errorCode,
+        String errorMessage,
+        PgConfirmFailure failure,
+        TossPaymentDetail detail
+    ) {
+        return new PgConfirmResult(
+            false, null, null, null, null, null, null, null, null,
+            errorCode, errorMessage, failure, detail
+        );
+    }
+
+    private static PgConfirmResult approvedResult(TossPaymentConfirmResponse response, TossPaymentDetail detail) {
         String cardCompany = null;
         String cardNumber = null;
         Integer installmentPlanMonths = null;
@@ -66,8 +133,22 @@ class TossPaymentGatewayAdapter implements PgProviderGatewayPort {
             installmentPlanMonths,
             null,
             null,
+            null,
             detail
         );
+    }
+
+    private static PgConfirmFailure toFailure(String errorCode) {
+        if (ALREADY_PROCESSED_PAYMENT.equals(errorCode)) {
+            return PgConfirmFailure.ALREADY_PROCESSED;
+        }
+        if (TossPaymentClient.PG_SERVER_ERROR.equals(errorCode)
+            || TossPaymentClient.SYSTEM_ERROR.equals(errorCode)
+            || TossPaymentClient.UNKNOWN_ERROR.equals(errorCode)
+            || TossPaymentClient.PG_UNREADABLE_RESPONSE.equals(errorCode)) {
+            return PgConfirmFailure.UNKNOWN;
+        }
+        return PgConfirmFailure.REJECTED;
     }
 
     @Override

@@ -29,7 +29,7 @@
 | `infrastructure/persistence/` | **[조립·스타터]** 자바 코드 없는 DB 조립 모듈 — `runtimeOnly` `:infrastructure:jpa` + `runtimeOnly` `:infrastructure:mysql`, `application-persistence.yml`(`application-mysql.yml`·`application-jpa.yml` import만 — datasource·`spring.sql.init`은 `infrastructure:mysql` 소유). 4앱이 의존하는 DB 좌표이며 mybatis는 조립하지 않는다 (see `infrastructure/persistence/AGENTS.md`) |
 | `infrastructure/mybatis/` | MyBatis 영속 어댑터 — notice 레거시 구현(쓰기 `NoticeMyBatisPersistenceAdapter` + 조회 `NoticeMyBatisQueryAdapter`). `NoticeLoadPort`·`NoticeSavePort`·`NoticeQueryPort`·`NoticeManagementQueryPort`를 jpa 모듈의 JPA 구현과 함께 구현하고 조건 없이 등록되지만, `@Primary`가 JPA 구현에만 있어 주입되지 않는다(전환은 `@Primary`를 옮기고 재빌드). web-api·admin-api가 `runtimeOnly`로 의존. 자바 패키지 `com.tastyhouse.infrastructure.mybatis..` (see `infrastructure/mybatis/AGENTS.md`) |
 | `infrastructure/redis/` | Redis 연결·`StringRedisTemplate` 빈 + rate limit 카운터(`ratelimit/RedisRateLimitCounter` — `security-core`의 `RateLimitCounterPort` 구현) + 토큰 저장소 어댑터(`token/`). domain을 모른다(포트가 없는 순수 기술) (see `infrastructure/redis/AGENTS.md`) |
-| `infrastructure/restclient/` | **외부 연동 HTTP 코어** — Boot `RestClient.Builder`를 꾸미는 `RestClientConfig`만 갖고, 예외·에러코드·파일 저장 SPI는 없다. 외부 HTTP 호출은 Spring `RestClient`로 통일했다(webflux 없음). **앱이 직접 의존하지 않는다** — web은 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·sms(경유 solapi), batch는 bbq·admdongkor를 통해 전이로 실리고 admin·ceo에는 없다 (see `infrastructure/restclient/AGENTS.md`) |
+| `infrastructure/restclient/` | **외부 연동 HTTP 코어** — Boot `RestClient.Builder`를 꾸미는 `RestClientConfig`만 갖고, 예외·에러코드·파일 저장 SPI는 없다. 외부 HTTP 호출은 Spring `RestClient`로 통일했다(webflux 없음). **앱이 직접 의존하지 않는다** — web은 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·sms(경유 solapi), batch는 bbq·admdongkor·pg(경유 tosspayments)를 통해 전이로 실리고 admin·ceo에는 없다 (see `infrastructure/restclient/AGENTS.md`) |
 | `infrastructure/file-storage/` | **[조립·스타터]** 파일 저장 스타터 — 자바 코드 없이 `infrastructure:firebase`(`FileStoragePort` 벤더 구현)를 `runtimeOnly`로 묶고 `application-file-storage.yml`이 `file.provider`와 벤더 yml import를 소유한다. **4개 앱 전부 의존** (see `infrastructure/file-storage/AGENTS.md`) |
 | `infrastructure/firebase/` | Firebase Storage 파일 저장 전략. **앱이 직접 의존하지 않는다** — 스타터 `infrastructure:file-storage`가 의존하고 앱은 그 스타터만 본다 (see `infrastructure/firebase/AGENTS.md`) |
 | `infrastructure/aws-s3/` | S3 파일 저장 어댑터. **어느 앱도 의존하지 않는다** — provider 기본값이 전부 비-AWS라 컴파일만 검증한다. 전환 절차는 (see `infrastructure/aws-s3/AGENTS.md`) |
@@ -40,8 +40,8 @@
 | `infrastructure/naver-oauth/` | 네이버 로그인 벤더(`NaverOAuthClient`, `oauth.naver.*`). 앱이 아니라 `:oauth`가 조립 (see `infrastructure/naver-oauth/AGENTS.md`) |
 | `infrastructure/apple-oauth/` | 애플 로그인 벤더(`AppleOAuthClient`, `oauth.apple.*`, jjwt). 앱이 아니라 `:oauth`가 조립 (see `infrastructure/apple-oauth/AGENTS.md`) |
 | `infrastructure/facebook-oauth/` | 페이스북 로그인 벤더(`FacebookOAuthClient`, `oauth.facebook.*`). 앱이 아니라 `:oauth`가 조립 (see `infrastructure/facebook-oauth/AGENTS.md`) |
-| `infrastructure/pg/` | **[조립·스타터]** 결제 PG 스타터 — 기본 벤더 tosspayments 조립(`runtimeOnly`)만 하는 자바 코드 없는 모듈. 라우터(`List<PgProviderGatewayPort>` → `PgPaymentGatewayRouter`)는 `web-application`의 `payment/service/PgPaymentGatewayRouter`(`@Service`)다. **web-api만 의존** (see `infrastructure/pg/AGENTS.md`) |
-| `infrastructure/tosspayments/` | Toss 결제 승인·취소 벤더 구현(`PgProviderGatewayPort` 구현, `provider()`가 `PgProvider.TOSS`). 앱이 아니라 `:pg`가 조립 (see `infrastructure/tosspayments/AGENTS.md`) |
+| `infrastructure/pg/` | **[조립·스타터]** 결제 PG 스타터 — 기본 벤더 tosspayments 조립(`runtimeOnly`)만 하는 자바 코드 없는 모듈. 라우터(`List<PgProviderGatewayPort>` → `PgPaymentGatewayRouter`)는 `application-core`의 `payment/service/PgPaymentGatewayRouter`(`@Service`)다. **web-api(승인·취소·즉시 조회)와 batch-module(주기 대사)이 의존** (see `infrastructure/pg/AGENTS.md`) |
+| `infrastructure/tosspayments/` | Toss 결제 승인·취소·주문번호 조회 벤더 구현(`application-core`의 `PgProviderGatewayPort` 구현, `provider()`가 `PgProviderCode.TOSS`). 앱이 아니라 `:pg`가 조립 (see `infrastructure/tosspayments/AGENTS.md`) |
 | `infrastructure/mail/` | **[조립·스타터]** 메일 스타터 — `mail.provider`·`mail.sender-address` + 기본 벤더 javamail 조립(`runtimeOnly`), 자바 코드 없음. `MailVerificationService`는 `web-application`의 `emailverification/service/`에 `@Service`로 있다. **web-api만 의존** (see `infrastructure/mail/AGENTS.md`) |
 | `infrastructure/javamail/` | JavaMail(SMTP) 메일 발송 벤더(`JavaMailAdapter` + starter-mail). 앱이 아니라 `:mail`이 조립 (see `infrastructure/javamail/AGENTS.md`) |
 | `infrastructure/sms/` | **[조립·스타터]** SMS 스타터 — `sms.provider`·`sms.sender-number` + 기본 벤더 solapi 조립(`runtimeOnly`), 자바 코드 없음. `SmsVerificationService`는 `web-application`의 `phoneverification/service/`에 `@Service`로 있다. **web-api만 의존** (see `infrastructure/sms/AGENTS.md`) |
@@ -55,7 +55,7 @@
 | `admin-api/` | 관리자용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/` + `response/`) + config·security 정책·부트스트랩. application 계층은 `application-core` + `admin-application`이 소유한다 (see `admin-api/AGENTS.md`) |
 | `application-core/` | application 계층의 코어 — 2개 앱 이상이 쓰는 도메인 서비스·도메인 이벤트 리스너(`<ctx>/listener`)·`@Configuration`·`shared/**`·앱 전용 SPI 포트를 뺀 모든 `port.out` 계약. 앱 하나만 쓰는 UseCase·Command·서비스·앱 전용 SPI 포트는 앱 모듈 `web-application/`·`admin-application/`·`ceo-application/`·`batch-application/`(각 `AGENTS.md`)이 담는다. 앱 소속은 Gradle 모듈이 표현하고, 자바 패키지는 5모듈이 `com.tastyhouse.application..`을 나눠 쓴다(split package). `io.swagger`·`apicommon` import가 0건이고 그 상태를 `applicationShouldNotDependOnSwagger`·`applicationShouldNotDependOnApiCommon`이 고정한다. infra를 컴파일 클래스패스에 두지 않는다 (see `application-core/AGENTS.md`) |
 | `ceo-api/` | 점주(매장 오너)용 REST API의 **인바운드 어댑터**(컨트롤러 + `request/` + `response/`) + config·security 정책·부트스트랩. application 계층은 `application-core` + `ceo-application`이 소유한다 (see `ceo-api/AGENTS.md`) |
-| `batch-module/` | 배치 앱의 **부트스트랩 + driving adapter**(`@Scheduled` 트리거 7종) 전담 독립 실행 모듈 (see `batch-module/AGENTS.md`) |
+| `batch-module/` | 배치 앱의 **부트스트랩 + driving adapter**(`@Scheduled` 트리거 8종) 전담 독립 실행 모듈 (see `batch-module/AGENTS.md`) |
 | `docs/` | 설계 문서 — 소셜 로그인 가이드, 결제 연동 가이드 |
 | `gradle/` | Gradle Wrapper 바이너리/설정 |
 | `json/` | 외부 자격 증명 JSON (예: Firebase 서비스 계정) |
@@ -98,7 +98,7 @@ admin-api  ─(동일 패턴) ─→ application-core + admin-application, runti
 ceo-api    ─(동일 패턴) ─→ application-core + ceo-application, runtimeOnly persistence·redis·file-storage
 batch-module ─(동일 패턴 — security-module·api-common-module·redis 없음, logging-module은 p6spy exclude)
              ├→ application-core + batch-application   ← 스케줄러가 잡 UseCase 포트를 주입
-             └→ infrastructure:{persistence,file-storage,bbq,admdongkor} (runtimeOnly)
+             └→ infrastructure:{persistence,file-storage,bbq,admdongkor,pg} (runtimeOnly)
    ※ admin-api·ceo-api가 받는 외부 연동은 infrastructure:file-storage 하나뿐이다 — 실사용이 파일 저장 하나여서
      OAuth·결제·메일·SMS·크롤링과 그 SDK를 받지 않는다
    ※ 각 앱은 자기 {앱}-application만 의존하므로 "자기 앱의 UseCase만 주입"을 빌드가 강제한다.
@@ -157,16 +157,17 @@ infrastructure:aws-ses   ─→ web-application  + awssdk:ses(+BOM)
 infrastructure:aws-sns   ─→ web-application  + awssdk:sns(+BOM)
    ※ infrastructure:restclient·채널 모듈 의존 없음(직접·전이 모두)
 infrastructure:oauth     ─→ runtimeOnly infrastructure:{kakao,naver,apple,facebook}-oauth ← [조립·스타터] 자바 코드 없음(web 전용)
-   ※ web 전용 SPI를 구현하는 벤더(oauth 4종·tosspayments·javamail·solapi·aws-ses·aws-sns)는 web-application을,
-     bbq·admdongkor는 batch-application을 의존한다. jpa·mybatis·firebase·aws-s3는 application-core를 의존한다
+   ※ web 전용 SPI를 구현하는 벤더(oauth 4종·javamail·solapi·aws-ses·aws-sns)는 web-application을,
+     bbq·admdongkor는 batch-application을 의존한다. jpa·mybatis·firebase·aws-s3·tosspayments는 application-core를 의존한다
+     (tosspayments가 구현하는 PG SPI는 web·batch가 함께 쓰므로 코어 소유 — ADR-0061)
 infrastructure:kakao-oauth    ─→ infrastructure:restclient, web-application(auth SPI)          ← SocialOAuthClientPort 구현(KAKAO)
 infrastructure:naver-oauth    ─→ infrastructure:restclient, web-application(auth SPI)          ← SocialOAuthClientPort 구현(NAVER)
 infrastructure:apple-oauth    ─→ infrastructure:restclient, web-application(auth SPI) + jjwt ← SocialOAuthClientPort 구현(APPLE)
 infrastructure:facebook-oauth ─→ infrastructure:restclient, web-application(auth SPI)  ← SocialOAuthClientPort 구현(FACEBOOK)
    ※ 4벤더 전부 domain 의존이 없다 — 실패 표현은 web-application의 SocialOAuthResult/SocialOAuthFailure다.
      jjwt 선언은 apple만 — 컴파일 격리일 뿐이며 런타임에는 application → security-core 경로로 jjwt가 이미 web 전체에 실린다
-infrastructure:pg        ─→ runtimeOnly infrastructure:tosspayments ← [조립·스타터] 코드 없음. 라우터는 web-application PgPaymentGatewayRouter(@Service)
-infrastructure:tosspayments ─→ infrastructure:restclient, web-application ← PgProviderGatewayPort 구현(provider()는 web-application의 PgProviderCode.TOSS)
+infrastructure:pg        ─→ runtimeOnly infrastructure:tosspayments ← [조립·스타터] 코드 없음(web·batch). 라우터는 application-core PgPaymentGatewayRouter(@Service)
+infrastructure:tosspayments ─→ infrastructure:restclient, application-core ← PgProviderGatewayPort 구현(provider()는 application-core의 PgProviderCode.TOSS)
 infrastructure:mail      ─→ runtimeOnly javamail                  ← [조립·스타터] 코드 없음. MailVerificationService는 web-application의 @Service
 infrastructure:javamail  ─→ web-application  + starter-mail        ← MailSenderPort 구현
 infrastructure:sms       ─→ runtimeOnly solapi                     ← [조립·스타터] 코드 없음. SmsVerificationService는 web-application의 @Service
@@ -211,7 +212,7 @@ domain → 의존 없음 (production 의존 0개)
 - **모듈 경계 원칙 — 2차원 경계**: 모듈 경계는 **계층 × 앱** 두 축이다.
   - **계층 축**: `domain`(순수 도메인) → application 계층(`application-core` + `{앱}-application`, 유스케이스) → api 모듈(인바운드 어댑터). `infrastructure/` 아래 24모듈은 **driven 18 + 조립 6**이다. `infrastructure:{jpa,mysql,mybatis,redis,restclient,firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,tosspayments,javamail,solapi,bbq,admdongkor}` 18모듈이 아웃바운드(driven) 어댑터 쪽이다(`restclient`는 포트를 구현하지 않는 HTTP 코어, `mysql`은 DB 연결 코어지만 기술 코어라 여기에 센다). **조립 6모듈** — `persistence`(DB — jpa + mysql)·`file-storage`·`oauth`·`pg`·`mail`·`sms` — 은 전부 자바 코드가 없고 도메인 포트를 구현하지 않는 컴포지션 루트 조각으로, 앱이 DB·외부 연동을 쓸 때 직접 의존하는 좌표다(`backend/CLAUDE.md`의 "모듈 지도").
   - **앱 축**: 같은 계층이라도 web·admin·ceo·batch는 서로의 모듈을 알지 않는다(앱 모듈끼리 의존하지 않는다).
-  - **infrastructure는 기술별로 나눈다**: `infrastructure:jpa`는 application 포트의 **DB 어댑터 전용**(write `persistence` + read `query`), `infrastructure:mysql`은 DB 연결, `infrastructure:mybatis`는 notice 레거시 MyBatis 구현, `infrastructure:redis`는 Redis 연결·rate limit 카운터·토큰 저장소, `infrastructure:restclient`와 벤더 13모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`kakao-oauth`·`naver-oauth`·`apple-oauth`·`facebook-oauth`·`tosspayments`·`javamail`·`solapi`·`bbq`·`admdongkor`)이 외부 시스템 연동 어댑터이고, 조립 6모듈이 그 구현을 앱에 묶어 준다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**. 자바 패키지 루트는 모듈명을 따른다 — 코드가 있는 17모듈 전부 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}`를 루트로 쓰고, 각 모듈의 아키텍처 테스트 `shouldResideInModuleRootPackage`가 강제한다(조립 6모듈과 `mysql`은 자바 코드가 없어 패키지가 없다). **외부 연동을 벤더·채널 단위까지 쪼개는 기준은 "앱별 실사용 차이"다** — admin·ceo는 파일 저장 하나만 쓰므로 OAuth·결제·메일·SMS와 AWS SDK를 받지 않는다. domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다. 결제(`infrastructure:pg`)는 벤더 배타 선택이 아니라 **여러 PG 벤더가 공존하며 `PgProvider`로 라우팅**하고, 그 라우터(`PgPaymentGatewayRouter`)는 `web-application`의 `@Service`다 — 상세는 `backend/CLAUDE.md`의 "공존형 채널 — PG 라우터" 절. 소셜 로그인(`infrastructure:oauth`)도 제공자 4종이 공존하며, `web-application`의 `SocialOAuthClientRouter`가 `SocialProvider`로 벤더를 고른다(같은 파일의 "공존형 채널 — 소셜 로그인 스타터" 절).
+  - **infrastructure는 기술별로 나눈다**: `infrastructure:jpa`는 application 포트의 **DB 어댑터 전용**(write `persistence` + read `query`), `infrastructure:mysql`은 DB 연결, `infrastructure:mybatis`는 notice 레거시 MyBatis 구현, `infrastructure:redis`는 Redis 연결·rate limit 카운터·토큰 저장소, `infrastructure:restclient`와 벤더 13모듈(`firebase`·`aws-s3`·`aws-ses`·`aws-sns`·`kakao-oauth`·`naver-oauth`·`apple-oauth`·`facebook-oauth`·`tosspayments`·`javamail`·`solapi`·`bbq`·`admdongkor`)이 외부 시스템 연동 어댑터이고, 조립 6모듈이 그 구현을 앱에 묶어 준다 — **driven adapter는 DB·Redis뿐 아니라 외부 연동까지 전부 `infrastructure:{기술}` 아래에 둔다**. 자바 패키지 루트는 모듈명을 따른다 — 코드가 있는 17모듈 전부 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}`를 루트로 쓰고, 각 모듈의 아키텍처 테스트 `shouldResideInModuleRootPackage`가 강제한다(조립 6모듈과 `mysql`은 자바 코드가 없어 패키지가 없다). **외부 연동을 벤더·채널 단위까지 쪼개는 기준은 "앱별 실사용 차이"다** — admin·ceo는 파일 저장 하나만 쓰므로 OAuth·결제·메일·SMS와 AWS SDK를 받지 않는다. domain에 포트가 없는 기술이라도 **순수 인프라 기술이면 `infrastructure:{기술}`**에 두고, **여러 presentation이 공유하는 보안 관심사**일 때만 `security-module`, **HTTP 플럼빙**이면 `api-common-module`에 둔다. 결제(`infrastructure:pg`)는 벤더 배타 선택이 아니라 **여러 PG 벤더가 공존하며 `PgProvider`로 라우팅**하고, 그 라우터(`PgPaymentGatewayRouter`)는 web·batch가 함께 쓰므로 `application-core`의 `@Service`다 — 상세는 `backend/CLAUDE.md`의 "공존형 채널 — PG 라우터" 절. 소셜 로그인(`infrastructure:oauth`)도 제공자 4종이 공존하며, `web-application`의 `SocialOAuthClientRouter`가 `SocialProvider`로 벤더를 고른다(같은 파일의 "공존형 채널 — 소셜 로그인 스타터" 절).
   - **컨텍스트별 모듈 분할은 하지 않는다**: 컨텍스트 경계(25종)는 모듈이 아니라 `domain`의 ArchUnit `ContextBoundaryTest`(봉인 목록)가 담당한다.
 - **api 모듈 공용 플럼빙은 `api-common-module`이 단독 소유**한다: `ApiResponse`/`PaginationResponse`/`PageRequest`/`ProblemDetails`와 admin·ceo 공용 `GlobalExceptionHandler`가 여기 있다. **완전 동일한 것만** 공유하며, 내용이 다른 정책 파일(`SecurityConfig`·`PublicPaths`·`TokenService`·`AuthService`)과 계약이 다른 응답 record(`ShopDetailResponse` 등)는 앱마다 둔다 — 허용 목록은 [CLAUDE.md](CLAUDE.md#api-모듈-공용-플럼빙-소유-규칙-api-common-module) 표 참고. `GlobalExceptionHandler`가 web-api의 자체 핸들러와 함께 뜨지 않는 것은 스캔 범위가 보장한다 — admin·ceo의 `ModuleScanConfig`만 `com.tastyhouse.apicommon.exception`을 스캔하고 web은 스캔하지 않는다(빈 이름 `globalExceptionHandler`).
 - **소셜 로그인은 `com.tastyhouse.application.auth.port.out` SPI로만 사용**한다: web-api는 제공자별 패키지(`com.tastyhouse.infrastructure.kakao.oauth..` 등)의 wire DTO·클라이언트를 직접 import하지 않고 `SocialOAuthClientPort`/`SocialProfile`만 안다(ArchUnit `shouldDependOnOauthSpiOnlyNotProviderPackages`가 강제). 이 SPI는 domain이 아니라 `web-application`이 소유한다 — 구현은 벤더 4모듈 `infrastructure:{kakao,naver,apple,facebook}-oauth`이고 `infrastructure:oauth`는 그것을 조립하는 코드 없는 스타터다. 소셜 OAuth의 호출부가 전부 표현 계층이라 도메인 서비스가 쓰는 포트가 아니기 때문이다. 상세는 [CLAUDE.md](CLAUDE.md#소셜-로그인-spi-규칙-application의-authportout) 참고.
@@ -221,7 +222,7 @@ domain → 의존 없음 (production 의존 0개)
 - QueryDSL Q클래스는 `infrastructure:jpa`에서만 생성된다(`infrastructure/jpa/build/generated/...`) — 경로 변경 시 `./gradlew clean compileJava` 필요. `domain`에는 apt가 없어 Q타입이 생성되지 않는다.
 - 도메인 불변식은 `domain/src/test`의 **순수 단위 테스트**로 검증한다(스프링 컨텍스트·DB 불필요).
 - 레이어 경계는 각 모듈의 `architecture/LayerRulesTest`(ArchUnit)로 검증한다. 이 규칙들은 `allowEmptyShould(true)`를 쓰지 않으므로, 대상 클래스가 0건이면 **공허 통과가 아니라 실패**로 드러난다.
-- **`allowEmptyShould(true)` 금지는 자동 검증된다**: `noClasses().that()...` 형태는 대상이 0건이어도 조용히 통과하므로, `application-core/src/test/.../RuleAnchorTest`(앱별 하한)와 `BatchSchedulerRulesTest`(batch exact — `*SchedulerService` 7 · `..port.in..` 7)가 각 규칙의 anchor 개수를 직접 세어, 클래스가 모듈 사이를 옮겨 다니다 대상이 통째로 사라지면 **빌드가 실패**하게 한다. 모듈을 분리·이동할 때 같은 패턴을 따른다.
+- **`allowEmptyShould(true)` 금지는 자동 검증된다**: `noClasses().that()...` 형태는 대상이 0건이어도 조용히 통과하므로, `application-core/src/test/.../RuleAnchorTest`(앱별 하한)와 `BatchSchedulerRulesTest`(batch exact — `*SchedulerService` 8 · `..port.in..` 8)가 각 규칙의 anchor 개수를 직접 세어, 클래스가 모듈 사이를 옮겨 다니다 대상이 통째로 사라지면 **빌드가 실패**하게 한다. 모듈을 분리·이동할 때 같은 패턴을 따른다.
 
 ### Common Patterns
 - 계층 배치: `domain`의 `<ctx>/{model,vo,event}` / `infrastructure:jpa`의 `<ctx>/{persistence,query}` / api 모듈의 `<ctx>/adapter/in/web/`(컨트롤러 + `request/` + `response/`) / `{앱}-application`의 `<ctx>/{port/in,service}` / `application-core`의 `<ctx>/{port/out,port/out/write,service,listener}`·`shared/**`.

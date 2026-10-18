@@ -61,6 +61,12 @@ class PaymentJpaEntity extends BaseEntity {
     @Column(name = "receipt_url", length = 500)
     private String receiptUrl;
 
+    @Column(name = "reconcile_attempt_count", nullable = false, insertable = false, updatable = false)
+    private Integer reconcileAttemptCount;
+
+    @Column(name = "reconcile_next_at", insertable = false, updatable = false)
+    private LocalDateTime reconcileNextAt;
+
     protected PaymentJpaEntity() {
     }
 

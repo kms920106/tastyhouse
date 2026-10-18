@@ -8,6 +8,7 @@ record TossPaymentProperties(
     String secretKey,
     @DefaultValue("https://api.tosspayments.com") String baseUrl,
     @DefaultValue("/v1/payments/confirm") String confirmPath,
-    @DefaultValue("/v1/payments/{paymentKey}/cancel") String cancelPath
+    @DefaultValue("/v1/payments/{paymentKey}/cancel") String cancelPath,
+    @DefaultValue("/v1/payments/orders/{orderId}") String lookupPath
 ) {
 }

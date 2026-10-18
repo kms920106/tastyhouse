@@ -1,6 +1,7 @@
 'use client'
 
 import AppPrimaryButton from '@/components/ui/AppPrimaryButton'
+import { PAGE_PATHS } from '@/lib/paths'
 import { useRouter } from 'next/navigation'
 
 interface Props {
@@ -10,15 +11,27 @@ interface Props {
 
 export default function PaymentFailContent({ errorCode, errorMessage }: Props) {
   const router = useRouter()
+  const isUnconfirmed = errorCode === 'PAYMENT_APPROVAL_UNCONFIRMED'
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-[15px]">
-      <h1 className="text-xl font-bold mb-4">결제에 실패했습니다</h1>
+      <h1 className="text-xl font-bold mb-4">
+        {isUnconfirmed ? '결제 결과를 확인하고 있습니다' : '결제에 실패했습니다'}
+      </h1>
       {errorMessage && <p className="text-sm text-[#666666] mb-2">{errorMessage}</p>}
       {errorCode && <p className="text-xs text-[#999999] mb-8">에러 코드: {errorCode}</p>}
-      <AppPrimaryButton className="w-full max-w-[300px]" onClick={() => router.back()}>
-        돌아가기
-      </AppPrimaryButton>
+      {isUnconfirmed ? (
+        <AppPrimaryButton
+          className="w-full max-w-[300px]"
+          onClick={() => router.push(PAGE_PATHS.ORDERS)}
+        >
+          주문 내역 보기
+        </AppPrimaryButton>
+      ) : (
+        <AppPrimaryButton className="w-full max-w-[300px]" onClick={() => router.back()}>
+          돌아가기
+        </AppPrimaryButton>
+      )}
     </div>
   )
 }

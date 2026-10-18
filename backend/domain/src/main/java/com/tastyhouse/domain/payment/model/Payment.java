@@ -192,7 +192,7 @@ public class Payment {
     }
 
     public void complete(String pgTid, LocalDateTime approvedAt, String receiptUrl) {
-        if (this.paymentStatus != PaymentStatus.PENDING) {
+        if (this.paymentStatus != PaymentStatus.PENDING && this.paymentStatus != PaymentStatus.FAILED) {
             throw new DomainException(DomainErrorCode.PAYMENT_NOT_PENDING);
         }
         this.paymentStatus = PaymentStatus.COMPLETED;
@@ -202,6 +202,9 @@ public class Payment {
     }
 
     public void fail() {
+        if (this.paymentStatus != PaymentStatus.PENDING) {
+            throw new DomainException(DomainErrorCode.PAYMENT_NOT_PENDING);
+        }
         this.paymentStatus = PaymentStatus.FAILED;
     }
 
@@ -209,6 +212,13 @@ public class Payment {
         this.paymentStatus = PaymentStatus.CANCELLED;
         this.cancelledAt = now;
         this.cancelReason = cancelReason;
+    }
+
+    public void recordPgAttempt(PgProvider pgProvider) {
+        if (this.paymentStatus != PaymentStatus.PENDING) {
+            throw new DomainException(DomainErrorCode.PAYMENT_NOT_PENDING);
+        }
+        this.pgProvider = pgProvider;
     }
 
     public void updatePgInfo(PgProvider pgProvider, String pgTid, String pgOrderId) {

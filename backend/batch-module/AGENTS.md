@@ -2,7 +2,7 @@
 
 배치 앱의 **부트스트랩과 driving adapter**를 전담하는 **독립 실행 모듈**. `web-api`/`admin-api`/`ceo-api`와 동일하게 자체 `main()`(`BatchApplication`)을 가진 bootJar 실행 단위이며, HTTP 요청과 무관하게 `@Scheduled` cron 트리거로만 동작한다.
 
-> **application 계층은 이 모듈에 없다.** 잡 UseCase 인바운드 포트·`*SchedulerService`·`*Executor`·BBQ 크롤링 동기화는 `batch-application` 모듈에, `BatchJobException`은 코어 `application-core`에 있다(규칙 정본은 `application-core/AGENTS.md`). 이 모듈에 남은 것은 `@Scheduled` 트리거 7종과 `BatchApplication`뿐이다. 잡 **로직**을 고치러 왔다면 이 문서가 아니라 `application-core/AGENTS.md`를 본다.
+> **application 계층은 이 모듈에 없다.** 잡 UseCase 인바운드 포트·`*SchedulerService`·`*Executor`·BBQ 크롤링 동기화는 `batch-application` 모듈에, `BatchJobException`은 코어 `application-core`에 있다(규칙 정본은 `application-core/AGENTS.md`). 이 모듈에 남은 것은 `@Scheduled` 트리거 8종과 `BatchApplication`뿐이다. 잡 **로직**을 고치러 왔다면 이 문서가 아니라 `application-core/AGENTS.md`를 본다.
 
 ## 신설 배경
 
@@ -14,7 +14,7 @@
 com.tastyhouse.batch/                  ← 이 모듈 (부트스트랩 + driving adapter)
 ├── BatchApplication.java          @SpringBootApplication + @EnableScheduling + 중첩 ApplicationLayerScanConfig(@ComponentScan, 필터 없음)·ModuleScanConfig — @Import 없음
 └── <job>/adapter/in/scheduler/     @Scheduled 트리거 클래스(로직 없음, UseCase 호출만)
-                                    잡 슬러그 7종 — region · grade · product · productsoldout · rank · reviewblind · search
+                                    잡 슬러그 8종 — region · grade · payment · product · productsoldout · rank · reviewblind · search
 
 com.tastyhouse.application/       ← application 계층 (batch-application + application-core — split package)
 │   (루트에는 클래스가 없다 — application 계층 스캔은 BatchApplication의 중첩 ApplicationLayerScanConfig가 소유한다)
@@ -32,6 +32,7 @@ com.tastyhouse.application/       ← application 계층 (batch-application + ap
 |---|---|---|---|
 | `region` | `SynchronizeAdminDongsUseCase` | `AdminDongScheduler`(매월 1일 04시) | `AdminDongSchedulerService`(다운로드, 트랜잭션 밖) + `AdminDongSyncExecutor`(저장, 트랜잭션) + `AdminDongSyncRunner`(수동 1회 실행, 기본 비활성) |
 | `grade` | `SettleMemberGradesUseCase` | `GradeScheduler` | `GradeSchedulerService`가 등급 계산·확정 전담 |
+| `payment` | `ReconcileUnconfirmedPaymentsUseCase` | `PaymentReconcileScheduler` | `PaymentReconcileSchedulerService`(대상 조회·PG 조회, 트랜잭션 밖) + `PaymentReconcileExecutor`(건별 반영, 트랜잭션) — PG 승인 결과를 확정하지 못한 결제를 PG에 다시 물어 확정 |
 | `product` | `SyncProductOptionsUseCase` | `ProductScheduler`(**비활성 — cron 기본값 `-`, 자동 실행되지 않는다.** 아래 §스케줄러 활성 상태 참조) | `ProductSchedulerService`가 BBQ 옵션 크롤링 저장 |
 | `productsoldout` | `ReleaseExpiredSoldOutUseCase` | `ProductSoldOutReleaseScheduler` | `ProductSoldOutReleaseSchedulerService` + `ProductSoldOutReleaseExecutor`(트랜잭션 경계 분리) |
 | `rank` | `AggregateRanksUseCase` | `RankScheduler` | `RankSchedulerService`가 랭킹 집계 로직 전담 |
@@ -40,15 +41,15 @@ com.tastyhouse.application/       ← application 계층 (batch-application + ap
 
 ## 규칙
 
-- **유스케이스 분리(web·admin·ceo의 `{도메인}CommandService`/`{도메인}QueryService` → 유스케이스당 서비스 1개)에서 batch는 제외했다**: `*SchedulerService` 7개가 이미 잡 UseCase 1개 = 서비스 1개이고, `*SchedulerService` 명명은 `backend/application-core/src/test/java/com/tastyhouse/application/architecture/BatchSchedulerRulesTest.java`가 지킨다(포트명 기반 `useCaseServiceNameShouldMatchPort`와 맞지 않아 1:1 규칙 4종은 batch 출처를 뺀다). `SearchKeywordSchedulerService`가 UseCase 하나에 메서드 2개인 것은 이번 범위 밖이라 손대지 않았다.
-- **Scheduler(트리거) + Service(로직) 이분 구조는 모듈 경계와 일치한다**: `adapter/in/scheduler/`의 `@Scheduled` 클래스는 cron 트리거와 try/catch 로깅만 담당하고, 실제 로직은 `batch-application`의 `*SchedulerService`(`@Transactional` 경계 소유)로 위임한다. 이 분리는 규율이 아니라 **빌드 그래프가 강제**한다 — 트리거에 잡 로직 한 줄을 적으려 하면 `batch-module`의 컴파일 클래스패스에 없는 domain 타입을 import해야 해서 컴파일이 깨진다.
-- **잡 UseCase 인터페이스(`batch-application`의 `<job>/port/in/`)**: 잡마다 1개(`SettleMemberGradesUseCase`·`AggregateRanksUseCase`·`SyncProductOptionsUseCase`·`ReleaseExpiredSoldOutUseCase`·`ExpireBlindedReviewsUseCase`·`SynchronizeAdminDongsUseCase`·`AggregatePopularKeywordsUseCase`). **배치 잡은 입력이 없으므로 Command record를 두지 않는다** — web/admin/ceo의 `{도메인}CommandUseCase`와 달리 파라미터 없는 메서드 하나만 선언한다. `*SchedulerService`가 이를 implements하고(ArchUnit `application-core`의 `BatchSchedulerRulesTest#schedulerServicesShouldImplementUseCase`), 트리거는 구체 클래스가 아니라 이 인터페이스만 주입한다(이 모듈의 `schedulersShouldDependOnUseCasesOnly`가 강제). 후자는 **모듈 경계를 넘는** 구체 클래스를 막는 규칙이라, 클래스명(`*SchedulerService`)이 아니라 패키지(`com.tastyhouse.application..service..`)로 대상을 잡는다 — 그래야 `*Executor`처럼 이름이 다른 내부 구현까지 함께 막힌다.
+- **유스케이스 분리(web·admin·ceo의 `{도메인}CommandService`/`{도메인}QueryService` → 유스케이스당 서비스 1개)에서 batch는 제외했다**: `*SchedulerService` 8개가 이미 잡 UseCase 1개 = 서비스 1개이고, `*SchedulerService` 명명은 `backend/application-core/src/test/java/com/tastyhouse/application/architecture/BatchSchedulerRulesTest.java`가 지킨다(포트명 기반 `useCaseServiceNameShouldMatchPort`와 맞지 않아 1:1 규칙 4종은 batch 출처를 뺀다). `SearchKeywordSchedulerService`가 UseCase 하나에 메서드 2개인 것은 이번 범위 밖이라 손대지 않았다.
+- **Scheduler(트리거) + Service(로직) 이분 구조는 모듈 경계와 일치한다**: `adapter/in/scheduler/`의 `@Scheduled` 클래스는 cron 트리거와 try/catch 로깅만 담당하고, 실제 로직은 `batch-application`의 `*SchedulerService`로 위임한다. 단일 트랜잭션 잡은 서비스가 `@Transactional` 경계를 갖고(`GradeSchedulerService`·`RankSchedulerService`·`SearchKeywordSchedulerService`), 건별 격리가 필요하거나 외부 호출이 있는 잡은 트랜잭션을 `*Executor`(또는 협력 서비스 — `ProductSchedulerService` → `BbqProductSyncService`)에 맡기고 서비스 자신은 트랜잭션 밖에 둔다. `*InNewTx` 호출자에 `@Transactional`을 붙이면 `application-core`의 `ExecutorCallerTransactionRulesTest#newTxCallersShouldNotBeTransactional`이 실패한다. 이 분리는 규율이 아니라 **빌드 그래프가 강제**한다 — 트리거에 잡 로직 한 줄을 적으려 하면 `batch-module`의 컴파일 클래스패스에 없는 domain 타입을 import해야 해서 컴파일이 깨진다.
+- **잡 UseCase 인터페이스(`batch-application`의 `<job>/port/in/`)**: 잡마다 1개(`SettleMemberGradesUseCase`·`AggregateRanksUseCase`·`SyncProductOptionsUseCase`·`ReleaseExpiredSoldOutUseCase`·`ExpireBlindedReviewsUseCase`·`SynchronizeAdminDongsUseCase`·`AggregatePopularKeywordsUseCase`·`ReconcileUnconfirmedPaymentsUseCase`). **배치 잡은 입력이 없으므로 Command record를 두지 않는다** — web/admin/ceo의 `{도메인}CommandUseCase`와 달리 파라미터 없는 메서드 하나만 선언한다. `*SchedulerService`가 이를 implements하고(ArchUnit `application-core`의 `BatchSchedulerRulesTest#schedulerServicesShouldImplementUseCase`), 트리거는 구체 클래스가 아니라 이 인터페이스만 주입한다(이 모듈의 `schedulersShouldDependOnUseCasesOnly`가 강제). 후자는 **모듈 경계를 넘는** 구체 클래스를 막는 규칙이라, 클래스명(`*SchedulerService`)이 아니라 패키지(`com.tastyhouse.application..service..`)로 대상을 잡는다 — 그래야 `*Executor`처럼 이름이 다른 내부 구현까지 함께 막힌다.
 - **도메인 모델은 POJO — 명시적 save 필수** (해당 코드는 `batch-application`): 스케줄러 Service에서 도메인을 변경한 뒤 반드시 `repository.save(domain)`을 호출한다(JPA 더티 체킹이 없어 누락 시 변경이 조용히 유실된다).
 - **QueryDSL·infra 직접 호출 금지**: 잡 서비스를 대상으로 하는 규칙은 대상 클래스가 있는 `application-core`의 테스트가 갖는다 — `BatchSchedulerRulesTest`(대상 `batch-application` 출처)의 `applicationServicesShouldNotDependOnWebLayer`·`inboundPortsShouldBeBoundaryTyped`·`schedulerServicesShouldImplementUseCase`, 그리고 application 5모듈 전체를 보는 `LayerRulesTest`의 `shouldNotDependOnQuerydsl`·`applicationMustBeServletFree`. 대상 클래스가 이 모듈 밖에 있어, 여기에 두면 대상 0건으로 공허하게 통과하기 때문이다. 이 모듈의 `LayerRulesTest`는 어댑터가 지킬 것 5개(아래 [이 모듈의 규칙이 어댑터 규칙 5개뿐인 이유](#이-모듈의-규칙이-어댑터-규칙-5개뿐인-이유))만 갖는다. 다른 앱의 UseCase·Command는 이 모듈의 클래스패스에 없어 컴파일 게이트가 막는다. 조회는 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 주입해 쓴다(reference: `ProductBbqSyncQueryPort#findFirstBbqSyncTarget`). **리포 전체에 `allowEmptyShould(true)`는 0건이며, 새로 도입하지 않는다** — 규칙이 대상을 잃으면 공허 통과를 여는 대신 규칙을 지우거나 anchor를 고친다. ([ADR-0036](../../docs/adr/0036-app-marker-removal.md))
 - **cron 표현식은 순수 구조 리팩터링 대상이 아니다**: 스케줄 주기를 바꾸는 변경은 이 모듈이 아니라 별도 운영 결정으로 다룬다.
-- **외부 다운로드는 트랜잭션 밖에서 수행한다** (해당 코드는 `batch-application`): 네트워크 구간을 트랜잭션 안에 넣으면 그동안 DB 커넥션이 묶인다. 다운로드 → (트랜잭션) 저장 순으로 나누되, **같은 빈의 메서드를 자기 자신이 호출하면 Spring 프록시를 거치지 않아 `@Transactional`이 적용되지 않으므로**(self-invocation) 저장 구간은 별도 빈(`XxxExecutor`)이 소유한다. reference: `AdminDongSchedulerService`(다운로드) + `AdminDongSyncExecutor`(저장), `ProductSoldOutReleaseExecutor`, `ReviewBlindExpirationExecutor`.
+- **외부 다운로드는 트랜잭션 밖에서 수행한다** (해당 코드는 `batch-application`): 네트워크 구간을 트랜잭션 안에 넣으면 그동안 DB 커넥션이 묶인다. 다운로드 → (트랜잭션) 저장 순으로 나누되, **같은 빈의 메서드를 자기 자신이 호출하면 Spring 프록시를 거치지 않아 `@Transactional`이 적용되지 않으므로**(self-invocation) 저장 구간은 별도 빈(`XxxExecutor`)이 소유한다. reference: `AdminDongSchedulerService`(다운로드) + `AdminDongSyncExecutor`(저장), `PaymentReconcileSchedulerService`(PG 조회) + `PaymentReconcileExecutor`(반영), `ProductSoldOutReleaseExecutor`, `ReviewBlindExpirationExecutor`.
 - **마스터 동기화는 삭제·재삽입이 아니라 id 보존 갱신이다**: 다른 테이블이 마스터의 `id`를 참조하고 있으면(행정동의 경우 배달가능지역·지역별 배달팁·주문 스냅샷) 전량 교체 시 그 참조가 **말없이 다른 행을 가리키거나 끊어진다.** 자연키(행정동은 `code`)로 매칭해 제자리 갱신하고, 원천에서 사라진 행은 삭제 대신 `is_active = 0`으로 내린다. reference: `AdminDongSavePort#synchronize`.
-- **단일 인스턴스 배포 전제**: `@EnableScheduling` 기반 cron은 인스턴스마다 독립 실행된다. batch-module을 여러 인스턴스로 배포하면 동일 작업이 중복 실행되므로, 운영 시 배치 인스턴스는 1대로 유지한다(분산 락 등 중복 방지 로직은 아직 없음).
+- **단일 인스턴스 배포 전제**: `@EnableScheduling` 기반 cron은 인스턴스마다 독립 실행된다. batch-module을 여러 인스턴스로 배포하면 동일 작업이 중복 실행되므로, 운영 시 배치 인스턴스는 1대로 유지한다(분산 락 등 잡 단위 중복 방지 로직은 없음). **예외는 PG 미확정 결제 대사(`PaymentReconcileScheduler`)다** — 잡은 대마다 돌지만 결제마다 조건부 UPDATE로 차례를 선점한 실행만 PG에 묻으므로 같은 결제를 두 번 대사하지 않는다(`application-core/AGENTS.md`의 batch 주기 대사 항목, [ADR-0064](../../docs/adr/0064-payment-reconcile-claim.md)). 나머지 잡을 여러 대로 늘리기 전에는 잡마다 중복 실행이 안전한지 따로 확인한다.
 
 ## admin-api 비대칭 (의도된 설계)
 
@@ -63,6 +64,7 @@ com.tastyhouse.application/       ← application 계층 (batch-application + ap
 - `infrastructure:file-storage` (**runtimeOnly**) — 파일 저장 스타터. 자바 코드 없이 `infrastructure:firebase`(`application`의 포트 `FileStoragePort`(`application.file.port.out`) 구현 — 크롤링 이미지 저장)를 묶어 노출하므로, 이 앱은 **벤더 모듈을 직접 선언하지 않고 이 한 줄만** 갖는다(코어 `infrastructure:restclient`는 스타터가 아니라 아래 `infrastructure:bbq`·`infrastructure:admdongkor`를 통해 전이로 실린다). firebase는 전이로 `runtimeClasspath`에 실려 빈 스캔·설정(`application-file-storage.yml` → `application-firebase.yml`)이 그대로 동작한다
 - `infrastructure:bbq` (**runtimeOnly**) — `com.tastyhouse.infrastructure.bbq.BbqApiClient`(BBQ 메뉴 HTTP 클라이언트)·`com.tastyhouse.infrastructure.bbq.RemoteImageDownloader`. 설정은 `application-bbq.yml`
 - `infrastructure:admdongkor` (**runtimeOnly**) — 행정동 경계 클라이언트 `com.tastyhouse.infrastructure.admdongkor.AdminDongBoundaryClient`. 설정은 `application-admdongkor.yml`
+- `infrastructure:pg` (**runtimeOnly**) — 결제 PG 채널 스타터. 자바 코드 없이 `infrastructure:tosspayments`를 묶어 노출하고, `PaymentReconcileSchedulerService`가 코어 포트 `PgPaymentGatewayPort`로 PG 결제 조회를 호출할 때 쓴다. 설정은 `application-pg.yml`(→ `application-tosspayments.yml`)이고 **환경 변수 `TOSS_SECRET_KEY`가 필요하다**(web-api와 같은 키). 포트·라우터가 `web-application`이 아니라 코어에 있으므로 이 스타터를 붙여도 web-application은 클래스패스에 실리지 않는다(`ApplicationModuleClasspathTest`가 확인한다, [ADR-0061](../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md))
 - 위 두 모듈은 2026-09-26에 옛 `infrastructure:crawling` 한 모듈을 나눈 것이다(근거는 `../infrastructure/admdongkor/AGENTS.md`). **소스 참조는 `batch-application`에 있고**, 두 모듈은 빈 스캔·설정 때문에 유지한다
 - `logging-module` (**runtimeOnly**) — **p6spy를 `exclude`한다**: `logging-module`이 그것을 `api`로 노출하지만 batch는 HTTP 요청이 없어 쓰지 않으므로, 전이 의존을 끊어 datasource 자동 데코레이션(SQL 로그 신규 발생)을 막는다. `runtimeOnly`에 걸린 `exclude`도 동일하게 적용된다(Gradle의 `exclude`는 의존 스코프와 무관하게 동작)
 - **`domain`은 선언하지 않는다** — 이 모듈 소스에 `com.tastyhouse.domain..` 참조가 0건이다. 전이 경로도 없다(`application`이 `domain`을 `api`가 아닌 `implementation`으로 물고 있고, 이 모듈은 `api-common-module`을 의존하지 않는다). web/admin/ceo도 같은 상태다(`api-common-module`이 `api project(':application-core')`이라 전이 경로가 없다). 도메인 타입이 필요해 보이면 선언하지 말고 그 판단을 application으로 옮긴다 — presentation 전체가 domain을 컴파일 클래스패스에 두지 않는 것이 현재 규칙이다
@@ -100,11 +102,11 @@ com.tastyhouse.application/       ← application 계층 (batch-application + ap
 
 ## 설정 파일
 
-`src/main/resources/application.yml`이 `application-persistence.yml`(DB/JPA, `infrastructure:persistence` 소유)과 외부 연동 설정 세 벌 — `application-file-storage.yml`(파일 저장 스타터 `infrastructure:file-storage` 소유. `file.provider`를 갖고 벤더 yml `application-firebase.yml`을 중첩 import한다)·`application-bbq.yml`(BBQ 메뉴 수집, `infrastructure:bbq` 소유)·`application-admdongkor.yml`(행정동 경계 수집, `infrastructure:admdongkor` 소유) — 을 `classpath:` import한다 — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
+`src/main/resources/application.yml`이 `application-persistence.yml`(DB/JPA, `infrastructure:persistence` 소유)과 외부 연동 설정 네 벌 — `application-file-storage.yml`(파일 저장 스타터 `infrastructure:file-storage` 소유. `file.provider`를 갖고 벤더 yml `application-firebase.yml`을 중첩 import한다)·`application-bbq.yml`(BBQ 메뉴 수집, `infrastructure:bbq` 소유)·`application-admdongkor.yml`(행정동 경계 수집, `infrastructure:admdongkor` 소유)·`application-pg.yml`(결제 PG 조회, 스타터 `infrastructure:pg` 소유) — 을 `classpath:` import한다 — web-api와 동일한 패턴. 웹 전용 설정(서버 포트/CORS/JWT/OAuth/Redis/multipart)은 없다.
 
 **DB 커넥션 풀은 다른 앱과 같은 `infrastructure:mysql`의 `application-mysql.yml`을 받는다**(persistence yml이 import). batch는 기본값(`DB_POOL_MAX_SIZE` 5, `DB_SOCKET_TIMEOUT_MS` 0 = 무제한)을 그대로 쓴다. 행정동 경계·BBQ 메뉴 적재처럼 오래 걸리는 쿼리가 있으므로 **`DB_SOCKET_TIMEOUT_MS`를 켜지 않는다** — 켜면 그 시간을 넘는 쿼리가 끊긴다. 이 앱 `application.yml`에 `spring.datasource.hikari.*`를 적어도 import된 mysql yml이 이기므로 반영되지 않는다. 조정은 기동 시 환경변수로 한다(`../infrastructure/mysql/AGENTS.md`의 "앱별 조정").
 
-## 스케줄러 활성 상태 (트리거 7종 중 1종이 비활성)
+## 스케줄러 활성 상태 (트리거 8종 중 1종이 비활성)
 
 **이 절은 각 트리거가 운영에서 실제로 도는지를 한눈에 보여 주는 표다.** `ProductScheduler`도 `@Scheduled`를 갖되 cron 기본값 `-`(비활성)로 꺼져 있어, 코드가 비활성 상태를 스스로 드러낸다.
 
@@ -112,6 +114,7 @@ com.tastyhouse.application/       ← application 계층 (batch-application + ap
 |---|---|---|
 | `AdminDongScheduler` | 활성 | `0 0 4 1 * *` — 매월 1일 04시 |
 | `GradeScheduler` | 활성 | `0 30 3 * * *` — 매일 새벽 3시 30분 |
+| `PaymentReconcileScheduler` | 활성 | `${payment.reconcile.cron:0 */10 * * * *}` — 기본 10분 주기(프로퍼티로 조정 가능) |
 | `ProductScheduler` | **비활성** | `${product.option-crawl.cron:-}` — 기본값 `-`(비활성 cron), 프로퍼티를 주면 활성 |
 | `ProductSoldOutReleaseScheduler` | 활성 | `${product.sold-out-release.cron:0 */10 * * * *}` — 기본 10분 주기(프로퍼티로 조정 가능) |
 | `RankScheduler` | 활성 | `0 0 3 * * *` — 매일 새벽 3시 |
@@ -210,7 +213,7 @@ com.tastyhouse.application/       ← application 계층 (batch-application + ap
 
 **대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/architecture/LayerRulesTest.java` → `schedulersShouldNotBePublic`
 
-`*Scheduler` 7개를 package-private으로 좁혔다. 스캔으로만 등록되고 각자 `batch-application`의 UseCase(`*SchedulerService`, 역시 package-private)를 인터페이스로 주입받으므로 이름이 패키지 밖에 나타날 필요가 없다. `@Scheduled` 메서드의 가시성은 손대지 않는다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
+`*Scheduler` 8개는 전부 package-private이다. 스캔으로만 등록되고 각자 `batch-application`의 UseCase(`*SchedulerService`, 역시 package-private)를 인터페이스로 주입받으므로 이름이 패키지 밖에 나타날 필요가 없다. `@Scheduled` 메서드의 가시성은 손대지 않는다. 근거와 전체 범주는 `backend/CLAUDE.md`의 "접근 제어자 규칙 (내부 구현은 package-private)" 절.
 
 ## 코드 주석에서 이관된 설계 근거
 
@@ -221,16 +224,17 @@ com.tastyhouse.application/       ← application 계층 (batch-application + ap
 **대상**: `backend/batch-module/src/main/java/com/tastyhouse/batch/{productsoldout,reviewblind}/adapter/in/scheduler/`
 → `ProductSoldOutReleaseScheduler` · `ReviewBlindScheduler`
 
-두 트리거의 클래스 주석이 명시하던 것으로, 이 모듈 트리거 7종 전부의 공통형이다 — **스케줄러는 로깅·예외격리만** 담당하고 잡 본문은 `application`의 UseCase(`ReleaseExpiredSoldOutUseCase`·`ExpireBlindedReviewsUseCase` 등)에 둔다. `RankScheduler`가 그 최초 형태이고 나머지가 그 패턴을 그대로 따랐다.
+두 트리거의 클래스 주석이 명시하던 것으로, 이 모듈 트리거 8종 전부의 공통형이다 — **스케줄러는 로깅·예외격리만** 담당하고 잡 본문은 `application`의 UseCase(`ReleaseExpiredSoldOutUseCase`·`ExpireBlindedReviewsUseCase` 등)에 둔다. `RankScheduler`가 그 최초 형태이고 나머지가 그 패턴을 그대로 따랐다.
 
 ### 잡 주기가 다른 이유 (cron 값의 근거)
 
-**대상**: `backend/batch-module/src/main/java/com/tastyhouse/batch/{productsoldout,reviewblind,region}/adapter/in/scheduler/`
-→ `ProductSoldOutReleaseScheduler` · `ReviewBlindScheduler` · `AdminDongScheduler`
+**대상**: `backend/batch-module/src/main/java/com/tastyhouse/batch/{productsoldout,reviewblind,region,payment}/adapter/in/scheduler/`
+→ `ProductSoldOutReleaseScheduler` · `ReviewBlindScheduler` · `AdminDongScheduler` · `PaymentReconcileScheduler`
 
-세 트리거의 메서드·클래스 주석이 담고 있던 판단 근거다. **cron 값을 바꾸기 전에 이 근거를 확인한다.**
+`ProductSoldOutReleaseScheduler`·`ReviewBlindScheduler`·`AdminDongScheduler` 세 트리거의 메서드·클래스 주석이 담고 있던 판단 근거다. `PaymentReconcileScheduler`는 주석이 있었던 적이 없는 신설 트리거라 이관 대상이 아니며, 그 항목은 처음부터 이 문서에 적은 근거다. **cron 값을 바꾸기 전에 이 근거를 확인한다.**
 
 - **`ProductSoldOutReleaseScheduler` — 10분 주기.** 다른 배치가 하루 1회 새벽에 도는 것과 성격이 다르다. **"익일 가게 오픈 시간까지 품절"이 오픈 직후에 풀려야** 의미가 있고, 품절 기간 입력 단위가 10분이라 그보다 촘촘하게 돌 필요가 없다. 하루 1회로 두면 오전에 오픈한 가게가 다음 날 새벽까지 품절로 남는다.
+- **`PaymentReconcileScheduler` — 10분 주기, 대상은 결제 생성 시각(`created_at`, 승인 시도 시각이 아니다)이 `[실행 시각 - 7일, 실행 시각 - 10분)` 반개구간에 드는 결제.** PG 승인 결과를 확정하지 못한 결제(PENDING이면서 `pg_provider`가 기록된 결제)는 사용자의 취소가 막혀 있으므로 빨리 풀어야 한다. 생성 후 10분이 안 된 결제는 사용자가 아직 승인 화면에 있거나 web 요청 안의 즉시 조회가 진행 중일 수 있어 건드리지 않는다. 생성 시각 기준이지만, 승인 시도 때 다음 대사 시각이 시도 시각 + 10분으로 잡히므로 결제를 만든 뒤 한참 지나 승인을 시도한 결제도 시도 후 10분이 지나야 대상이 된다. 7일을 넘긴 결제는 대상에서 빠지므로 수동 대사 대상이다. 한 번에 최대 100건(`created_at`·`id` 오름차순)만 처리한다. **같은 결제를 매 주기 다시 고르지 않는다** — 건마다 조회 전에 다음 대사 시각을 10분 → 20분 → 40분 … 최대 24시간으로 늘려 저장하고, 그 시각이 될 때까지 대상에서 뺀다. 결과를 확정하지 못하는 결제가 100건 슬롯을 차지해 새 결제가 밀리는 것과 같은 알럿이 10분마다 반복되는 것을 막기 위해서다. 사용자가 승인을 다시 시도하면 일정이 처음(10분 뒤)으로 돌아간다. 대상이 0건이면 DEBUG 로그만 남기고, UNKNOWN 건너뜀은 `PG_CONFIRM_UNKNOWN` WARN, APPROVED 확인 후 DB 반영 실패는 `PG_DB_MISMATCH` ERROR다. 금액 불일치(`AMOUNT_MISMATCH`)는 결제가 PENDING으로 남지만 위 간격으로만 다시 확인하므로 `PG_DB_MISMATCH` ERROR는 7일 동안 약 14회 남는다(수동 대사 신호). 상세 근거는 `docs/domain/payment.md`, [ADR-0061](../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md)·[ADR-0062](../../docs/adr/0062-payment-reconcile-backoff.md).
 - **`ReviewBlindScheduler` — 매일 새벽 4시.** 랭킹 집계(3시)와 시간대를 분리해 두 잡이 겹치지 않게 한다.
 - **`AdminDongScheduler` — 매월 1일 04시.** 행정구역 개편은 연 몇 회 수준이라 잦은 실행이 의미 없고, **원천도 그 주기로만 갱신된다**(`../infrastructure/admdongkor/AGENTS.md` §수집 방식). 매월 1일 새벽에 한 번만 돌려 개편을 뒤늦게라도 따라잡게 하며, 다른 배치와 겹치지 않는 04시대를 쓴다.
 
@@ -239,7 +243,7 @@ com.tastyhouse.application/       ← application 계층 (batch-application + ap
 **대상**: `backend/batch-module/src/test/java/com/tastyhouse/batch/architecture/LayerRulesTest.java`
 → 클래스 전체
 
-이 모듈에 있는 것은 **driving adapter**(`<job>/adapter/in/scheduler`의 `@Scheduled` 트리거 7종)와 부트스트랩(`BatchApplication`)뿐이다. 그래서 규칙도 "어댑터가 지켜야 할 것"만 둔다 — `@Test` 5개다.
+이 모듈에 있는 것은 **driving adapter**(`<job>/adapter/in/scheduler`의 `@Scheduled` 트리거 8종)와 부트스트랩(`BatchApplication`)뿐이다. 그래서 규칙도 "어댑터가 지켜야 할 것"만 둔다 — `@Test` 5개다.
 
 | 규칙 | 지키는 것 |
 |---|---|

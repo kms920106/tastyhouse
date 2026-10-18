@@ -10,10 +10,11 @@ import com.tastyhouse.domain.payment.model.PgProvider;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgPaymentGatewayPort;
+import com.tastyhouse.application.payment.port.out.PgPaymentLookupResult;
 import com.tastyhouse.application.payment.port.out.PgProviderCode;
 import com.tastyhouse.application.payment.port.out.PgProviderGatewayPort;
+import com.tastyhouse.application.shared.exception.ApplicationErrorCode;
 import com.tastyhouse.application.shared.exception.ApplicationException;
-import com.tastyhouse.application.shared.exception.WebErrorCode;
 
 @Service
 class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
@@ -48,10 +49,15 @@ class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
         return resolve(pgProvider).cancelPayment(pgTid, cancelReason);
     }
 
+    @Override
+    public PgPaymentLookupResult lookupPayment(String pgProvider, String pgOrderId) {
+        return resolve(pgProvider).lookupPayment(pgOrderId);
+    }
+
     private PgProviderGatewayPort resolve(String pgProvider) {
         if (!supports(pgProvider)) {
-            throw new ApplicationException(WebErrorCode.PG_PROVIDER_UNSUPPORTED,
-                WebErrorCode.PG_PROVIDER_UNSUPPORTED.getDefaultMessage() + ": " + pgProvider);
+            throw new ApplicationException(ApplicationErrorCode.PG_PROVIDER_UNSUPPORTED,
+                ApplicationErrorCode.PG_PROVIDER_UNSUPPORTED.getDefaultMessage() + ": " + pgProvider);
         }
         return gateways.get(pgProvider);
     }

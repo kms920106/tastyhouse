@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.emailverification.event.MailVerifiedEvent;
 import com.tastyhouse.domain.emailverification.vo.MailVerificationId;
-import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.logging.LogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,11 +17,11 @@ class MailVerificationEventListenerTest {
 
     private final MailVerificationEventListener listener = new MailVerificationEventListener();
 
-    private ListenerLogCapture logCapture;
+    private LogCapture logCapture;
 
     @BeforeEach
     void attachLogCapture() {
-        logCapture = ListenerLogCapture.attachTo(MailVerificationEventListener.class);
+        logCapture = LogCapture.attachTo(MailVerificationEventListener.class);
     }
 
     @AfterEach

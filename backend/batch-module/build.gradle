@@ -6,6 +6,7 @@ dependencies {
     runtimeOnly project(':infrastructure:file-storage')
     runtimeOnly project(':infrastructure:bbq')
     runtimeOnly project(':infrastructure:admdongkor')
+    runtimeOnly project(':infrastructure:pg')
     runtimeOnly(project(':logging-module')) {
         exclude group: 'com.github.gavlyukovskiy', module: 'p6spy-spring-boot-starter'
     }

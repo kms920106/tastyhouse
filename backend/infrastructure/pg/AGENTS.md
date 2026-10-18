@@ -2,7 +2,7 @@
 
 # infrastructure:pg
 
-결제 **PG(결제대행사) 채널 스타터**(`java-library`). 여기서 `pg`는 PostgreSQL이 아니라 **Payment Gateway**다 — 도메인 어휘 `PgProvider`·`PgPaymentGatewayPort`·`PgOrderId`와 같은 뜻이다. **자바 코드가 없다** — 의존 선언(`build.gradle`)과 설정 진입점(`application-pg.yml`) 둘뿐이며, 형태는 `infrastructure:file-storage`·`infrastructure:oauth`·`infrastructure:mail`·`infrastructure:sms`와 같다. 벤더(토스페이먼츠 등)를 `runtimeOnly`로 조립해 web-api에 노출하고, 여러 벤더가 **동시에 공존**할 수 있도록 하는 PG 라우터 빈(`PgPaymentGatewayRouter`)의 등록은 `web-application` 모듈이 맡는다. PG 호출 구현은 이 모듈이 아니라 벤더 모듈(`infrastructure:tosspayments`)에 있다. ([ADR-0036](../../../docs/adr/0036-app-marker-removal.md))
+결제 **PG(결제대행사) 채널 스타터**(`java-library`). 여기서 `pg`는 PostgreSQL이 아니라 **Payment Gateway**다 — 도메인 어휘 `PgProvider`·`PgPaymentGatewayPort`·`PgOrderId`와 같은 뜻이다. **자바 코드가 없다** — 의존 선언(`build.gradle`)과 설정 진입점(`application-pg.yml`) 둘뿐이며, 형태는 `infrastructure:file-storage`·`infrastructure:oauth`·`infrastructure:mail`·`infrastructure:sms`와 같다. 벤더(토스페이먼츠 등)를 `runtimeOnly`로 조립해 web-api·batch-module에 노출하고, 여러 벤더가 **동시에 공존**할 수 있도록 하는 PG 라우터 빈(`PgPaymentGatewayRouter`)의 등록은 코어 `application-core` 모듈이 맡는다. PG 호출 구현은 이 모듈이 아니라 벤더 모듈(`infrastructure:tosspayments`)에 있다. ([ADR-0061](../../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md))
 
 ## 왜 `payment`가 아니라 `pg`인가
 
@@ -22,19 +22,21 @@ backend/infrastructure/pg/
 
 ## 이 모듈이 하는 일 — 조립과 설정 두 가지만
 
-- **조립**: `build.gradle`의 `runtimeOnly project(':infrastructure:tosspayments')` 한 줄이 기본 벤더를 web-api의 runtimeClasspath에 싣는다.
+- **조립**: `build.gradle`의 `runtimeOnly project(':infrastructure:tosspayments')` 한 줄이 기본 벤더를 web-api·batch-module의 runtimeClasspath에 싣는다.
 - **설정**: `application-pg.yml`이 벤더 yml을 중첩 import한다(아래 §yml).
 
-빈 등록은 조립 대상(tosspayments 등)의 `@Configuration`이 `PgProviderGatewayPort` 구현체를, `web-application`의 라우터 클래스 `PgPaymentGatewayRouter`가 `@Service` 스캔으로 각각 담당한다 — 이 모듈은 어느 쪽도 하지 않는다.
+빈 등록은 조립 대상(tosspayments 등)의 `@Configuration`이 `PgProviderGatewayPort` 구현체를, 코어 `application-core`의 라우터 클래스 `PgPaymentGatewayRouter`가 `@Service` 스캔으로 각각 담당한다 — 이 모듈은 어느 쪽도 하지 않는다.
 
 ## 라우터 등록은 어디인가 — `web-application`의 `PgPaymentGatewayRouter`
 
-라우터는 **`web-application` 모듈**의 `payment/service/PgPaymentGatewayRouter`에 있고 **`@Service`**를 단다. web-api만 `web-application`을 의존하므로 결제 기능이 없는 admin·ceo·batch에는 이 빈이 뜨지 않는다 — 한정하는 수단은 모듈 경계다. 라우터가 다루는 포트 `PgPaymentGatewayPort`·`PgProviderGatewayPort`·`PgCancelResult`·`PgProviderCode`도 `web-application` 소유이고, `PgConfirmResult`·`TossPaymentDetail`은 코어 `application`에 있다(패키지는 모두 `com.tastyhouse.application.payment.port.out`). 빈 이름은 `pgPaymentGatewayRouter`다. ([ADR-0036](../../../docs/adr/0036-app-marker-removal.md))
+> 제목은 ADR-0026·0034·0036이 인용하므로 남겨 둔 이름이다. 라우터는 `application-core`에 있다.
+
+라우터는 **코어 `application-core` 모듈**의 `payment/service/PgPaymentGatewayRouter`에 있고 **`@Service`**를 단다. 코어는 4앱 모두에 실리므로 라우터 빈도 4앱 모두에 뜬다. 벤더 어댑터는 이 모듈을 의존하는 web-api·batch-module에만 있으므로, admin·ceo에서는 라우터가 **빈 목록**으로 생성되고 어떤 PG도 지원하지 않는다(admin·ceo에는 라우터를 주입하는 빈도 없다). 라우터가 다루는 포트 `PgPaymentGatewayPort`·`PgProviderGatewayPort`·`PgCancelResult`·`PgProviderCode`와 `PgConfirmResult`·`PgConfirmFailure`·`PgPaymentLookupResult`·`PgPaymentLookupStatus`·`TossPaymentDetail`이 모두 코어에 있다(패키지는 모두 `com.tastyhouse.application.payment.port.out`). 코어로 둔 이유는 web(승인·취소)과 batch(주기 대사) **두 앱이 쓰기 때문**이다 — 2개 앱 이상이 쓰는 계약은 코어 소유다. 빈 이름은 `pgPaymentGatewayRouter`다. ([ADR-0061](../../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md))
 
 ```java
-// application/payment/service/PgPaymentGatewayRouter.java (web-application)
+// application/payment/service/PgPaymentGatewayRouter.java (application-core)
 @Service
-public class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
+class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 
     public PgPaymentGatewayRouter(List<PgProviderGatewayPort> gateways) {
         // ...
@@ -42,7 +44,7 @@ public class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 }
 ```
 
-**이 모듈은 그 등록에 관여하지 않는다.** 벤더(tosspayments 등)를 조립해 `PgProviderGatewayPort` 구현체를 web-api의 클래스패스에 올리는 것까지가 이 모듈의 일이다. `provider()` 반환 타입은 도메인 `PgProvider`가 아니라 `application` 소유 `PgProviderCode`이고 `.name()` 변환은 라우터가 수행한다(`../tosspayments/AGENTS.md`의 "포트 반환 타입" 절 참고).
+**이 모듈은 그 등록에 관여하지 않는다.** 벤더(tosspayments 등)를 조립해 `PgProviderGatewayPort` 구현체를 web-api·batch-module의 클래스패스에 올리는 것까지가 이 모듈의 일이다. `provider()` 반환 타입은 도메인 `PgProvider`가 아니라 `application` 소유 `PgProviderCode`이고 `.name()` 변환은 라우터가 수행한다(`../tosspayments/AGENTS.md`의 "포트 반환 타입" 절 참고).
 
 ## 다른 채널 스타터와의 관계
 
@@ -50,20 +52,20 @@ public class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 
 ## 포트 2단 구조 — 벤더는 공존하고 앱은 하나만 주입한다
 
-두 포트(`PgPaymentGatewayPort`·`PgProviderGatewayPort`)는 `web-application` 소유다(web 전용 SPI).
+두 포트(`PgPaymentGatewayPort`·`PgProviderGatewayPort`)는 코어 `application-core` 소유다(web·batch가 함께 쓰는 SPI).
 
 | 계약 (`com.tastyhouse.application.payment.port.out`) | 누가 구현하나 | 누가 주입하나 |
 |---|---|---|
-| `PgProviderGatewayPort` — `provider()`(반환 타입 `PgProviderCode`) + 승인·취소 | 벤더 어댑터(`TossPaymentGatewayAdapter` 등), 벤더마다 하나 | 라우터(`List`로) |
-| `PgPaymentGatewayPort` — `supports(PgProvider)`(도메인 `PgProvider`) + 승인·취소(첫 인자 `PgProvider`) | **라우터 `PgPaymentGatewayRouter` 하나뿐** | application `PgPaymentConfirmService`·`PaymentCancelService` |
+| `PgProviderGatewayPort` — `provider()`(반환 타입 `PgProviderCode`) + 승인·취소·조회(`lookupPayment(pgOrderId)`) | 벤더 어댑터(`TossPaymentGatewayAdapter` 등), 벤더마다 하나 | 라우터(`List`로) |
+| `PgPaymentGatewayPort` — `supports(String pgProvider)`(도메인 `PgProvider`의 상수명) + 승인·취소·조회(첫 인자 `String pgProvider`) | **라우터 `PgPaymentGatewayRouter` 하나뿐** | web `PgPaymentConfirmService`·`PaymentCancelService`, batch `PaymentReconcileSchedulerService` |
 
 - 벤더가 둘 이상 떠도 `PgPaymentGatewayPort` 구현은 라우터 하나라 **빈 모호성이 없다.** 벤더 어댑터가 `PgPaymentGatewayPort`를 직접 구현하게 하지 않는다 — 두 번째 벤더가 들어오는 순간 `NoUniqueBeanDefinitionException`으로 web-api가 뜨지 않는다.
-- 라우터는 `web-application`의 `payment/service/PgPaymentGatewayRouter`에 있다 — 이 라우터가 다루는 계약(`PgProviderGatewayPort`·`PgConfirmResult`·`PgCancelResult` 등)이 application 계층 소유이므로 계약과 같은 계층에 둔다. 같은 `provider()`를 반환하는 벤더가 둘이면 생성자가 `IllegalStateException`으로 기동을 멈추고, 미등록 PG로 승인·취소를 요청하면 `BusinessException(WebErrorCode.PG_PROVIDER_UNSUPPORTED)`를 던진다.
+- 라우터는 `application-core`의 `payment/service/PgPaymentGatewayRouter`에 있다 — 이 라우터가 다루는 계약(`PgProviderGatewayPort`·`PgConfirmResult`·`PgCancelResult` 등)이 application 계층 소유이므로 계약과 같은 계층에 둔다. 같은 `provider()`를 반환하는 벤더가 둘이면 생성자가 `IllegalStateException`으로 기동을 멈추고, 미등록 PG로 승인·취소·조회를 요청하면 `ApplicationException(ApplicationErrorCode.PG_PROVIDER_UNSUPPORTED)`를 던진다.
 - 취소는 `supports`로 먼저 묻는다. 결제 완료 경로는 PG 승인(`POST /api/payments/v1/toss/confirm`)과 현장결제 완료뿐이지만, 담당 벤더가 없는 PG 이름으로 완료된 결제가 과거 데이터에 남아 있을 수 있다. 그런 결제는 PG 취소 없이 DB만 취소한다(`PaymentCancelService#doCancelPayment`).
 
 ## 벤더 추가 절차 (예: 다날)
 
-**web-api를 건드리지 않는다.**
+**web-api·batch-module을 건드리지 않는다.**
 
 1. `infrastructure:danal` 신설 — 패키지 `com.tastyhouse.infrastructure.danal`(모듈 루트 규칙 — `VendorLayerRulesTest#shouldResideInModuleRootPackage`를 함께 둔다), 어댑터가 `application` 소유 `PgProviderGatewayPort`를 구현하고 `provider()`로 새 `PgProviderCode` 상수(`DANAL`)를 반환한다. **도메인 `PgProvider`에도 같은 이름으로 상수를 추가해야 한다**(`../tosspayments/AGENTS.md`의 `EnumCodeConstantsTest`가 두 enum의 상수 집합 일치를 검증한다). 자기 `@Configuration`과 `application-danal.yml`(`pg.danal.*`)을 갖는다.
 2. 이 모듈 `build.gradle`에 `runtimeOnly project(':infrastructure:danal')` 한 줄.
@@ -74,11 +76,11 @@ public class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 
 ## 어느 앱이 의존하는가
 
-**web-api 하나뿐이다**(`runtimeOnly`). 클래스패스 존재가 곧 활성화이므로 다른 앱에 이 모듈을 추가하면 벤더 어댑터가 그 앱에도 올라온다(라우터 등록은 `web-application` 모듈에 있는 `PgPaymentGatewayRouter`가 web-api에 한정하지만, 벤더 어댑터 자체는 이 모듈의 조립을 따라간다). 결제는 사용자 앱에서만 일어나므로 추가하지 않는다.
+**web-api와 batch-module 둘이다**(둘 다 `runtimeOnly`). web-api는 사용자 결제의 승인·취소·즉시 조회에, batch-module은 결과를 확정하지 못한 결제의 주기 대사(`PaymentReconcileScheduler`)에 쓴다. 클래스패스 존재가 곧 활성화이므로 이 모듈을 붙인 앱에는 벤더 어댑터가 올라오고, 벤더 yml의 `${TOSS_SECRET_KEY}`를 그 앱의 환경 변수(`.env`)로 채워야 한다. admin·ceo는 PG를 호출하지 않으므로 추가하지 않는다 — 라우터는 코어에 있어 거기서도 뜨지만 빈 목록으로 생성된다.
 
 ## yml — `application-pg.yml`
 
-벤더 yml(`classpath:application-tosspayments.yml`)을 중첩 `spring.config.import`로 로딩하는 것이 전부다. **`pg.provider` 같은 배타 선택 키를 두지 않는다** — 파일 저장(`file.provider`)·메일(`mail.provider`)·SMS(`sms.provider`)와 달리 결제는 여러 벤더가 동시에 떠야 하기 때문이다. web-api `application.yml`에는 `classpath:application-pg.yml` 한 줄만 있다.
+벤더 yml(`classpath:application-tosspayments.yml`)을 중첩 `spring.config.import`로 로딩하는 것이 전부다. **`pg.provider` 같은 배타 선택 키를 두지 않는다** — 파일 저장(`file.provider`)·메일(`mail.provider`)·SMS(`sms.provider`)와 달리 결제는 여러 벤더가 동시에 떠야 하기 때문이다. web-api·batch-module의 `application.yml`에는 `classpath:application-pg.yml` 한 줄만 있다.
 
 ## Dependencies
 
@@ -90,7 +92,7 @@ public class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 
 - **실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
 - 벤더 설정은 `TossPaymentsModuleConfig`(일반 `@Configuration`)라 `--debug` 조건 리포트에 나오지 않는다. 스캔된 라우터·어댑터 빈도 리포트에 나오지 않으므로, 배선 확인은 `--logging.level.org.springframework.beans.factory.support=DEBUG`로 띄워 `Autowiring by type from bean name 'pgPaymentGatewayRouter' via factory method to bean named 'tossPaymentGatewayAdapter'` 로그를 본다. ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
-- 결제 실패는 `BusinessException`(에러코드는 던지는 모듈의 enum — `PG_PROVIDER_UNSUPPORTED` 등은 `WebErrorCode`)으로 표현한다. 전용 예외 타입과 모듈별 `@ExceptionHandler`를 추가하지 않는다.
+- 결제 실패는 `BusinessException`(에러코드는 던지는 모듈의 enum — 코어 라우터가 던지는 `PG_PROVIDER_UNSUPPORTED`는 `ApplicationErrorCode`)으로 표현한다. 전용 예외 타입과 모듈별 `@ExceptionHandler`를 추가하지 않는다.
 
 ## 봉인·가드 목록
 
@@ -100,7 +102,7 @@ public class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 
 **대상**: `backend/infrastructure/pg/` 전체(`src/main/java` 부재가 정상)
 
-이 모듈은 코드 없는 스타터다(`../file-storage/AGENTS.md`·`../oauth/AGENTS.md`와 같은 판단). **`PgModuleAutoConfiguration`·`PgGatewayConfig` 같은 등록 코드를 두지 않는다** — 라우터 등록은 `web-application`의 `@Service`가 한다.
+이 모듈은 코드 없는 스타터다(`../file-storage/AGENTS.md`·`../oauth/AGENTS.md`와 같은 판단). **`PgModuleAutoConfiguration`·`PgGatewayConfig` 같은 등록 코드를 두지 않는다** — 라우터 등록은 `application-core`의 `@Service`가 한다.
 
 ### 벤더 어댑터에 `@ConditionalOnProperty`를 붙이지 않는다
 
@@ -110,7 +112,7 @@ public class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 
 ### 라우터 등록에 `@ConditionalOnBean`을 쓰지 않는다
 
-**대상**: `backend/web-application/src/main/java/com/tastyhouse/application/payment/service/PgPaymentGatewayRouter.java` → 클래스 애노테이션(`@Service`)
+**대상**: `backend/application-core/src/main/java/com/tastyhouse/application/payment/service/PgPaymentGatewayRouter.java` → 클래스 애노테이션(`@Service`)
 
 사용자 설정 사이의 등록 순서에 따라 조건이 거짓이 되어 라우터가 조용히 빠질 수 있다(`../mail/AGENTS.md`와 같은 판단). 벤더가 0개여도 빈 목록으로 라우터가 생성되고, 첫 결제에서 `PG_PROVIDER_UNSUPPORTED`로 드러난다.
 

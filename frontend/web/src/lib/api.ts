@@ -112,7 +112,7 @@ class ApiClient {
       const json = await response.json().catch(() => null)
 
       if (!response.ok) {
-        const message = json?.message || response.statusText
+        const message = json?.message || json?.detail || response.statusText
         const logPayload = { status, durationMs, message }
 
         if (status >= 500) {
@@ -123,8 +123,11 @@ class ApiClient {
 
         // 백엔드 errorCode/message를 보존해 호출부가 코드 기반으로 분기하고
         // 사용자에게 노출 가능한 한국어 메시지를 그대로 쓸 수 있게 한다.
+        // 오류 본문(ProblemDetail)은 문구를 detail에 담으므로 error는 detail로 폴백한다.
+        // message 키에는 detail을 넣지 않는다 — 호출부가 message를 프론트 매핑 문구보다
+        // 먼저 고르기 때문이다(checkout·reservation).
         return {
-          error: json?.message || '오류가 발생했습니다. 다시 시도해 주세요.',
+          error: json?.message || json?.detail || '오류가 발생했습니다. 다시 시도해 주세요.',
           ...(json?.errorCode ? { errorCode: json.errorCode } : {}),
           ...(json?.message ? { message: json.message } : {}),
           status,

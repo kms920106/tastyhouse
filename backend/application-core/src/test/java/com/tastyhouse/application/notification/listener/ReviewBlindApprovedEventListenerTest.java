@@ -12,7 +12,7 @@ import com.tastyhouse.domain.review.event.ReviewBlindApprovedEvent;
 import com.tastyhouse.domain.review.vo.ReviewBlindRequestId;
 import com.tastyhouse.domain.review.vo.ReviewId;
 import com.tastyhouse.application.notification.service.NotificationService;
-import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.logging.LogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -30,7 +30,7 @@ class ReviewBlindApprovedEventListenerTest {
     private final ReviewBlindApprovedEventListener listener =
         new ReviewBlindApprovedEventListener(notificationService);
 
-    private ListenerLogCapture logCapture;
+    private LogCapture logCapture;
 
     @AfterEach
     void tearDown() {
@@ -50,7 +50,7 @@ class ReviewBlindApprovedEventListenerTest {
     @Test
     @DisplayName("적재 결과를 식별자와 함께 로그로 남긴다")
     void logsStoredNotification() {
-        logCapture = ListenerLogCapture.attachTo(ReviewBlindApprovedEventListener.class);
+        logCapture = LogCapture.attachTo(ReviewBlindApprovedEventListener.class);
         when(notificationService.notifyReviewBlindApproved(REVIEWER_MEMBER_ID, REVIEW_ID, BLIND_UNTIL))
             .thenReturn(501L);
 

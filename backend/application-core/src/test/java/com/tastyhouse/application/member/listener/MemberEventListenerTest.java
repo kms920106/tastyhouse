@@ -11,7 +11,7 @@ import com.tastyhouse.domain.member.event.MemberRegisteredEvent;
 import com.tastyhouse.domain.member.event.MemberWithdrawnEvent;
 import com.tastyhouse.domain.member.model.MemberWithdrawalReason;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.logging.LogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,11 +19,11 @@ class MemberEventListenerTest {
 
     private final MemberEventListener listener = new MemberEventListener();
 
-    private ListenerLogCapture logCapture;
+    private LogCapture logCapture;
 
     @BeforeEach
     void attachLogCapture() {
-        logCapture = ListenerLogCapture.attachTo(MemberEventListener.class);
+        logCapture = LogCapture.attachTo(MemberEventListener.class);
     }
 
     @AfterEach

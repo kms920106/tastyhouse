@@ -12,7 +12,7 @@ import com.tastyhouse.domain.coupon.event.MemberCouponUsedEvent;
 import com.tastyhouse.domain.coupon.vo.CouponId;
 import com.tastyhouse.domain.coupon.vo.MemberCouponId;
 import com.tastyhouse.domain.member.vo.MemberId;
-import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.logging.LogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,11 +20,11 @@ class CouponEventListenerTest {
 
     private final CouponEventListener listener = new CouponEventListener();
 
-    private ListenerLogCapture logCapture;
+    private LogCapture logCapture;
 
     @BeforeEach
     void attachLogCapture() {
-        logCapture = ListenerLogCapture.attachTo(CouponEventListener.class);
+        logCapture = LogCapture.attachTo(CouponEventListener.class);
     }
 
     @AfterEach

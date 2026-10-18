@@ -24,7 +24,12 @@ class PaymentCancellationExecutor {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public PaymentCancelCode applyInNewTx(MemberId memberId, PaymentId paymentId, String cancelReason) {
-        return paymentCancellationService.applyCancellation(memberId, paymentId, cancelReason);
+    public PaymentCancelCode applyInNewTx(
+        MemberId memberId,
+        PaymentId paymentId,
+        String cancelReason,
+        boolean pgCancelRequiredAtPrepare
+    ) {
+        return paymentCancellationService.applyCancellation(memberId, paymentId, cancelReason, pgCancelRequiredAtPrepare);
     }
 }

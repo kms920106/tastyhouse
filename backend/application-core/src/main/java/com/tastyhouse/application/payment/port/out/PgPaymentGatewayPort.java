@@ -7,4 +7,6 @@ public interface PgPaymentGatewayPort {
     PgConfirmResult confirmPayment(String pgProvider, Long paymentId, String paymentKey, String pgOrderId, int amount);
 
     PgCancelResult cancelPayment(String pgProvider, String pgTid, String cancelReason);
+
+    PgPaymentLookupResult lookupPayment(String pgProvider, String pgOrderId);
 }

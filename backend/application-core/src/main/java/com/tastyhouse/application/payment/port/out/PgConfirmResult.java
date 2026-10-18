@@ -14,6 +14,7 @@ public record PgConfirmResult(
     Integer installmentPlanMonths,
     String errorCode,
     String errorMessage,
+    PgConfirmFailure failure,
     TossPaymentDetail detail
 ) {
 }

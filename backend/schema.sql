@@ -1320,6 +1320,8 @@ CREATE TABLE PAYMENT
     receipt_url          VARCHAR(500),                           -- 영수증 URL
     cash_receipt_number  VARCHAR(50),                            -- 현금영수증 번호
     cash_receipt_type    VARCHAR(20),                            -- 현금영수증 유형 (소득공제, 지출증빙)
+    reconcile_attempt_count INT      NOT NULL DEFAULT 0,         -- 마지막 PG 승인 시도 이후 batch 대사 시도 횟수
+    reconcile_next_at    DATETIME,                               -- 다음 batch 대사 가능 일시 (NULL: 즉시 대상)
     created_at           DATETIME    NOT NULL,                   -- 생성 일시
     updated_at           DATETIME    NOT NULL,                   -- 수정 일시
     INDEX idx_payment_order_id (order_id),                       -- 인덱스: 주문별 조회

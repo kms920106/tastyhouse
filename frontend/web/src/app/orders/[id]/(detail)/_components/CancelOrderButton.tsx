@@ -45,7 +45,7 @@ export default function CancelOrderButton({ paymentId, paymentStatus, phoneNumbe
     setIsLoading(false)
 
     if (!result.success) {
-      toast('결제 취소 중 오류가 발생했습니다.')
+      toast(result.error ?? '결제 취소 중 오류가 발생했습니다.')
       return
     }
 

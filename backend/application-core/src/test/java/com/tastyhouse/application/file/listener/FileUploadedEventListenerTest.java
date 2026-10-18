@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.file.event.FileUploadedEvent;
 import com.tastyhouse.domain.file.vo.UploadedFileId;
-import com.tastyhouse.testsupport.shared.listener.ListenerLogCapture;
+import com.tastyhouse.testsupport.shared.logging.LogCapture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,11 +17,11 @@ class FileUploadedEventListenerTest {
 
     private final FileUploadedEventListener listener = new FileUploadedEventListener();
 
-    private ListenerLogCapture logCapture;
+    private LogCapture logCapture;
 
     @BeforeEach
     void attachLogCapture() {
-        logCapture = ListenerLogCapture.attachTo(FileUploadedEventListener.class);
+        logCapture = LogCapture.attachTo(FileUploadedEventListener.class);
     }
 
     @AfterEach

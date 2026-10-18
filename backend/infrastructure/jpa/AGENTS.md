@@ -92,11 +92,13 @@ com.tastyhouse.infrastructure.jpa/
   - **한 트랜잭션에서 같은 테이블의 여러 행을 잠글 때는 키 오름차순으로 잠근다.** 두 트랜잭션이 같은 두 행을 반대 순서로 잠그면 교착이 난다. 지금 해당 경로는 추천 보상 하나다. `ReferralRegisteredEventListener#handle`이 추천인(기존 회원, 더 작은 member_id) → 피추천인(방금 가입한 회원) 순으로 `earnPoints`를 부르므로 이미 오름차순이다. 이 순서를 뒤집지 않는다.
   - **락 대기 타임아웃**: `CannotAcquireLockException`은 지금 번역하지 않아 500으로 나간다.
   - **실제 DB 동시성은 통합 테스트로 지킨다**: 락·upsert의 효과는 mock으로 검증할 수 없다. `point/persistence/PointConcurrencyIntegrationTest`(Testcontainers MySQL, `@Tag("integration")`)가 실제 InnoDB에서 다음을 검사한다 — 동시 사용 직렬화, 잠금 대기 후 최신 값 읽기, 같은 회원 동시 첫 적립, 서로 다른 회원 동시 첫 적립(교착 없음), 잠금 조회의 UNIQUE 인덱스 사용과 중복 인덱스 부재. 반증 기준: 락이나 upsert를 떼면 앞의 세 시나리오가 실패해야 한다. 잠금 대기 시나리오만 래치로 순서를 고정한 결정적 검사이고, 나머지는 시작 래치 하나로 동시 실행을 만드는 확률적 검사다 — 현재 코드의 통과는 결정적이지만, 보호 장치가 빠졌을 때 한 번의 실행으로 반드시 실패한다는 보장은 없다. 그래서 SQL 문장 자체는 단위 테스트 `PointPersistenceAdapterTest`도 검사한다.
+    - **결제**: `payment/persistence/PaymentConcurrencyIntegrationTest`가 `findByPgOrderIdForUpdate`를 같은 방식으로 검사한다. 네 시나리오 모두 래치로 순서를 고정해 현재 코드의 통과는 결정적이다. 보호 장치가 빠진 변형을 잡아내는 쪽은 0.5초 대기((1)·(4))와 5초 상한((2)·(3))에 기댄다 — (1) 승인 반영이 결제 행을 쥔 동안 실패 반영의 잠금 조회가 기다렸다가 COMPLETED를 읽고 실패로 덮지 않는다, (2) 한 결제를 잠가도 다른 결제의 잠금 조회는 기다리지 않는다, (3) 없는 PG 주문번호의 잠금 조회는 빈 결과이고 새 결제 INSERT를 막지 않는다, (4) 취소 반영이 `findByIdForUpdate`로 결제 행을 쥔 동안 PG 시도 기록의 `findByPgOrderIdForUpdate`가 기다렸다가 CANCELLED를 읽고 `pg_provider`를 기록하지 않는다. 반증 기준(실제로 확인함): `findByIdForUpdate`의 `setLockMode`를 떼면 (1)이 실패하고, `findByPgOrderIdForUpdate`를 `pg_order_id` 직접 `FOR UPDATE`로 바꾸면 인덱스가 없어 전체 스캔 잠금이 걸려 (2)·(3)이 실패한다. 컨텍스트 구성은 아래 "컨텍스트 구성" 항목과 같다.
     - **`./gradlew build`에 포함되지 않는다.** `test` 태스크가 `integration` 태그를 제외하고, 별도 태스크 `./gradlew :infrastructure:jpa:integrationTest`가 그 태그만 실행한다. Docker 없이 `build`가 깨지지 않게 하려는 분리다. `@Testcontainers(disabledWithoutDocker = true)`로 대신하지 않는다 — Docker가 없으면 조용히 통과해 검증된 것처럼 보인다. 이 태스크는 Docker가 없으면 실패한다.
     - **스키마는 `backend/schema.sql` 전체를 적재한다**(테스트에 DDL을 복제하지 않는다). 경로는 Gradle이 시스템 프로퍼티 `tastyhouse.schema`로 넘긴다. IDE에서 단독 실행하려면 `-Dtastyhouse.schema=<backend/schema.sql 절대경로>`를 VM 옵션에 준다.
-    - **컨텍스트 구성**: 테스트 안의 중첩 `@SpringBootConfiguration`에 `@EntityScan`·`@EnableJpaRepositories`(point 패키지)·`@EnableJpaAuditing`과 `JPAQueryFactory` 빈을 둔다. `@SpringBootConfiguration`만으로는 엔티티·리포지토리 스캔 범위가 잡히지 않는다. `config/QueryDslConfig`는 다른 패키지의 package-private 클래스라 import하지 않는다. 물리 이름 전략은 `application-jpa.yml`과 같은 `PhysicalNamingStrategyStandardImpl`을 프로퍼티로 준다 — 기본 전략은 테이블명을 소문자로 바꾸는데, Linux MySQL은 테이블명 대소문자를 구분한다.
+    - **컨텍스트 구성**: 테스트 안의 중첩 `@SpringBootConfiguration`에 `@EntityScan`·`@EnableJpaRepositories`(그 테스트의 컨텍스트 패키지 — point·payment)·`@EnableJpaAuditing`과 `JPAQueryFactory` 빈을 둔다. `@SpringBootConfiguration`만으로는 엔티티·리포지토리 스캔 범위가 잡히지 않는다. `config/QueryDslConfig`는 다른 패키지의 package-private 클래스라 import하지 않는다. 물리 이름 전략은 `application-jpa.yml`과 같은 `PhysicalNamingStrategyStandardImpl`을 프로퍼티로 준다 — 기본 전략은 테이블명을 소문자로 바꾸는데, Linux MySQL은 테이블명 대소문자를 구분한다.
   - **reference**:
-    - `payment/persistence/PaymentPersistenceAdapter#findByIdForUpdate` — 호출부 `web-application`의 `PaymentCancellationService#requestRefund` ([ADR-0055](../../../docs/adr/0055-payment-refund-pessimistic-lock.md))
+    - `payment/persistence/PaymentPersistenceAdapter#findByIdForUpdate` — 호출부 `web-application`의 `PaymentCancellationService#requestRefund`·`#applyCancellation`. 둘 다 트랜잭션의 첫 조회로 결제 행을 잠근다 — 환불 요청은 누적 금액 판정을, 취소 반영은 "결제 대기 + 승인 시도 표시" 판정(`isAwaitingPgResult`)과 "사전 판정 뒤 승인 완료" 판정(`pgCancelRequiredAtPrepare`와 `isPgCancelRequired` 비교)을 최신 상태로 하기 위해서다. 취소 반영의 잠금은 승인 시도 기록(`PaymentConfirmationService#recordPgAttempt` — `findByPgOrderIdForUpdate`)과 같은 PK 행을 잡으므로 두 쓰기가 직렬화된다. ([ADR-0055](../../../docs/adr/0055-payment-refund-pessimistic-lock.md), [ADR-0060](../../../docs/adr/0060-pg-confirm-unknown-lookup.md))
+    - `payment/persistence/PaymentPersistenceAdapter#findByPgOrderIdForUpdate` — 호출부 `application-core`의 `PaymentConfirmationService#recordPgAttempt`·`#applyPgConfirmation`·`#reconcileApproved`·`#failPgConfirmation`. 판정 값(결제 상태)을 락 로드 자체가 읽는 경우다. `pg_order_id`에 인덱스가 없어 id를 스칼라로 먼저 찾고 PK 한 행만 잠근다(아래 설계 근거 절). 가드는 둘이다. `PaymentPersistenceAdapterTest`가 "id 조회 → PK 잠금" 순서와 행 없음 시 잠금 생략을 검사하고, `PaymentConcurrencyIntegrationTest`가 실제 MySQL에서 대기·행 단위 잠금을 검사한다. ([ADR-0059](../../../docs/adr/0059-payment-confirm-race-lock.md))
     - `point/persistence/PointPersistenceAdapter#findByMemberIdForUpdate` — 호출부 `application-core`의 `PointLedgerService`. 주문 경로 `OrderPlacementService#place`는 상품·쿠폰을 먼저 일반 조회한 뒤 잠그는 두 번째 경우다. 적립 `PointLedgerService#earnPoints`는 `PointPersistenceAdapter#saveIfAbsent`로 행을 보장한 뒤 잠그는 "없으면 만든다" 경우다. 가드는 셋이다. `PointPersistenceAdapterTest`가 `setLockMode(PESSIMISTIC_WRITE)` 호출을 검사하고(이 호출을 떼면 잔액 lost update가 재발한다), `PointLedgerServiceTest`가 각 경로의 로드 순서를 검사하며, `PointConcurrencyIntegrationTest`가 실제 MySQL에서 동시성을 검사한다. ([ADR-0058](../../../docs/adr/0058-point-balance-pessimistic-lock.md))
 - **`getReferenceById`/`getOne` 사용 시 주의**: 이 프로젝트는 현재 두 메서드를 어디서도 쓰지 않는다. 쓰게 되면 lazy proxy 접근 시 `jakarta.persistence.EntityNotFoundException`(`com.tastyhouse.application.shared.exception.ResourceNotFoundException`과 무관한 JPA 예외)이 던져질 수 있는데, `GlobalExceptionHandler`는 `BusinessException` 계층만 처리하므로 이 예외는 `Exception` 핸들러에 잡혀 404가 아닌 500이 된다. 사용한다면 호출부에서 반드시 도메인 예외로 번역할 것.
 - **엔티티 enum 컬럼은 `String` 필드 + `@Column(length = n, columnDefinition = "VARCHAR(n)")`이다**(`@Enumerated` 0건). 저장값은 **상수명 문자열**이고, 강등(`name()`)·승격(`valueOf`)은 이 모듈의 `XxxMapper`가 한다 — 선언 순서가 아니라 이름을 저장해야 상수 추가·재배열이 기존 데이터 의미를 바꾸지 않는다(ORDINAL 금지와 같은 취지). **엔티티 필드를 enum으로 바꾸지 않는다** — 조회 DAO 31개 파일·193곳이 `String` 컬럼을 투영하고, 바꾸면 `Projections.constructor`가 런타임에만 깨진다. 필드가 `String`이라 Hibernate는 `VARCHAR`를 기대하므로 `columnDefinition`은 validate 통과에 필수가 아니지만, `n`이 `schema.sql` 길이의 문서이고 누군가 필드를 enum으로 바꾸면 즉시 Hibernate 6 `MySQLDialect`의 네이티브 `ENUM` 기대 장애가 재발하므로 **떼지 않는다**. DAO에서 enum 상수와 비교할 때는 리터럴도 복제 상수도 쓰지 않고, **비교값을 포트 인자로 받는다**(`application-core/AGENTS.md` "enum 비교값 전달 규칙"). 조회 DAO에는 enum 어휘가 없다. write 어댑터 `XxxPersistenceAdapter`은 도메인 enum을 `name()`으로 풀어 쓴다(예: `ReservationPersistenceAdapter`의 `ReservationStatus.blockingStatuses()`). DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 `backend/CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙".
@@ -922,8 +924,9 @@ admin 목록·상세는 삭제된 쿠폰을 제외하지만, **내 쿠폰 조회
 - `.../shop/persistence/StationJpaEntity.java` → `stationName`
 - `.../holiday/persistence/PublicHolidayJpaEntity.java` → `substitute`
 - `.../reservation/persistence/ReservationSlotJpaEntity.java` → `version`
+- `.../payment/persistence/PaymentJpaEntity.java` → `reconcileAttemptCount`·`reconcileNextAt`
 
-IDE·정적분석이 "assigned but never accessed" / "never used" / "never assigned"로 경고하지만 **전부 정상이다.** JPA가 flush 시 리플렉션으로 읽는 컬럼 매핑이거나(스냅샷·FK), QueryDSL `.orderBy(...)`·투영 전용이거나, NOT NULL 컬럼과 매핑돼야 `ddl-auto: validate`를 통과하거나, Hibernate가 관리하는 낙관적 락 버전이다.
+IDE·정적분석이 "assigned but never accessed" / "never used" / "never assigned"로 경고하지만 **전부 정상이다.** JPA가 flush 시 리플렉션으로 읽는 컬럼 매핑이거나(스냅샷·FK), QueryDSL `.orderBy(...)`·투영 전용이거나, Q타입 경로로만 읽고 쓰는 batch 대사 일정이거나(`insertable = false, updatable = false` — 아래 `PaymentPersistenceAdapter#findAllPgAttemptedReconcileDueByStatusCreatedBetween` 절), NOT NULL 컬럼과 매핑돼야 `ddl-auto: validate`를 통과하거나, Hibernate가 관리하는 낙관적 락 버전이다.
 
 **제거하면**: 주문 시점 옵션 스냅샷·태그 FK가 저장되지 않고, 정렬이 사라지며, 부팅이 스키마 검증에서 거부된다. 위 대상에는 억제 어노테이션(`@SuppressWarnings`)이 하나도 없으며(`backend/CLAUDE.md`의 `@SuppressWarnings` 지양 규칙), 경고를 가리려고 새로 붙이지 않는다. 경고는 이 목록으로 정상임을 판별한다.
 
@@ -1160,6 +1163,35 @@ Tuple은 타입 없는 행이라 `row.get(0, X.class)` 같은 위치 접근이 �
 <!-- 분류 B. 모듈 구조와 그 근거. 챕터 05에서 코드 주석을 제거하며 이관 -->
 
 원문 주석은 코드에서 제거됐으므로, 여기가 각 쿼리 전략의 유일한 소재지다. 항목마다 **파일 경로 + 코드 요소명**을 앵커로 남긴다(줄 번호는 쓰지 않는다 — 코드가 바뀌면 즉시 틀리기 때문이다).
+
+### `PaymentPersistenceAdapter#findByPgOrderIdForUpdate` — id를 먼저 찾고 PK 한 행만 잠근다
+
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/payment/persistence/PaymentPersistenceAdapter.java` → `findByPgOrderIdForUpdate` · `findByIdForUpdate`, 테스트 `.../payment/persistence/PaymentPersistenceAdapterTest.java`
+
+`PAYMENT.pg_order_id`에는 인덱스가 없다. 기본 격리 수준(MySQL REPEATABLE READ)에서 `WHERE pg_order_id = ? FOR UPDATE`를 실행하면 클러스터드 인덱스 전체를 스캔하며 모든 레코드와 간격에 next-key 잠금을 걸어, 모든 결제의 승인·결제 개시 INSERT·취소가 직렬화된다. 그래서 두 단계로 읽는다.
+
+1. `select(paymentJpaEntity.id)` 스칼라 조회로 id만 잠금 없이 찾는다. 스칼라라 엔티티를 영속성 컨텍스트에 올리지 않으므로, 다음 단계의 잠금 읽기가 그 트랜잭션에서 결제 엔티티를 처음 읽는 쿼리가 된다(위 비관적 락 항목의 "같은 행을 락 앞에서 엔티티로 불러오지 않는다").
+2. `findByIdForUpdate`로 PK 한 행에만 `PESSIMISTIC_WRITE`를 건다. locking read라 스냅샷이 아니라 최신 커밋 값을 읽는다. 이어지는 `save`의 `paymentJpaRepository.findById`는 이 관리 엔티티를 1차 캐시에서 재사용한다.
+
+- `pg_order_id`는 결제 생성 후 바뀌지 않으므로(승인 반영의 `updatePgInfo`도 같은 값을 다시 쓴다) 1과 2 사이의 경합이 없다.
+- 행이 없으면 2를 실행하지 않고 빈 `Optional`을 돌려준다. 없는 키에 `FOR UPDATE`를 걸어 gap lock을 만들지 않기 위해서다.
+- `@Version`(낙관적 락)을 쓰지 않은 이유: `PAYMENT.version` DDL이 필요하고, 충돌이 커밋 시점에 나면 승인 반영 쪽에 재시도 루프가 있어야 한다. 비관적 잠금은 스키마 변경과 재시도 없이 같은 효과를 내며, PG 호출은 트랜잭션 밖이라 잠금을 잡고 네트워크를 기다리지 않는다.
+- `pg_order_id`에 인덱스를 추가하면 1단계 없이 직접 잠글 수 있다(DDL 필요 — ADR-0059의 후속 과제). 제안 DDL은 `ALTER TABLE PAYMENT ADD INDEX idx_payment_pg_order_id (pg_order_id);`이고 `schema.sql`에는 아직 반영하지 않았다(적용 여부는 사용자 결정 — 적용하면 `schema.sql`의 `PAYMENT` `CREATE TABLE`에도 같은 인덱스를 넣어 두 벌을 맞춘다). 인덱스를 추가하면 위 반증 기준 중 "직접 `FOR UPDATE`로 바꾸면 (2)·(3)이 실패한다"가 더는 성립하지 않는다 — 인덱스 범위 잠금만 걸리므로 그 변형이 통과한다.
+
+### `PaymentPersistenceAdapter#findAllPgAttemptedReconcileDueByStatusCreatedBetween` — 주기 대사 대상은 반개구간·생성 순·차례가 온 결제다
+
+**대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/payment/persistence/PaymentPersistenceAdapter.java` → `findAllPgAttemptedReconcileDueByStatusCreatedBetween`·`findReconcileAttemptCount`·`saveReconcileSchedule`·`saveReconcileScheduleIfDue`, 엔티티 `.../payment/persistence/PaymentJpaEntity.java` → `reconcileAttemptCount`·`reconcileNextAt`, 포트 `backend/application-core/src/main/java/com/tastyhouse/application/payment/port/out/write/PaymentLoadPort.java` → `findAllPgAttemptedReconcileDueByStatusCreatedBetween`·`findReconcileAttemptCount`, `PaymentSavePort.java` → `saveReconcileSchedule`·`saveReconcileScheduleIfDue`, 테스트 `.../payment/persistence/PaymentPersistenceAdapterTest.java`·`PaymentReconcileTargetIntegrationTest.java`
+
+batch 주기 대사(`batch-application`의 `PaymentReconcileSchedulerService`)가 쓰는 대상 조회다. 조건과 순서를 바꾸면 대사 대상이 조용히 달라지므로 아래를 지킨다.
+
+- **조건**: `payment_status = ?`(호출부는 `PENDING`) **그리고** `pg_provider IS NOT NULL`(승인 시도 표시가 있는 결제만 — 결제창만 열고 떠난 결제는 PG가 돈을 받았을 리 없으므로 대사하지 않는다) **그리고** `created_at >= from` **그리고** `created_at < to` **그리고** `reconcile_next_at IS NULL OR reconcile_next_at <= dueAt`(호출부는 실행 시각을 넘긴다 — 이미 시도해 다음 차례가 아직 오지 않은 결제를 빼, 결과를 확정하지 못하는 결제가 limit을 차지해 새 결제가 대사되지 않는 것을 막는다).
+- **반개구간 `[from, to)`이다** — 경계가 겹치는 다음 주기와 같은 행을 두 번 세지 않게 상한은 `lt`다. 기준 컬럼은 결제 **생성 시각**(`created_at`)이지 승인 시도 시각이 아니다. 승인 시도 시각 기준의 대기는 `reconcile_next_at`이 맡는다 — 승인 시도 때 시도 시각 + 10분으로 기록되므로, 생성 후 한참 지나 승인을 시도한 결제도 시도 직후에는 고르지 않는다.
+- **정렬은 `created_at ASC, id ASC`다** — 오래된 것부터 `limit`건만 읽으므로, 같은 생성 시각의 동점은 id로 고정해 주기마다 같은 순서를 보장한다.
+- **`saveReconcileScheduleIfDue`는 조건부 UPDATE로 batch 대사 차례를 선점한다** — `SET reconcile_attempt_count = 읽은 값 + 1, reconcile_next_at = ?` `WHERE id = ? AND reconcile_attempt_count = 읽은 값 AND (reconcile_next_at IS NULL OR reconcile_next_at <= dueAt)`이고, 영향 행이 1일 때만 `true`다. 횟수 비교는 다른 실행이 먼저 올린 경우를, 다음 시각 비교는 "다른 실행이 선점해 시각을 미룬 뒤 내가 그 새 횟수를 읽은" 경우와 web 승인 시도가 일정을 초기화(`saveReconcileSchedule(…, 0, 시도 시각 + 10분)`)한 경우를 걸러낸다. 두 조건 중 하나라도 빼면 batch를 여러 대 띄웠을 때 같은 결제를 두 번 선점한다. InnoDB의 UPDATE는 최신 커밋 값으로 조건을 다시 평가하므로(locking read), 같은 트랜잭션에서 먼저 읽은 횟수가 스냅샷이어도 결과가 맞다. 잠금 없이 행 하나에만 쓰므로 PG 호출과 겹치지 않는다. where 조건 3개와 영향 행 0/1 → `false`/`true` 매핑은 `PaymentPersistenceAdapterTest`(일반 빌드)가 고정하고, `PaymentReconcileTargetIntegrationTest`(Testcontainers)가 선점 성공·같은 횟수로 두 번째 선점 실패·미뤄진 결제 선점 실패를 실제 DB로 검사한다([ADR-0064](../../../docs/adr/0064-payment-reconcile-claim.md)).
+- **`reconcile_attempt_count`·`reconcile_next_at`은 `insertable = false, updatable = false`로 매핑하고, `saveReconcileSchedule`·`saveReconcileScheduleIfDue`의 QueryDSL UPDATE로만 쓴다.** Hibernate는 엔티티 flush 때 매핑한 컬럼을 전부 UPDATE하므로, 일반 매핑이면 승인·취소가 결제를 저장할 때 batch가 방금 쓴 값을 옛 값으로 덮는다. INSERT 때는 DB DEFAULT(0, NULL)가 들어간다. `PaymentMapper`·`create`·`applyChanges`는 두 필드를 다루지 않고, 도메인 모델 `Payment`에도 없다(결제 상태가 아니라 batch 대사 일정이다). 두 필드는 getter가 없고 Q타입 경로로만 쓰인다. `PaymentReconcileTargetIntegrationTest`가 bulk UPDATE가 실제로 반영되는지와 이후 엔티티 저장이 두 컬럼을 덮지 않는지를 검사한다. 일정 계산(다음 시각)은 `batch-application`의 `PaymentReconcileBackoffPolicy#nextAttemptAt`, web 승인 시도 때의 초기화는 `application-core`의 `PaymentConfirmationService#recordPgAttempt`가 한다([ADR-0062](../../../docs/adr/0062-payment-reconcile-backoff.md)).
+- **잠그지 않는다** — 조회 결과는 PG 조회 대상 목록일 뿐이고, 상태 반영은 건마다 `findByPgOrderIdForUpdate`로 다시 잠가 판정한다. 단위 테스트가 `setLockMode` 미호출을 검사한다.
+- 쓰기 포트(`PaymentLoadPort`)에 두는 이유: 반환 값이 도메인 모델이고 명령 경로(대사 반영)의 입력이다(`backend/CLAUDE.md`의 "write 포트 잔류 판정 기준").
+- 단위 테스트 `PaymentPersistenceAdapterTest`는 "id 조회 → PK 잠금 → fetch" 순서와 행 없음 시 잠금 생략을 mock으로 검사한다. 두 트랜잭션이 실제로 기다리는지, 다른 결제 행·새 INSERT를 막지 않는지는 `PaymentConcurrencyIntegrationTest`(Testcontainers MySQL, `./gradlew :infrastructure:jpa:integrationTest` — `build`에 포함되지 않음)가 검사한다(위 비관적 락 항목의 "결제").
 
 ### `ProductQueryAdapter` — 쿼리 전략
 
@@ -2287,7 +2319,7 @@ CQRS 분리(공통 지침 패턴 4)로 목록·검색·상세 같은 **표현 �
 
 #### getter 없는 쓰기 전용 필드를 지우지 않는다
 
-→ `OrderProductOptionJpaEntity`의 옵션 스냅샷 4필드 · `ReviewTagJpaEntity.tagId` · `AdminDongJpaEntity`의 바운딩박스 4컬럼 · `ShopDeliveryAreaPolygonJpaEntity`의 집계 2컬럼 · `RecommendedKeywordJpaEntity.sortOrder` · `StationJpaEntity.stationName` · `PublicHolidayJpaEntity.substitute` · `ReservationSlotJpaEntity.version`
+→ `OrderProductOptionJpaEntity`의 옵션 스냅샷 4필드 · `ReviewTagJpaEntity.tagId` · `AdminDongJpaEntity`의 바운딩박스 4컬럼 · `ShopDeliveryAreaPolygonJpaEntity`의 집계 2컬럼 · `RecommendedKeywordJpaEntity.sortOrder` · `StationJpaEntity.stationName` · `PublicHolidayJpaEntity.substitute` · `ReservationSlotJpaEntity.version` · `PaymentJpaEntity`의 `reconcileAttemptCount`·`reconcileNextAt`
 
 IDE가 "assigned but never accessed" / "never used" / "never assigned"로 경고하지만 **전부 정상이며 제거하면 동작이 깨진다.** 각각의 근거는 다르다.
 
@@ -2296,6 +2328,7 @@ IDE가 "assigned but never accessed" / "never used" / "never assigned"로 경고
 - **스키마 정합 전용** — 도메인이 소비하지 않지만 NOT NULL 컬럼과 매핑돼야 `ddl-auto: validate`를 통과한다(`PublicHolidayJpaEntity.substitute`).
 - **파생 값** — 바운딩박스·폴리곤 집계는 경계에서 파생되는 값이라 getter를 두면 호출자 없는 죽은 코드가 된다. 값은 SQL 집계·점검 질의가 소비한다. **필요해지는 시점에 질의와 함께 추가한다.**
 - **낙관적 락 버전** — 애플리케이션이 대입하지 않고 Hibernate가 flush 시점에 검증·증가시킨다.
+- **Q타입 전용 batch 대사 일정** — `PaymentJpaEntity`의 두 필드는 `insertable = false, updatable = false`라 엔티티로는 쓰지 않고, `PaymentPersistenceAdapter`의 QueryDSL 조회(`findAllPgAttemptedReconcileDueByStatusCreatedBetween`·`findReconcileAttemptCount`)와 bulk UPDATE(`saveReconcileSchedule`·`saveReconcileScheduleIfDue`)가 Q타입 경로로만 쓴다. 지우면 Q타입 경로가 사라져 컴파일이 깨지고, 매핑이 빠져도 `ddl-auto: validate`는 통과하므로 그 사이에 getter를 붙여 "쓰이게" 만들지 않는다.
 
 #### replace-all 교체의 선행 삭제는 벌크 `@Modifying` delete여야 한다
 

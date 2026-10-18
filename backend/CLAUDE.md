@@ -54,14 +54,14 @@ application 5            application-core  ← 2개 앱 이상이 쓰는 것 + �
 (전부 코드 없는 스타터)    ├ :persistence  DB — jpa·mysql 조립                            (4개 앱 전부)
                            ├ :file-storage 파일 저장 — firebase 조립                      (4개 앱 전부)
                            ├ :oauth        소셜 로그인 — 벤더 4종 조립                    (web)
-                           ├ :pg           결제 PG — tosspayments 조립                    (web)
+                           ├ :pg           결제 PG — tosspayments 조립                    (web·batch)
                            ├ :mail         메일 — javamail 조립                           (web)
                            └ :sms          SMS — solapi 조립                              (web)
 공유                     security-core  security-module  api-common-module  logging-module
 ```
 
 - **`infrastructure:jpa`는 `domain`을 `implementation`으로 의존한다 — 쓰기 어댑터는 도메인 모델을 직접 다루고, 조회 DAO는 domain-free다.** `infrastructure/jpa/build.gradle`의 프로젝트 의존은 `implementation project(':domain')` + `implementation project(':application-core')`이다. `api`가 아니라 `implementation`이므로 domain이 jpa를 거쳐 앱 컴파일 클래스패스로 새어 나가지 않는다(presentation이 domain을 모르게 하는 절단 유지). 쓰기 경로는 `application/<ctx>/port/out/write/XxxLoadPort`·`XxxSavePort`(도메인 타입 시그니처)를 jpa `XxxPersistenceAdapter`가 직접 구현하고, JpaEntity ↔ Domain 변환은 jpa `XxxMapper`가 맡는다. 도메인 ↔ 엔티티 사이에 State record·StatePort·Store 같은 중간 계층을 두지 않는다 — 애그리거트 하나를 저장하려고 파일 5개(State·StatePort·Store·StateMapper·StatePortImpl)를 거치는 비용이 얻는 격리보다 크기 때문이다([ADR-0031](../docs/adr/0031-persistence-domain-reallowed.md)). 조회 DAO(`..query..`)와 봉인 조회 어댑터 3개의 domain 의존은 `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/architecture/LayerRulesTest.java`의 `queryShouldNotDependOnDomain`이 막는다. 규칙 전문은 아래 [도메인 모델 / JPA 엔티티 분리 규칙](#도메인-모델--jpa-엔티티-분리-규칙-선별-적용-persistence는-infrastructure-module로)의 "persistence domain 재허용" 항목.
-- **조립 6모듈은 `infrastructure/` 디렉터리에 있지만 아웃바운드 어댑터가 아니다.** 도메인 포트를 하나도 구현하지 않고, "이 앱에 어떤 벤더를 싣는가"만 결정한다. 여섯 모두 자바 코드가 없고 구현 모듈을 `runtimeOnly`로 묶어 앱에 노출하는 것만 한다. 일부 앱에만 필요한 서비스·라우터(`PgPaymentGatewayRouter`·`MailVerificationService`·`SmsVerificationService`)는 조립 모듈이 아니라 `web-application`이 `@Service`로 등록한다. 물리적으로 `backend/starter/`로 옮기지 않은 것은 컴파일·런타임에서 새로 막아 주는 것이 없기 때문이다.
+- **조립 6모듈은 `infrastructure/` 디렉터리에 있지만 아웃바운드 어댑터가 아니다.** 도메인 포트를 하나도 구현하지 않고, "이 앱에 어떤 벤더를 싣는가"만 결정한다. 여섯 모두 자바 코드가 없고 구현 모듈을 `runtimeOnly`로 묶어 앱에 노출하는 것만 한다. 일부 앱에만 필요한 서비스(`MailVerificationService`·`SmsVerificationService`)는 조립 모듈이 아니라 `web-application`이 `@Service`로 등록하고, web·batch가 함께 쓰는 PG 라우터(`PgPaymentGatewayRouter`)는 코어 `application-core`가 `@Service`로 등록한다. 물리적으로 `backend/starter/`로 옮기지 않은 것은 컴파일·런타임에서 새로 막아 주는 것이 없기 때문이다.
 - **조립 모듈의 벤더 전환은 세 곳을 함께 바꾼다**: 스타터 `build.gradle`의 `runtimeOnly` 대상, 그 모듈 yml의 `spring.config.import`, `provider` 값. 각 모듈은 벤더를 하나만 싣기 때문에 `provider` 값만 바꾸면 켤 수 있는 벤더가 없어 기동이 실패한다. 절차는 `infrastructure/{file-storage,mail,sms}/AGENTS.md`의 "벤더 전환 절차"에 있다.
 - **실행 단위는 4개다.** 라이브러리 모듈이 늘거나 줄어도 **bootJar 산출물 이름·경로는 불변**이다(`{web-api,admin-api,ceo-api,batch-module}/build/libs/{모듈}-0.0.1-SNAPSHOT.jar`). 배포 스크립트는 영향받지 않는다.
 - **infrastructure 모듈의 자바 패키지는 모듈명을 따른다**: 코드가 있는 17모듈 모두 루트가 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}`다(`jpa`→`.jpa`, `kakao-oauth`→`.kakao.oauth`). 규칙 전문은 아래 [infrastructure 패키지 규칙](#infrastructure-패키지-규칙-루트--모듈명). **application 5모듈은 자바 패키지가 `com.tastyhouse.application` 단일 루트다** — 5모듈이 이 한 패키지를 split package로 나눠 쓰므로 패키지만 봐서는 앱 소속을 알 수 없고, 소속은 Gradle 모듈이 표현한다(아래 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다)). **`security-core`와 `security-module`도 둘 다 `com.tastyhouse.security..`를 쓴다**(split package).
@@ -174,9 +174,10 @@ static class ModuleScanConfig {
 | ApiCommonRateLimit | ● 스캔 | ● 스캔 | 스캔 안 함 | `@ConditionalOnWebApplication(SERVLET)` | 포트 소유 `security-core`, 구현 `infrastructure:redis` |
 | Security | ● | ● | — | `security` 스캔 + `@ConditionalOnWebApplication(SERVLET)` | batch는 jar도 없다 |
 | Logging | ● | ● | ● | `logging` 스캔 | 의도 |
-| restclient | ● | **—** | ● | `infrastructure` 스캔 | 앱이 직접 선언하지 않고 web은 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi, batch는 bbq·admdongkor를 통해 전이로 실린다. admin/ceo에는 없다(아래 [벤더 선택은 스타터 모듈이 한다](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03)) |
+| restclient | ● | **—** | ● | `infrastructure` 스캔 | 앱이 직접 선언하지 않고 web은 oauth(경유 kakao/naver/apple/facebook-oauth)·pg(경유 tosspayments)·solapi, batch는 bbq·admdongkor·pg(경유 tosspayments)를 통해 전이로 실린다. admin/ceo에는 없다(아래 [벤더 선택은 스타터 모듈이 한다](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03)) |
 | Firebase | ● | ● | ● | `infrastructure` 스캔 | 앱이 아니라 `:infrastructure:file-storage`를 통해 전이로 실린다 |
-| KakaoOAuth·NaverOAuth·AppleOAuth·FacebookOAuth·TossPayments·JavaMail·Solapi | ● | — | — | `infrastructure` 스캔 | 앱이 아니라 스타터 `:infrastructure:{oauth,pg,mail,sms}`를 통해 web에만 전이로 실린다 |
+| KakaoOAuth·NaverOAuth·AppleOAuth·FacebookOAuth·JavaMail·Solapi | ● | — | — | `infrastructure` 스캔 | 앱이 아니라 스타터 `:infrastructure:{oauth,mail,sms}`를 통해 web에만 전이로 실린다 |
+| TossPayments | ● | — | ● | `infrastructure` 스캔 | 앱이 아니라 스타터 `:infrastructure:pg`를 통해 web(승인·취소·즉시 조회)과 batch(주기 대사)에 전이로 실린다. 라우터는 코어에 있어 4앱 모두에 뜨지만 admin/ceo에서는 빈 목록이다 |
 | Bbq·Admdongkor | — | — | ● | `infrastructure` 스캔 | 의도 |
 | AwsS3·AwsSes·AwsSns | — | — | — | — | jar 없음 |
 | MyBatis | ● | ● (admin) / — (ceo) | — | `infrastructure` 스캔. 어댑터는 조건 없이 등록되고 주입은 JPA 쪽 `@Primary` | web-api·admin-api가 `runtimeOnly :infrastructure:mybatis` + `classpath:application-mybatis.yml` import — MyBatis 자동 설정·`@MapperScan`·XML 파싱이 web·admin에서만 일어난다(notice를 쓰는 앱이 둘이라서. ceo·batch에는 공지 기능이 없다) |
@@ -187,13 +188,13 @@ static class ModuleScanConfig {
 |---|---|---|---|
 | web-api | `:application-core`, `:web-application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:mybatis`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:infrastructure:oauth`, `:infrastructure:pg`, `:infrastructure:mail`, `:infrastructure:sms`, `:logging-module` | `ApplicationLayerScanConfig` + `ModuleScanConfig` |
 | admin-api / ceo-api | `:application-core`, `:admin-application` / `:ceo-application`, `:security-module`, `:api-common-module` | `:infrastructure:persistence`, `:infrastructure:redis`, `:infrastructure:file-storage`, `:logging-module` (+ admin만 `:infrastructure:mybatis`) | `ApplicationLayerScanConfig` + `ModuleScanConfig` |
-| batch-module | `:application-core`, `:batch-application` | `:infrastructure:persistence`, `:infrastructure:file-storage`, `:infrastructure:bbq`, `:infrastructure:admdongkor`, `:logging-module` | `ApplicationLayerScanConfig` + `ModuleScanConfig` |
+| batch-module | `:application-core`, `:batch-application` | `:infrastructure:persistence`, `:infrastructure:file-storage`, `:infrastructure:bbq`, `:infrastructure:admdongkor`, `:infrastructure:pg`, `:logging-module` | `ApplicationLayerScanConfig` + `ModuleScanConfig` |
 
 `:infrastructure:persistence`는 코드 없는 조립 모듈이라 `:infrastructure:jpa`와 `:infrastructure:mysql`을 `runtimeOnly`로 묶는다 — 앱은 jpa를 직접 선언하지 않고 전이로 받는다(`runtimeClasspath`에만 실린다). `runtimeOnly`를 유지하려고 `@Import`가 아니라 문자열 스캔을 쓴다.
 
 앱의 `implementation`에는 `spring-boot-starter-data-redis`가 없다 — 앱 코드가 `StringRedisTemplate`을 직접 참조하지 않기 때문이다(토큰 저장소 키 접두사는 `security.token-store.key-prefix` 프로퍼티로 넘긴다. 아래 [함정 2](#후속-작업자가-밟기-쉬운-함정-2가지)).
 
-`:infrastructure:restclient`·`:infrastructure:firebase`는 앱이 **직접 선언하지 않는다** — `:infrastructure:firebase`는 `:infrastructure:file-storage` 스타터가 `runtimeOnly`로 묶어 노출하므로 전이로 `runtimeClasspath`에만 실린다. `:infrastructure:restclient`는 벤더 모듈이 의존하는 HTTP 코어라 web(oauth 경유 — 스타터 `oauth`가 벤더 4종을 `runtimeOnly`로 조립하고 벤더가 코어를 의존한다 —·pg 경유 — `pg`가 `tosspayments`를 `runtimeOnly`로 조립하고 `tosspayments`가 코어를 의존한다 —·solapi 경유)과 batch(bbq·admdongkor 경유)에만 전이로 실리고 **admin·ceo의 `runtimeClasspath`에는 없다**(아래 [벤더 선택은 스타터 모듈이 한다](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03) 참고).
+`:infrastructure:restclient`·`:infrastructure:firebase`는 앱이 **직접 선언하지 않는다** — `:infrastructure:firebase`는 `:infrastructure:file-storage` 스타터가 `runtimeOnly`로 묶어 노출하므로 전이로 `runtimeClasspath`에만 실린다. `:infrastructure:restclient`는 벤더 모듈이 의존하는 HTTP 코어라 web(oauth 경유 — 스타터 `oauth`가 벤더 4종을 `runtimeOnly`로 조립하고 벤더가 코어를 의존한다 —·pg 경유 — `pg`가 `tosspayments`를 `runtimeOnly`로 조립하고 `tosspayments`가 코어를 의존한다 —·solapi 경유)과 batch(bbq·admdongkor 경유, pg 경유)에만 전이로 실리고 **admin·ceo의 `runtimeClasspath`에는 없다**(아래 [벤더 선택은 스타터 모듈이 한다](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03) 참고).
 
 4앱의 `compileClasspath`에는 `infrastructure:*`·`logging-module`이 **없고**, `runtimeClasspath`에는 있다. api 모듈은 라이브러리 모듈의 어댑터 클래스를 컴파일 시점에 아예 볼 수 없다(헥사고날 경계가 의존 스코프로 강제된다).
 
@@ -213,9 +214,9 @@ static class ModuleScanConfig {
 
 파일 저장·메일·SMS는 벤더가 **배타적으로 하나만** 뜨는 `@ConditionalOnProperty` 스위치지만, 결제는 그렇지 않다. **여러 PG 벤더가 동시에 뜨고, 요청마다 `PgProvider` 키로 라우팅한다** — 한 채널에 벤더가 하나뿐이어도 나중에 벤더가 늘 때 배타 스위치가 아니라 **공존+라우팅**을 선택한 사례다.
 
-- 벤더는 application SPI `PgProviderGatewayPort`를 구현한다(`infrastructure:tosspayments`의 `TossPaymentGatewayAdapter`, `provider()`가 application 전용 enum `PgProviderCode.TOSS` 반환). 소비 측이 실제로 호출하는 계약 `PgPaymentGatewayPort`는 domain `PgProvider`를 쓰며, 벤더가 직접 구현하지 않고 **라우터 하나**만 구현한다 — 벤더가 늘어도 `PgPaymentGatewayPort` 구현 빈이 하나뿐이라 빈 모호성이 생기지 않는다.
-- 라우터 `web-application`의 `application/payment/service/PgPaymentGatewayRouter`(package-private `@Service`)는 `List<PgProviderGatewayPort>`를 생성자로 받아 벤더의 `PgProviderCode`를 domain `PgProvider`로 변환(`name()` 일치, `application/.../architecture/EnumCodeConstantsTest`가 상수 일치를 검증)한 뒤 `supports(PgProvider)`로 골라 위임한다. web-api만 `web-application`을 의존하므로 web에만 뜬다. 채널 모듈 `infrastructure:pg`는 `runtimeOnly project(':infrastructure:tosspayments')` 한 줄만 가진 코드 없는 조립 스타터다(`file-storage`·`oauth`와 같은 형태).
-- **벤더 추가 = 두 줄, 항상 쌍으로**: `infrastructure:pg/build.gradle`에 `runtimeOnly project(':infrastructure:{새벤더}')` 한 줄과 `application-pg.yml`에 `classpath:application-{새벤더}.yml` import 한 줄. 한쪽만 추가하면 빈 등록은 됐는데 설정이 없어 `ConfigDataResourceNotFoundException`으로 기동이 실패하거나, 설정은 있는데 벤더 빈이 없어 라우팅 시점에 `WebErrorCode.PG_PROVIDER_UNSUPPORTED`가 난다.
+- 벤더는 application SPI `PgProviderGatewayPort`를 구현한다(`infrastructure:tosspayments`의 `TossPaymentGatewayAdapter`, `provider()`가 application 전용 enum `PgProviderCode.TOSS` 반환). 소비 측이 실제로 호출하는 계약 `PgPaymentGatewayPort`는 domain `PgProvider`의 상수명(`String`)을 받으며, 벤더가 직접 구현하지 않고 **라우터 하나**만 구현한다 — 벤더가 늘어도 `PgPaymentGatewayPort` 구현 빈이 하나뿐이라 빈 모호성이 생기지 않는다.
+- 라우터 `application-core`의 `application/payment/service/PgPaymentGatewayRouter`(package-private `@Service`)는 `List<PgProviderGatewayPort>`를 생성자로 받아 벤더의 `PgProviderCode`를 domain `PgProvider`로 변환(`name()` 일치, `application/.../architecture/EnumCodeConstantsTest`가 상수 일치를 검증)한 뒤 `supports(String)`로 골라 위임한다. 포트·라우터는 web(승인·취소·즉시 조회)과 batch(주기 대사) 두 앱이 쓰므로 코어에 있고, 그래서 라우터 빈은 4앱 모두에 뜬다 — 벤더 어댑터는 `infrastructure:pg`를 조립한 web·batch에만 있으므로 admin·ceo에서는 빈 목록으로 생성된다([ADR-0061](../docs/adr/0061-pg-ports-to-core-batch-reconcile.md)). 채널 모듈 `infrastructure:pg`는 `runtimeOnly project(':infrastructure:tosspayments')` 한 줄만 가진 코드 없는 조립 스타터다(`file-storage`·`oauth`와 같은 형태).
+- **벤더 추가 = 두 줄, 항상 쌍으로**: `infrastructure:pg/build.gradle`에 `runtimeOnly project(':infrastructure:{새벤더}')` 한 줄과 `application-pg.yml`에 `classpath:application-{새벤더}.yml` import 한 줄. 한쪽만 추가하면 빈 등록은 됐는데 설정이 없어 `ConfigDataResourceNotFoundException`으로 기동이 실패하거나, 설정은 있는데 벤더 빈이 없어 라우팅 시점에 `ApplicationErrorCode.PG_PROVIDER_UNSUPPORTED`가 난다.
 
 #### 공존형 채널 — 소셜 로그인 스타터 (`infrastructure:oauth`)
 
@@ -361,8 +362,8 @@ static class ModuleScanConfig {
 
 | 모듈 | 담는 것 | 의존 |
 |---|---|---|
-| `application-core`(코어) | **2개 앱 이상이 쓰는 것** — 공유 도메인 서비스, 도메인 이벤트 리스너 12종(`<ctx>/listener`), `shared/**`(`SharedBeanConfig` 포함), **모든 `port.out` 계약**(읽기 계약·write 포트·Command 반환 Result), `PgConfirmResult`·`TossPaymentDetail` | 앱 모듈을 모른다 |
-| `web-application` | web 전용 `@Service`/`@Component`·UseCase(`port.in`)·Command record·web 전용 도메인 서비스 + **web 전용 SPI 포트**: `emailverification.port.out.{MailSenderPort,MailSendResult}`, `phoneverification.port.out.{SmsSenderPort,SmsSendResult,SmsSendFailure}`, `payment.port.out.{PgProviderGatewayPort,PgPaymentGatewayPort,PgCancelResult,PgProviderCode}`, `auth.port.out.{SocialOAuthClientPort,SocialAuthorization,SocialCredential,SocialOAuthResult,SocialOAuthFailure,SocialProfile,SocialProvider}` | `api project(':application-core')` |
+| `application-core`(코어) | **2개 앱 이상이 쓰는 것** — 공유 도메인 서비스, 도메인 이벤트 리스너 12종(`<ctx>/listener`), `shared/**`(`SharedBeanConfig` 포함), **모든 `port.out` 계약**(읽기 계약·write 포트·Command 반환 Result), web·batch가 함께 쓰는 PG SPI `payment.port.out.{PgProviderGatewayPort,PgPaymentGatewayPort,PgCancelResult,PgProviderCode,PgConfirmResult,PgConfirmFailure,PgPaymentLookupResult,PgPaymentLookupStatus,TossPaymentDetail}`와 라우터 `payment/service/PgPaymentGatewayRouter` | 앱 모듈을 모른다 |
+| `web-application` | web 전용 `@Service`/`@Component`·UseCase(`port.in`)·Command record·web 전용 도메인 서비스 + **web 전용 SPI 포트**: `emailverification.port.out.{MailSenderPort,MailSendResult}`, `phoneverification.port.out.{SmsSenderPort,SmsSendResult,SmsSendFailure}`, `auth.port.out.{SocialOAuthClientPort,SocialAuthorization,SocialCredential,SocialOAuthResult,SocialOAuthFailure,SocialProfile,SocialProvider}` | `api project(':application-core')` |
 | `admin-application` | admin 전용 빈·UseCase·Command·도메인 서비스 | `api project(':application-core')` |
 | `ceo-application` | ceo 전용 빈·UseCase·Command·도메인 서비스 + **ceo 전용 SPI 포트**: `ceo.port.out.ReplyPhraseTextValidatorPort`(구현 `shop/service/ReplyPhraseProhibitedWordValidatorAdapter`와 유일한 소비자가 ceo다) | `api project(':application-core')` |
 | `batch-application` | batch 전용 빈·UseCase·Command·도메인 서비스 + **batch 전용 SPI 포트**: `crawling.bbq.port.out.*`(`BbqMenuPort`·`RemoteImagePort`·DTO), `region.port.out.{AdminDongBoundaryPort,AdminDongBoundaryFetchResult,AdminDongBoundarySource,BoundaryCoordinate,BoundaryRing}` | `api project(':application-core')` |
@@ -374,7 +375,7 @@ static class ModuleScanConfig {
 ### `<ctx>/port/out`에 사는 것
 
 - **`<ctx>/port/out`은 "이 도메인의 모든 아웃바운드 계약"이다** — 읽기 계약(QueryPort·Result·SearchCondition) + 아웃바운드 SPI(`SocialOAuthClientPort`·`BbqMenuPort`·`RemoteImagePort`·`AdminDongBoundaryPort`) + **커맨드 서비스가 반환하는 Result/View record**가 함께 산다.
-- **`port.out`의 interface는 이름이 `Port`로 끝난다 (예외 0개)** — `SmsSenderPort`·`MailSenderPort`·`SocialOAuthClientPort`·`PgProviderGatewayPort`·`PgPaymentGatewayPort`(web-application)·`ReplyPhraseTextValidatorPort`(ceo-application) 등. 구현 클래스(`SolapiSmsSender`·`KakaoOAuthClient`·`PgPaymentGatewayRouter` 등)와 함께 사는 `*Result`·`*Failure`·`PgProviderCode`는 포트가 아니므로 이 접미어를 붙이지 않는다. 가드는 코어 `application-core`의 `OutboundPortNamingRulesTest`(4개 앱 application 모듈을 testImplementation으로 import하므로 앱 모듈 포트까지 검사)다.
+- **`port.out`의 interface는 이름이 `Port`로 끝난다 (예외 0개)** — `SmsSenderPort`·`MailSenderPort`·`SocialOAuthClientPort`·`PgProviderGatewayPort`·`PgPaymentGatewayPort`(application-core)·`ReplyPhraseTextValidatorPort`(ceo-application) 등. 구현 클래스(`SolapiSmsClient`·`KakaoOAuthClient`·`PgPaymentGatewayRouter` 등)와 함께 사는 `*Result`·`*Failure`·`PgProviderCode`는 포트가 아니므로 이 접미어를 붙이지 않는다. 가드는 코어 `application-core`의 `OutboundPortNamingRulesTest`(4개 앱 application 모듈을 testImplementation으로 import하므로 앱 모듈 포트까지 검사)다.
   - **그래서 `commandServicesShouldNotDependOnQueryPorts`는 이름 기준이다**: `port.out`에 Command 반환 record가 함께 살므로, 이 규칙이 패키지 술어(`resideInAPackage("..port.out..")`)라면 그 record를 반환하는 커맨드 서비스가 정당한 반환 타입인데도 위반으로 잡힌다. 그래서 판별을 **이름 기준**(`haveSimpleNameEndingWith("QueryPort")` / `"QueryService"`)으로 한다. 같은 이유로 api 3모듈의 `controllersShouldNotDependOnQueryPorts`도 이름 기준이다.
 
 ### 실행 앱·벤더의 의존
@@ -382,9 +383,9 @@ static class ModuleScanConfig {
 | 의존하는 모듈 | application 계층 의존 |
 |---|---|
 | `web-api` / `admin-api` / `ceo-api` / `batch-module` | `implementation project(':application-core')` + `implementation project(':{web,admin,ceo,batch}-application')` |
-| `infrastructure:{kakao,naver,apple,facebook}-oauth`, `tosspayments`, `javamail`, `solapi`, `aws-ses`, `aws-sns` | `:web-application`(구현하는 SPI 포트가 그 모듈에 있다) |
+| `infrastructure:{kakao,naver,apple,facebook}-oauth`, `javamail`, `solapi`, `aws-ses`, `aws-sns` | `:web-application`(구현하는 SPI 포트가 그 모듈에 있다) |
 | `infrastructure:{bbq,admdongkor}` | `:batch-application` |
-| `infrastructure:jpa`, `infrastructure:mybatis`, `firebase`, `aws-s3`, `security-module`, `api-common-module` | `:application-core`만 |
+| `infrastructure:jpa`, `infrastructure:mybatis`, `firebase`, `aws-s3`, `tosspayments`, `security-module`, `api-common-module` | `:application-core`만 (`tosspayments`가 구현하는 PG SPI는 web·batch가 함께 쓰므로 코어에 있다) |
 
 ### 앱 모듈을 나눠도 컴파일 게이트가 동작하는 이유
 
@@ -421,14 +422,14 @@ static class ModuleScanConfig {
 | `@Configuration`의 이중 등록 | `#configurationsShouldNotRegisterStereotypedClasses` |
 | `commandRecordsShouldBeBoundaryTyped`의 batch 예외 | 클래스의 출처 모듈(`batch-application`)로 판정 |
 | `BatchSchedulerRulesTest` 대상 | `batch-application` 출처 클래스 |
-| 개수 anchor(`RuleAnchorTest`) | `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥185 · admin ≥207 · ceo ≥188 · batch =7 · core =0) |
+| 개수 anchor(`RuleAnchorTest`) | `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥185 · admin ≥207 · ceo ≥188 · batch =8 · core =0) |
 | 스캔 형태(`ApplicationLayerScanConfigTest`) | `assertScansApplicationLayerWithoutFilters` — basePackages가 정확히 `com.tastyhouse.application`, `useDefaultFilters = true`, include/exclude 필터 없음 |
 | 다른 앱 모듈의 클래스패스 유입 | 4앱 각 `ApplicationModuleClasspathTest` + `ApplicationLayerScanAssertions#assertLoadsOnlyOwnApplicationModule(ModuleOrigin.XXX)` — 앱 테스트 클래스패스의 `com.tastyhouse.application` 클래스(main 출력)를 ArchUnit으로 읽어 출처 모듈 집합이 **정확히 `{application-core, 자기 앱 모듈}`**인지 `ModuleOrigin`으로 판정한다. 테스트 전용 표식 리소스를 main 산출물에 싣지 않는다 |
 
 - **출처 모듈 판정 — testFixtures `com.tastyhouse.architecture.ModuleOrigin`**: 규칙은 `ModuleOrigin.from(module)`(ArchUnit `DescribedPredicate`)로 "그 모듈의 main 출력에서 온 클래스"를 고른다. **main 출력만 인정한다** — 클래스 디렉터리 `.../{module}/build/classes/java/main/...`, main jar `{module}-<버전>.jar`. testFixtures 출력(`build/classes/java/testFixtures`, `*-test-fixtures.jar`), IntelliJ 자체 빌드 출력(`out/production/...`), 해석할 수 없는(opaque·형식이 깨진) URI는 전부 `IllegalStateException`이다(조용히 빈 집합이 되어 규칙이 공허 통과하지 않게). 그래서 **아키텍처 테스트는 Gradle로 실행해야 한다** — IntelliJ에서는 "Build and run using: Gradle" 설정이 필요하다. `ModuleOriginTest`가 짝 테스트다.
 - **split package FQCN 중복 금지 — `SplitPackageUniquenessTest`**: 패키지가 같으므로 같은 FQCN이 core와 앱 모듈에 함께 생겨도 컴파일은 통과하고 클래스패스 순서로 한쪽이 조용히 가려진다. ArchUnit은 같은 이름을 하나로 합쳐 보므로, 5모듈의 소스 경로를 훑어 중복 상대 경로를 실패시킨다(근거 `backend/application-core/AGENTS.md`의 "앱 모듈 경계 가드").
 - **아키텍처 테스트는 코어 `application-core`의 테스트에 둔다.** `:application-core`이 `testImplementation project(':{앱}-application')` 4줄을 가져 ArchUnit이 5모듈을 모두 본다(test → main 방향이라 Gradle 순환이 아니다).
-- **공유 테스트 더블은 코어 testFixtures의 `com.tastyhouse.testsupport.<ctx>..`에 있다**(`Fake*`/`Stub*`/`Recording*`/`ListenerLogCapture` 20개). `RuleAnchorTest#testFixturesShouldNotResideInApplicationPackage`가 testFixtures에 `com.tastyhouse.application` 패키지를 금지하기 때문이다. import 순서에서 `testsupport`는 4순위다(아래 [코딩 스타일](#코딩-스타일-import-순서)).
+- **공유 테스트 더블은 코어 testFixtures의 `com.tastyhouse.testsupport.<ctx>..`에 있다**(`Fake*`/`Stub*`/`Recording*`/`LogCapture` 20개). `RuleAnchorTest#testFixturesShouldNotResideInApplicationPackage`가 testFixtures에 `com.tastyhouse.application` 패키지를 금지하기 때문이다. import 순서에서 `testsupport`는 4순위다(아래 [코딩 스타일](#코딩-스타일-import-순서)).
 - **`ServiceContextBoundaryTest#domainServices()`의 대상 집합은 구조 조건 + 이름 목록이다.** 모든 서비스가 `@Service`를 달므로 스테레오타입 유무로는 도메인 서비스를 고를 수 없다. 그래서 **구조 조건**(`..service..`, 인터페이스 아님, `@Configuration` 아님, `port.in` 구현 아님)에서 **FQN 목록 `EXCLUDED_COLLABORATORS` 21개**를 뺀다 — 컨텍스트 경계 검사 대상이 아닌 협력 빈(Executor 6 · `SocialLoginService` 1 · Validator 7 · Reader 1(`ShopFoodTypeCategoryReader`) · `OwnedShopIdProvider` · `MemberAuthService` · `CredentialLoginService` · `PhoneLoginService` · `AuthPasswordResetService` · `AdminDongSyncRunner`)이다. 짝 테스트 `excludedCollaboratorsShouldNotBeStale`이 목록의 낡은 항목을 잡는다 — 단 **더 이상 존재하지 않거나 구조 조건에 맞지 않게 된 항목만** 잡고, "빼도 경계 규칙을 통과할 항목"은 잡지 못한다. `SEALED_VIOLATIONS`는 별도 봉인 목록이다. 새 협력 빈을 만들면 목록에 넣을지 판단해야 한다.
 - 위 규칙은 전부 위반 probe로 실패를 확인했다(코어가 `MailSenderPort`를 import하면 컴파일 에러인 것도 확인).
 
@@ -673,8 +674,8 @@ reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 �
 | 항목 | 현재 |
 |---|---|
 | domain 에러코드 | `domain.exception.DomainErrorCode` 153개 |
-| core 에러코드 | `application.shared.exception.ApplicationErrorCode` 84개 |
-| 앱 에러코드 | 같은 패키지(split package) `WebErrorCode` 87 · `AdminErrorCode` 28 · `CeoErrorCode` 65 · `BatchErrorCode` 1 — 각 `{앱}-application` 모듈 |
+| core 에러코드 | `application.shared.exception.ApplicationErrorCode` 85개 |
+| 앱 에러코드 | 같은 패키지(split package) `WebErrorCode` 88 · `AdminErrorCode` 28 · `CeoErrorCode` 65 · `BatchErrorCode` 1 — 각 `{앱}-application` 모듈 |
 | api 에러코드 | `apicommon.exception.ApiErrorCode`(`RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`) |
 | infrastructure 에러코드 | 없음 — 벤더 어댑터는 실패를 결과 record로 돌려주고 application이 번역한다 |
 | application 코드 계약 | `application.shared.exception.ApplicationErrorCodeSpec extends ErrorCodeSpec` — application 계층 enum 5개가 구현 |
@@ -682,7 +683,7 @@ reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 �
 | domain 예외 | `domain.exception.DomainException` — `DomainErrorCode`만 받는다 |
 | application 예외 | `application.shared.exception.ApplicationException` — `ApplicationErrorCodeSpec`만 받는다 |
 | `ResourceNotFoundException` | `application.shared.exception`, `extends ApplicationException` |
-| wire 계약(status·`errorCode`·message) | `ErrorCatalogSnapshotTest`가 스냅샷 420행과 전수 비교 |
+| wire 계약(status·`errorCode`·message) | `ErrorCatalogSnapshotTest`가 스냅샷 422행과 전수 비교 |
 
 - **배치 규칙**: 코드는 그것을 던지는 **가장 안쪽 모듈**에 둔다.
   - domain이 던지면 `DomainErrorCode`. application이 함께 던져도 여기다(22개).
@@ -698,13 +699,13 @@ reference 구현: `api-common-module/` 전체와 이를 `implementation`으로 �
   - **throw 경로에서 `ErrorCodeSpec`으로 넓히지 않는다** — 넓히면 계층 간 오용을 타입이 막지 못한다.
 - **봉인 예외 1건 — 실패를 담아 나르는 값 객체**: throw하지 않고 응답으로 변환되는 record는 `ErrorCodeSpec` 컴포넌트를 쓸 수 있다. 지금은 `ceo-application/src/main/java/com/tastyhouse/application/product/service/ProductAvailabilityFailure.java` 하나다. domain·core·ceo 코드를 함께 싣기 때문이며, ceo만 생산·소비한다.
 - **왜 계층별 예외 타입이 "빈 서브클래스"가 아닌가**: `DomainException`과 `ApplicationException`은 **받는 코드 타입이 다르다**. 그래서 "도메인이 앱 코드를 던짐", "web 서비스가 ceo 코드를 던짐"이 컴파일 에러가 된다. 생성자를 위임만 하고 받는 타입이 같은 서브클래스는 타입이 막아 주는 것이 없으므로 만들지 않는다(아래 세부 규칙).
-- **HTTP status를 enum의 `int`로 유지한다(의도적 이탈)**: 엄격한 클린 아키텍처에서는 status 매핑을 inbound adapter가 갖는다. 그러려면 코드 enum을 클래스패스에 두지 않은 api 모듈에 매핑 420개를 두어야 한다. `int`라 프레임워크-프리이고 wire 계약 보존이 우선이라 유지한다.
+- **HTTP status를 enum의 `int`로 유지한다(의도적 이탈)**: 엄격한 클린 아키텍처에서는 status 매핑을 inbound adapter가 갖는다. 그러려면 코드 enum을 클래스패스에 두지 않은 api 모듈에 매핑 422개를 두어야 한다. `int`라 프레임워크-프리이고 wire 계약 보존이 우선이라 유지한다.
 - **`ApiErrorCode`가 `api-common-module`에 있는 이유**: 필터·핸들러 단계의 에러 계약(rate limit·인증·인가)은 표현 계층의 것이다. `application.shared.error`에 두면 Gradle 변경이 없지만, application이 HTTP 계약을 소유하는 상태(`ErrorContracts`)가 그대로 남는다. 대가로 `security-module` → `api-common-module` 간선이 생겼다(순환 없음). `ApiErrorCode`는 `ErrorCodeSpec`을 구현하지 않는다 — api 모듈은 domain을 볼 수 없다.
 - **`AUTH_REQUIRED`는 봉인된 미러다**: 필터 단계(`ApiErrorCode`)와 web 유스케이스(`WebErrorCode`)가 같은 code를 낸다. 두 상수의 status·code·message 일치는 `ErrorCatalogConventionTest#mirroredCodesStayIdentical`이 지킨다.
 - **enum 이름은 소유 모듈명을 따른다**(`AdminErrorCode`·`CeoErrorCode`). 헥사고날에서 컴포넌트는 "누가 쓰나"가 아니라 "누가 소유하나"로 이름 짓기 때문이다. 아래 [admin 전용 네이밍 규칙](#admin-전용-네이밍-규칙-메서드타입명에-admin-flavor-admin-접두접미중간어-금지)의 예외로 등재돼 있다.
 - **가드**:
   - `application-core/src/test/java/com/tastyhouse/application/shared/exception/ErrorCatalogConventionTest` — 카탈로그 7개 전체가 대상이다. code 전역 유일(봉인 미러 1건), 상수명=code(봉인 6건), `*_NOT_FOUND`→404(봉인 4건), status 4xx·5xx, 메시지 비공백, 계층 계약 구현을 검사하고, 봉인 낡음도 검출한다.
-  - `…/shared/exception/ErrorCatalogSnapshotTest` — 카탈로그 7개의 `(code, status, message)` 합집합이 `application-core/src/test/resources/error-catalog-before.tsv`에서 삭제 23개를 뺀 420행과 같은지 검사한다. 분할 이후 추가하는 신규 에러코드는 tsv에 행을 추가하고 `hasSize`를 함께 올린다(절차는 `application-core/AGENTS.md`의 `ErrorCatalogSnapshotTest` 항목).
+  - `…/shared/exception/ErrorCatalogSnapshotTest` — 카탈로그 7개의 `(code, status, message)` 합집합이 `application-core/src/test/resources/error-catalog-before.tsv`에서 삭제 23개를 뺀 422행과 같은지 검사한다. 분할 이후 추가하는 신규 에러코드는 tsv에 행을 추가하고 `hasSize`를 함께 올린다(절차는 `application-core/AGENTS.md`의 `ErrorCatalogSnapshotTest` 항목).
   - `…/shared/error/ErrorResponsesTest` — `resolve`의 의미를 검사한다.
   - 이 테스트들 때문에 `application-core/build.gradle`이 `testImplementation project(':api-common-module')`를 가진다.
 
@@ -1598,8 +1599,8 @@ Service → XxxLoadPort·XxxSavePort(도메인 타입) ← jpa XxxPersistenceAda
 - **Spring 조립 — 스캔·전역 설정은 소유 모듈(infrastructure)이 선언**: `com.tastyhouse.infrastructure`는 **각 앱 부트스트랩의 중첩 `ModuleScanConfig`가 문자열로 스캔**하며(앱은 `runtimeOnly` 의존 선언과 그 스캔 목록만 갖는다), JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`, `basePackageClasses` 타입 세이프 방식)과 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정은 jpa 자신의 `JpaModuleConfig`(패키지 루트)가 선언한다.** domain에는 JPA 설정이 없다 — domain은 infrastructure를 의존하지 않아 컴파일 타임에 그 패키지를 볼 수 없으므로, 엔티티·리포지토리를 소유한 모듈이 스스로 스캔·전역 설정을 선언하는 것이 응집도상 자연스럽고 Spring Boot 공식 권장(`basePackageClasses`)과도 일치한다.
 - **도메인 서비스 빈 등록**: 도메인 서비스는 `@Service`를 달고, **쓰는 앱이 하나면 그 앱의 `{앱}-application` 모듈, 두 앱 이상이면 코어 `application-core`**에 둔다. 잘못 두면 컴파일이 실패하거나 코어 `LayerRulesTest#coreBeansShouldOnlyDependOnCoreVisibleTypes`가 잡는다. domain 모듈 클래스(`CupDepositPolicy`·`*Calculator` 등)처럼 애노테이션을 달 수 없는 빈만 `application-core`의 `application/shared/config/SharedBeanConfig` `@Bean`으로 둔다. 규칙은 위 [앱 모듈 경계 규칙](#앱-모듈-경계-규칙-앱-마커-제거--앱-소속은-gradle-모듈이-표현한다).
 - **앱 부트스트랩에 `scanBasePackages`를 두지 않는다**: domain에는 `@Component`/`@Service`/`@Configuration`이 **0건**이라 스캔할 대상이 없다. 앱 부트스트랩에는 `@SpringBootApplication`의 기본 스캔(앱 자신의 패키지)과 중첩 `ApplicationLayerScanConfig`·`ModuleScanConfig` 두 스캔만 있다(아래 [컴포지션 루트 규칙](#컴포지션-루트-규칙-조립은-실행-앱-모듈의-것--챕터-03)).
-  - **예외 — 포트 구현이 일부 앱에만 있으면 등록도 그 범위로 한정한다**: 서비스 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 존재하면, 그 서비스도 해당 앱 모듈에 둔다. `MailVerificationService`(`MailSenderPort`)·`SmsVerificationService`(`SmsSenderPort`)·`PgPaymentGatewayRouter`(`PgProviderGatewayPort`)와 그들이 쓰는 web 전용 포트는 `web-application`에 있으므로 다른 앱의 빈은 그 포트를 컴파일 단계에서 볼 수 없다. `FileUploadService`·`PaymentConfirmationService`는 코어 `application-core`에 있고(`FileStoragePort`·결제 확인 포트는 4개 앱 전부가 구현을 가진다), `PaymentCancellationService`는 `web-application`에 있다. 예외의 조건은 "일부 앱에만 있음"이지 "외부 연동 포트임"이 아니다.
-  - **벤더 모듈·조립 모듈에 이 등록을 두지 않는다** — 벤더(`javamail`·`aws-ses` / `solapi`·`aws-sns` / `tosspayments`)에 두면 벤더마다 같은 등록이 중복되고, 조립 모듈은 코드가 없는 스타터다. 벤더는 그 조립 주체를 의존하지 않으며, 채널 값(`mail.sender-address` 등)은 프로퍼티 키로만 읽는다(순환 회피). 등록이 발송 포트 빈을 무조건 요구하면 발송 기능이 없는 admin·ceo·batch까지 메일·SMS 어댑터를 들여와야 하므로, 서비스를 web 전용 모듈에 둔다. `@ConditionalOnBean(MailSenderPort.class)`로 등록 범위를 정하는 대안은 쓰지 않는다(사용자 `@Configuration` 사이의 등록 순서에 결과가 좌우되어 조용히 빈이 빠질 수 있다). 도메인 이벤트 리스너는 코어 `application-core`의 `com.tastyhouse.application.<ctx>.listener`에 있다. **포트 구현이 여러 개 공존해야 하면 라우터를 둔다**(`web-application`의 `PgPaymentGatewayRouter`가 `List<PgProviderGatewayPort>`를 받는다 — 위 [공존형 채널 — PG 라우터](#공존형-채널--pg-라우터-infrastructurepg) 참고).
+  - **예외 — 포트 구현이 일부 앱에만 있으면 등록도 그 범위로 한정한다**: 서비스 생성자가 요구하는 아웃바운드 포트의 구현이 일부 앱에만 존재하면, 그 서비스도 해당 앱 모듈에 둔다. `MailVerificationService`(`MailSenderPort`)·`SmsVerificationService`(`SmsSenderPort`)와 그들이 쓰는 web 전용 포트는 `web-application`에 있으므로 다른 앱의 빈은 그 포트를 컴파일 단계에서 볼 수 없다. `PgPaymentGatewayRouter`(`PgProviderGatewayPort`)는 web·batch 두 앱이 구현을 가지므로 코어에 있고, 구현이 없는 admin·ceo에서는 `List` 주입이라 빈 목록으로 생성된다. `FileUploadService`·`PaymentConfirmationService`는 코어 `application-core`에 있고(`FileStoragePort`·결제 확인 포트는 4개 앱 전부가 구현을 가진다), `PaymentCancellationService`는 `web-application`에 있다. 예외의 조건은 "일부 앱에만 있음"이지 "외부 연동 포트임"이 아니다.
+  - **벤더 모듈·조립 모듈에 이 등록을 두지 않는다** — 벤더(`javamail`·`aws-ses` / `solapi`·`aws-sns` / `tosspayments`)에 두면 벤더마다 같은 등록이 중복되고, 조립 모듈은 코드가 없는 스타터다. 벤더는 그 조립 주체를 의존하지 않으며, 채널 값(`mail.sender-address` 등)은 프로퍼티 키로만 읽는다(순환 회피). 등록이 발송 포트 빈을 무조건 요구하면 발송 기능이 없는 admin·ceo·batch까지 메일·SMS 어댑터를 들여와야 하므로, 서비스를 web 전용 모듈에 둔다. `@ConditionalOnBean(MailSenderPort.class)`로 등록 범위를 정하는 대안은 쓰지 않는다(사용자 `@Configuration` 사이의 등록 순서에 결과가 좌우되어 조용히 빈이 빠질 수 있다). 도메인 이벤트 리스너는 코어 `application-core`의 `com.tastyhouse.application.<ctx>.listener`에 있다. **포트 구현이 여러 개 공존해야 하면 라우터를 둔다**(`application-core`의 `PgPaymentGatewayRouter`가 `List<PgProviderGatewayPort>`를 받는다 — 위 [공존형 채널 — PG 라우터](#공존형-채널--pg-라우터-infrastructurepg) 참고).
 
 ## query DAO·QueryPort·Result DTO·SearchCondition 소유 규칙 (읽기 계약은 전부 `application-core`가 소유, 구현은 `infrastructure:jpa`)
 
@@ -1703,7 +1704,7 @@ reference 구현: `NoticeLoadPort#findActiveById`·`NoticeSavePort#save`(`applic
 - **도입 근거는 다형성이 아니라 다음 두 가지다**:
   1. **컴파일 게이트** — 컨트롤러가 `application/service/`의 구체 클래스를 아예 모르게 만든다. ArchUnit은 위반을 *사후에* 잡지만, 컨트롤러가 UseCase 타입만 주입받으면 구체 서비스에 손대는 코드가 **애초에 컴파일되지 않는다**. 경계 강제 수단의 등급이 한 단계 올라간다.
   2. **경계 계약의 문서화** — UseCase 인터페이스 한 파일이 그 애그리거트의 연산 계약(어떤 명령이 있고 무엇을 받아 무엇을 돌려주는가)을 한눈에 고정한다. 구현 본문에 섞여 있던 계약이 별도 파일로 드러난다.
-- **입도 규칙 — 연산 하나당 포트 하나**: web·admin·ceo 전부 연산 하나당 UseCase 하나, 서비스 하나다(아래 [CQRS 분리 규칙](#application-서비스-cqrs-분리-규칙-도메인commandservice도메인queryservice)). application `LayerRulesTest#useCasesShouldDeclareSingleOperation`이 포트당 추상 메서드 1개를, `#useCaseServicesShouldImplementExactlyOneUseCase`가 서비스당 포트 1개를 강제한다(batch 출처는 제외 — `*SchedulerService` 7개가 이미 1:1이다)([ADR-0043](../docs/adr/0043-usecase-per-service.md)).
+- **입도 규칙 — 연산 하나당 포트 하나**: web·admin·ceo 전부 연산 하나당 UseCase 하나, 서비스 하나다(아래 [CQRS 분리 규칙](#application-서비스-cqrs-분리-규칙-도메인commandservice도메인queryservice)). application `LayerRulesTest#useCasesShouldDeclareSingleOperation`이 포트당 추상 메서드 1개를, `#useCaseServicesShouldImplementExactlyOneUseCase`가 서비스당 포트 1개를 강제한다(batch 출처는 제외 — `*SchedulerService` 8개가 이미 1:1이다)([ADR-0043](../docs/adr/0043-usecase-per-service.md)).
 - **컨텍스트별 모듈 분할은 여전히 하지 않는다**: 경계는 ArchUnit + 위 컴파일 게이트로 충분하며, 25개 모듈로 쪼개면 빌드 그래프·`settings.gradle`·의존 선언이 그만큼 늘어난다. 모듈 분할이 주는 강한 보장이 필요한 것은 **모듈 간 방향 의존**(domain ← infrastructure ← api)이고 그쪽은 이미 분리돼 있다.
   - **이 항목은 "컨텍스트별" 분할 금지이지 "계층별" 분할 금지가 아니다.** 모듈 경계는 "계층 × 앱" 2차원이다:
     - **계층 위반**(서비스가 컨트롤러를 참조, application이 infra를 참조)은 ArchUnit 사후 검출이 아니라 **컴파일 에러**다 — 위 컴파일 게이트 논거를 모듈 수준으로 한 단계 더 밀어붙인 것이다.
@@ -1722,10 +1723,10 @@ reference 구현: `domain/src/test/.../architecture/ContextBoundaryTest`(경계 
 - **`Projections.constructor`로 투영한다**: Result record가 QueryDSL을 모르는 모듈에 있어 `@QueryProjection`을 달 수 없으므로, DAO 쿼리는 `Projections.constructor(XxxResult.class, ...)`로 조립한다. 리포 전체에 `@QueryProjection` 선언 0건, `QXxxResult` Q타입 생성물 0건이다.
   - **Result record는 반드시 `public`이어야 한다**: `Projections.constructor`는 **리플렉션으로 런타임에** 생성자를 찾으므로, record가 package-private이면 컴파일은 통과하고 **호출 시점에 500이 난다.** 생성자 시그니처(파라미터 개수·타입·순서) 불일치도 마찬가지로 컴파일에 걸리지 않는다. 이 저장소에는 `ShopRiderGuidePickupPresenceResult`로 실제 이 사고를 낸 선례가 있다. 새로 쓰거나 고친 쿼리는 **반드시 한 번 호출해 확인**한다. `infrastructure:jpa`의 `ProjectionConstructorMatchingTest`가 select 절 인자 개수와 대상 record의 public 생성자 파라미터 개수 일치를 소스 스캔으로 검증해 컴파일 게이트가 없는 부분을 보완한다.
 - **강제 수단은 ArchUnit + grep 이중**: 빌드 게이트는 모듈마다 다르다 — `web-api`·`admin-api`·`ceo-api`의 `architecture/LayerRulesTest`는 `shouldNotDependOnQuerydsl`·`shouldNotDependOnInfrastructurePersistence`를 둘 다 갖고, `batch-module`의 `architecture/LayerRulesTest`는 `shouldNotDependOnInfrastructurePersistence`만 갖는다(`shouldNotDependOnQuerydsl` 없음 — batch-module의 QueryDSL 0건은 리뷰 grep으로 지킨다). 리뷰 시 `com.querydsl`·`@QueryProjection`·`com.tastyhouse.infrastructure` grep으로 교차 확인한다. application 계층 쪽은 `application-core`의 `LayerRulesTest#shouldNotDependOnQuerydsl`·`#shouldNotDependOnInfrastructure`가 `com.tastyhouse.application` 전체(5모듈)를 막는다.
-- **`allowEmptyShould(true)`를 쓰지 않는다 (공허 통과 금지)**: 대상 클래스가 0건이어도 통과하는 규칙은 **아무것도 검사하지 않는 상태를 성공으로 보고**한다. 모든 규칙이 실제 대상을 가져야 하고, 대상이 0건이 되면 곧바로 실패해야 한다. 리포 전체에 `allowEmptyShould(true)`가 0건이다 — batch 잡 서비스 규칙도 `BatchSchedulerRulesTest#schedulerServicesExist`가 실재하는 `*SchedulerService` 7개를 세어 공허 통과를 막는다.
+- **`allowEmptyShould(true)`를 쓰지 않는다 (공허 통과 금지)**: 대상 클래스가 0건이어도 통과하는 규칙은 **아무것도 검사하지 않는 상태를 성공으로 보고**한다. 모든 규칙이 실제 대상을 가져야 하고, 대상이 0건이 되면 곧바로 실패해야 한다. 리포 전체에 `allowEmptyShould(true)`가 0건이다 — batch 잡 서비스 규칙도 `BatchSchedulerRulesTest#schedulerServicesExist`가 실재하는 `*SchedulerService` 8개를 세어 공허 통과를 막는다.
 - **application 서비스의 web 플럼빙 금지 — 앱별로 담당 규칙이 다르다**:
   - **web·admin·ceo(그리고 application 5모듈 전체)**: `application-core`의 `LayerRulesTest#applicationMustBeServletFree`가 `jakarta.servlet..`·`org.springframework.web..` 의존을 막는다. 서비스가 요청 바인딩·서블릿을 알 이유가 없다는 것이 규칙의 취지다.
-  - **batch**: `application-core`의 `BatchSchedulerRulesTest#applicationServicesShouldNotDependOnWebLayer`가 `ModuleOrigin.BATCH`(`batch-application` 출신 클래스)를 대상으로 web *플럼빙*(`org.springframework.web.bind..`·`org.springframework.web.servlet..`·`org.springframework.http..`·`jakarta.servlet..`)을 막는다. 잡 서비스는 HTTP 전송 방식을 알지 않는다. batch는 커맨드/쿼리 분리 대신 잡 본문을 `*SchedulerService`에 담으며, 실재하는 잡 서비스(`region`·`grade`·`product`·`productsoldout`·`rank`·`reviewblind`·`search` 7개 잡)가 이 규칙의 대상이다.
+  - **batch**: `application-core`의 `BatchSchedulerRulesTest#applicationServicesShouldNotDependOnWebLayer`가 `ModuleOrigin.BATCH`(`batch-application` 출신 클래스)를 대상으로 web *플럼빙*(`org.springframework.web.bind..`·`org.springframework.web.servlet..`·`org.springframework.http..`·`jakarta.servlet..`)을 막는다. 잡 서비스는 HTTP 전송 방식을 알지 않는다. batch는 커맨드/쿼리 분리 대신 잡 본문을 `*SchedulerService`에 담으며, 실재하는 잡 서비스(`region`·`grade`·`payment`·`product`·`productsoldout`·`rank`·`reviewblind`·`search` 8개 잡)가 이 규칙의 대상이다.
   - 패키지(`..application..`)만으로 대상을 잡으면 대상이 사라졌을 때 공허 통과하므로, 모듈 출신(`ModuleOrigin`)과 실재 개수 테스트로 대상을 고정한다.
 - **`MultipartFile`은 예외로 허용한다**: `applicationMustBeServletFree`는 `org.springframework.web.multipart..`를 차단 대상에서 뺀다 — 파일 업로드에서 업로드 자체를 받는 경계 타입이라 `ceo-application`의 업로드 서비스(`file/service/FileOwnerUploadService` 등)가 정당하게 파라미터로 사용하며, 이를 금지하려면 업로드 흐름 자체를 재설계해야 한다.
 
@@ -1777,7 +1778,7 @@ reference 구현: `infrastructure/jpa/src/test/.../architecture/LayerRulesTest`.
 | `batch-module/.../architecture/LayerRulesTest` | `@Scheduled` 트리거 |
 | `infrastructure/jpa/.../architecture/LayerRulesTest` | infra 계층 방향(위 절) |
 | `domain/.../architecture/{DomainPurityTest,ContextBoundaryTest}` | 프레임워크 순수성 · 컨텍스트 수평 경계 |
-| `application-core/.../architecture/RuleAnchorTest` | 공허 통과 검출(아래) — **앱별 하한**을 유지해 한 앱이 통째로 사라지는 것을 잡는다. `commandServicesExist`(≥313)·`queryServicesExist`(≥267)는 `UseCaseServices` 술어로 센다. `moduleUseCaseCounts` web ≥185 · admin ≥207 · ceo ≥188 · batch =7 · core =0, `inboundPortsExist` ≥891 |
+| `application-core/.../architecture/RuleAnchorTest` | 공허 통과 검출(아래) — **앱별 하한**을 유지해 한 앱이 통째로 사라지는 것을 잡는다. `commandServicesExist`(≥313)·`queryServicesExist`(≥267)는 `UseCaseServices` 술어로 센다. `moduleUseCaseCounts` web ≥185 · admin ≥207 · ceo ≥188 · batch =8 · core =0, `inboundPortsExist` ≥891 |
 
 **계층을 모듈로 분리했기에 표현 가능한 규칙** — 한 모듈에 두 계층이 함께 있으면 컨트롤러가 정당하게 서블릿 타입을 쓰므로 모듈 전역 금지를 걸 수 없다:
 
@@ -1810,7 +1811,7 @@ reference 구현: `infrastructure/jpa/src/test/.../architecture/LayerRulesTest`.
 
 ## application 서비스 CQRS 분리 규칙 (`{도메인}CommandService`/`{도메인}QueryService`)
 
-**유스케이스 하나 = 포트 하나 = 서비스 하나다.** 제목의 `{도메인}CommandService`/`{도메인}QueryService`는 다른 문서가 이 앵커를 링크해 남겨 둔 이름이다 — 지금은 도메인당 서비스 한 쌍이 아니라 연산마다 서비스가 하나다([ADR-0043](../docs/adr/0043-usecase-per-service.md)). batch의 `*SchedulerService` 7개도 UseCase 1개 = 서비스 1개다.
+**유스케이스 하나 = 포트 하나 = 서비스 하나다.** 제목의 `{도메인}CommandService`/`{도메인}QueryService`는 다른 문서가 이 앵커를 링크해 남겨 둔 이름이다 — 지금은 도메인당 서비스 한 쌍이 아니라 연산마다 서비스가 하나다([ADR-0043](../docs/adr/0043-usecase-per-service.md)). batch의 `*SchedulerService` 8개도 UseCase 1개 = 서비스 1개다.
 
 | 항목 | 규칙 |
 |---|---|
@@ -1821,7 +1822,7 @@ reference 구현: `infrastructure/jpa/src/test/.../architecture/LayerRulesTest`.
 | 공유 헬퍼 | 한 연산 전용이면 그 서비스로, 순수 변환이면 대상 record의 `from(...)`(예: `PaymentViewResult.from(PaymentResult)`), 포트가 필요하면 같은 패키지의 `{도메인}{명사}Reader` |
 | 가드 — 판별 술어 | testFixtures `com.tastyhouse.architecture.UseCaseServices` — `isUseCaseService`(`..service..`의 비인터페이스 + `port.in` 인터페이스 구현 + batch 출처 제외) / `isQueryService`(구현 포트명이 `QueryUseCase`로 끝남) / `isCommandService`(나머지). `commandServicesShouldNotDependOnQueryPorts`·`queryServicesShouldNotDependOnWritePorts`·`commandServicesShouldNotDependOnRequestRecords`가 `commands()`/`queries()`로 대상을 고른다 |
 | 가드 — 1:1 강제 | application `LayerRulesTest`: `useCaseServicesShouldImplementExactlyOneUseCase`(`port.in` 인터페이스 정확히 1개 구현) · `useCasesShouldDeclareSingleOperation`(web·admin·ceo 출처 `port.in` `*UseCase`는 추상 메서드 1개 — 오버로드도 금지) · `useCaseServiceNameShouldMatchPort`(서비스명 = 포트명의 `UseCase`→`Service`) · `useCaseServicesShouldHaveSinglePublicOperation`(생성자를 뺀 public 메서드 1개). 대상 하한 580 |
-| 가드 — anchor(`RuleAnchorTest`) | 술어 기반 `commandServicesExist` ≥313 · `queryServicesExist` ≥267, `moduleUseCaseCounts` web ≥185 · admin ≥207 · ceo ≥188 · batch =7 · core =0, `inboundPortsExist` ≥891 |
+| 가드 — anchor(`RuleAnchorTest`) | 술어 기반 `commandServicesExist` ≥313 · `queryServicesExist` ≥267, `moduleUseCaseCounts` web ≥185 · admin ≥207 · ceo ≥188 · batch =8 · core =0, `inboundPortsExist` ≥891 |
 
 - **도메인 서비스는 명사형, 유스케이스 서비스는 동사형이다** — `PaymentConfirmationService`(도메인) vs `PgPaymentConfirmService`(유스케이스).
 - **오버로드는 이름으로 나눈다** — 소유자 검증 조회와 식별자만으로의 조회 → `ReservationDetailQueryUseCase`/`ReservationDetailByIdQueryUseCase`.
@@ -1954,7 +1955,7 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 - **(b) `application-core`는 4앱 공유 모듈이다**: 앱마다 다른 어댑터 선택을 담을 자리가 없다. 게다가 [클래스패스 존재 = 활성화](#클래스패스-존재--활성화-원칙)이므로(앱 `ModuleScanConfig`의 `infrastructure` 스캔이 그 활성화를 한다), 공유 모듈에 `:infrastructure:oauth`를 걸면 web 전용 벤더 빈 4종이 admin·ceo·batch에서도 발화하고, 벤더 record 검사의 `IllegalStateException`으로 세 앱 **기동이 실패**한다.
 - **(c) 방향 역전**: 포트를 소유한 모듈이 그 포트의 구현 모듈을 의존하는 것은 의존성 역전 원칙 자체를 뒤집는 것이다.
 
-**앱별 목록이 서로 다르다는 사실 자체가 "이것은 앱의 선언"이라는 증거다** — web 7개 / admin·ceo 4개 / batch 4개이며 겹치는 것은 `persistence`·`file-storage`·`logging-module` 셋뿐이다([앱별 의존 표](#앱별-의존-전환-후--runtimeonly로-하향)). 공통 부분만 뽑아 올리려는 시도는 나머지를 다시 앱에 남기므로 선언 위치만 둘로 쪼갤 뿐이다.
+**앱별 목록이 서로 다르다는 사실 자체가 "이것은 앱의 선언"이라는 증거다** — `runtimeOnly` 선언 기준(`logging-module` 포함) web 9개 / admin 5개 / ceo 4개 / batch 6개이며 겹치는 것은 `persistence`·`file-storage`·`logging-module` 셋뿐이다([앱별 의존 표](#앱별-의존-전환-후--runtimeonly로-하향)). 공통 부분만 뽑아 올리려는 시도는 나머지를 다시 앱에 남기므로 선언 위치만 둘로 쪼갤 뿐이다.
 
 ### `runtimeOnly`가 "어댑터를 모른다"의 구현이다
 
@@ -1976,7 +1977,7 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 ### 비채택 대안과 재고 조건
 
 - **부트스트랩 모듈 분리** (4앱 공통 부트스트랩을 별도 모듈로): 지금 공통분은 `@SpringBootApplication`과 스캔 중첩 클래스(4앱이 글자까지 같은 틀 4벌)뿐이라 모듈 하나를 신설해 얻는 것이 없다. **재고 조건** — 같은 부트스트랩을 공유하는 두 번째 인바운드 어댑터(같은 앱의 gRPC·CLI 진입점 등)가 생기거나, `config/`가 정책이 아닌 조립 코드로 자라날 때, 또는 중첩 스캔 클래스가 단순 패키지 스캔 이상으로 자라날 때.
-- **앱별 런타임 스타터** (`web-runtime` 같은 모듈이 web의 7개 어댑터를 묶어 노출): [스타터 기준](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03)의 "여러 앱이 같은 조합을 반복 선언한다"를 충족하지 못한다(앱마다 조합이 다르므로 앱당 스타터 1개, 곧 이름만 바꾼 재선언이다). 더 나쁘게는 [runtimeClasspath 감사표](#앱별-runtimeclasspath-감사표-4--어떤-auto-config가-어느-앱에서-발화하는가)가 세는 인벤토리를 한 겹 숨겨, 어떤 모듈의 빈이 어느 앱에 뜨는지를 `build.gradle`만 봐서는 알 수 없게 만든다.
+- **앱별 런타임 스타터** (`web-runtime` 같은 모듈이 web의 9개 런타임 모듈을 묶어 노출): [스타터 기준](#벤더-선택은-앱이-아니라-스타터-모듈이-한다-챕터-03)의 "여러 앱이 같은 조합을 반복 선언한다"를 충족하지 못한다(앱마다 조합이 다르므로 앱당 스타터 1개, 곧 이름만 바꾼 재선언이다). 더 나쁘게는 [runtimeClasspath 감사표](#앱별-runtimeclasspath-감사표-4--어떤-auto-config가-어느-앱에서-발화하는가)가 세는 인벤토리를 한 겹 숨겨, 어떤 모듈의 빈이 어느 앱에 뜨는지를 `build.gradle`만 봐서는 알 수 없게 만든다.
 
 ### [존재] 사례 해설 — `@RateLimit`의 앱 배선은 스캔 목록 1항목이다
 
@@ -2152,7 +2153,7 @@ reference 구현: `infrastructure:jpa`의 `file/query/FileUrlResolver`·`FileUrl
 
 - **3단 구조와 각 층의 책임**:
   1. **`{도메인}CommandService`** (소비 모듈, `@Transactional` **없음**) — 재시도 루프(`MAX_RETRY`)와 경합 예외 판별만. 재시도 소진 시 도메인 의미의 실패로 변환(예: `RESERVATION_SLOT_FULL`).
-  2. **`{도메인}{동작}Executor`** (소비 모듈, `@Component` + `@Transactional`) — 한 번의 시도를 독립 트랜잭션으로 감싸는 얇은 위임. 비즈니스 로직을 갖지 않습니다.
+  2. **`{도메인}{동작}Executor`** (소비 모듈, `@Component` + `@Transactional`) — 한 번의 시도를 독립 트랜잭션으로 감싸는 얇은 위임. 비즈니스 로직을 갖지 않습니다. 메서드는 `*InNewTx`로 짓고 전파 속성은 `REQUIRED`이므로, **호출자(1층)는 트랜잭션 밖이어야 합니다** — `application-core`의 `ExecutorCallerTransactionRulesTest`가 `*InNewTx` 호출자의 `@Transactional`을 금지합니다.
   3. **도메인 서비스** (domain, 순수 POJO) — 불변식 본체. 경합을 **재시도하지 않고**, 충돌이 커밋 전에 드러나도록 `saveImmediately`로 노출만 시킵니다.
 - **경합 예외 판별**: 프레임워크-프리 `OptimisticLockConflictException`(기존 행 동시 update — infra 어댑터가 `ObjectOptimisticLockingFailureException`을 catch해 번역)과 `UniqueConstraintConflictException`(신규 행 동시 insert 시 유니크 충돌 — 같은 어댑터가 `DataIntegrityViolationException`을 catch해 번역) **두 가지만** 재시도합니다. 둘 다 `application/shared/port/out/`의 포트 예외이므로 application은 Spring DAO 예외를 모른다([영속 포트 기술 중립 규칙](#영속-포트-기술-중립-규칙-포트는-jpamybatis-어느-쪽으로도-구현될-수-있어야-한다)). 비즈니스 예외(정원 마감·중복·약관 미동의 등)는 재시도하지 않고 즉시 전파합니다 — 재시도해도 결과가 같으므로 지연만 늘어납니다.
 - **커밋 전 노출이 필수**: 충돌이 트랜잭션 커밋 시점에야 터지면 이미 루프를 벗어나 재시도 루프가 잡을 수 없습니다. 그래서 경합 지점의 write 포트에 `saveImmediately`를 두어 **메서드 내부에서** 충돌을 유발합니다(일반 `save`와 구분되는 존재 이유).

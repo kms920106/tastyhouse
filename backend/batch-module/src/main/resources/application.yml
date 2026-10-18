@@ -15,5 +15,6 @@ spring:
       - classpath:application-file-storage.yml
       - classpath:application-bbq.yml
       - classpath:application-admdongkor.yml
+      - classpath:application-pg.yml
       - optional:file:.env[.properties]
       - optional:file:backend/.env[.properties]

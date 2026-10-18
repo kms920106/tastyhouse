@@ -35,7 +35,9 @@ export async function confirmPaymentToss({
   return paymentRepository.confirmPaymentToss({ paymentKey, pgOrderId, amount }, accessToken)
 }
 
-export type CancelPaymentResult = { success: true; code: PaymentCancelCode } | { success: false }
+export type CancelPaymentResult =
+  | { success: true; code: PaymentCancelCode }
+  | { success: false; error?: string }
 
 export async function cancelPayment({
   paymentId,
@@ -44,10 +46,14 @@ export async function cancelPayment({
   paymentId: number
   cancelReason: string
 }): Promise<CancelPaymentResult> {
-  const { error, data } = await paymentRepository.cancelPayment(paymentId, { cancelReason })
+  const { error, errorCode, message, data } = await paymentRepository.cancelPayment(paymentId, {
+    cancelReason,
+  })
 
   if (error || !data) {
-    return { success: false }
+    return errorCode === 'PAYMENT_CANCEL_UNCONFIRMED'
+      ? { success: false, error: message ?? error }
+      : { success: false }
   }
 
   return { success: true, code: data.code }
