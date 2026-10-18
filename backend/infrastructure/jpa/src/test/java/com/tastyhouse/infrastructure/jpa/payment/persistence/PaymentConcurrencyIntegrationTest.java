@@ -1,6 +1,7 @@
 package com.tastyhouse.infrastructure.jpa.payment.persistence;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -89,7 +90,7 @@ class PaymentConcurrencyIntegrationTest {
     @AfterEach
     void tearDown() throws InterruptedException {
         executor.shutdownNow();
-        executor.awaitTermination(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertThat(executor.awaitTermination(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isTrue();
     }
 
     @Test
@@ -169,7 +170,7 @@ class PaymentConcurrencyIntegrationTest {
         cancellation.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertThat(attempt.get(TIMEOUT_SECONDS, TimeUnit.SECONDS)).isEqualTo(PaymentStatus.CANCELLED);
         assertThat(statusOf(pgOrderId)).isEqualTo("CANCELLED");
-        assertThat(pgProviderOf(pgOrderId)).isNull();
+        assertThat(pgProvidersOf(pgOrderId)).singleElement().isNull();
     }
 
     @Test
@@ -236,8 +237,8 @@ class PaymentConcurrencyIntegrationTest {
         return jdbc.queryForObject("SELECT id FROM PAYMENT WHERE pg_order_id = ?", Long.class, pgOrderId);
     }
 
-    private String pgProviderOf(String pgOrderId) {
-        return jdbc.queryForObject("SELECT pg_provider FROM PAYMENT WHERE pg_order_id = ?", String.class, pgOrderId);
+    private List<String> pgProvidersOf(String pgOrderId) {
+        return jdbc.queryForList("SELECT pg_provider FROM PAYMENT WHERE pg_order_id = ?", String.class, pgOrderId);
     }
 
     private String statusOf(String pgOrderId) {

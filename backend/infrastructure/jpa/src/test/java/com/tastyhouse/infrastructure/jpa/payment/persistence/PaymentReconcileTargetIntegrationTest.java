@@ -146,7 +146,7 @@ class PaymentReconcileTargetIntegrationTest {
         jdbc.update("UPDATE PAYMENT SET reconcile_attempt_count = 2, reconcile_next_at = ? WHERE id = ?", DUE_AT, paymentId);
         LocalDateTime nextAt = DUE_AT.plusMinutes(39);
 
-        boolean claimed = claim(PaymentId.of(paymentId), 2, DUE_AT, nextAt);
+        boolean claimed = claim(PaymentId.of(paymentId), 2, nextAt);
 
         assertThat(claimed).isTrue();
         assertThat(paymentLoadPort.findReconcileAttemptCount(PaymentId.of(paymentId))).isEqualTo(3);
@@ -160,8 +160,8 @@ class PaymentReconcileTargetIntegrationTest {
         long paymentId = insertPayment(442L, "pg-double-claim", "PENDING", "TOSS", FROM.plusHours(1));
         LocalDateTime nextAt = DUE_AT.plusMinutes(9);
 
-        boolean first = claim(PaymentId.of(paymentId), 0, DUE_AT, nextAt);
-        boolean second = claim(PaymentId.of(paymentId), 0, DUE_AT, nextAt);
+        boolean first = claim(PaymentId.of(paymentId), 0, nextAt);
+        boolean second = claim(PaymentId.of(paymentId), 0, nextAt);
 
         assertThat(first).isTrue();
         assertThat(second).isFalse();
@@ -175,16 +175,16 @@ class PaymentReconcileTargetIntegrationTest {
         LocalDateTime resetNextAt = DUE_AT.plusMinutes(10);
         jdbc.update("UPDATE PAYMENT SET reconcile_attempt_count = 0, reconcile_next_at = ? WHERE id = ?", resetNextAt, paymentId);
 
-        boolean claimed = claim(PaymentId.of(paymentId), 0, DUE_AT, DUE_AT.plusMinutes(9));
+        boolean claimed = claim(PaymentId.of(paymentId), 0, DUE_AT.plusMinutes(9));
 
         assertThat(claimed).isFalse();
         assertThat(jdbc.queryForObject("SELECT reconcile_next_at FROM PAYMENT WHERE id = ?", LocalDateTime.class, paymentId))
             .isEqualTo(resetNextAt);
     }
 
-    private boolean claim(PaymentId paymentId, int expectedAttemptCount, LocalDateTime dueAt, LocalDateTime nextAttemptAt) {
+    private boolean claim(PaymentId paymentId, int expectedAttemptCount, LocalDateTime nextAttemptAt) {
         Boolean claimed = new TransactionTemplate(transactionManager).execute(status ->
-            paymentSavePort.saveReconcileScheduleIfDue(paymentId, expectedAttemptCount, dueAt, nextAttemptAt)
+            paymentSavePort.saveReconcileScheduleIfDue(paymentId, expectedAttemptCount, DUE_AT, nextAttemptAt)
         );
         return Boolean.TRUE.equals(claimed);
     }

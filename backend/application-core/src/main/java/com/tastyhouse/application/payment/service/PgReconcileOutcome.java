@@ -1,6 +1,6 @@
 package com.tastyhouse.application.payment.service;
 
-enum PgReconcileOutcome {
+public enum PgReconcileOutcome {
 
     COMPLETED,
     ALREADY_COMPLETED,

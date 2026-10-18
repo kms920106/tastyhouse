@@ -135,7 +135,7 @@ class PaymentReconcileSchedulerServiceTest {
     void unknown_isSkipped() {
         givenTargets(List.of(pendingPayment(1L, "pg-order-1")));
         givenLookup("pg-order-1", PgPaymentLookupStatus.UNKNOWN, failedResult(PgConfirmFailure.UNKNOWN, "PG_SERVER_ERROR"));
-        givenClaim(1L, 3, LocalDateTime.now().plusMinutes(79));
+        givenClaim(3, LocalDateTime.now().plusMinutes(79));
 
         service.reconcileUnconfirmedPayments();
 
@@ -247,7 +247,7 @@ class PaymentReconcileSchedulerServiceTest {
     void lastAttemptUnresolved_logsManualRequired() {
         LocalDateTime createdAt = LocalDateTime.now().minusDays(7).plusMinutes(15);
         givenTargets(List.of(pendingPayment(1L, "pg-order-1", createdAt)));
-        givenClaim(1L, 14, LocalDateTime.now().plusHours(24).minusMinutes(1));
+        givenClaim(14, LocalDateTime.now().plusHours(24).minusMinutes(1));
         givenLookup("pg-order-1", PgPaymentLookupStatus.UNKNOWN, failedResult(PgConfirmFailure.UNKNOWN, "PG_SERVER_ERROR"));
 
         service.reconcileUnconfirmedPayments();
@@ -264,7 +264,7 @@ class PaymentReconcileSchedulerServiceTest {
     void lastAttemptAmountMismatch_logsManualRequired() {
         LocalDateTime createdAt = LocalDateTime.now().minusDays(7).plusMinutes(15);
         givenTargets(List.of(pendingPayment(1L, "pg-order-1", createdAt)));
-        givenClaim(1L, 14, LocalDateTime.now().plusHours(24).minusMinutes(1));
+        givenClaim(14, LocalDateTime.now().plusHours(24).minusMinutes(1));
         PgConfirmResult approval = approvedResult();
         givenLookup("pg-order-1", PgPaymentLookupStatus.APPROVED, approval);
         when(paymentReconcileExecutor.reconcileApprovedInNewTx("pg-order-1", PgProvider.TOSS, approval))
@@ -281,7 +281,7 @@ class PaymentReconcileSchedulerServiceTest {
     void lastAttemptOrderNotConfirmable_doesNotLogManualRequired() {
         LocalDateTime createdAt = LocalDateTime.now().minusDays(7).plusMinutes(15);
         givenTargets(List.of(pendingPayment(1L, "pg-order-1", createdAt)));
-        givenClaim(1L, 14, LocalDateTime.now().plusHours(24).minusMinutes(1));
+        givenClaim(14, LocalDateTime.now().plusHours(24).minusMinutes(1));
         PgConfirmResult approval = approvedResult();
         givenLookup("pg-order-1", PgPaymentLookupStatus.APPROVED, approval);
         when(paymentReconcileExecutor.reconcileApprovedInNewTx("pg-order-1", PgProvider.TOSS, approval))
@@ -298,7 +298,7 @@ class PaymentReconcileSchedulerServiceTest {
     void lastAttemptResolved_doesNotLogManualRequired() {
         LocalDateTime createdAt = LocalDateTime.now().minusDays(7).plusMinutes(15);
         givenTargets(List.of(pendingPayment(1L, "pg-order-1", createdAt)));
-        givenClaim(1L, 14, LocalDateTime.now().plusHours(24).minusMinutes(1));
+        givenClaim(14, LocalDateTime.now().plusHours(24).minusMinutes(1));
         givenLookup("pg-order-1", PgPaymentLookupStatus.NOT_APPROVED, failedResult(PgConfirmFailure.REJECTED, "NOT_FOUND_PAYMENT"));
 
         service.reconcileUnconfirmedPayments();
@@ -311,7 +311,7 @@ class PaymentReconcileSchedulerServiceTest {
     void attemptWithinWindow_doesNotLogManualRequired() {
         LocalDateTime createdAt = LocalDateTime.now().minusDays(5);
         givenTargets(List.of(pendingPayment(1L, "pg-order-1", createdAt)));
-        givenClaim(1L, 12, LocalDateTime.now().plusHours(24).minusMinutes(1));
+        givenClaim(12, LocalDateTime.now().plusHours(24).minusMinutes(1));
         givenLookup("pg-order-1", PgPaymentLookupStatus.UNKNOWN, failedResult(PgConfirmFailure.UNKNOWN, "PG_SERVER_ERROR"));
 
         service.reconcileUnconfirmedPayments();
@@ -367,8 +367,8 @@ class PaymentReconcileSchedulerServiceTest {
         )).thenReturn(payments);
     }
 
-    private void givenClaim(Long paymentId, int attemptCount, LocalDateTime nextAttemptAt) {
-        when(paymentReconcileExecutor.claimNextAttemptInNewTx(eq(PaymentId.of(paymentId)), any(LocalDateTime.class)))
+    private void givenClaim(int attemptCount, LocalDateTime nextAttemptAt) {
+        when(paymentReconcileExecutor.claimNextAttemptInNewTx(eq(PaymentId.of(1L)), any(LocalDateTime.class)))
             .thenReturn(Optional.of(new PaymentReconcileClaim(attemptCount, nextAttemptAt)));
     }
 

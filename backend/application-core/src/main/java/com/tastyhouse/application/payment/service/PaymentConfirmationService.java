@@ -129,7 +129,7 @@ public class PaymentConfirmationService {
 
         recordTossDetail(payment.getPaymentId(), result.detail());
 
-        if (!isAwaitingPgApproval(payment.getPaymentStatus())) {
+        if (isNotAwaitingPgApproval(payment.getPaymentStatus())) {
             throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
 
@@ -145,7 +145,7 @@ public class PaymentConfirmationService {
             return new PgReconcileResult(payment.getPaymentId(), PgReconcileOutcome.ALREADY_COMPLETED);
         }
 
-        if (!isAwaitingPgApproval(payment.getPaymentStatus())) {
+        if (isNotAwaitingPgApproval(payment.getPaymentStatus())) {
             throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_PENDING_APPROVAL);
         }
 
@@ -280,8 +280,8 @@ public class PaymentConfirmationService {
         ));
     }
 
-    private boolean isAwaitingPgApproval(PaymentStatus paymentStatus) {
-        return paymentStatus == PaymentStatus.PENDING || paymentStatus == PaymentStatus.FAILED;
+    private boolean isNotAwaitingPgApproval(PaymentStatus paymentStatus) {
+        return paymentStatus != PaymentStatus.PENDING && paymentStatus != PaymentStatus.FAILED;
     }
 
     private boolean isOnSitePayment(PaymentMethod paymentMethod) {

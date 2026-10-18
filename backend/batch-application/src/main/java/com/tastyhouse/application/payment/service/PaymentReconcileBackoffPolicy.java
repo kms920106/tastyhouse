@@ -21,13 +21,13 @@ final class PaymentReconcileBackoffPolicy {
     static LocalDateTime nextAttemptAt(int attemptsSoFar, LocalDateTime dueAt, LocalDateTime claimedAt) {
         Duration interval = attemptsSoFar >= MAX_DOUBLINGS
             ? MAX_INTERVAL
-            : min(BASE_INTERVAL.multipliedBy(1L << attemptsSoFar), MAX_INTERVAL);
+            : cappedAtMaxInterval(BASE_INTERVAL.multipliedBy(1L << attemptsSoFar));
         LocalDateTime onRunGrid = dueAt.plus(interval).minus(SCHEDULE_SLACK);
         LocalDateTime afterClaim = claimedAt.plus(CLAIM_GUARD);
         return onRunGrid.isAfter(afterClaim) ? onRunGrid : afterClaim;
     }
 
-    private static Duration min(Duration a, Duration b) {
-        return a.compareTo(b) <= 0 ? a : b;
+    private static Duration cappedAtMaxInterval(Duration interval) {
+        return interval.compareTo(MAX_INTERVAL) <= 0 ? interval : MAX_INTERVAL;
     }
 }
