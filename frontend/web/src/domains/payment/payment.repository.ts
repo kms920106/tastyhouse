@@ -15,6 +15,10 @@ const ENDPOINT = '/api/payments'
 // 같은 결제의 취소와 겹쳐 행 잠금 대기가 생기면 넘을 수 있으며, 그때는 '확인 중' 화면으로 간다
 const CONFIRM_TIMEOUT_MS = 35000
 
+// PG 취소 1회(연결 5초+읽기 10초) 최악값 15초에 반영 단계의 행 잠금 대기 여유를 더한 값.
+// 기본 3초를 쓰면 PG 취소가 늦을 때 backend는 환불을 끝냈는데 web은 실패로 보여준다
+const CANCEL_TIMEOUT_MS = 20000
+
 export const paymentRepository = {
   // 결제 생성. 서버는 생성된 결제 ID를 스칼라로 반환한다(ApiResponse<Long>).
   async createPayment(request: PaymentCreateRequest) {
@@ -41,6 +45,8 @@ export const paymentRepository = {
 
   // 결제 취소
   async cancelPayment(paymentId: number, request: PaymentCancelRequest) {
-    return api.post<PaymentCancelResponse>(`${ENDPOINT}/v1/${paymentId}/cancel`, request)
+    return api.post<PaymentCancelResponse>(`${ENDPOINT}/v1/${paymentId}/cancel`, request, {
+      timeout: CANCEL_TIMEOUT_MS,
+    })
   },
 }
