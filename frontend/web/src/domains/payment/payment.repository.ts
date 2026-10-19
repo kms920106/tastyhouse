@@ -11,7 +11,8 @@ import type {
 
 const ENDPOINT = '/api/payments'
 
-// 승인(연결 5초+읽기 10초)과 조회 대사(15초)를 합친 백엔드 최악값 30초에 여유를 더한 값
+// 승인(연결 5초+읽기 10초)과 조회 대사(15초)를 합친 PG 호출 최악값 30초에 여유를 더한 값.
+// 같은 결제의 취소와 겹쳐 행 잠금 대기가 생기면 넘을 수 있으며, 그때는 '확인 중' 화면으로 간다
 const CONFIRM_TIMEOUT_MS = 35000
 
 export const paymentRepository = {

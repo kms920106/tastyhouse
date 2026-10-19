@@ -1951,7 +1951,7 @@ reference 구현: `notice` 도메인 — 순수 모델 `domain/.../notice/model/
 
 어댑터 선언이 4개 앱에 흩어져 반복되는 것이 눈에 거슬려 `application`이나 `domain`로 내리고 싶어지지만, **셋 다 막힌 길이다.**
 
-- **(a) Gradle 순환**: `infrastructure:jpa`·`:{kakao,naver,apple,facebook}-oauth`·`:bbq`·`:admdongkor`가 `:application-core`을, 자바 코드가 있는 외부 연동 모듈 대부분이 `:domain`을 이미 의존한다(예외는 코드 없는 스타터 `:file-storage`·`:oauth`, 코어 `:restclient`, 도메인 타입을 쓰지 않는 `:kakao-oauth`·`:naver-oauth`). 포트를 소유한 모듈이 구현 모듈을 되받으면 그 자리에서 순환이다.
+- **(a) Gradle 순환**: 구현 모듈이 자신이 구현하는 포트의 소유 모듈을 이미 의존한다 — `infrastructure:jpa`·`:tosspayments`는 `:application-core`을, `:{kakao,naver,apple,facebook}-oauth`·`:javamail`·`:solapi`·`:aws-ses`·`:aws-sns`는 `:web-application`을, `:bbq`·`:admdongkor`는 `:batch-application`을(위 [실행 앱·벤더의 의존](#실행-앱벤더의-의존) 표). 또 자바 코드가 있는 외부 연동 모듈 대부분이 `:domain`을 이미 의존한다(예외는 코드 없는 스타터 `:file-storage`·`:oauth`, 코어 `:restclient`, 도메인 타입을 쓰지 않는 `:kakao-oauth`·`:naver-oauth`). 포트를 소유한 모듈이 구현 모듈을 되받으면 그 자리에서 순환이다.
 - **(b) `application-core`는 4앱 공유 모듈이다**: 앱마다 다른 어댑터 선택을 담을 자리가 없다. 게다가 [클래스패스 존재 = 활성화](#클래스패스-존재--활성화-원칙)이므로(앱 `ModuleScanConfig`의 `infrastructure` 스캔이 그 활성화를 한다), 공유 모듈에 `:infrastructure:oauth`를 걸면 web 전용 벤더 빈 4종이 admin·ceo·batch에서도 발화하고, 벤더 record 검사의 `IllegalStateException`으로 세 앱 **기동이 실패**한다.
 - **(c) 방향 역전**: 포트를 소유한 모듈이 그 포트의 구현 모듈을 의존하는 것은 의존성 역전 원칙 자체를 뒤집는 것이다.
 
