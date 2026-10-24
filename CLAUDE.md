@@ -74,6 +74,7 @@ NO_COMMIT_OR_ROLLBACK
 | `docs/tasks/frontend.md` | 화면·컴포넌트·API 연동 등 프론트엔드 구현 스펙 | 플랜 세션 |
 | `docs/tasks/playwright.md` | **테스트를 진행할 상세 내용**(위 e2e 시나리오 규칙의 그 파일) | 플랜 세션 |
 | `docs/tasks/playwright-issue-v{N}.md` | 검증 중 발견된 오류 (라운드별) | **검증 세션** |
+| `docs/tasks/review-decisions.md` (하위 폴더 작업이어도 이 한 곳, 덩어리는 표의 칸으로 구분) | 코드 리뷰 지적별 판정(수정함/수정 안 함)·근거·재지적 허용 조건. 같은 지적의 재등장을 막는 기록 | **리뷰 수정 세션**(`/fix-review`가 갱신, `/review-task`가 참조) |
 
 위 문서들을 **어떤 명령으로 만들고 소비하는지**는 `docs/workflow/README.md`에 있습니다. 팀에 공유하는 상시 문서이므로 `docs/tasks/`의 휘발성 산출물과 달리 커밋되며, plan 세션이 덮어쓰지 않습니다. 명령문이나 단계 흐름이 바뀌면 그 파일을 갱신합니다.
 
