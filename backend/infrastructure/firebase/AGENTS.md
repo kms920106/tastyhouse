@@ -16,7 +16,7 @@ com.tastyhouse.infrastructure.firebase/
 
 ## 어느 앱이 의존하는가
 
-**앱은 이 모듈을 직접 의존하지 않는다.** 스타터 `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 선언하고, 4개 앱(web-api·admin-api·ceo-api·batch-module)은 그 스타터 한 줄(`runtimeOnly project(':infrastructure:file-storage')`)만 갖는다 — 앱은 "파일을 저장한다"까지만 알고 "Firebase로"는 모른다. 이 모듈은 스타터를 통해 4개 앱의 `runtimeClasspath`에 전이로 실린다. 클래스패스에 실리면 4앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다. **벤더·채널 모듈 중 결과적으로 전 앱에 실리는 유일한 모듈이다** — 파일 업로드는 네 앱 모두 필요하기 때문이며, 나머지는 web(oauth·payment·mail·javamail·sms·solapi)이나 batch(bbq·admdongkor) 전용이다. 벤더 전환(→ S3)은 이 모듈이 아니라 스타터에서 한다(`../file-storage/AGENTS.md`). ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
+**앱은 이 모듈을 직접 의존하지 않는다.** 스타터 `infrastructure:file-storage`가 `runtimeOnly project(':infrastructure:firebase')`를 선언하고, 4개 앱(web-api·admin-api·ceo-api·batch-module)은 그 스타터 한 줄(`runtimeOnly project(':infrastructure:file-storage')`)만 갖는다 — 앱은 "파일을 저장한다"까지만 알고 "Firebase로"는 모른다. 이 모듈은 스타터를 통해 4개 앱의 `runtimeClasspath`에 전이로 실린다. 클래스패스에 실리면 4앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔으로 등록되므로 `@Import`는 없다. **벤더·채널 모듈 중 결과적으로 전 앱에 실리는 유일한 모듈이다** — 파일 업로드는 네 앱 모두 필요하기 때문이며, 나머지는 web(oauth·payment·mail·javamail·sms·solapi)이나 batch(bbq·admdongkor) 전용이다. 벤더 전환(→ S3)은 이 모듈이 아니라 스타터에서 한다(`../file-storage/AGENTS.md`). ([결정 0038](../../AGENTS.md#decision-0038))
 
 ## 진입 설정과 스캔 범위
 
@@ -76,7 +76,7 @@ file:
 
 **대상**: `backend/infrastructure/firebase/src/main/java/com/tastyhouse/infrastructure/firebase/`
 
-이 모듈의 루트는 `com.tastyhouse.infrastructure.firebase`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/firebase/src/test/java/com/tastyhouse/infrastructure/firebase/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.firebase`로도 되돌리지 않는다 — 벤더 모듈마다 겹치지 않는 하위 패키지(`com.tastyhouse.infrastructure.firebase` / `com.tastyhouse.infrastructure.aws.s3`)를 소유해 split package를 피하는 구조를 유지하기 위해 이동 금지다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
+이 모듈의 루트는 `com.tastyhouse.infrastructure.firebase`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/firebase/src/test/java/com/tastyhouse/infrastructure/firebase/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.firebase`로도 되돌리지 않는다 — 벤더 모듈마다 겹치지 않는 하위 패키지(`com.tastyhouse.infrastructure.firebase` / `com.tastyhouse.infrastructure.aws.s3`)를 소유해 split package를 피하는 구조를 유지하기 위해 이동 금지다. ([결정 0037](../../AGENTS.md#decision-0037))
 
 ### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
 

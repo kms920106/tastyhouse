@@ -4,7 +4,7 @@
 
 SMS **채널 스타터**(`java-library`). **자바 코드가 없다** — 의존 선언(`build.gradle`)과 설정 진입점(`application-sms.yml`) 둘뿐이며, 형태는 `infrastructure:file-storage`·`infrastructure:oauth`·`infrastructure:mail`과 같다. 포트 `SmsSenderPort`의 구현은 벤더 모듈(`infrastructure:solapi` 기본, `infrastructure:aws-sns` 대안)에 있고, 이 모듈은 그것을 `runtimeOnly`로 조립해 web-api에 노출한다.
 
-`infrastructure:messaging`을 채널·벤더 4모듈(`mail`·`javamail`·`sms`·`solapi`)로 나눈 것 중 채널 모듈이며, 도메인 서비스 빈 등록은 이 모듈이 아니라 `web-application`이 한다. 형태는 `../mail/AGENTS.md`와 동형이다. ([ADR-0036](../../../docs/adr/0036-app-marker-removal.md))
+`infrastructure:messaging`을 채널·벤더 4모듈(`mail`·`javamail`·`sms`·`solapi`)로 나눈 것 중 채널 모듈이며, 도메인 서비스 빈 등록은 이 모듈이 아니라 `web-application`이 한다. 형태는 `../mail/AGENTS.md`와 동형이다. ([결정 0036](../../AGENTS.md#decision-0036))
 
 ## 무엇을 소유하는가
 
@@ -26,7 +26,7 @@ backend/infrastructure/sms/
 
 ## 도메인 서비스 등록은 어디인가 — `web-application`의 `SmsVerificationService`
 
-`SmsVerificationService`는 **`web-application` 모듈**의 `phoneverification/service/`에 있고 **`@Service`**로 등록된다. `SmsSenderPort` 포트도 `web-application`의 `phoneverification.port.out`에 있다. web-api만 `web-application`을 의존하므로 발송 기능이 없는 admin·ceo·batch에는 이 빈이 뜨지 않고, 다른 앱의 빈은 **컴파일 단계에서** 그 포트를 볼 수 없다. 빈 이름은 `smsVerificationService`다. ([ADR-0036](../../../docs/adr/0036-app-marker-removal.md))
+`SmsVerificationService`는 **`web-application` 모듈**의 `phoneverification/service/`에 있고 **`@Service`**로 등록된다. `SmsSenderPort` 포트도 `web-application`의 `phoneverification.port.out`에 있다. web-api만 `web-application`을 의존하므로 발송 기능이 없는 admin·ceo·batch에는 이 빈이 뜨지 않고, 다른 앱의 빈은 **컴파일 단계에서** 그 포트를 볼 수 없다. 빈 이름은 `smsVerificationService`다. ([결정 0036](../../AGENTS.md#decision-0036))
 
 `SmsVerificationService`는 생성자로 `SmsSenderPort`·`SmsVerificationLoadPort`·`SmsVerificationSavePort`·`DomainEventPublisher`를 요구한다.
 

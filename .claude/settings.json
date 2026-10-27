@@ -1,5 +1,16 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // .tool_input.notebook_path // empty' | grep -qE '(^|/)docs/adr(/|$)' && { echo 'docs/adr/는 폐지됐습니다. 결정 경위는 그 규칙을 소유한 문서의 \"## 결정 경위\" 절에 적습니다(루트 CLAUDE.md의 \"규칙 문서 개정 규칙\" 절).' >&2; exit 2; }; exit 0"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

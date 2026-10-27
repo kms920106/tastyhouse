@@ -4,7 +4,7 @@
 
 카카오 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClientPort`를 `KakaoOAuthClient`가 구현하고 `provider()`로 `SocialProvider.KAKAO`를 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
-채널·벤더 분리로 `infrastructure:oauth`에서 갈라진 벤더 모듈이다. 패키지 루트는 `com.tastyhouse.infrastructure.kakao.oauth`이고 wire DTO도 루트 패키지에 평면으로 있으며 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명이 빈 이름 `kakaoOAuthClient`를 정한다. ([ADR-0040](../../../docs/adr/0040-package-private-visibility.md))
+채널·벤더 분리로 `infrastructure:oauth`에서 갈라진 벤더 모듈이다. 패키지 루트는 `com.tastyhouse.infrastructure.kakao.oauth`이고 wire DTO도 루트 패키지에 평면으로 있으며 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명이 빈 이름 `kakaoOAuthClient`를 정한다. ([결정 0040](../../AGENTS.md#decision-0040))
 
 ## 무엇을 소유하는가
 
@@ -63,7 +63,7 @@ oauth:
 
 **대상**: `backend/infrastructure/kakao-oauth/src/main/java/com/tastyhouse/infrastructure/kakao/oauth/`
 
-이 모듈의 루트는 `com.tastyhouse.infrastructure.kakao.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/kakao-oauth/src/test/java/com/tastyhouse/infrastructure/kakao/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(바꿀 때는 그 규칙의 목록을 함께 고친다 — 목록은 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`다). ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
+이 모듈의 루트는 `com.tastyhouse.infrastructure.kakao.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/kakao-oauth/src/test/java/com/tastyhouse/infrastructure/kakao/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(바꿀 때는 그 규칙의 목록을 함께 고친다 — 목록은 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`다). ([결정 0037](../../AGENTS.md#decision-0037))
 
 ### 외부 응답 DTO는 도메인 enum을 반환하지 않는다
 

@@ -13,7 +13,7 @@
 > | MySQL 드라이버 | DB 연결 코어 `infrastructure:mysql`이 소유한다 |
 > | 앱 4개 의존 | `runtimeOnly project(':infrastructure:persistence')` — 코드 없는 조립 모듈 `infrastructure:persistence`가 `runtimeOnly project(':infrastructure:jpa')` + `runtimeOnly project(':infrastructure:mysql')`로 이 모듈을 묶는다(`../persistence/AGENTS.md`) |
 >
-> 이 모듈의 빈은 4앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 문자열로 스캔해 등록한다 — 이 모듈은 `AutoConfiguration.imports` 파일도, 자기 `@ComponentScan`도 갖지 않는다. 형제 모듈 `infrastructure:redis`가 Redis를(`../redis/AGENTS.md`), `infrastructure:restclient`가 외부 연동 HTTP 코어를(`../restclient/AGENTS.md`), `infrastructure:mybatis`가 notice MyBatis 레거시 구현을(`../mybatis/AGENTS.md`) 소유하고, 실제 외부 어댑터는 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,tosspayments,javamail,solapi,bbq,admdongkor}`이 기술별로 나눠 갖는다 — 전부 driven 어댑터다(코드 없는 조립 스타터 `persistence`·`file-storage`·`oauth`·`pg`·`mail`·`sms`는 어댑터가 아니다). ([ADR-0047](../../../docs/adr/0047-jpa-module-split.md))
+> 이 모듈의 빈은 4앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 문자열로 스캔해 등록한다 — 이 모듈은 `AutoConfiguration.imports` 파일도, 자기 `@ComponentScan`도 갖지 않는다. 형제 모듈 `infrastructure:redis`가 Redis를(`../redis/AGENTS.md`), `infrastructure:restclient`가 외부 연동 HTTP 코어를(`../restclient/AGENTS.md`), `infrastructure:mybatis`가 notice MyBatis 레거시 구현을(`../mybatis/AGENTS.md`) 소유하고, 실제 외부 어댑터는 `infrastructure:{firebase,aws-s3,aws-ses,aws-sns,kakao-oauth,naver-oauth,apple-oauth,facebook-oauth,tosspayments,javamail,solapi,bbq,admdongkor}`이 기술별로 나눠 갖는다 — 전부 driven 어댑터다(코드 없는 조립 스타터 `persistence`·`file-storage`·`oauth`·`pg`·`mail`·`sms`는 어댑터가 아니다). ([결정 0047](#decision-0047))
 >
 > `infrastructure` 아래를 **기술별로** 나누는 이유는 모듈 이름이 곧 "infrastructure = DB"라는 암묵 전제가 되지 않게 하기 위해서다.
 
@@ -23,7 +23,7 @@
 > - **매퍼 `XxxMapper`**: `toDomain(entity)`·`toEntity(domain)`·`applyChanges(entity, domain)`. null 가드·`valueOf`·`Xxx.of` 표현식을 한 매퍼가 담당한다.
 > - **매퍼 테스트**: `<ctx>/persistence/XxxMapperTest` — Domain→Entity / Entity→Domain 두 방향을 검증한다(아래 봉인 항목).
 > - **가드**: `LayerRulesTest#queryShouldNotDependOnDomain`(`..query..` + `SEALED_PERSISTENCE_TO_QUERY` 3개만 대상).
-> - **도메인 모델을 아는 근거**: 이 모듈은 도메인 포트의 어댑터이므로 domain을 아는 방향이 의존 규칙(안쪽을 향함)에 맞다. 쓰기 경로에 State·Snapshot 같은 번역 계층을 두지 않는다 — 애그리거트 하나를 저장하려고 파일 다섯 개를 거치고 변환이 두 번 일어나는 비용이 격리 이득보다 크다. ([ADR-0031](../../../docs/adr/0031-persistence-domain-reallowed.md))
+> - **도메인 모델을 아는 근거**: 이 모듈은 도메인 포트의 어댑터이므로 domain을 아는 방향이 의존 규칙(안쪽을 향함)에 맞다. 쓰기 경로에 State·Snapshot 같은 번역 계층을 두지 않는다 — 애그리거트 하나를 저장하려고 파일 다섯 개를 거치고 변환이 두 번 일어나는 비용이 격리 이득보다 크다. ([결정 0031](#decision-0031))
 > - **엔티티 `String` 컬럼과 `*Embeddable` 5종을 유지하는 근거**: 조회 DAO 31개 파일이 String 컬럼을 193곳에서 쓴다. 필드를 enum으로 바꾸면 QueryDSL path 타입이 바뀌어 `Projections.constructor` 투영이 **컴파일은 통과하고 런타임에만** 깨진다. 그래서 String ↔ enum(`valueOf`/`name()`)과 도메인 VO ↔ `*Embeddable` 변환은 이 모듈의 `XxxMapper`가 맡는다. Embeddable 없이 평탄 컬럼으로 저장되는 VO(`AdminDong` 경계·중심, 배달 폴리곤 모양·중심)는 도메인 VO ↔ 평탄 컬럼(`GeoPolygonTextCodec` 포함)으로 직접 매핑한다.
 > - **조회 DAO는 domain을 모른다** — 읽기 계약이 domain-free이고 DAO가 String 컬럼을 그대로 투영하므로, `..query..`에 domain import가 생기면 `queryShouldNotDependOnDomain`이 막는다. 도메인 판단이 필요해 보이면 원자료를 돌려주고 application QueryService가 판정한다.
 > - **enum 컬럼은 상수명 문자열이고 저장값은 언제나 `name()`이다.** DAO가 enum 상수와 비교할 때는 리터럴도 복제 상수도 쓰지 않고 `.eq(status)` — 비교값을 포트 인자로 받는다(application이 도메인 enum `name()`으로 넘김, `application-core/AGENTS.md` "enum 비교값 전달 규칙"). 어댑터·DAO는 도메인 예외를 던지지 않고 `Optional`/`boolean`/원자료를 돌려주며, application이 판정·예외화한다.
@@ -63,10 +63,10 @@ com.tastyhouse.infrastructure.jpa/
 
 ## 규칙
 
-- **패키지 루트는 `com.tastyhouse.infrastructure.jpa`** — **4앱 부트스트랩의 중첩 `ModuleScanConfig`가 `"com.tastyhouse.infrastructure"`를 문자열로 스캔**해 이 루트 아래 빈(PersistenceAdapter·QueryAdapter·Config)을 등록한다(제외 필터 없음). infrastructure 모듈은 전부 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}`를 루트로 쓰므로, 이 한 줄의 스캔이 다른 모듈 패키지를 덮거나 되돌리는 `excludeFilters`가 필요 없다. main 클래스가 루트 밖에 생기면 `LayerRulesTest#shouldResideInModuleRootPackage`가 실패한다. 앱은 `runtimeOnly project(':infrastructure:persistence')`(이 모듈을 `runtimeOnly`로 묶는 조립 모듈) 한 줄과 `ModuleScanConfig`의 `"com.tastyhouse.infrastructure"` 항목만 갖는다(문자열이라 `runtimeOnly`가 유지된다). JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 이 모듈의 `JpaModuleConfig`가 `basePackageClasses`(타입 세이프)로 스스로 선언**한다. domain은 이 모듈을 의존하지 않아 컴파일 타임에 이 패키지를 볼 수 없으므로, 엔티티·리포지토리를 소유한 모듈이 스스로 선언하는 것이 Spring Boot 공식 권장과 일치한다. ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
+- **패키지 루트는 `com.tastyhouse.infrastructure.jpa`** — **4앱 부트스트랩의 중첩 `ModuleScanConfig`가 `"com.tastyhouse.infrastructure"`를 문자열로 스캔**해 이 루트 아래 빈(PersistenceAdapter·QueryAdapter·Config)을 등록한다(제외 필터 없음). infrastructure 모듈은 전부 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}`를 루트로 쓰므로, 이 한 줄의 스캔이 다른 모듈 패키지를 덮거나 되돌리는 `excludeFilters`가 필요 없다. main 클래스가 루트 밖에 생기면 `LayerRulesTest#shouldResideInModuleRootPackage`가 실패한다. 앱은 `runtimeOnly project(':infrastructure:persistence')`(이 모듈을 `runtimeOnly`로 묶는 조립 모듈) 한 줄과 `ModuleScanConfig`의 `"com.tastyhouse.infrastructure"` 항목만 갖는다(문자열이라 `runtimeOnly`가 유지된다). JPA 스캔(`@EnableJpaRepositories`/`@EntityScan`)뿐 아니라 **JPA Auditing(`@EnableJpaAuditing`)·트랜잭션 관리(`@EnableTransactionManagement`) 전역 설정도 이 모듈의 `JpaModuleConfig`가 `basePackageClasses`(타입 세이프)로 스스로 선언**한다. domain은 이 모듈을 의존하지 않아 컴파일 타임에 이 패키지를 볼 수 없으므로, 엔티티·리포지토리를 소유한 모듈이 스스로 선언하는 것이 Spring Boot 공식 권장과 일치한다. ([결정 0038](../../AGENTS.md#decision-0038))
 - **api 모듈은 소스 레벨에서 이 모듈을 알지 않는다**: `{도메인}QueryService`는 DAO 구현체가 아니라 `com.tastyhouse.application..port.out`의 `{Ctx}QueryPort` 인터페이스를 컴파일 타임에 주입한다. `com.tastyhouse.infrastructure..` import는 4개 api 모듈에서 **전면 0건**이며, 각 모듈 `LayerRulesTest`가 강제한다. `..persistence..`(write 어댑터) import와 `com.querydsl..` 의존도 금지다. 앱은 조립 모듈 `:infrastructure:persistence`를 `runtimeOnly`로 의존하고, 그 모듈이 이 모듈(`:infrastructure:jpa`)을 `runtimeOnly`로 묶는다 — 이 모듈은 실행 시점의 빈 스캔 대상이고, 소스 import 여부와는 별개다.
 - **반대 방향(이 모듈 → application)도 이 모듈의 `LayerRulesTest#shouldNotDependOnApiModules`가 막는다**: 금지 대상은 `com.tastyhouse.{webapi,adminapi,ceoapi,batch}..`와 `com.tastyhouse.application..` 전체이고, 그중 이 모듈이 구현해야 하는 아웃바운드 계약 패키지 `..port.out..`만 예외다. 유스케이스·읽기 계약이 `com.tastyhouse.application` 한 패키지 트리에 공존하므로 앱별 패키지를 열거하지 않고 트리 전체를 막는다. 이 모듈은 `{Ctx}QueryPort`·Result·SearchCondition은 정당하게 import하지만, application의 서비스·UseCase(`<ctx>/service/`·`..port.in..`)는 절대 참조하지 않는다. write 포트 `XxxLoadPort`·`XxxSavePort`(`..port.out.write..`)와 스펙 record(`ReviewSortSpec` 등, `..port.out..`)도 같은 예외로 보인다.
-- **조회 DAO(`..query..`)는 `domain`을 참조하지 않는다**: `LayerRulesTest#queryShouldNotDependOnDomain` — 대상은 `com.tastyhouse.infrastructure.jpa..query..`와 봉인 조회 어댑터 3개(`SEALED_PERSISTENCE_TO_QUERY`)다. `build.gradle`이 `:domain`을 선언해 컴파일 게이트가 없으므로 **이 규칙이 유일한 방어선이다 — 지우지 않는다.** 조회 쪽에서 도메인 판단(예외·정책·enum 라벨)이 필요해 보이면 DAO에 domain을 들이지 말고, 원자료를 돌려주고 application의 QueryService가 판정하게 한다. write 어댑터(`..persistence..`의 `XxxPersistenceAdapter`·`XxxMapper`)는 대상이 아니다 — 도메인 모델을 직접 다루는 것이 그 일이다. ([ADR-0031](../../../docs/adr/0031-persistence-domain-reallowed.md))
+- **조회 DAO(`..query..`)는 `domain`을 참조하지 않는다**: `LayerRulesTest#queryShouldNotDependOnDomain` — 대상은 `com.tastyhouse.infrastructure.jpa..query..`와 봉인 조회 어댑터 3개(`SEALED_PERSISTENCE_TO_QUERY`)다. `build.gradle`이 `:domain`을 선언해 컴파일 게이트가 없으므로 **이 규칙이 유일한 방어선이다 — 지우지 않는다.** 조회 쪽에서 도메인 판단(예외·정책·enum 라벨)이 필요해 보이면 DAO에 domain을 들이지 말고, 원자료를 돌려주고 application의 QueryService가 판정하게 한다. write 어댑터(`..persistence..`의 `XxxPersistenceAdapter`·`XxxMapper`)는 대상이 아니다 — 도메인 모델을 직접 다루는 것이 그 일이다. ([결정 0031](#decision-0031))
 - **QueryDSL은 이 모듈 안에 갇힌다**: `querydsl-jpa`는 `api`가 아니라 `implementation`으로 의존해 소비 모듈에 전이 노출되지 않는다. 계약 소유 모듈 어느 쪽도 `querydsl-core`/`querydsl-apt` 의존을 갖지 않으므로, **전 프로젝트에서 QueryDSL을 컴파일하는 모듈은 이 모듈 하나뿐**이다. api 4개 모듈 `src/main`의 `com.querydsl.*` import·`@QueryProjection` 선언은 0건이며 각 모듈 `architecture/LayerRulesTest`가 이를 강제한다.
 - **Q타입 생성 위치**: `QXxxJpaEntity`(엔티티)는 이 모듈에서 생성된다(`build/generated/sources/annotationProcessor/java/main`). **Result DTO의 Q타입(`QXxxResult`)은 생성되지 않는다** — Result record는 QueryDSL을 모르는 계약 모듈에 있어 `@QueryProjection`을 달 수 없고, DAO는 `Projections.constructor(XxxResult.class, ...)`로 조립한다(리포 전체 `@QueryProjection` 선언 0건). 계약 소유 모듈 어디에도 apt가 없다.
 - **JPA 엔티티(`XxxJpaEntity`)는 영속 전용**: 행위 메서드를 두지 않고, 신규 생성용 정적 팩토리 `create(...)`와 update 복사용 `applyChanges(...)`만 둔다(update 경로가 없는 애그리거트는 `applyChanges`도 두지 않는다). 감사 필드는 `shared/persistence/BaseEntity`(`@MappedSuperclass`)에서 상속한다 — 단 메일·SMS 인증 도메인처럼 `updated_at` 컬럼이 없는 테이블은 `BaseEntity`를 상속하지 않는다.
@@ -97,17 +97,17 @@ com.tastyhouse.infrastructure.jpa/
     - **스키마는 `backend/schema.sql` 전체를 적재한다**(테스트에 DDL을 복제하지 않는다). 경로는 Gradle이 시스템 프로퍼티 `tastyhouse.schema`로 넘긴다. IDE에서 단독 실행하려면 `-Dtastyhouse.schema=<backend/schema.sql 절대경로>`를 VM 옵션에 준다.
     - **컨텍스트 구성**: 테스트 안의 중첩 `@SpringBootConfiguration`에 `@EntityScan`·`@EnableJpaRepositories`(그 테스트의 컨텍스트 패키지 — point·payment)·`@EnableJpaAuditing`과 `JPAQueryFactory` 빈을 둔다. `@SpringBootConfiguration`만으로는 엔티티·리포지토리 스캔 범위가 잡히지 않는다. `config/QueryDslConfig`는 다른 패키지의 package-private 클래스라 import하지 않는다. 물리 이름 전략은 `application-jpa.yml`과 같은 `PhysicalNamingStrategyStandardImpl`을 프로퍼티로 준다 — 기본 전략은 테이블명을 소문자로 바꾸는데, Linux MySQL은 테이블명 대소문자를 구분한다.
   - **reference**:
-    - `payment/persistence/PaymentPersistenceAdapter#findByIdForUpdate` — 호출부 `web-application`의 `PaymentCancellationService#requestRefund`·`#applyCancellation`. 둘 다 트랜잭션의 첫 조회로 결제 행을 잠근다 — 환불 요청은 누적 금액 판정을, 취소 반영은 "결제 대기 + 승인 시도 표시" 판정(`isAwaitingPgResult`)과 "사전 판정 뒤 승인 완료" 판정(`pgCancelRequiredAtPrepare`와 `isPgCancelRequired` 비교)을 최신 상태로 하기 위해서다. 취소 반영의 잠금은 승인 시도 기록(`PaymentConfirmationService#recordPgAttempt` — `findByPgOrderIdForUpdate`)과 같은 PK 행을 잡으므로 두 쓰기가 직렬화된다. ([ADR-0055](../../../docs/adr/0055-payment-refund-pessimistic-lock.md), [ADR-0060](../../../docs/adr/0060-pg-confirm-unknown-lookup.md))
-    - `payment/persistence/PaymentPersistenceAdapter#findByPgOrderIdForUpdate` — 호출부 `application-core`의 `PaymentConfirmationService#recordPgAttempt`·`#applyPgConfirmation`·`#reconcileApproved`·`#failPgConfirmation`. 판정 값(결제 상태)을 락 로드 자체가 읽는 경우다. **단 주문 상태는 락 뒤 일반 조회로 읽는다** — `#applyPgConfirmation`의 `OrderTransitionService#loadOwnedBy`와 `#reconcileApproved`의 `OrderTransitionService#load`(`ORDER_NOT_CONFIRMABLE` 판정)다. 그런데 이 메서드는 PK 잠금 앞에 `select(id)` 일반 조회를 하므로 REPEATABLE READ 스냅샷이 잠금 대기 전에 고정되고, 뒤의 주문 조회는 대기 중 다른 트랜잭션이 커밋한 주문 변경을 보지 못한다. 지금은 안전하다 — 결제 행을 잠그고 주문을 바꾸는 경로(취소 반영 `PaymentCancellationService#applyCancellation`)가 결제 상태도 함께 바꾸므로, 대기 뒤 락 로드가 읽은 결제 상태 판정(`isNotAwaitingPgApproval`·`COMPLETED`)에서 먼저 걸러진다. **결제 행 잠금 아래에서 결제 상태는 그대로 두고 주문만 바꾸는 경로를 새로 만들면** 이 전제가 깨져 주문 판정이 대기 전 값으로 통과하므로, 그때는 주문을 잠금 조회로 읽거나 그 경로가 결제 상태도 바꾸게 한다. `pg_order_id`에 인덱스가 없어 id를 스칼라로 먼저 찾고 PK 한 행만 잠근다(아래 설계 근거 절). 가드는 둘이다. `PaymentPersistenceAdapterTest`가 "id 조회 → PK 잠금" 순서와 행 없음 시 잠금 생략을 검사하고, `PaymentConcurrencyIntegrationTest`가 실제 MySQL에서 대기·행 단위 잠금을 검사한다. ([ADR-0059](../../../docs/adr/0059-payment-confirm-race-lock.md))
-    - `point/persistence/PointPersistenceAdapter#findByMemberIdForUpdate` — 호출부 `application-core`의 `PointLedgerService`. 주문 경로 `OrderPlacementService#place`는 상품·쿠폰을 먼저 일반 조회한 뒤 잠그는 두 번째 경우다. 적립 `PointLedgerService#earnPoints`는 `PointPersistenceAdapter#saveIfAbsent`로 행을 보장한 뒤 잠그는 "없으면 만든다" 경우다. 가드는 셋이다. `PointPersistenceAdapterTest`가 `setLockMode(PESSIMISTIC_WRITE)` 호출을 검사하고(이 호출을 떼면 잔액 lost update가 재발한다), `PointLedgerServiceTest`가 각 경로의 로드 순서를 검사하며, `PointConcurrencyIntegrationTest`가 실제 MySQL에서 동시성을 검사한다. ([ADR-0058](../../../docs/adr/0058-point-balance-pessimistic-lock.md))
+    - `payment/persistence/PaymentPersistenceAdapter#findByIdForUpdate` — 호출부 `web-application`의 `PaymentCancellationService#requestRefund`·`#applyCancellation`. 둘 다 트랜잭션의 첫 조회로 결제 행을 잠근다 — 환불 요청은 누적 금액 판정을, 취소 반영은 "결제 대기 + 승인 시도 표시" 판정(`isAwaitingPgResult`)과 "사전 판정 뒤 승인 완료" 판정(`pgCancelRequiredAtPrepare`와 `isPgCancelRequired` 비교)을 최신 상태로 하기 위해서다. 취소 반영의 잠금은 승인 시도 기록(`PaymentConfirmationService#recordPgAttempt` — `findByPgOrderIdForUpdate`)과 같은 PK 행을 잡으므로 두 쓰기가 직렬화된다. ([결정 0055](../../../docs/domain/payment.md#decision-0055), [결정 0060](../../../docs/domain/payment.md#decision-0060))
+    - `payment/persistence/PaymentPersistenceAdapter#findByPgOrderIdForUpdate` — 호출부 `application-core`의 `PaymentConfirmationService#recordPgAttempt`·`#applyPgConfirmation`·`#reconcileApproved`·`#failPgConfirmation`. 판정 값(결제 상태)을 락 로드 자체가 읽는 경우다. **단 주문 상태는 락 뒤 일반 조회로 읽는다** — `#applyPgConfirmation`의 `OrderTransitionService#loadOwnedBy`와 `#reconcileApproved`의 `OrderTransitionService#load`(`ORDER_NOT_CONFIRMABLE` 판정)다. 그런데 이 메서드는 PK 잠금 앞에 `select(id)` 일반 조회를 하므로 REPEATABLE READ 스냅샷이 잠금 대기 전에 고정되고, 뒤의 주문 조회는 대기 중 다른 트랜잭션이 커밋한 주문 변경을 보지 못한다. 지금은 안전하다 — 결제 행을 잠그고 주문을 바꾸는 경로(취소 반영 `PaymentCancellationService#applyCancellation`)가 결제 상태도 함께 바꾸므로, 대기 뒤 락 로드가 읽은 결제 상태 판정(`isNotAwaitingPgApproval`·`COMPLETED`)에서 먼저 걸러진다. **결제 행 잠금 아래에서 결제 상태는 그대로 두고 주문만 바꾸는 경로를 새로 만들면** 이 전제가 깨져 주문 판정이 대기 전 값으로 통과하므로, 그때는 주문을 잠금 조회로 읽거나 그 경로가 결제 상태도 바꾸게 한다. `pg_order_id`에 인덱스가 없어 id를 스칼라로 먼저 찾고 PK 한 행만 잠근다(아래 설계 근거 절). 가드는 둘이다. `PaymentPersistenceAdapterTest`가 "id 조회 → PK 잠금" 순서와 행 없음 시 잠금 생략을 검사하고, `PaymentConcurrencyIntegrationTest`가 실제 MySQL에서 대기·행 단위 잠금을 검사한다. ([결정 0059](../../../docs/domain/payment.md#decision-0059))
+    - `point/persistence/PointPersistenceAdapter#findByMemberIdForUpdate` — 호출부 `application-core`의 `PointLedgerService`. 주문 경로 `OrderPlacementService#place`는 상품·쿠폰을 먼저 일반 조회한 뒤 잠그는 두 번째 경우다. 적립 `PointLedgerService#earnPoints`는 `PointPersistenceAdapter#saveIfAbsent`로 행을 보장한 뒤 잠그는 "없으면 만든다" 경우다. 가드는 셋이다. `PointPersistenceAdapterTest`가 `setLockMode(PESSIMISTIC_WRITE)` 호출을 검사하고(이 호출을 떼면 잔액 lost update가 재발한다), `PointLedgerServiceTest`가 각 경로의 로드 순서를 검사하며, `PointConcurrencyIntegrationTest`가 실제 MySQL에서 동시성을 검사한다. ([결정 0058](../../../docs/domain/point.md#decision-0058))
 - **`getReferenceById`/`getOne` 사용 시 주의**: 이 프로젝트는 현재 두 메서드를 어디서도 쓰지 않는다. 쓰게 되면 lazy proxy 접근 시 `jakarta.persistence.EntityNotFoundException`(`com.tastyhouse.application.shared.exception.ResourceNotFoundException`과 무관한 JPA 예외)이 던져질 수 있는데, `GlobalExceptionHandler`는 `BusinessException` 계층만 처리하므로 이 예외는 `Exception` 핸들러에 잡혀 404가 아닌 500이 된다. 사용한다면 호출부에서 반드시 도메인 예외로 번역할 것.
 - **엔티티 enum 컬럼은 `String` 필드 + `@Column(length = n, columnDefinition = "VARCHAR(n)")`이다**(`@Enumerated` 0건). 저장값은 **상수명 문자열**이고, 강등(`name()`)·승격(`valueOf`)은 이 모듈의 `XxxMapper`가 한다 — 선언 순서가 아니라 이름을 저장해야 상수 추가·재배열이 기존 데이터 의미를 바꾸지 않는다(ORDINAL 금지와 같은 취지). **엔티티 필드를 enum으로 바꾸지 않는다** — 조회 DAO 31개 파일·193곳이 `String` 컬럼을 투영하고, 바꾸면 `Projections.constructor`가 런타임에만 깨진다. 필드가 `String`이라 Hibernate는 `VARCHAR`를 기대하므로 `columnDefinition`은 validate 통과에 필수가 아니지만, `n`이 `schema.sql` 길이의 문서이고 누군가 필드를 enum으로 바꾸면 즉시 Hibernate 6 `MySQLDialect`의 네이티브 `ENUM` 기대 장애가 재발하므로 **떼지 않는다**. DAO에서 enum 상수와 비교할 때는 리터럴도 복제 상수도 쓰지 않고, **비교값을 포트 인자로 받는다**(`application-core/AGENTS.md` "enum 비교값 전달 규칙"). 조회 DAO에는 enum 어휘가 없다. write 어댑터 `XxxPersistenceAdapter`은 도메인 enum을 `name()`으로 풀어 쓴다(예: `ReservationPersistenceAdapter`의 `ReservationStatus.blockingStatuses()`). DDL은 `VARCHAR(n)` + 허용값 주석. 상세는 `backend/CLAUDE.md` "enum ↔ DB 컬럼 매핑 규칙".
-- **이 모듈에는 도메인 서비스 빈 등록이 없다**(`*DomainConfig.java` 0개). 포트를 주입받는 도메인 서비스는 `application/<ctx>/service/`에 살고 `@Service`로 코어 `application-core` 또는 `{앱}-application` 모듈에서 스캔된다. domain의 순수 계산기·정책처럼 애노테이션을 달 수 없는 빈은 `application-core`의 `shared/config/SharedBeanConfig`가 `@Bean`으로 등록한다 — 그 외에 이벤트 발행기 `domainEventPublisher`(`SpringDomainEventPublisher`)와 금칙어 캐시 데코레이터를 감싼 `prohibitedWordValidator`도 이 클래스가 등록한다. 서비스 연결 어댑터(`ShopRequestIndexSyncAdapter`·`ReplyPhraseProhibitedWordValidatorAdapter`)·금칙어 캐시 데코레이터 `CachingProhibitedWordLoadPort`·발행 구현 `SpringDomainEventPublisher`도 이 모듈에 두지 않는다 — 두면 이 모듈이 `application`의 `port.out` 밖 타입(서비스·`shared/event`)을 봐야 해 `LayerRulesTest#shouldNotDependOnApiModules`에 걸린다. **새 도메인 서비스를 만들 때 이 모듈에 설정 클래스를 만들지 않는다.** ([ADR-0036](../../../docs/adr/0036-app-marker-removal.md))
+- **이 모듈에는 도메인 서비스 빈 등록이 없다**(`*DomainConfig.java` 0개). 포트를 주입받는 도메인 서비스는 `application/<ctx>/service/`에 살고 `@Service`로 코어 `application-core` 또는 `{앱}-application` 모듈에서 스캔된다. domain의 순수 계산기·정책처럼 애노테이션을 달 수 없는 빈은 `application-core`의 `shared/config/SharedBeanConfig`가 `@Bean`으로 등록한다 — 그 외에 이벤트 발행기 `domainEventPublisher`(`SpringDomainEventPublisher`)와 금칙어 캐시 데코레이터를 감싼 `prohibitedWordValidator`도 이 클래스가 등록한다. 서비스 연결 어댑터(`ShopRequestIndexSyncAdapter`·`ReplyPhraseProhibitedWordValidatorAdapter`)·금칙어 캐시 데코레이터 `CachingProhibitedWordLoadPort`·발행 구현 `SpringDomainEventPublisher`도 이 모듈에 두지 않는다 — 두면 이 모듈이 `application`의 `port.out` 밖 타입(서비스·`shared/event`)을 봐야 해 `LayerRulesTest#shouldNotDependOnApiModules`에 걸린다. **새 도메인 서비스를 만들 때 이 모듈에 설정 클래스를 만들지 않는다.** ([결정 0036](../../AGENTS.md#decision-0036))
   - **`@ConditionalOnBean(MailSenderPort.class)` 같은 조건부 등록으로 이 모듈에 서비스 빈을 두는 대안은 채택하지 않는다.** 사용자 `@Configuration` 사이의 등록 순서에 결과가 좌우돼 **조용히 빈이 빠진다** — 부팅은 성공하고 그 기능만 동작하지 않으므로 발견이 늦다. 포트 구현이 일부 앱에만 있는 서비스는 그 앱의 `{앱}-application` 모듈에 둔다.
   - **모듈 진입점인 `JpaModuleConfig`는 모듈 루트에 그대로 둔다** — `basePackageClasses`로 JPA 스캔 범위를 정하므로 옮기면 범위가 어긋난다.
 - **이벤트 리스너를 이 모듈의 `<ctx>/listener/`에 두지 않는다**: 도메인 이벤트 리스너는 코어 `application-core`의 `com.tastyhouse.application.<ctx>.listener`에 있어 4앱 전부가 스캔한다. 발행 구현도 `application`의 `shared/event/`에 있어 이 모듈에는 이벤트 관련 코드가 없다. 리스너 작성 규칙·AFTER_COMMIT 유실 경고·배치 근거는 [`backend/application-core/AGENTS.md`의 도메인 이벤트 리스너 절](../../application-core/AGENTS.md#ctxlistener--도메인-이벤트-리스너)을 따른다.
 
-reference 구현: `banner` 도메인(구현 1개 기본형) — write 어댑터 `banner/persistence/`(`BannerJpaEntity`/`BannerMapper`/`BannerJpaRepository`/`BannerPersistenceAdapter` — 단건 로드·저장만, 짝 application 쪽은 `application/banner/port/out/write/{BannerLoadPort,BannerSavePort}`), read 어댑터 `banner/query/BannerQueryAdapter`(계약 `application/banner/port/out/`의 `BannerQueryPort`·`BannerManagementQueryPort` + `BannerListItemResult`/`BannerManagementListItemResult`/`BannerDetailResult`/`BannerSearchCondition`). notice는 같은 포트를 MyBatis 구현과 함께 가져 `Jpa` 한정어와 `@Primary`가 붙은 **예외 사례**(`NoticeJpaPersistenceAdapter`·`NoticeJpaMapper`·`NoticeJpaQueryAdapter`)이므로, 새 컨텍스트를 만들 때 따라 할 기본형이 아니다. ([ADR-0053](../../../docs/adr/0053-notice-mybatis-legacy.md))
+reference 구현: `banner` 도메인(구현 1개 기본형) — write 어댑터 `banner/persistence/`(`BannerJpaEntity`/`BannerMapper`/`BannerJpaRepository`/`BannerPersistenceAdapter` — 단건 로드·저장만, 짝 application 쪽은 `application/banner/port/out/write/{BannerLoadPort,BannerSavePort}`), read 어댑터 `banner/query/BannerQueryAdapter`(계약 `application/banner/port/out/`의 `BannerQueryPort`·`BannerManagementQueryPort` + `BannerListItemResult`/`BannerManagementListItemResult`/`BannerDetailResult`/`BannerSearchCondition`). notice는 같은 포트를 MyBatis 구현과 함께 가져 `Jpa` 한정어와 `@Primary`가 붙은 **예외 사례**(`NoticeJpaPersistenceAdapter`·`NoticeJpaMapper`·`NoticeJpaQueryAdapter`)이므로, 새 컨텍스트를 만들 때 따라 할 기본형이 아니다. ([결정 0053](../mybatis/AGENTS.md#decision-0053))
 
 ## `<ctx>/query/` — read 어댑터 (CQRS query 측, 개정됨 — 읽기 경로 포트화)
 
@@ -264,7 +264,7 @@ reference 구현: `banner/query/BannerQueryAdapter`(구현 1개 기본형 — `B
 | `application-mysql.yml` | DB 연결 코어 `infrastructure:mysql` | `spring.datasource.*`(URL·계정·드라이버)·커넥션 풀(HikariCP)·`spring.sql.init.mode` — 근거는 `../mysql/AGENTS.md` |
 | `application-persistence.yml` | 조립 모듈 `infrastructure:persistence` (`backend/infrastructure/persistence/src/main/resources/`) | `spring.config.import`로 `application-mysql.yml`·`application-jpa.yml`을 묶기만 한다 |
 
-나눈 기준: JPA를 쓸 때만 의미 있는 키는 JPA 구현 모듈이, JPA·MyBatis가 함께 쓰는 DB 접속(datasource·드라이버·풀)은 DB 연결 코어가 갖는다. 실행 모듈(`web-api`/`admin-api`/`ceo-api`/`batch-module`)의 `application.yml`은 `spring.config.import: classpath:application-persistence.yml` 한 줄로 셋을 모두 로딩한다. 같은 포트의 JPA·MyBatis 구현 선택은 설정 키가 아니라 `@Primary`가 한다(아래 notice 절). 이 배치는 외부 연동 모듈이 각자 소유하는 `application-file-storage.yml`(`infrastructure:file-storage` — `application-firebase.yml`을 중첩 import)·`application-pg.yml`(`infrastructure:pg`)·`application-mail.yml`(`infrastructure:mail` — `application-javamail.yml`을 중첩 import)·`application-sms.yml`(`infrastructure:sms` — `application-solapi.yml`을 중첩 import)·`application-bbq.yml`·`application-admdongkor.yml`·`application-aws-s3.yml`·`application-aws-ses.yml`·`application-aws-sns.yml`과, `application-redis.yml`(`infrastructure:redis`)·`application-logging.yml`(logging-module)과 같은 패턴이다. ([ADR-0051](../../../docs/adr/0051-mysql-module-split.md))
+나눈 기준: JPA를 쓸 때만 의미 있는 키는 JPA 구현 모듈이, JPA·MyBatis가 함께 쓰는 DB 접속(datasource·드라이버·풀)은 DB 연결 코어가 갖는다. 실행 모듈(`web-api`/`admin-api`/`ceo-api`/`batch-module`)의 `application.yml`은 `spring.config.import: classpath:application-persistence.yml` 한 줄로 셋을 모두 로딩한다. 같은 포트의 JPA·MyBatis 구현 선택은 설정 키가 아니라 `@Primary`가 한다(아래 notice 절). 이 배치는 외부 연동 모듈이 각자 소유하는 `application-file-storage.yml`(`infrastructure:file-storage` — `application-firebase.yml`을 중첩 import)·`application-pg.yml`(`infrastructure:pg`)·`application-mail.yml`(`infrastructure:mail` — `application-javamail.yml`을 중첩 import)·`application-sms.yml`(`infrastructure:sms` — `application-solapi.yml`을 중첩 import)·`application-bbq.yml`·`application-admdongkor.yml`·`application-aws-s3.yml`·`application-aws-ses.yml`·`application-aws-sns.yml`과, `application-redis.yml`(`infrastructure:redis`)·`application-logging.yml`(logging-module)과 같은 패턴이다. ([결정 0051](../mysql/AGENTS.md#decision-0051))
 
 ## Dependencies
 
@@ -289,7 +289,7 @@ notice의 아웃바운드 포트 4개는 이 모듈의 JPA 구현과 `infrastruc
 | `NoticeLoadPort`·`NoticeSavePort` (쓰기) | `notice/persistence/NoticeJpaPersistenceAdapter` + `NoticeJpaMapper` | `notice/persistence/NoticeMyBatisPersistenceAdapter` |
 | `NoticeQueryPort`·`NoticeManagementQueryPort` (조회) | `notice/query/NoticeJpaQueryAdapter` | `notice/query/NoticeMyBatisQueryAdapter` |
 
-현재 이름 규칙: 두 구현이 공존하는 notice는 JPA 쪽에 `Jpa` 한정어를 붙이고(`NoticeJpaPersistenceAdapter`·`NoticeJpaMapper`·`NoticeJpaQueryAdapter`) `@Primary`를 둔다. 구현이 하나뿐인 banner는 한정어 없이 `BannerPersistenceAdapter`·`BannerMapper`다. ([ADR-0053](../../../docs/adr/0053-notice-mybatis-legacy.md))
+현재 이름 규칙: 두 구현이 공존하는 notice는 JPA 쪽에 `Jpa` 한정어를 붙이고(`NoticeJpaPersistenceAdapter`·`NoticeJpaMapper`·`NoticeJpaQueryAdapter`) `@Primary`를 둔다. 구현이 하나뿐인 banner는 한정어 없이 `BannerPersistenceAdapter`·`BannerMapper`다. ([결정 0053](../mybatis/AGENTS.md#decision-0053))
 
 - **`@Primary`는 쓰는 쪽(지금은 JPA) 하나에만 둔다.** web-api·admin-api에는 구현이 2개 등록되므로, 둘 다 없으면 단일 주입에서 `NoUniqueBeanDefinitionException`이, 둘 다 있으면 primary 중복 예외가 난다. 컨텍스트 기동 자체는 성공하고 주입 시점에 터지므로, admin-api 가드 `PersistencePrimaryRulesTest`가 빌드 단계에서 잡는다.
 - **mybatis 모듈이 없는 앱(ceo·batch)에는 JPA 구현 1개만 뜬다** — 후보가 하나라 `@Primary`는 영향이 없다. notice 포트를 주입하는 모듈은 `web-application`(`NoticeListQueryService`)과 `admin-application`(notice 서비스 5개)뿐이다.
@@ -435,7 +435,7 @@ Spring Data `Repository`를 상속한 인터페이스(`XxxJpaRepository` 123개)
 | 모듈 루트 | `com.tastyhouse.infrastructure.jpa..`(`shouldResideInModuleRootPackage` — `build/classes/java/main` 전체가 루트 아래인지) |
 | 앱 4개 `LayerRulesTest#shouldNotDependOnInfrastructurePersistence`(메서드명 유지) · mybatis `LayerRulesTest`의 금지 패키지 | `"com.tastyhouse.infrastructure.jpa.."` |
 
-- **"중복처럼 보인다"며 `com.tastyhouse.infrastructure..persistence..`로 줄이지 않는다.** 줄이면 형제 모듈 `infrastructure:mybatis`처럼 다른 영속 기술 모듈의 `persistence` 패키지까지 대상에 들어온다. 컴파일·테스트 실행 어느 쪽도 실패하지 않는 형태로 대상이 바뀐다(`noClasses()`는 대상이 늘든 줄든 위반이 없으면 통과한다). ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
+- **"중복처럼 보인다"며 `com.tastyhouse.infrastructure..persistence..`로 줄이지 않는다.** 줄이면 형제 모듈 `infrastructure:mybatis`처럼 다른 영속 기술 모듈의 `persistence` 패키지까지 대상에 들어온다. 컴파일·테스트 실행 어느 쪽도 실패하지 않는 형태로 대상이 바뀐다(`noClasses()`는 대상이 늘든 줄든 위반이 없으면 통과한다). ([결정 0037](../../AGENTS.md#decision-0037))
 
 ### `MemberGradeReviewCountAdapter` — 봉인 목록을 늘리는 대신 패키지를 옮긴 선례
 
@@ -1115,7 +1115,7 @@ VO 매핑을 하면 QueryDSL이 `NumberPath<Long>` 대신 VO path를 생성해 *
 
 **대상**: `backend/infrastructure/jpa/src/main/java/com/tastyhouse/infrastructure/jpa/**/query/*QueryAdapter.java`의 모든 다중 컬럼 `select(...)` · `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/architecture/LayerRulesTest.java` → `queryAdaptersShouldNotUseTuple`
 
-Tuple은 타입 없는 행이라 `row.get(0, X.class)` 같은 위치 접근이 순서가 어긋나도 컴파일된다. 2컬럼 key→value 수집도 예외가 아니다. ([ADR-0039](../../../docs/adr/0039-querydsl-tuple-removal.md))
+Tuple은 타입 없는 행이라 `row.get(0, X.class)` 같은 위치 접근이 순서가 어긋나도 컴파일된다. 2컬럼 key→value 수집도 예외가 아니다. ([결정 0039](#decision-0039))
 
 | 항목 | 현행 |
 |---|---|
@@ -1176,7 +1176,7 @@ Tuple은 타입 없는 행이라 `row.get(0, X.class)` 같은 위치 접근이 �
 - `pg_order_id`는 결제 생성 후 바뀌지 않으므로(승인 반영의 `updatePgInfo`도 같은 값을 다시 쓴다) 1과 2 사이의 경합이 없다.
 - 행이 없으면 2를 실행하지 않고 빈 `Optional`을 돌려준다. 없는 키에 `FOR UPDATE`를 걸어 gap lock을 만들지 않기 위해서다.
 - `@Version`(낙관적 락)을 쓰지 않은 이유: `PAYMENT.version` DDL이 필요하고, 충돌이 커밋 시점에 나면 승인 반영 쪽에 재시도 루프가 있어야 한다. 비관적 잠금은 스키마 변경과 재시도 없이 같은 효과를 내며, PG 호출은 트랜잭션 밖이라 잠금을 잡고 네트워크를 기다리지 않는다.
-- `pg_order_id`에 인덱스를 추가하면 1단계 없이 직접 잠글 수 있다(DDL 필요 — ADR-0059의 후속 과제). 제안 DDL은 `ALTER TABLE PAYMENT ADD INDEX idx_payment_pg_order_id (pg_order_id);`이고 `schema.sql`에는 아직 반영하지 않았다(적용 여부는 사용자 결정 — 적용하면 `schema.sql`의 `PAYMENT` `CREATE TABLE`에도 같은 인덱스를 넣어 두 벌을 맞춘다). 인덱스를 추가하면 위 반증 기준 중 "직접 `FOR UPDATE`로 바꾸면 (2)·(3)이 실패한다"가 더는 성립하지 않는다 — 인덱스 범위 잠금만 걸리므로 그 변형이 통과한다.
+- `pg_order_id`에 인덱스를 추가하면 1단계 없이 직접 잠글 수 있다(DDL 필요 — 결정 0059의 후속 과제). 제안 DDL은 `ALTER TABLE PAYMENT ADD INDEX idx_payment_pg_order_id (pg_order_id);`이고 `schema.sql`에는 아직 반영하지 않았다(적용 여부는 사용자 결정 — 적용하면 `schema.sql`의 `PAYMENT` `CREATE TABLE`에도 같은 인덱스를 넣어 두 벌을 맞춘다). 인덱스를 추가하면 위 반증 기준 중 "직접 `FOR UPDATE`로 바꾸면 (2)·(3)이 실패한다"가 더는 성립하지 않는다 — 인덱스 범위 잠금만 걸리므로 그 변형이 통과한다.
 
 ### `PaymentPersistenceAdapter#findAllPgAttemptedReconcileDueByStatusCreatedBetween` — 주기 대사 대상은 반개구간·생성 순·차례가 온 결제다
 
@@ -1187,8 +1187,8 @@ batch 주기 대사(`batch-application`의 `PaymentReconcileSchedulerService`)�
 - **조건**: `payment_status = ?`(호출부는 `PENDING`) **그리고** `pg_provider IS NOT NULL`(승인 시도 표시가 있는 결제만 — 결제창만 열고 떠난 결제는 PG가 돈을 받았을 리 없으므로 대사하지 않는다) **그리고** `created_at >= from` **그리고** `created_at < to` **그리고** `reconcile_next_at IS NULL OR reconcile_next_at <= dueAt`(호출부는 실행 시각을 넘긴다 — 이미 시도해 다음 차례가 아직 오지 않은 결제를 빼, 결과를 확정하지 못하는 결제가 limit을 차지해 새 결제가 대사되지 않는 것을 막는다).
 - **반개구간 `[from, to)`이다** — 경계가 겹치는 다음 주기와 같은 행을 두 번 세지 않게 상한은 `lt`다. 기준 컬럼은 결제 **생성 시각**(`created_at`)이지 승인 시도 시각이 아니다. 승인 시도 시각 기준의 대기는 `reconcile_next_at`이 맡는다 — 승인 시도 때 시도 시각 + 10분으로 기록되므로, 생성 후 한참 지나 승인을 시도한 결제도 시도 직후에는 고르지 않는다.
 - **정렬은 `created_at ASC, id ASC`다** — 오래된 것부터 `limit`건만 읽으므로, 같은 생성 시각의 동점은 id로 고정해 주기마다 같은 순서를 보장한다.
-- **`saveReconcileScheduleIfDue`는 조건부 UPDATE로 batch 대사 차례를 선점한다** — `SET reconcile_attempt_count = 읽은 값 + 1, reconcile_next_at = ?` `WHERE id = ? AND reconcile_attempt_count = 읽은 값 AND (reconcile_next_at IS NULL OR reconcile_next_at <= dueAt)`이고, 영향 행이 1일 때만 `true`다. 횟수 비교는 다른 실행이 먼저 올린 경우를, 다음 시각 비교는 "다른 실행이 선점해 시각을 미룬 뒤 내가 그 새 횟수를 읽은" 경우와 web 승인 시도가 일정을 초기화(`saveReconcileSchedule(…, 0, 시도 시각 + 10분)`)한 경우를 걸러낸다. 두 조건 중 하나라도 빼면 batch를 여러 대 띄웠을 때 같은 결제를 두 번 선점한다. InnoDB의 UPDATE는 최신 커밋 값으로 조건을 다시 평가하므로(locking read), 같은 트랜잭션에서 먼저 읽은 횟수가 스냅샷이어도 결과가 맞다. 잠금 없이 행 하나에만 쓰므로 PG 호출과 겹치지 않는다. where 조건 3개와 영향 행 0/1 → `false`/`true` 매핑은 `PaymentPersistenceAdapterTest`(일반 빌드)가 고정하고, `PaymentReconcileTargetIntegrationTest`(Testcontainers)가 선점 성공·같은 횟수로 두 번째 선점 실패·미뤄진 결제 선점 실패를 실제 DB로 검사한다([ADR-0064](../../../docs/adr/0064-payment-reconcile-claim.md)).
-- **`reconcile_attempt_count`·`reconcile_next_at`은 `insertable = false, updatable = false`로 매핑하고, `saveReconcileSchedule`·`saveReconcileScheduleIfDue`의 QueryDSL UPDATE로만 쓴다.** Hibernate는 엔티티 flush 때 매핑한 컬럼을 전부 UPDATE하므로, 일반 매핑이면 승인·취소가 결제를 저장할 때 batch가 방금 쓴 값을 옛 값으로 덮는다. INSERT 때는 DB DEFAULT(0, NULL)가 들어간다. `PaymentMapper`·`create`·`applyChanges`는 두 필드를 다루지 않고, 도메인 모델 `Payment`에도 없다(결제 상태가 아니라 batch 대사 일정이다). 두 필드는 getter가 없고 Q타입 경로로만 쓰인다. `PaymentReconcileTargetIntegrationTest`가 bulk UPDATE가 실제로 반영되는지와 이후 엔티티 저장이 두 컬럼을 덮지 않는지를 검사한다. 일정 계산(다음 시각)은 `batch-application`의 `PaymentReconcileBackoffPolicy#nextAttemptAt`, web 승인 시도 때의 초기화는 `application-core`의 `PaymentConfirmationService#recordPgAttempt`가 한다([ADR-0062](../../../docs/adr/0062-payment-reconcile-backoff.md)).
+- **`saveReconcileScheduleIfDue`는 조건부 UPDATE로 batch 대사 차례를 선점한다** — `SET reconcile_attempt_count = 읽은 값 + 1, reconcile_next_at = ?` `WHERE id = ? AND reconcile_attempt_count = 읽은 값 AND (reconcile_next_at IS NULL OR reconcile_next_at <= dueAt)`이고, 영향 행이 1일 때만 `true`다. 횟수 비교는 다른 실행이 먼저 올린 경우를, 다음 시각 비교는 "다른 실행이 선점해 시각을 미룬 뒤 내가 그 새 횟수를 읽은" 경우와 web 승인 시도가 일정을 초기화(`saveReconcileSchedule(…, 0, 시도 시각 + 10분)`)한 경우를 걸러낸다. 두 조건 중 하나라도 빼면 batch를 여러 대 띄웠을 때 같은 결제를 두 번 선점한다. InnoDB의 UPDATE는 최신 커밋 값으로 조건을 다시 평가하므로(locking read), 같은 트랜잭션에서 먼저 읽은 횟수가 스냅샷이어도 결과가 맞다. 잠금 없이 행 하나에만 쓰므로 PG 호출과 겹치지 않는다. where 조건 3개와 영향 행 0/1 → `false`/`true` 매핑은 `PaymentPersistenceAdapterTest`(일반 빌드)가 고정하고, `PaymentReconcileTargetIntegrationTest`(Testcontainers)가 선점 성공·같은 횟수로 두 번째 선점 실패·미뤄진 결제 선점 실패를 실제 DB로 검사한다([결정 0064](../../../docs/domain/payment.md#decision-0064)).
+- **`reconcile_attempt_count`·`reconcile_next_at`은 `insertable = false, updatable = false`로 매핑하고, `saveReconcileSchedule`·`saveReconcileScheduleIfDue`의 QueryDSL UPDATE로만 쓴다.** Hibernate는 엔티티 flush 때 매핑한 컬럼을 전부 UPDATE하므로, 일반 매핑이면 승인·취소가 결제를 저장할 때 batch가 방금 쓴 값을 옛 값으로 덮는다. INSERT 때는 DB DEFAULT(0, NULL)가 들어간다. `PaymentMapper`·`create`·`applyChanges`는 두 필드를 다루지 않고, 도메인 모델 `Payment`에도 없다(결제 상태가 아니라 batch 대사 일정이다). 두 필드는 getter가 없고 Q타입 경로로만 쓰인다. `PaymentReconcileTargetIntegrationTest`가 bulk UPDATE가 실제로 반영되는지와 이후 엔티티 저장이 두 컬럼을 덮지 않는지를 검사한다. 일정 계산(다음 시각)은 `batch-application`의 `PaymentReconcileBackoffPolicy#nextAttemptAt`, web 승인 시도 때의 초기화는 `application-core`의 `PaymentConfirmationService#recordPgAttempt`가 한다([결정 0062](../../../docs/domain/payment.md#decision-0062)).
 - **잠그지 않는다** — 조회 결과는 PG 조회 대상 목록일 뿐이고, 상태 반영은 건마다 `findByPgOrderIdForUpdate`로 다시 잠가 판정한다. 단위 테스트가 `setLockMode` 미호출을 검사한다.
 - 쓰기 포트(`PaymentLoadPort`)에 두는 이유: 반환 값이 도메인 모델이고 명령 경로(대사 반영)의 입력이다(`backend/CLAUDE.md`의 "write 포트 잔류 판정 기준").
 - 단위 테스트 `PaymentPersistenceAdapterTest`는 "id 조회 → PK 잠금 → fetch" 순서와 행 없음 시 잠금 생략을 mock으로 검사한다. 두 트랜잭션이 실제로 기다리는지, 다른 결제 행·새 INSERT를 막지 않는지는 `PaymentConcurrencyIntegrationTest`(Testcontainers MySQL, `./gradlew :infrastructure:jpa:integrationTest` — `build`에 포함되지 않음)가 검사한다(위 비관적 락 항목의 "결제").
@@ -2523,3 +2523,470 @@ DAO 안에서만 쓰는 중간 투영이라도 **package-private이나 DAO 중�
 - **`avg()` 인자 순서는 Result 컴포넌트 선언 순서(taste → amount → price → atmosphere → kindness → hygiene)를 그대로 따른다.** 컴포넌트를 재배열하거나 추가하면 select 절도 같은 자리에서 함께 고친다 — 가드의 `detectReordering`은 `.avg()` 같은 호출식의 이름을 읽지 못해 이 교차를 잡지 못한다.
 - 집계 쿼리는 행이 없어도 `avg()`가 NULL 한 행을 돌려주므로 `fetchOne()`이 `null`인 경우는 드물지만, 기존 폴백(`new ShopReviewCategoryAverageResult(null × 6)`)을 그대로 유지한다.
 - 이 전환으로 메서드가 `ProjectionConstructorMatchingTest`의 스캔 대상 안으로 들어왔다(인자 개수 6 ↔ 생성자 6).
+
+## 결정 경위
+
+이 문서가 소유한 규칙이 **왜 지금 모양이 됐는지**를 결정 단위로 적습니다. 본문은 현재 규칙만 담고, "예전에는 어땠고 왜 바뀌었는가"는 이 절에만 둡니다. 이 절은 항상 문서의 마지막 `##` 절이며, 항목은 번호 순입니다. 작성 규칙은 루트 `CLAUDE.md`의 "규칙 문서 개정 규칙" 절에 있습니다.
+
+<a id="decision-0002"></a>
+
+### 0002. 파일 경로→URL 변환은 Service가 아니라 query DAO가 투영 시점에 끝낸다
+
+- 상태: 채택
+- 결정 커밋: `70eb33376` (2026-08-02)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0002
+
+#### 맥락
+
+DB에는 파일의 저장 경로(`UPLOADED_FILE.file_path`)만 저장하고, 화면에 보여줄 URL은 서버가 만든다. Firebase Storage는 경로를 인코딩하고 `?alt=media`를 붙여야 하므로 프론트엔드가 URL을 직접 조립할 수 없다.
+
+- **query DAO**: 화면 표시용 조회(QueryDSL)를 담당하는 infrastructure 클래스. 지금 이름은 `{Ctx}QueryAdapter`.
+- **투영(projection)**: 조회 결과 행을 Result record로 만드는 것.
+
+문제는 변환을 어디서 하느냐였다. 커밋 당시 상황(커밋 메시지·`backend/CLAUDE.md` 원문):
+
+- 같은 변환(`fileService.getUrlByPath(dto.xxxFilePath())`)이 api 모듈 Service 60여 곳에 흩어져 있었다.
+- 그 결과 세 모듈의 `FileService`가 서로 다르게 갈라졌다(web엔 배치 변환이 없고, ceo엔 경로 변환이 없고, `findFileResponse`는 admin에만 있었다).
+- Result가 `Long fileId`만 담던 11개 경로는 응답을 조립하면서 파일을 다시 조회해 DB 왕복이 늘었다.
+
+#### 이전 규칙
+
+##### `backend/CLAUDE.md` — 응답 record 파일/이미지 필드 URL 규칙
+
+응답 record는 `~FileId` 대신 `~Url`을 노출한다는 규칙은 같았지만, filePath·fileId → url 변환은 **api 모듈 Service**가 했다. Service에 `fileService.getUrlByPath(...)`·`getUrlByFileId(...)`·`getUrlsByFileIds(...)`·`findFileResponse(...)` 같은 변환 매퍼가 있었고, `UploadedFileRepository`에 표현용 조회(`findFilePath`·`findFilePaths`)가, domain `FileUploadService`에 `getUrlByPath`가 있었다.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| 변환 주체 | api 모듈 Service | infrastructure query DAO(조회 시점) |
+| Result record가 담는 값 | `~FilePath` 또는 `~FileId` | 완성된 `~Url`(String) |
+| 변환기 | 모듈별 `FileService` 메서드 4종 | `FileUrlResolver`(`@Component`) 하나 — 도메인 출력 포트 `FileStoragePort` 경유 |
+| api `FileService` | 업로드 + URL 변환 | 업로드 전용(`upload(MultipartFile)`) |
+| fileId만 있던 경로 | 응답 조립 중 파일 재조회 | DAO에 파일 join 추가 |
+| write 포트의 표현용 조회 | `findFilePath`·`findFilePaths`·`FileUploadService.getUrlByPath` | 삭제 |
+
+#### 근거
+
+- 표현 목적 read model을 화면이 필요로 하는 형태로 완성해 내려보내는 것은 CQRS read 측의 정상 책임이다(원문은 Microsoft Learn의 CQRS·Materialized View 가이드를 근거로 든다). 변환 지점을 read 어댑터 한 곳으로 모으면 드리프트가 사라진다.
+- driven 어댑터(DAO)가 도메인 포트(`FileStoragePort`)를 쓰는 형태라 의존 방향이 안쪽을 유지한다.
+- SQL `CONCAT`으로 URL을 만들지 않는다 — Firebase와 S3의 규칙이 다르고 `baseUrl`이 환경 설정값이라, SQL로 재현하면 인코딩이 깨지고 설정이 하드코딩된다.
+
+#### 결과·감수한 손실
+
+- 변환 메서드 4개가 사라져 세 모듈 `FileService`가 동일한 파일이 됐고, fileId만 있던 11개 경로의 추가 쿼리가 사라졌다. 동작 변경은 없었다(event 상세는 left join 미스 시 기존 `FILE_NOT_FOUND` 예외를 보존).
+- 커밋 당시에는 `@QueryProjection`이 생성자 직접 투영이라 fetch 직후 Result를 재조립하는 헬퍼(`withResolvedXxx`, 54개)를 썼다. 같은 타입 슬롯을 바꿔 넣어도 컴파일이 통과하는 구조였고, 이후 `d7ef7d002`(2026-09-23)가 투영식 인자 `fileUrlResolver.urlOf(경로컬럼)`로 바꿔 헬퍼를 0개로 봉인했다.
+- 커밋 당시 `OrderProductResult.imageUrl`을 "주문 시점 URL 스냅샷"이라며 유일한 예외로 뒀으나 실제 저장값이 경로여서 전제가 틀렸고, 주문 상세가 호스트 없는 경로를 내려보내는 장애가 났다. 이후 `ORDER_PRODUCT.image_url` → `image_file_id`로 바꿔 예외를 없앴다.
+- api 모듈 `FileService`는 이후 api-common-module 통합([결정 0003](../../api-common-module/AGENTS.md#decision-0003))을 거쳐 application 유스케이스로 내려가 소멸했다.
+
+<a id="decision-0004"></a>
+
+### 0004. 엔티티 FK는 raw Long으로 두고 매퍼에서 IdMapping으로 승격·언패킹한다(정책 B)
+
+- 상태: 대체됨(→ [결정 0028](#decision-0028))
+- 결정 커밋: `f37028ab4` (2026-08-06)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0004
+
+| 항목 | before (정책 A) | after (정책 B) |
+|---|---|---|
+| 엔티티 FK 컬럼 타입 | `XxxId` VO + `@Convert` | raw `Long` |
+| `*IdConverter` | 27개 | 삭제(`AmountConverter` 등 비-ID VO 컨버터는 유지) |
+| VO ↔ raw 변환 | 컨버터가 자동 | 매퍼가 `IdMapping.vo(raw, CeoId::of)` / `IdMapping.raw(vo, CeoId::value)`로 전담 |
+| 도메인 모델·domain repository·도메인 서비스 | `XxxId` VO | 불변 — `XxxId` VO 유지 |
+| QueryDSL 우회 | `ConvertedIdPaths`·`Expressions.numberPath` | 전량 제거 |
+
+61개 엔티티의 크로스 애그리거트 FK를 raw `Long`으로 바꿨다. **승격·언패킹은 예외 없이 `IdMapping`을 거친다** — nullable 여부와 무관하게 모든 매퍼가 이 헬퍼를 쓴다.
+
+<a id="decision-0028"></a>
+
+### 0028. persistence가 domain을 모르게 State·StatePort·Store 계층을 둔다(덩어리 03b)
+
+- 상태: 대체됨(→ [결정 0031](#decision-0031))
+- 결정 커밋: `cdd6c7727` (2026-09-27)
+- 대체한 결정: [결정 0004](#decision-0004)
+- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0028
+
+write 경로에 상태 record 한 겹을 끼워, persistence가 domain을 몰라도 저장할 수 있게 합니다. 서비스가 주입하던 도메인 타입 인터페이스는 `application/<ctx>/store/`로 옮기고 이름·시그니처는 그대로 둡니다. 그 인터페이스를 application의 `XxxStore`가 구현해 도메인 모델을 `XxxState`로 바꾼 뒤, 원시 타입 포트 `XxxStatePort`에 넘깁니다. persistence는 `XxxStatePort`만 구현합니다.
+
+```
+03a : Service → XxxPersistencePort(도메인) ← persistence XxxPersistenceAdapter
+03b : Service → store/XxxPersistencePort(도메인) ← XxxStore ─(XxxStateMapper)→ XxxStatePort(State) ← persistence XxxStatePortImpl
+```
+
+| 항목 | before (03a까지) | after (03b) |
+|---|---|---|
+| persistence의 프로젝트 의존 | `api project(':domain')` + application | `implementation project(':application')` 하나, `com.tastyhouse.domain..` import 0건 |
+| persistence가 구현하는 write 포트 | `port/out/write/XxxPersistencePort`(도메인 시그니처) | `port/out/write/XxxStatePort`(State·`Long`·`String` 시그니처, 메서드 이름은 같음) |
+| 구현 클래스 | `XxxPersistenceAdapter` | `XxxStatePortImpl`(`git mv` 개명) 105개. 도메인 타입을 쓰지 않는 `StationPersistenceAdapter`만 그대로 |
+| 도메인 ↔ State 변환 | 없음 | application `store/XxxStore` + `XxxStateMapper`(`final`, package-private, `toDomain`·`toState`) |
+| Store 등록 | — | 마커 없는 POJO + `<Ctx>ServiceConfig`(`@SharedApp`)의 `@Bean` |
+| 엔티티 enum 필드 | 도메인 enum + `@Enumerated(STRING)` | `String`, `@Enumerated` 0건. `@Column(columnDefinition = "VARCHAR(n)")`은 글자 하나 바꾸지 않음(DDL 불변) |
+| `@Embedded` 대상 | domain VO record | persistence 소유 `@Embeddable` record `XxxEmbeddable` 5종 |
+| FK의 VO 승격 | persistence 매퍼의 `IdMapping` | application `XxxStateMapper#toDomain`의 삼항 null 가드(모든 FK에 예외 없이) |
+| DAO의 enum 비교 | `.eq(OrderStatus.COMPLETED)` | `port/out`의 `XxxCodes` 복제 상수 |
+| enum 라벨 | DAO의 `EnumLabelProjection` | DAO는 `Expressions.nullExpression(String.class)`로 자리만 두고 QueryService가 Result wither로 채움 |
+| 도메인 예외·정책 호출 | 일부 어댑터·DAO | 0건 — `Optional`/`boolean`/원자료를 돌려주고 Store·QueryService가 판정·예외화 |
+| `readContractsShouldBeFrameworkFree` | domain 허용 | `java..`·`port.out..`만 허용 |
+| 읽기 계약의 enum·ID | 도메인 enum·`XxxId` | `String`·`Long`. QueryService가 검증 후 강등해 넘김 |
+| 삭제 | — | `IdMapping`(+테스트), `EnumLabelProjection`, `GeoRingsResolver`·`GeoRingsQueryPort`, `PaymentProjection`, `AmountConverter` |
+| 이동 | — | `GeoPolygonTextCodec` → `domain/shared/geo`, `StorePriceVerificationAdapter` → `application/shop/service` |
+
+규모는 State 122(자식 State 포함), StatePort 105, Store 105, persistence `XxxStatePortImpl` 105입니다.
+
+부속 규칙도 함께 정했습니다.
+
+- State 컴포넌트는 도메인 `reconstitute` 파라미터와 이름·순서·개수가 같습니다. `StateRecordArityTest`가 최상위 컴포넌트 수를 검사하고, 순서·이름 뒤바뀜은 `*StateMapperTest`(81개)의 왕복 비교가 잡습니다.
+- 복합 VO는 `XxxSnapshot` record로 펼칩니다. `*State` 접미사를 쓰면 `StateRecordArityTest`가 애그리거트로 보고 `reconstitute`를 찾기 때문입니다.
+- State·StatePort는 `port/out/write/`에 둡니다. persistence가 application 중 `..port.out..`만 볼 수 있기 때문입니다.
+- 도메인 타입을 쓰지 않는 write 포트는 State로 바꾸지 않습니다.
+- `queryServicesShouldNotDependOnWritePorts`의 대상에 `..store..`를 추가하고, `RuleAnchorTest#storesExist`(≥ 105)를 새로 둡니다. persistence에는 `LayerRulesTest#infrastructureShouldNotDependOnDomain`을 새로 둡니다.
+
+<a id="decision-0031"></a>
+
+### 0031. persistence가 도메인 모델을 직접 쓰도록 State 계열을 제거한다(쓰기 경로만, 조회 DAO는 domain-free 유지)
+
+- 상태: 채택
+- 결정 커밋: `9d6f4a1ba` (2026-09-28)
+- 대체한 결정: [결정 0028](#decision-0028)
+- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0031
+
+#### 맥락
+
+[결정 0028](#decision-0028)(덩어리 03b)은 persistence가 domain을 모르게 하려고 쓰기 경로에 번역 계층을 끼웠습니다. 그 결과 애그리거트 하나를 저장하려면 파일 5개를 거쳐야 했습니다.
+
+- **State**: 도메인 모델을 원시 타입으로 펼친 record
+- **StatePort**: State를 주고받는 원시 타입 포트
+- **Store**: 도메인 ↔ State 변환 어댑터(application)
+- **StateMapper**: Store가 쓰는 변환기
+- **StatePortImpl**: persistence 구현
+
+변환도 Entity → State → Domain으로 두 번 일어났습니다. 규모는 State 122 · Snapshot 7 · StatePort 105 · Store 105 · StateMapper 121 · StateMapper 테스트 81개였습니다.
+
+#### 이전 규칙
+
+##### backend/application-core/AGENTS.md — 덩어리 03b
+
+- 서비스가 주입하는 도메인 타입 인터페이스는 `store/XxxPersistencePort`였고, 마커 없는 POJO `store/XxxStore`가 이를 구현했습니다. Store는 `XxxStatePort`를 생성자로 받았고, `<Ctx>ServiceConfig`(`@SharedApp`)의 `@Bean`으로 등록됐습니다.
+- State 컴포넌트는 `reconstitute` 파라미터와 1:1이어야 했고, `StateRecordArityTest`가 개수를, `*StateMapperTest`가 왕복 비교(`toDomain(toState(original))`)로 순서를 검사했습니다.
+- 도메인 예외와 도메인 정책 호출(예: `ReservationStatus.blockingStatuses()`)은 Store가 맡았고, StatePort는 `Optional`/`boolean`만 돌려줬습니다.
+- State record 모양: 컴포넌트는 도메인 `reconstitute` 파라미터와 같은 순서·같은 개수였고, enum → `String`, ID·값 VO → 원시값, 복합 VO → `XxxSnapshot` record(예: `OrderDeliveryDestinationSnapshot` — `XxxState` 접미사는 애그리거트 전용), 자식 컬렉션 → `List<ChildState>`로 펼쳤습니다. 도메인 타입을 쓰지 않는 write 포트 `StationPersistencePort`(`existsById(Long)` 하나)는 State화하지 않고 `port/out/write/`에 남긴 예외였습니다.
+- "DAO는 원자료만 돌려주고, 판정·계산·예외화는 QueryService·Store가 한다." enum 비교값은 Store가 만들어 StatePort 인자로 넘겼습니다. 예: `ReviewBlindRequestStore`의 종결 상태 상수 → `ReviewBlindRequestStatePort#existsByReviewIdAndStatusIn(reviewId, statuses)`, `MailVerificationStore#expireAllPendingByEmail` → `MailVerificationStatePort#changeStatusByEmail(email, PENDING, EXPIRED)`, 예약 차단 상태는 `ReservationStore`가 `ReservationStatus.blockingStatuses()`의 `name()` 목록으로 만들었습니다. 도메인 타입 `XxxPersistencePort` 시그니처는 그대로여서 도메인 타입 fake(`FakeMailVerificationPersistencePort` 등)는 영향을 받지 않았습니다.
+- 매퍼 테스트 봉인 "같은 타입의 연속 필드(`String`·`Long`·`boolean`·`LocalDateTime`)는 반드시 서로 다른 값으로 채운다"의 대상은 `backend/application-core/src/test/java/com/tastyhouse/application/<ctx>/store/*StateMapperTest.java` 81개였습니다. `StateRecordArityTest`는 개수만 보므로 같은 타입 순서 뒤바뀜을 잡는 것은 이 테스트뿐이었습니다.
+- `readContractsShouldBeFrameworkFree`는 `port.out..` 전체(`write/` 포함)가 `java..`·`port.out..`만 의존하게 했습니다. `queryServicesShouldNotDependOnWritePorts`의 대상은 `..port.out.write..` + `..store..`였고, `RuleAnchorTest#storesExist`(≥ 105)가 Store 수를 지켰습니다.
+
+##### backend/infrastructure/jpa/AGENTS.md (당시 `infrastructure/persistence/AGENTS.md`)
+
+- 이 모듈은 domain을 몰랐습니다. 프로젝트 의존은 `implementation project(':application')` 하나였고, `LayerRulesTest#infrastructureShouldNotDependOnDomain`이 모듈 전체의 domain 참조를 금지했습니다.
+- 구현 클래스는 `XxxStatePortImpl`, 매퍼는 `toState(entity)`·`toEntity(state)`·`applyChanges(entity, state)`였습니다.
+- Dependencies 절: `application`(implementation) 한 줄이 유일한 프로젝트 의존이었고, `port/out/write`에는 `XxxState`·`XxxSnapshot`·`XxxStatePort`가 있었습니다. 이 모듈의 매퍼 테스트는 `*MapperTest` 5개뿐이었습니다.
+- 낙관적 락 번역은 `ReservationSlotStatePortImpl`이 했습니다(`OptimisticLockConflictException`은 03a로 `application/shared/port/out/`에 있어 persistence가 domain 없이 던질 수 있었습니다).
+
+##### backend/domain/AGENTS.md
+
+- 이 모듈을 의존하는 것은 `application` 하나였습니다. `reconstitute`로 모델을 재구성하는 것은 `application/<ctx>/store/XxxStateMapper`였습니다.
+- `GeoPolygonTextCodec`의 write 경로 호출부는 `application/shop/store/ShopDeliveryAreaPolygonStateMapper`·`application/region/store/AdminDongStateMapper`였습니다.
+
+##### backend/CLAUDE.md — 모듈 지도
+
+- "`infrastructure:persistence`는 `domain`을 모른다 — application만 의존한다"고 적었습니다.
+
+##### backend/CLAUDE.md — ID VO 경계 규칙 > 엔티티 FK는 raw `Long`, 매퍼가 삼항 null 가드로 승격/언패킹 (정책 B)
+
+- 03b 동안 VO ↔ raw 변환은 application `<ctx>/store/XxxStateMapper`(`toDomain(state)`/`toState(domain)`, package-private)가 삼항 null 가드 인라인(`state.ceoId() == null ? null : CeoId.of(state.ceoId())`)으로 했고, persistence 매퍼는 VO를 만지지 않았습니다. 참고 구현은 `backend/application-core/src/main/java/com/tastyhouse/application/shop/store/ShopStateMapper.java`였습니다.
+- ID VO 표에는 `XxxStatePort` · `XxxState` record · persistence `XxxStatePortImpl`이 `Long`을 쓰는 행이 있었습니다.
+
+##### backend/CLAUDE.md — 코딩 스타일 (import 순서) > 자사 그룹 내부 계층 정렬
+
+03b 시점 persistence 행은 `2 · 3`이었고 "1은 나올 수 없습니다 — persistence는 domain을 모릅니다"라고 적었습니다.
+
+#### 결정
+
+쓰기 경로의 State 계열을 전부 걷어내고, persistence가 도메인 모델을 직접 쓰도록 되돌립니다. 읽기 경로(읽기 계약과 조회 DAO)는 03b의 domain-free 상태로 둡니다.
+
+```
+03b  : Service → XxxPersistencePort(도메인) ← XxxStore ─(XxxStateMapper)→ XxxStatePort(State) ← persistence XxxStatePortImpl
+after: Service → XxxPersistencePort(도메인) ← persistence XxxPersistenceAdapter (XxxMapper: JpaEntity ↔ Domain)
+```
+
+| 항목 | before (03b) | after |
+|---|---|---|
+| persistence의 domain 의존 | 없음 | `implementation project(':domain')`(`api`가 아님) |
+| 도메인 타입 write 포트 위치 | `store/XxxPersistencePort` | `port/out/write/`로 복귀(이름·시그니처 불변) |
+| State · Snapshot · StatePort · Store · StateMapper | 있음 | 삭제(`store` 패키지 전체) |
+| persistence 구현 | `XxxStatePortImpl`(State 반환) | `XxxPersistenceAdapter`(`@Repository`, 도메인 반환) 106개 |
+| persistence 매퍼 | JpaEntity ↔ State | JpaEntity ↔ Domain. StateMapper의 표현식(null 가드·`valueOf`·`Xxx.of`)을 그대로 흡수 |
+| Store가 하던 write 쪽 판단 | Store | persistence `XxxPersistenceAdapter`(빈 컬렉션 조기 반환·`LinkedHashSet` 수집·도메인 정책 상수 호출) |
+| 매퍼 테스트 | application `store/*StateMapperTest` 81개(왕복 비교) | persistence `XxxMapperTest` — Domain→Entity / Entity→Domain 두 방향을 따로 검증 |
+| Store 전용 `*ServiceConfig` | Admin·Banner·Event·Notice·Partnership·Region | 파일째 삭제 |
+| 엔티티 `String` enum 컬럼 · `XxxEmbeddable` 5종 | 있음 | 유지 |
+| persistence domain 가드 | `infrastructureShouldNotDependOnDomain`(모듈 전체) | `queryShouldNotDependOnDomain`(`..query..` + 봉인 조회 어댑터 3개 `SEALED_PERSISTENCE_TO_QUERY`만) |
+| `readContractsShouldBeFrameworkFree` | `port.out..` 전체 | `..port.out.write..`만 제외 |
+| `writePortsShouldOnlyDependOnDomainAndPortOut` | 없음 | 신설 — `port.out.write`는 `java..`·`com.tastyhouse.domain..`·`application..port.out..`만 |
+| `queryServicesShouldNotDependOnWritePorts` 대상 | `..port.out.write..` + `..store..` | `..port.out.write..`만 |
+| `StateRecordArityTest` · `RuleAnchorTest#storesExist` | 있음 | 삭제 |
+
+#### 근거
+
+- **비용이 격리 이득보다 컸습니다.** 애그리거트 하나를 저장하려고 파일 5개를 거치고 변환이 두 번 일어나는 비용에 비해, 얻는 것은 "persistence가 domain을 모른다"는 격리뿐이었습니다.
+- **의존 방향이 규칙에 맞습니다.** persistence는 원래 도메인 포트의 어댑터이므로, domain을 아는 방향이 의존 규칙(안쪽을 향함)에 맞습니다.
+- **presentation 절단은 유지됩니다.** `implementation` 의존이면 domain이 앱 컴파일 클래스패스로 새지 않으므로, 덩어리 01([결정 0025](../../AGENTS.md#decision-0025))의 절단이 그대로입니다.
+- **엔티티 String 컬럼을 되돌리지 않은 이유**: 조회 DAO 31개 파일이 String 컬럼을 193곳에서 씁니다. enum으로 되돌리면 `Projections.constructor` 투영이 컴파일은 통과하고 런타임에만 깨집니다.
+- **매퍼 테스트를 두 방향으로 나눈 이유**: Entity를 거치면 원본 값 일부가 사라집니다. `XxxJpaEntity.create(...)`는 id를 받지 않고, `BaseEntity`의 `createdAt`/`updatedAt`은 auditing이 채우며 setter가 없습니다.
+
+#### 결과·감수한 손실
+
+- 커밋 메시지는 HTTP 응답·DDL·저장값·null 처리·load-copy-save가 불변이고 동작 변경이 없다고 밝힙니다.
+- `MailVerificationPersistencePort`·`SmsVerificationPersistencePort` 구현 빈이 web 전용에서 전 앱으로 넓어졌습니다. 03b 이전과 같은 상태이고, admin·ceo·batch에는 주입처가 없습니다.
+- 03b가 만든 enum trim 차이는 남았습니다. 그 표현식을 persistence `XxxMapper#toDomain`이 그대로 옮겨 받았기 때문입니다.
+- `GeoPolygonTextCodec`은 domain에 그대로 둡니다. 쓰는 쪽이 persistence write 매퍼와 application 조회 서비스 두 곳이라, 공통 조상인 domain이 여전히 맞는 자리입니다.
+- `EnumLabelProjection`은 되살리지 않았습니다. 조회 DAO가 domain-free를 유지하므로 라벨은 계속 QueryService가 채웁니다.
+- `RuleAnchorTest` 하한을 재조정했습니다(441·1500).
+- `port/out/write/`에는 옮겨 온 `XxxPersistencePort` 105개와 `ShopDeliveryTipRegionLookupPort`, 원래 있던 `StationPersistencePort`·`AdminDongSyncResult`가 남았습니다. Store 하나가 인터페이스 둘을 구현하던 경우(`ShopDeliveryTipRegionLookupPort`)는 PersistenceAdapter도 둘을 구현합니다. `RuleAnchorTest#writePortsExist`는 `port.out.write` + `store`의 `*Repository` 합계 ≥ 106에서 `port.out.write`의 `*Repository` ≥ 106으로 바뀌었습니다(이후 [결정 0046](../../application-core/AGENTS.md#decision-0046)로 ≥192).
+- Store에 있던 enum 비교값·도메인 정책 상수 호출은 persistence로 내려갔습니다(예: `ReviewBlindRequestPersistenceAdapter`, `MailVerificationPersistenceAdapter`, `ReservationPersistenceAdapter`가 차단 상태 목록을 직접 만든다). 조회 DAO 쪽의 "DAO는 원자료만" 원칙은 그대로입니다.
+- ID 변환은 persistence `<ctx>/persistence/XxxMapper`(package-private) 한 단계로 돌아왔지만 형태는 03b의 삼항 null 가드를 그대로 씁니다. `IdMapping`은 복원하지 않았습니다 — 표현식을 바꾸면 동작이 달라질 수 있어서입니다. 참고 구현은 `ShopMapper`(`ceoId` 등 nullable FK)입니다.
+- persistence `XxxMapperTest`의 Entity→Domain 방향은 `ReflectionTestUtils.setField`로 id·감사 필드를 채운 엔티티로 검증합니다. 왕복 비교를 남긴다면 `ignoringFields("id", "createdAt", "updatedAt")`만 허용합니다. "같은 타입 연속 필드는 서로 다른 값으로 채운다" 봉인은 규칙 그대로 대상만 `backend/infrastructure/jpa/src/test/java/com/tastyhouse/infrastructure/jpa/<ctx>/persistence/*MapperTest.java`로 바뀌었습니다.
+- Embeddable 없이 평탄 컬럼으로 저장되는 VO(`AdminDong` 경계·중심, 배달 폴리곤 모양·중심)는 매퍼가 평탄 컬럼(`GeoPolygonTextCodec` 포함)으로 직접 매핑하고, `AdminDongMapper`가 bbox min/max를 계산합니다. 기존 매퍼가 복사하지 않던 필드(`version`·`createdAt`·`updatedAt` 등)는 `applyChanges`로 계속 복사하지 않습니다.
+- 존재하지 않는 id 저장 같은 프로그래밍 오류는 `IllegalStateException`이고, 낙관적 락 번역은 `ReservationSlotPersistenceAdapter`로 이름만 되돌아왔습니다(예외 위치 `port/out`은 그대로).
+- import 순서 표에서 persistence 쓰기 어댑터에 1순위(domain)가 돌아왔습니다.
+- 당시 참고 구현은 notice였으나, notice가 JPA·MyBatis 공존 예외가 되면서([결정 0053](../mybatis/AGENTS.md#decision-0053)) 구현 1개 기본형인 banner(`BannerPersistenceAdapter`·`BannerMapper`)로 바뀌었습니다.
+
+<a id="decision-0032"></a>
+
+### 0032. 쓰기 포트·구현 이름을 PersistencePort·PersistenceAdapter·QueryAdapter로 통일한다
+
+- 상태: 채택(`XxxPersistencePort`는 [결정 0046](../../application-core/AGENTS.md#decision-0046)에서 `XxxLoadPort`·`XxxSavePort`로 세분)
+- 결정 커밋: `64b985bba` (2026-09-30)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0032
+
+#### 맥락
+
+**아웃바운드 포트**는 application이 바깥(DB 등)에 요구하는 인터페이스이고, **어댑터**는 그 포트를 구현하는 infrastructure 클래스입니다. 헥사고날 원칙에서는 포트를 목적으로, 어댑터를 역할로 이름 짓고, 둘이 이름 짝으로 대응하는 것이 좋습니다.
+
+전환 전 이름은 이 대칭을 표현하지 못했습니다.
+
+- 쓰기 포트: `XxxRepository`(106개)
+- 쓰기 구현: `XxxRepositoryImpl`(106개)
+- 조회 구현: `XxxQueryDao`(48개)
+
+`Impl`과 `Dao`는 이 클래스가 어떤 포트를 구현하는지 말해 주지 않습니다. 또 인바운드 어댑터나 읽기 포트(`XxxQueryPort`)와 어휘가 갈렸습니다. 쓰기 포트 이름 `XxxRepository`는 Spring Data 인터페이스 `XxxJpaRepository`와도 헷갈렸습니다.
+
+#### 이전 규칙
+
+##### backend/application-core/AGENTS.md — ArchUnit — 5클래스 … / anchor 하한
+
+write 포트는 `port.out.write`의 `*Repository` 인터페이스로 셌다. 덩어리 03a 시점 `RuleAnchorTest#writePortsExist` 하한은 `*Repository` ≥ 106이었다. 구현은 `XxxRepositoryImpl`, 조회 구현은 `XxxQueryDao`라고 불렀다(03b 동안에는 State 계열 `XxxStatePortImpl`도 있었다).
+
+#### 결정
+
+쓰기 포트와 영속·조회 구현을 이름 짝 규칙으로 통일합니다.
+
+| 역할 | before | after |
+|---|---|---|
+| 쓰기 포트(`application/<ctx>/port/out/write/`) | `XxxRepository`(106) | `XxxPersistencePort` |
+| 예외 포트 | `ShopDeliveryTipRegionLookup` | `ShopDeliveryTipRegionLookupPort` |
+| 영속 어댑터(`infrastructure/<ctx>/persistence/`) | `XxxRepositoryImpl`(106) | `XxxPersistenceAdapter` |
+| 조회 어댑터(`infrastructure/<ctx>/query/`) | `XxxQueryDao`(48) | `XxxQueryAdapter` |
+| 데코레이터·테스트 더블·포트 타입 필드명 | `CachingProhibitedWordRepository` 등 | 같은 어휘(`…PersistencePort`)로 변경 |
+| `RuleAnchorTest#writePortsExist` | `*Repository` ≥ 106 | `*Port` ≥ 107(`ShopDeliveryTipRegionLookupPort` 포함) |
+| 범위 밖(유지) | — | Spring Data `XxxJpaRepository`·`@Repository`·security-core 토큰 저장소 |
+
+#### 근거
+
+- 포트와 구현이 이름 짝으로 대응해야 어떤 어댑터가 어떤 포트를 구현하는지 이름만 보고 알 수 있습니다. `Impl`·`Dao`는 그 정보를 담지 못했습니다.
+- 읽기 쪽 `XxxQueryPort` ↔ `XxxQueryAdapter`와 쓰기 쪽 `XxxPersistencePort` ↔ `XxxPersistenceAdapter`로 어휘가 맞춰집니다.
+
+#### 결과·감수한 손실
+
+- 동작 변경은 없습니다. 패키지·DB·HTTP 계약은 그대로이고, 스프링 빈 이름만 클래스명을 따라 바뀌었습니다.
+- 이름 기반 ArchUnit 규칙과 `RuleAnchorTest` 하한(107)을 갱신했습니다. 옛 접미어가 되살아나지 않게 막는 가드 2종을 신설했고(그중 `infrastructure/jpa`의 `LayerRulesTest#adaptersShouldNotUseRetiredSuffixes`가 `*RepositoryImpl`·`*QueryDao`를 금지한다), 컨트롤러 가드에 `port.out.write` 패키지 차단을 추가했습니다.
+- `backend/CLAUDE.md`에 아웃바운드 포트·어댑터 네이밍 규칙 절을 신설했습니다.
+- 이후 [결정 0046](../../application-core/AGENTS.md#decision-0046)이 `XxxPersistencePort` 106개를 목적별 `XxxLoadPort`·`XxxSavePort`(192개)로 나눴습니다. 어댑터 이름 `XxxPersistenceAdapter`는 그대로이고, 하한은 107 → 192가 됐습니다.
+
+<a id="decision-0039"></a>
+
+### 0039. 조회 DAO에서 QueryDSL Tuple을 전면 제거하고 public Row record로 투영한다
+
+- 상태: 채택
+- 결정 커밋: `a373e0a4d` (2026-10-04)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0039
+
+#### 맥락
+
+- **QueryDSL `Tuple`**: 여러 컬럼을 select할 때 결과 한 행을 담는 타입 없는 컨테이너입니다. 값은 `tuple.get(path)`(표현식으로 찾기)나 `row.get(0, X.class)`(위치로 찾기)로 꺼냅니다.
+- **Row record 투영**: `Projections.constructor(XxxRow.class, ...)`로 select 결과를 이름과 타입이 있는 record 생성자에 바로 넣는 방식입니다.
+
+`Tuple`은 타입이 없는 행이라 `row.get(0, X.class)` 위치 접근이 순서가 어긋나도 컴파일됩니다. `toSummary(Tuple)`·`Map<Long, Tuple>`처럼 메서드 경계를 넘으면 무엇이 담겼는지 시그니처로 알 수 없었습니다(커밋 메시지).
+
+#### 이전 규칙
+
+##### backend/infrastructure/jpa/AGENTS.md(당시 infrastructure/persistence/AGENTS.md) — 봉인·가드 목록
+
+- 1차 결정(`b67401c26`, 2026-09-23)은 위치 인덱스 Tuple만 record로 바꾸고, 절 제목을 "남긴 `Tuple`은 key→value 룩업 빌더다 — record로 바꾸지 않는다"로 두었습니다.
+- 2컬럼 key→value 수집을 Tuple의 정당한 용법으로 보고 `ShopReviewManagementQueryAdapter`·`ReviewQueryAdapter`·`ProductFeedbackQueryAdapter`·`ReviewStatisticsQueryAdapter`·`ShopChoiceQueryAdapter`·`ShopDeliveryTipQueryAdapter`·`ShopSearchQueryAdapter`·`ProductQueryAdapter`의 Tuple 39건을 의도적으로 남겼습니다.
+
+##### 같은 문서 — 코드 주석 이관 근거
+
+- `ProductQueryAdapter` 절 제목은 "`select`와 `Tuple.get`은 같은 표현식 인스턴스를 참조해야 한다"였습니다. `Tuple.get(expr)`은 `equals`로 select 목록에서 값을 찾으므로, 새로 만든 동등 표현식을 넘기면 값을 못 찾았습니다.
+- `FileUrlProjection`은 `MappingProjection`을 상속해 `map(Tuple)` 하나만 구현했습니다.
+
+#### 결정
+
+조회 DAO의 다중 컬럼 select를 전부 Row record 투영으로 바꾸고, Tuple을 ArchUnit으로 금지합니다.
+
+| 항목 | before | after |
+|---|---|---|
+| 다중 컬럼 select 결과 | `List<Tuple>` + `tuple.get(path)` / `row.get(0, X.class)` | `Projections.constructor(XxxRow.class, ...)` → `List<XxxRow>` + `row.xxx()` |
+| 메서드 경계 | `toSummary(Tuple row)`, `Map<Long, Tuple>` 등 타입 없는 행이 오감 | Row 타입이 시그니처에 드러난다 |
+| Row record | — | public `XxxRow` 20개, 공용 `IdStringRow`·`IdCountRow`는 `shared/query` |
+| `FileUrlProjection` | `MappingProjection#map(Tuple)` | `FactoryExpressionBase`를 직접 상속 |
+| 가드 | 없음 | `LayerRulesTest#queryAdaptersShouldNotUseTuple`(Tuple·QTuple·MappingProjection 금지) |
+| `ProjectionConstructorMatchingTest` | import한 투영 대상만 해석 | 같은 패키지 투영 대상도 해석해 import 없는 Row의 인자 개수·순서도 검사 |
+
+#### 근거
+
+- 위치 접근은 순서가 어긋나도 컴파일되고, 타입 없는 행이 메서드 경계를 넘으면 시그니처가 아무것도 말하지 않습니다. 원문은 key→value 수집용 Tuple 39건까지 "사용자 결정으로 전부 Row record로 바꿨다"고 적고 있습니다.
+- `MappingProjection`은 내부 `QTuple`로 행을 `Tuple`로 감싸 넘기므로 Tuple 금지 가드와 양립할 수 없어 상위 타입을 바꿨습니다. `equals`는 둘 다 `FactoryExpressionBase#equals`라 의미가 같습니다.
+
+#### 결과·감수한 손실
+
+- 동작은 바뀌지 않았습니다(변경 전후 jar 응답 63건 동일, HTTP·SQL·DB 동일).
+- 값이 생성자 위치로 들어가므로 "select와 `Tuple.get`은 같은 표현식 인스턴스를 참조해야 한다"는 제약이 사라졌습니다.
+- `Projections.constructor`는 컴파일 타임 검증이 없어, 인자 개수·순서는 `ProjectionConstructorMatchingTest`가 유일한 방어선입니다.
+
+<a id="decision-0044"></a>
+
+### 0044. JpaRepository에 메서드를 선언하지 않고 QueryDSL 어댑터로 옮긴다
+
+- 상태: 채택
+- 결정 커밋: `65da13f9a` (2026-10-08)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0044
+
+#### 맥락
+
+- **`JpaRepository`**: Spring Data JPA가 제공하는 리포지토리 인터페이스입니다. `findByUsername` 같은 메서드 이름만 선언하면 쿼리를 만들어 주고(파생 쿼리), `@Query`·`@Modifying`으로 JPQL을 직접 쓸 수도 있습니다.
+- **QueryDSL**: 쿼리를 자바 코드로 조립하는 도구입니다. 이 저장소의 조회는 대부분 `JPAQueryFactory`로 씁니다.
+- **write 포트 / QueryPort**: 명령 경로가 쓰는 아웃바운드 포트(`port.out.write`)와 조회 유스케이스가 쓰는 읽기 포트(`{Ctx}QueryPort`)입니다.
+
+결정 전에는 `JpaRepository` 57개가 메서드 116개를 선언하고 있었습니다. 같은 조건(`deleted = false`, `shopId` 필터)이 "메서드 이름"과 "QueryDSL" 두 문법으로 갈라져 있었습니다.
+
+#### 이전 규칙
+
+##### backend/infrastructure/jpa/AGENTS.md(당시 persistence) — `CeoQueryAdapter` 봉인·주석 이관 근거
+
+"`findByUsername`/`existsByUsername`은 불변식 검증 경로이므로 write 포트에 잔류한다. 여기로 옮기지 않는다." 인증·시드 멱등성에 쓰이는 단건 조회는 조회 DAO가 아니라 write 포트에 남았습니다.
+
+##### backend/application-core/AGENTS.md — `queryServicesShouldNotDependOnWritePorts` carve-out 3건
+
+조회 유스케이스 서비스는 write 포트를 주입하지 않는다는 규칙에 확정 carve-out 3건이 있었습니다.
+
+| FQN | 근거 |
+|---|---|
+| `ShopDeliveryTipViewQueryService` (web) | 배달팁 계산 경로가 도메인 서비스에 넘길 애그리거트 로드에 write 포트를 쓴다 — 도메인 계산 입력 |
+| `AdminUsernameExistsQueryService` | 인증 계정의 존재 확인(`existsByUsername`, 시드 멱등성 확인)에 write 포트를 쓴다(원문은 Load/Save 분리 후 이름 `AdminLoadPort`로 적혀 있었다). 표현 목적 read model이 없는 원시값 반환 경로 |
+| `CeoOwnerUsernameExistsQueryService` | 위 admin과 같은 인증 조회 경로 |
+
+당시 문서는 이 3건을 "각 앱에서 그대로 승계한 확정 판정이며, 이관 대상이 아니다"라고 적었습니다. 세 carve-out은 유스케이스 분리(결정 0043)로 각각 `ShopQueryService`·`AdminQueryService`·`CeoOwnerQueryService`(당시 이름)에서 write 포트를 실제로 쓰는 연산의 서비스로 1:1 이전된 것입니다.
+
+#### 결정
+
+`infrastructure:jpa`의 `XxxJpaRepository`에는 메서드를 선언하지 않습니다. `JpaRepository<E, Long>` 상속 메서드만 씁니다. 조건 있는 조회·삭제는 그 쓰임으로 위치를 정합니다.
+
+| 항목 | before | after |
+|---|---|---|
+| 리포지토리 선언 메서드 | 57개 리포지토리에 116개(파생 쿼리·`@Query`·`@Modifying`) | 0개 — 같은 패키지 `XxxPersistenceAdapter`의 `JPAQueryFactory` 조회로 이관 |
+| 도메인 모델 반환·불변식 검증 조회 | 리포지토리 파생 쿼리 | `XxxPersistenceAdapter`(예: `AdminPersistenceAdapter#findByUsername`·`#existsByUsername`) |
+| 원시값을 돌려주는 조회 유스케이스(아이디 중복확인) | write 포트(당시 `AdminPersistencePort` — Load/Save 분리 후 이름은 `AdminLoadPort`) | `AdminQueryPort`·`CeoOwnerQueryPort`(구현은 `..query..`의 QueryAdapter) |
+| `queryServicesShouldNotDependOnWritePorts` carve-out | 3건 | 1건(`ShopDeliveryTipViewQueryService`) |
+| 가드 | 없음 | jpa `LayerRulesTest#jpaRepositoriesShouldNotDeclareMethods` |
+
+#### 근거
+
+- 같은 조건이 두 문법으로 갈라지면 한쪽만 고쳐지는 일이 생깁니다. 조회 문법을 QueryDSL 하나로 모읍니다.
+- admin·ceo 아이디 중복확인 서비스는 원시값을 돌려주는 조회 유스케이스라 write 포트가 아니라 QueryPort가 맞습니다. 같은 `existsByUsername`을 `AdminCreateService`·`CeoCreateService`가 생성 중복검사에 쓰므로 write 포트 메서드도 남습니다. 같은 행을 읽는 메서드가 두 포트에 있는 것은 목적이 달라 허용됩니다.
+- QueryAdapter로 일원화하지 않는 이유: `..query..`는 domain을 볼 수 없고, persistence → query 의존은 금지이며, 명령 서비스는 QueryPort를 주입하지 못합니다.
+
+#### 결과·감수한 손실
+
+- 동작은 바뀌지 않습니다. 파생 delete는 읽은 뒤 `deleteAll`, `@Modifying`은 flush→delete→clear 순서를 유지하고, 파생 쿼리의 null→IS NULL 의미도 `isNull()` 헬퍼로 보존했습니다.
+- **대가**: 파생 쿼리는 부팅 때 검증됐지만 QueryDSL은 실행 시점에만 검증됩니다. 조건을 고치면 해당 엔드포인트를 한 번 호출해 확인해야 합니다.
+- 상속 메서드 `flush()` 호출은 허용됩니다(선언 금지 규칙은 선언만 막음).
+
+##### 후속 결정 — 조회 서비스의 write 포트 간접 읽기 4건을 QueryPort로 이관 (커밋 `7af2291c1`, 2026-10-09)
+
+이 결정은 조회 서비스가 write 포트를 **직접** 주입하는 경우만 정리했습니다. 이후 조회 서비스가 **도메인 서비스를 거쳐** write 포트를 읽고 그 값을 화면에 내보내던 간접 경로 4건도 QueryPort로 옮겼습니다. 동작은 바뀌지 않습니다(쿼리 조건·정렬·소유 검증 `PRODUCT_NOT_FOUND` 404를 그대로 옮김).
+
+| 경로 | before | after |
+|---|---|---|
+| ceo 상품 가격 목록 | `ProductPriceQueryService` → `ProductPriceService#findPrices` → `ProductPricePersistencePort#findAllByProductId` | `ProductOwnerQueryPort#findPrices` → `ProductOwnerPriceView` |
+| ceo 상품 노출 시간 | `ProductExposureQueryService` → `ProductExposureService#findHours` → `ProductExposureHourPersistencePort#findAllByProductId` | `ProductOwnerQueryPort#findExposureHours` → `ProductExposureHourResult`. 같은 서비스의 노출 여부(`ProductExposureService#evaluate`)는 계산 입력이라 그대로 둠 |
+| ceo 가격 검수 최신 건 | `ShopStorePriceVerificationQueryService` → `StorePriceVerificationOwnerReader#readLatest`(이후 위임 래퍼 제거로 삭제) → `StorePriceVerificationPersistencePort#findLatestByShopId` | 신설 `StorePriceVerificationOwnerQueryPort#findLatestByShopId` → `StorePriceVerificationOwnerLatestResult` |
+| web 내 등급 | `MemberMyGradeQueryService` → `MemberGradeService#getMyGrade` → `MemberReviewRankPersistencePort#findLatestByMemberIdAndRankType` | `RankQueryPort#findLatestReviewCount`로 리뷰 수만 읽고 `MemberGrade` 계산은 조회 서비스가 함. `MemberGradeService`는 삭제 |
+
+- **쿼리는 글자 그대로 옮깁니다.** 원본에 `orderBy`가 없으면 추가하지 않습니다(노출 시간 목록). 정렬을 고치는 것은 동작 변경이라 별도 결정입니다.
+- **소유 검증의 의미를 바꾸지 않습니다.** 가격 목록은 원래 `product.shopId` 일치 + 미삭제가 아니면 404였습니다. 같은 조건을 갖는 `ProductOwnerQueryPort#findExposurePeriod`의 `shopId`를 비교해 재현했고, shop **링크** 기준인 `existsProductInShop`은 의미가 달라 쓰지 않았습니다.
+- **이 판정은 ArchUnit으로 강제하지 못합니다.** "서비스가 write 포트로 읽은 값이 화면으로 나가는가"는 정적으로 판정할 수 없어 리뷰가 지킵니다. 조회 유스케이스에 도메인 서비스를 새로 주입할 때 위 표로 확인합니다.
+
+<a id="decision-0047"></a>
+
+### 0047. JPA·QueryDSL 코드를 infrastructure:jpa로 옮기고 persistence를 코드 없는 조립 모듈로 만든다
+
+- 상태: 채택
+- 결정 커밋: `4178929c3` (2026-10-09)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0047
+
+#### 맥락
+
+- **조립 모듈(스타터)**: 자바 코드 없이 구현 모듈을 `runtimeOnly`로 묶어 앱에 노출하는 모듈입니다. 선례는 `file-storage → firebase`, `pg → tosspayments`입니다.
+- **driven 어댑터**: application의 아웃바운드 포트를 실제 기술로 구현하는 모듈입니다.
+
+[결정 0045](../persistence/AGENTS.md#decision-0045)로 banner 쓰기의 MyBatis 구현은 별도 모듈(`infrastructure:mybatis`)이 됐습니다. 그런데 같은 포트의 JPA 구현은 "persistence"라는 공용 이름의 모듈에 섞여 있어 이름이 비대칭이었습니다. 또 DB 연결 정보와 MySQL 드라이버는 JPA와 MyBatis가 함께 쓰는 것이라, 어느 한 기술 모듈이 아니라 공용 모듈이 소유하는 편이 맞았습니다(`docs/tasks/jpa-module-split/backend.md`). 참고 구조는 board-project의 `adapter-out-persistence-jpa` / `-mybatis` 분리입니다.
+
+#### 이전 규칙
+
+##### backend/infrastructure/persistence/AGENTS.md(현 jpa/AGENTS.md)
+
+- `infrastructure:persistence`가 JPA·QueryDSL 코드 전부(엔티티·쓰기 어댑터·조회 DAO·가드 테스트)를 가진 driven 어댑터였습니다.
+- 자바 패키지 루트는 `com.tastyhouse.infrastructure.persistence..`, 진입 설정은 `InfrastructurePersistenceConfig`였습니다.
+- 설정은 `application-persistence.yml` 한 벌(datasource + `spring.jpa.*` + provider 키)이었고, MySQL 드라이버도 이 모듈의 `runtimeOnly`였습니다.
+
+##### backend/CLAUDE.md — infrastructure 패키지 규칙 (ArchUnit 패키지 술어 함정)
+
+[결정 0037](../../AGENTS.md#decision-0037)로 루트에 `persistence` 세그먼트가 생겨, `"com.tastyhouse.infrastructure..persistence.."`가 `...persistence.order.query`까지 매칭했습니다. 그래서 persistence `LayerRulesTest`의 술어는 `"com.tastyhouse.infrastructure.persistence..persistence.."`·`"com.tastyhouse.infrastructure.persistence..query.."`처럼 루트를 끝까지 적어야 했습니다. 앱(`{web,admin,ceo}-api`·`batch-module`) `LayerRulesTest`의 persistence 금지 술어는 `"com.tastyhouse.infrastructure.persistence.."`였습니다. `persistence.order.persistence`처럼 `persistence`가 두 번 나오는 이름도 감수했습니다.
+
+#### 결정
+
+JPA·QueryDSL 코드와 테스트를 신설 모듈 `infrastructure:jpa`로 옮기고, `infrastructure:persistence`는 코드 없는 조립 모듈로 바꿉니다.
+
+| 항목 | before | after |
+|---|---|---|
+| Gradle 좌표 / 디렉터리 | `:infrastructure:persistence` / `backend/infrastructure/persistence/` | `:infrastructure:jpa` / `backend/infrastructure/jpa/` |
+| 자바 패키지 루트 | `com.tastyhouse.infrastructure.persistence..` | `com.tastyhouse.infrastructure.jpa..` (하위 `<ctx>/persistence`·`<ctx>/query`·`config`·`shared.*` 불변) |
+| 진입 설정 클래스 | `InfrastructurePersistenceConfig` | `JpaModuleConfig` |
+| `infrastructure:persistence` | driven 어댑터(JPA 코드 전부) | 조립 모듈 — `runtimeOnly ':infrastructure:jpa'` + `runtimeOnly 'com.mysql:mysql-connector-j'` |
+| 설정 yml | `application-persistence.yml` 한 벌 | `application-jpa.yml`(jpa: `spring.jpa.*`·hibernate 로그) + `application-persistence.yml`(persistence: datasource·`spring.sql.init`·provider 키, `application-jpa.yml` import) |
+| MySQL 드라이버 | 이 모듈 `runtimeOnly` | persistence 조립 모듈(JPA·MyBatis 공용) |
+| 앱 4개 의존·yml import | `runtimeOnly ':infrastructure:persistence'` | 불변 |
+| 모듈 수 | 37 | 38 |
+
+#### 근거
+
+- JPA 구현과 MyBatis 구현을 `infrastructure:jpa` / `infrastructure:mybatis`로 대칭되게 둡니다.
+- 나눈 기준: JPA를 쓸 때만 의미 있는 키는 JPA 구현 모듈이, JPA·MyBatis가 함께 쓰는 DB 접속(datasource·드라이버)과 구현 선택 스위치는 조립 모듈이 갖습니다.
+- 루트가 `com.tastyhouse.infrastructure.jpa`라 루트에 `persistence` 세그먼트가 없어져 ArchUnit 술어 오매칭 함정이 해소됩니다.
+
+#### 결과·감수한 손실
+
+- 앱 4개의 의존·yml import와 동작·HTTP·DB는 변경이 없습니다.
+- 현행 술어는 jpa `LayerRulesTest`가 `"com.tastyhouse.infrastructure.jpa..persistence.."`·`"..jpa..query.."`, 앱 4개 `LayerRulesTest#shouldNotDependOnInfrastructurePersistence`(메서드명 유지)가 `"com.tastyhouse.infrastructure.jpa.."`입니다. 루트를 끝까지 적는 원칙은 유지합니다 — 줄이면 다른 영속 기술 모듈의 패키지까지 대상에 들어올 수 있습니다.
+- mybatis `LayerRulesTest`의 금지 패키지도 `"com.tastyhouse.infrastructure.jpa.."`입니다.
+- 코드(main·test)와 모듈 문서(`backend/infrastructure/persistence/AGENTS.md` → `backend/infrastructure/jpa/AGENTS.md`)는 `git mv`로 함께 옮겼습니다. `settings.gradle` include는 37줄이 됐습니다.
+- `persistence.order.persistence` 이중 이름은 `jpa.order.persistence`가 되어 사라졌습니다.
+- 이 결정 이전의 과거 시점 서술에 나오는 `persistence` 모듈명·패키지·`InfrastructurePersistenceConfig`는 지금 이름(`jpa`·`JpaModuleConfig`)으로 읽습니다.
+- 드라이버·datasource 소유는 [결정 0051](../mysql/AGENTS.md#decision-0051)이 `infrastructure:mysql`로 옮겼고, provider 키는 [결정 0052](../persistence/AGENTS.md#decision-0052)가 삭제했습니다. 지금 persistence는 jpa + mysql 조립만 합니다.
+- 작업 중 600여 파일의 패키지를 기계적으로 옮겼습니다.

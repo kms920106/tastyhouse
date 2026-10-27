@@ -4,7 +4,7 @@
 
 토스페이먼츠 **벤더 모듈**(`java-library`). 코어 `application-core` 모듈이 소유하는 벤더 SPI `PgProviderGatewayPort`(`com.tastyhouse.application.payment.port.out`)를 `TossPaymentGatewayAdapter`가 구현하고 `provider()`로 코어 소유의 `PgProviderCode.TOSS`(도메인 `PgProvider`와 상수명이 같은 별도 enum — 아래 "포트 반환 타입" 절 참고)를 알린다. 앱이 아니라 PG 채널 모듈 `infrastructure:pg`가 `runtimeOnly`로 조립하며, 결제 건의 `PgProvider`가 `TOSS`면 코어의 라우터(`PgPaymentGatewayRouter`, `application-core`의 `payment/service/`)가 이 어댑터로 넘긴다.
 
-채널·벤더 분리로 `infrastructure:payment`에서 갈라진 벤더 모듈이다. 패키지 루트는 `com.tastyhouse.infrastructure.tosspayments`이고 wire DTO는 루트 패키지에 package-private으로 있으며 `dto/` 하위 패키지는 없다(아래 봉인·가드 목록). ([ADR-0040](../../../docs/adr/0040-package-private-visibility.md))
+채널·벤더 분리로 `infrastructure:payment`에서 갈라진 벤더 모듈이다. 패키지 루트는 `com.tastyhouse.infrastructure.tosspayments`이고 wire DTO는 루트 패키지에 package-private으로 있으며 `dto/` 하위 패키지는 없다(아래 봉인·가드 목록). ([결정 0040](../../AGENTS.md#decision-0040))
 
 ## 무엇을 소유하는가
 
@@ -52,7 +52,7 @@ pg:
 ## Dependencies
 
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. 토스 API 호출은 **동기 `RestClient`**다.
-- `application-core` (implementation) — 구현하는 `PgProviderGatewayPort`와 그 계약 타입(`PgCancelResult`·`PgCancelFailure`·`PgCancelLookupResult`·`PgCancelLookupStatus`·`PgProviderCode`·`PgConfirmResult`·`PgConfirmFailure`·`PgPaymentLookupResult`·`PgPaymentLookupStatus`·`TossPaymentDetail`)이 모두 코어 소유다. 패키지는 모두 `com.tastyhouse.application.payment.port.out`. `:web-application`을 의존하지 않는다 — 이 모듈은 web·batch 두 앱에 조립되므로, 앱 모듈을 의존하면 batch 클래스패스에 web-application이 실려 web 빈 전체가 batch에 뜬다([ADR-0061](../../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md)). `:domain` 의존은 없다 — 이 모듈은 도메인 `PgProvider`를 참조하지 않는다(위 "포트 반환 타입" 절 참고)
+- `application-core` (implementation) — 구현하는 `PgProviderGatewayPort`와 그 계약 타입(`PgCancelResult`·`PgCancelFailure`·`PgCancelLookupResult`·`PgCancelLookupStatus`·`PgProviderCode`·`PgConfirmResult`·`PgConfirmFailure`·`PgPaymentLookupResult`·`PgPaymentLookupStatus`·`TossPaymentDetail`)이 모두 코어 소유다. 패키지는 모두 `com.tastyhouse.application.payment.port.out`. `:web-application`을 의존하지 않는다 — 이 모듈은 web·batch 두 앱에 조립되므로, 앱 모듈을 의존하면 batch 클래스패스에 web-application이 실려 web 빈 전체가 batch에 뜬다([결정 0061](../../../docs/domain/payment.md#decision-0061)). `:domain` 의존은 없다 — 이 모듈은 도메인 `PgProvider`를 참조하지 않는다(위 "포트 반환 타입" 절 참고)
 - `infrastructure:pg`를 의존하지 않는다(순환 방지)
 - 테스트: `TossPaymentClientTest`(18건)·`TossPaymentGatewayAdapterTest`(32건) — `MockRestServiceServer.bindTo(RestClient.builder())` 기반. `TossPaymentProperties`를 생성자로 직접 만들므로 프로퍼티 컴포넌트를 추가하면 두 테스트의 `setUp`도 함께 고친다
 
@@ -72,7 +72,7 @@ pg:
 
 **대상**: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/`
 
-옛 위치 `external.pg.toss`로 되돌리지 않는다 — 채널 모듈 `infrastructure:pg`의 스캔에 동반 등록된다. 이 모듈의 루트는 `com.tastyhouse.infrastructure.tosspayments`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/tosspayments/src/test/java/com/tastyhouse/infrastructure/tosspayments/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
+옛 위치 `external.pg.toss`로 되돌리지 않는다 — 채널 모듈 `infrastructure:pg`의 스캔에 동반 등록된다. 이 모듈의 루트는 `com.tastyhouse.infrastructure.tosspayments`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/tosspayments/src/test/java/com/tastyhouse/infrastructure/tosspayments/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. ([결정 0037](../../AGENTS.md#decision-0037))
 
 ### 어댑터는 `PgPaymentGatewayPort`를 직접 구현하지 않는다
 
@@ -105,7 +105,7 @@ pg:
 토스는 승인 거절을 HTTP 4xx로 돌려주고 RestClient는 이를 `RestClientResponseException`으로 던진다. 이 분기는 `e.getResponseBodyAs(TossPaymentConfirmResponse.class)`로 본문을 읽어 토스의 code·message를 그대로 돌려준다. code를 하나로 덮어쓰면 동시 중복 승인의 `ALREADY_PROCESSED_PAYMENT`를 어댑터가 알아볼 수 없기 때문이다.
 
 - **4xx만 대상이다**: 5xx·알 수 없는 상태 코드는 본문에 code가 있어도 `PG_SERVER_ERROR`로 만들고 ERROR 로그(스택 포함)를 남긴다. 4xx는 정상 흐름의 거절(중복 승인 포함)이라 스택 없이 WARN으로 남긴다. `TossPaymentClientTest#confirmPaymentServerError`가 5xx 경로를 지킨다.
-- **폴백**: 4xx 본문이 JSON이 아니거나(`UnknownContentTypeException`) 깨졌거나(`RestClientException`) code가 비어 있으면 `PG_UNREADABLE_RESPONSE` 응답을 만든다. 이 응답은 **결과 불명**이다. 토스 문서는 실패 시 `{code, message}` JSON 에러 객체가 돌아온다고 하므로(토스 에러 코드 문서. 408·429는 그 표에 없다), 해석할 수 없는 4xx는 토스의 정상 에러 응답이 아니다. 중간 인프라(프록시·로드밸런서·CDN)의 응답일 수도 있고, 토스가 직접 보낸 비JSON 응답일 수도 있다(라이브 환경은 요청이 과다하면 `429 Too Many Requests`가 올 수 있다고 거래 조회 문서에 적혀 있다. 테스트 환경 실측에서 요청 제한(분당 100건 초과)에 걸린 429는 `server: envoy`가 보낸 JSON 에러 객체 `{"code":"TOO_MANY_REQUESTS"}`였고 이 코드는 에러 코드 문서에 없다. 본문을 읽을 수 있으므로 이 429는 `PG_UNREADABLE_RESPONSE`가 아니라 토스 code 그대로 `REJECTED`로 번역된다). 출처를 알 수 없으므로 토스가 승인을 처리했는지 알 수 없고, 이를 거절로 확정하면 돈은 나갔는데 결제가 FAILED가 될 수 있다. 진짜 토스 거절인데 본문만 깨진 경우에도 조회가 `NOT_APPROVED`를 돌려줘 같은 실패에 도달하므로, 손해는 조회 1회만큼의 지연이다([ADR-0063](../../../docs/adr/0063-pg-confirm-unreadable-4xx-unknown.md)).
+- **폴백**: 4xx 본문이 JSON이 아니거나(`UnknownContentTypeException`) 깨졌거나(`RestClientException`) code가 비어 있으면 `PG_UNREADABLE_RESPONSE` 응답을 만든다. 이 응답은 **결과 불명**이다. 토스 문서는 실패 시 `{code, message}` JSON 에러 객체가 돌아온다고 하므로(토스 에러 코드 문서. 408·429는 그 표에 없다), 해석할 수 없는 4xx는 토스의 정상 에러 응답이 아니다. 중간 인프라(프록시·로드밸런서·CDN)의 응답일 수도 있고, 토스가 직접 보낸 비JSON 응답일 수도 있다(라이브 환경은 요청이 과다하면 `429 Too Many Requests`가 올 수 있다고 거래 조회 문서에 적혀 있다. 테스트 환경 실측에서 요청 제한(분당 100건 초과)에 걸린 429는 `server: envoy`가 보낸 JSON 에러 객체 `{"code":"TOO_MANY_REQUESTS"}`였고 이 코드는 에러 코드 문서에 없다. 본문을 읽을 수 있으므로 이 429는 `PG_UNREADABLE_RESPONSE`가 아니라 토스 code 그대로 `REJECTED`로 번역된다). 출처를 알 수 없으므로 토스가 승인을 처리했는지 알 수 없고, 이를 거절로 확정하면 돈은 나갔는데 결제가 FAILED가 될 수 있다. 진짜 토스 거절인데 본문만 깨진 경우에도 조회가 `NOT_APPROVED`를 돌려줘 같은 실패에 도달하므로, 손해는 조회 1회만큼의 지연이다([결정 0063](../../../docs/domain/payment.md#decision-0063)).
 - **결과 불명 코드 4개**: 5xx는 `PG_SERVER_ERROR`, 호출 예외(타임아웃 `ResourceAccessException` 포함)는 `SYSTEM_ERROR`, 본문 없는 성공 응답은 `UNKNOWN_ERROR`, 해석할 수 없는 4xx는 `PG_UNREADABLE_RESPONSE`다. 상수는 `TossPaymentClient`의 package-private `static final` 필드이고 어댑터가 같은 패키지에서 참조한다. 이들을 거절 코드와 같은 값으로 두면 어댑터가 "토스가 거절함"과 "토스가 처리했는지 모름"을 구분할 수 없다.
 - **어댑터 번역**: `toFailure`가 `ALREADY_PROCESSED_PAYMENT`를 `PgConfirmFailure.ALREADY_PROCESSED`로, `PG_SERVER_ERROR`·`SYSTEM_ERROR`·`UNKNOWN_ERROR`·`PG_UNREADABLE_RESPONSE`를 `UNKNOWN`으로, 나머지 실패(토스 JSON 본문의 4xx code)는 `REJECTED`로 번역한다. 로그도 이 번역을 따른다 — `confirmPayment`는 `ALREADY_PROCESSED`면 WARN, 그 밖의 실패는 ERROR로 남긴다. 중복 승인은 정상 흐름이라 클라이언트의 4xx WARN과 심각도를 맞추지 않으면 ERROR 기준 알림의 노이즈가 된다. 토스 문자열은 이 모듈 밖으로 나가지 않는다(소비 측 근거는 `application-core/AGENTS.md`의 PG 승인·실패 반영 항목).
 - **사용자 응답**(토스 JSON 본문이 있는 4xx에 한함 — 해석할 수 없는 4xx는 결과 불명 흐름을 탄다): 승인 실패 메시지는 토스 원문이고, 에러코드는 `PAYMENT_APPROVAL_FAILED`·HTTP 상태는 400이다. `TOSS_PAYMENT_RECORD`의 `failureCode`·`failureMessage`에도 원래 code가 남는다.
@@ -129,7 +129,7 @@ pg:
 - **금액은 비교하지 않는다** — 어댑터는 DB 금액을 모른다. `totalAmount`를 그대로 실어 보내고 application의 `PaymentConfirmationService#reconcileApproved`가 판정한다.
 - **404는 `NOT_FOUND_PAYMENT`만 미승인이다** — 토스 에러 코드 문서(https://docs.tosspayments.com/reference/error-codes)의 "결제 조회" 절에 있는 404는 `NOT_FOUND_PAYMENT`("존재하지 않는 결제 정보")와 `NOT_FOUND`("존재하지 않는 정보") 둘이다. 뒤의 것은 무엇이 없는지 특정하지 않아 `UNKNOWN`으로 둔다. `NOT_FOUND_PAYMENT_SESSION`은 승인 API의 코드라 조회에서 기대하지 않는다. 승인 전에 이탈한 주문을 조회하면 404가 오는지 200 `READY`·`IN_PROGRESS`가 오는지는 문서로 확정되지 않았다 — 404면 "결제 없음 또는 승인 전 이탈"로 묶어 미승인, 200이면 위 표대로 `UNKNOWN`이라 어느 쪽이든 안전하다.
 - **응답의 `orderId`가 요청과 다르면 상태와 관계없이 `UNKNOWN`이다** — 토스 보안 체크리스트가 조회 응답의 `orderId`·`totalAmount`·`status` 대조를 요구한다. 다른 주문의 응답으로 우리 결제를 완료시키지 않도록 errorCode `ORDER_ID_MISMATCH`로 돌려주고 ERROR를 남긴다. 대상: `backend/infrastructure/tosspayments/src/main/java/com/tastyhouse/infrastructure/tosspayments/TossPaymentGatewayAdapter.java` → `lookupPayment`.
-- 결정 경위: [ADR-0060](../../../docs/adr/0060-pg-confirm-unknown-lookup.md).
+- 결정 경위: [결정 0060](../../../docs/domain/payment.md#decision-0060).
 
 ### 취소 실패 분류와 취소 확인 조회
 
@@ -161,4 +161,4 @@ pg:
 - **테스트 환경에서는 `TossPayments-Test-Code: {에러 코드}` 헤더로 에러 응답을 재현할 수 있다** — 테스트 시크릿 키(`test_sk_…`)를 쓸 때만 동작하고 라이브 키는 무시한다. 취소 API에 붙이면 코드·HTTP 상태·본문만 시뮬레이션되고 결제 상태는 바뀌지 않는다(이미 취소된 결제로 재현). 이 헤더는 발생 조건을 알려 주지 않는다. 카드 결제를 직접 시험한 결과(2026-10-27): 잔액을 넘는 `cancelAmount`·0원·면세 금액 오사용은 403 `NOT_CANCELABLE_AMOUNT`, `cancelReason` 누락은 400 `INVALID_REQUEST`, 이미 전액 취소된 결제의 부분·0원 취소는 400 `ALREADY_CANCELED_PAYMENT`였다. 토스 FAQ는 `NOT_CANCELABLE_PAYMENT`의 원인으로 키 불일치·필수 값 누락·면세 금액 오사용·이미 취소된 결제를 들지만 카드 결제에서는 재현되지 않았다.
 - **부분 취소 뒤 전액 취소한 결제는 잔액이 0원이어도 토스 상태가 `PARTIAL_CANCELED`로 남는다**(2026-10-27 실측, 취소 1,000원 + 10,700원 모두 `DONE`, `balanceAmount = 0`). `lookupCancellation`은 `PARTIAL_CANCELED`를 `UNKNOWN`으로 번역하므로 이런 결제는 조회로 취소가 확인되지 않는다. 우리 앱은 부분 취소를 하지 않아 토스 어드민에서 먼저 일부 환불한 결제에서만 생긴다.
 - `PgCancelLookupResult.pgStatus`는 로그용 원문(토스 `status`, 오류 code, `PAYMENT_MISMATCH`)이다. application은 분기에 쓰지 않는다.
-- 결정 경위: [ADR-0065](../../../docs/adr/0065-pg-cancel-lookup-recovery.md).
+- 결정 경위: [결정 0065](../../../docs/domain/payment.md#decision-0065).

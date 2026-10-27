@@ -4,7 +4,7 @@
 
 Solapi SMS 발송 **벤더 모듈**(`java-library`). 포트 `SmsSenderPort`(`web-application`의 `com.tastyhouse.application.phoneverification.port.out` — 과거 domain 소유, 02-vendor-ports로 `application`, 앱 마커 제거로 `web-application`)를 `SolapiSmsClient`가 구현한다. SMS 채널의 기본 벤더이며, 앱이 아니라 채널 모듈 `infrastructure:sms`가 `runtimeOnly`로 조립한다. AWS 대안은 `infrastructure:aws-sns`다.
 
-`infrastructure:messaging` 4분할로 신설됐다. 패키지 루트는 `com.tastyhouse.infrastructure.solapi`이고 `SolapiMessageRequest`·`SolapiMessageResponse`는 `SolapiSmsClient`와 같은 패키지의 package-private record다(아래 봉인·가드 목록). ([ADR-0040](../../../docs/adr/0040-package-private-visibility.md))
+`infrastructure:messaging` 4분할로 신설됐다. 패키지 루트는 `com.tastyhouse.infrastructure.solapi`이고 `SolapiMessageRequest`·`SolapiMessageResponse`는 `SolapiSmsClient`와 같은 패키지의 package-private record다(아래 봉인·가드 목록). ([결정 0040](../../AGENTS.md#decision-0040))
 
 ## 무엇을 소유하는가
 
@@ -43,7 +43,7 @@ com.tastyhouse.infrastructure.solapi/
 
 **대상**: `backend/infrastructure/solapi/src/main/java/com/tastyhouse/infrastructure/solapi/`
 
-옛 위치 `external.sms.solapi`로 되돌리지 않는다 — 채널 모듈의 스캔에 동반 스캔된다. 이 모듈의 루트는 `com.tastyhouse.infrastructure.solapi`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/solapi/src/test/java/com/tastyhouse/infrastructure/solapi/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
+옛 위치 `external.sms.solapi`로 되돌리지 않는다 — 채널 모듈의 스캔에 동반 스캔된다. 이 모듈의 루트는 `com.tastyhouse.infrastructure.solapi`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/solapi/src/test/java/com/tastyhouse/infrastructure/solapi/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. ([결정 0037](../../AGENTS.md#decision-0037))
 
 ### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
 

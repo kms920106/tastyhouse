@@ -15,7 +15,7 @@ description: 코드 리뷰 지적을 판정해 실제 개선이 필요한 것만
 ## 제약
 - 커밋·롤백 금지. 완료 후 추천 커밋 메시지만 제시해.
 - backend java에 주석 추가 금지. 설명은 모듈 AGENTS.md나 docs/domain에 적어.
-- 규칙·동작이 바뀌면 관련 AGENTS.md / docs/domain / ADR도 갱신해.
+- 규칙·동작이 바뀌면 관련 AGENTS.md / docs/domain(결정 경위는 그 문서의 `## 결정 경위` 절)도 갱신해. docs/adr 같은 결정 전용 파일은 만들지 마.
 - 포트·시그니처를 바꾸면 테스트 스텁과 호출부를 grep으로 전수 확인해.
 - backend 검증은 실행 중인 jar를 먼저 내린 뒤 backend 디렉터리에서 ./gradlew build 로 해.
 - frontend 빌드와 브라우저 검증은 하지 마. 보고에 "브라우저 검증은 별도 세션 대상"이라고만 적어.

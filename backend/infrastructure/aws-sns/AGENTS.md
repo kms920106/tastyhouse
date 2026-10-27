@@ -58,11 +58,11 @@ com.tastyhouse.infrastructure.aws.sns/
 
 **대상**: `backend/infrastructure/aws-sns/src/main/java/com/tastyhouse/infrastructure/aws/sns/`
 
-이 모듈의 루트는 `com.tastyhouse.infrastructure.aws.sns`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/aws-sns/src/test/java/com/tastyhouse/infrastructure/aws/sns/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 옛 위치 `external.sms.sns`로 되돌리지 않는다 — 채널 모듈의 스캔에 동반 스캔된다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
+이 모듈의 루트는 `com.tastyhouse.infrastructure.aws.sns`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/aws-sns/src/test/java/com/tastyhouse/infrastructure/aws/sns/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 옛 위치 `external.sms.sns`로 되돌리지 않는다 — 채널 모듈의 스캔에 동반 스캔된다. ([결정 0037](../../AGENTS.md#decision-0037))
 
 ### 진입 설정은 아무것도 스캔하지 않는다
 
-이 모듈의 설정 클래스 `SnsConfig`는 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 뺀다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
+이 모듈의 설정 클래스 `SnsConfig`는 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 뺀다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). ([결정 0038](../../AGENTS.md#decision-0038))
 
 **대상**: `backend/infrastructure/aws-sns/src/main/java/com/tastyhouse/infrastructure/aws/sns/SnsConfig.java`
 

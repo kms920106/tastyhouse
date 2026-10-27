@@ -25,7 +25,7 @@ com.tastyhouse.infrastructure.redis/
     └── RedisSocialTempTokenRepository.java  {provider.keyPrefix()}{tempToken} (kakao_temp: 등)
 ```
 
-**계약은 `security-core`, 구현은 이 모듈이다.** 토큰 저장소 포트 3종과 `RateLimitCounterPort`가 모두 같은 구조다. 계약 소유 모듈(`security-core`)이 이 모듈을 의존하면 "core가 구체 인프라를 의존하는" 역방향 간선이 되고, 그 전이 사슬을 타고 Redis를 쓰지 않는 batch-module에도 Redis 빈과 springdoc·starter-web이 실린다. 지금 batch runtimeClasspath에는 redis·api-common·springdoc이 **없다**([ADR-0019](../../../docs/adr/0019-token-store-port-inversion.md)).
+**계약은 `security-core`, 구현은 이 모듈이다.** 토큰 저장소 포트 3종과 `RateLimitCounterPort`가 모두 같은 구조다. 계약 소유 모듈(`security-core`)이 이 모듈을 의존하면 "core가 구체 인프라를 의존하는" 역방향 간선이 되고, 그 전이 사슬을 타고 Redis를 쓰지 않는 batch-module에도 Redis 빈과 springdoc·starter-web이 실린다. 지금 batch runtimeClasspath에는 redis·api-common·springdoc이 **없다**([결정 0019](../../security-core/AGENTS.md#decision-0019)).
 
 ### 키 접두사 프로퍼티
 
@@ -39,7 +39,7 @@ com.tastyhouse.infrastructure.redis/
 
 **이 표는 불변 계약이다.** 접두사가 어긋나도 예외가 나지 않고 기존 세션만 조용히 무효화되므로(콜론 누락 `admin` → `adminrt:`), `RedisRefreshTokenRepositoryTest`·`RedisBlacklistRepositoryTest`의 고정값 단정이 유일한 자동 방어선이다. 소셜 임시토큰은 앱 간 공유되지 않아 이 프로퍼티를 받지 않고, 접두사를 `security-core` enum `SocialTempTokenProvider#keyPrefix()`가 준다.
 
-**`ratelimit` 패키지에는 카운터 하나만 있다.** 키 조립(클라이언트 IP·요청 필드 해석)은 HTTP 어댑터 관심사라 `api-common-module`의 `RateLimitAspect`가 소유한다 — 인프라가 그것을 들면 서블릿 스택을 의존하게 된다. 계약 `RateLimitCounterPort`는 서블릿-프리 `security-core`(`com.tastyhouse.security.ratelimit`)에 있어, 방향은 **`infrastructure:redis` → `security-core` ← `api-common-module`** 이다 — 구현과 표현이 main 클래스패스에서 서로를 모른다. 근거는 `security-core/AGENTS.md`의 "rate limit 카운터 계약을 여기 둔 이유"([ADR-0023](../../../docs/adr/0023-rate-limit-port-in-security-core.md)). Redis 카운터 키 접두사는 호출부의 `@RateLimit(keyPrefix=...)`가 결정한다.
+**`ratelimit` 패키지에는 카운터 하나만 있다.** 키 조립(클라이언트 IP·요청 필드 해석)은 HTTP 어댑터 관심사라 `api-common-module`의 `RateLimitAspect`가 소유한다 — 인프라가 그것을 들면 서블릿 스택을 의존하게 된다. 계약 `RateLimitCounterPort`는 서블릿-프리 `security-core`(`com.tastyhouse.security.ratelimit`)에 있어, 방향은 **`infrastructure:redis` → `security-core` ← `api-common-module`** 이다 — 구현과 표현이 main 클래스패스에서 서로를 모른다. 근거는 `security-core/AGENTS.md`의 "rate limit 카운터 계약을 여기 둔 이유"([결정 0023](../../security-core/AGENTS.md#decision-0023)). Redis 카운터 키 접두사는 호출부의 `@RateLimit(keyPrefix=...)`가 결정한다.
 
 ## yml — `application-redis.yml` (챕터 05 §5b)
 
@@ -74,7 +74,7 @@ com.tastyhouse.infrastructure.redis/
 ## 주의
 
 - **이 모듈은 실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- **빈 배선**: 이 모듈의 빈(`RedisConfig`·`RedisRateLimitCounter`·토큰 저장소 어댑터 3종)은 web·admin·ceo 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 문자열로 스캔해 등록하고, `RedisModuleConfig`는 `@EnableConfigurationProperties`만 한다. aspect 빈은 `api-common-module`의 `ApiCommonRateLimitConfig`가 등록한다(빈 존재 조건 없음 — `apicommon.ratelimit`을 스캔하는 앱은 전부 이 모듈을 클래스패스에 갖는다). 클래스패스에 올라오면 활성화된다. 이 경로를 건드렸으면 한도 초과 호출로 429를 실제 확인한다([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md)).
+- **빈 배선**: 이 모듈의 빈(`RedisConfig`·`RedisRateLimitCounter`·토큰 저장소 어댑터 3종)은 web·admin·ceo 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 문자열로 스캔해 등록하고, `RedisModuleConfig`는 `@EnableConfigurationProperties`만 한다. aspect 빈은 `api-common-module`의 `ApiCommonRateLimitConfig`가 등록한다(빈 존재 조건 없음 — `apicommon.ratelimit`을 스캔하는 앱은 전부 이 모듈을 클래스패스에 갖는다). 클래스패스에 올라오면 활성화된다. 이 경로를 건드렸으면 한도 초과 호출로 429를 실제 확인한다([결정 0038](../../AGENTS.md#decision-0038)).
 - **Redis를 쓰는 새 관심사는 `security-module`이 아니라 이 모듈을 의존한다.** 그것이 이 모듈이 따로 있는 이유다.
 - **다른 모듈의 계약을 구현할 때는 그 모듈을 이 모듈이 의존한다**(어댑터 → 계약). 반대로 계약 소유 모듈이 이 모듈을 의존하게 만들면 역방향 간선이 생긴다 — 그 회귀는 컴파일·기동 모두 성공하고 **batch 배포 산출물이 조용히 불어나는** 형태로만 드러난다.
 
@@ -86,7 +86,7 @@ com.tastyhouse.infrastructure.redis/
 
 **대상**: `backend/infrastructure/redis/src/test/java/com/tastyhouse/infrastructure/redis/architecture/PackageRootTest.java` → `shouldResideInModuleRootPackage`
 
-이 모듈의 main 클래스는 전부 `com.tastyhouse.infrastructure.redis` 아래에 있어야 한다(`PackageRootTest`, ArchUnit은 `testImplementation`으로만 선언). 모든 infrastructure 모듈이 자기 루트 `com.tastyhouse.infrastructure.{모듈}`만 갖고, 스캔은 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 한 줄이 하므로 같은 클래스는 한 번만 등록된다([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md)).
+이 모듈의 main 클래스는 전부 `com.tastyhouse.infrastructure.redis` 아래에 있어야 한다(`PackageRootTest`, ArchUnit은 `testImplementation`으로만 선언). 모든 infrastructure 모듈이 자기 루트 `com.tastyhouse.infrastructure.{모듈}`만 갖고, 스캔은 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 한 줄이 하므로 같은 클래스는 한 번만 등록된다([결정 0037](../../AGENTS.md#decision-0037)).
 
 - 이 모듈의 클래스를 `com.tastyhouse.infrastructure` 바로 아래 등 루트 밖으로 옮기지 않는다 — `PackageRootTest`가 실패하고, 다른 모듈의 패키지와 겹칠 수 있다.
 
@@ -184,7 +184,7 @@ rate limit의 **표현 관심사**(`@RateLimit`·`RateLimitAspect`·`RateLimitEx
 | `RedisSocialTempTokenRepository` (FACEBOOK) | `facebook_temp:{tempToken}` | facebookAccessToken | 10분 |
 | `RedisSocialTempTokenRepository` (APPLE) | `apple_temp:{tempToken}` | appleIdToken | 10분 |
 
-- 소셜 임시토큰 접두사는 `security-core` enum `SocialTempTokenProvider#keyPrefix()`가 주고, 4개 키·TTL은 `backend/infrastructure/redis/src/test/java/com/tastyhouse/infrastructure/redis/token/RedisSocialTempTokenRepositoryTest.java`가 단언한다([ADR-0050](../../../docs/adr/0050-social-login-router.md)).
+- 소셜 임시토큰 접두사는 `security-core` enum `SocialTempTokenProvider#keyPrefix()`가 주고, 4개 키·TTL은 `backend/infrastructure/redis/src/test/java/com/tastyhouse/infrastructure/redis/token/RedisSocialTempTokenRepositoryTest.java`가 단언한다([결정 0050](../oauth/AGENTS.md#decision-0050)).
 - 블랙리스트는 **토큰이 만료되면 Redis TTL에 의해 자동 제거**되므로 별도 정리 작업이 없고 메모리 낭비도 없다.
 - **소셜 임시토큰은 앱 간 공유되지 않으므로 앱별 키 접두사(`security.token-store.key-prefix`)를 붙이지 않는다.** 위 §키 접두사 프로퍼티 표의 대상은 refresh·blacklist 둘뿐이다.
 

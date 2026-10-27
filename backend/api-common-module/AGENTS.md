@@ -6,7 +6,7 @@
 ## Purpose
 `web-api`·`admin-api`·`ceo-api`가 공유하는 **HTTP 경계 공용 플럼빙 라이브러리 모듈**(`java-library`). 세 모듈에 **package 선언 1줄만 다른 완전 복제**로 존재하던 응답 래퍼·페이징 요청·전역 예외 핸들러·rate limit 표현 계약을 단독 소유한다.
 
-복제를 방치하면 한쪽만 고쳐지는 드리프트가 생긴다. 이 모듈은 domain 어댑터가 아니라 presentation 공유 유틸이므로 `security-module` 선례대로 `implementation`으로 노출되고 `bootJar`가 비활성이다([ADR-0003](../../docs/adr/0003-api-common-shared-plumbing.md)).
+복제를 방치하면 한쪽만 고쳐지는 드리프트가 생긴다. 이 모듈은 domain 어댑터가 아니라 presentation 공유 유틸이므로 `security-module` 선례대로 `implementation`으로 노출되고 `bootJar`가 비활성이다([결정 0003](#decision-0003)).
 
 **통합 판정 기준은 "완전 동일"뿐이다** — 의미 있는 차이가 한 줄이라도 있으면(응답 계약·`@Schema` 문구 포함) 통합하지 않는다. 유지되는 복제 목록과 그 사유는 루트 [CLAUDE.md](../CLAUDE.md)의 "api 모듈 공용 플럼빙 소유 규칙" 절에 표로 관리한다.
 
@@ -24,7 +24,7 @@
 
 ## 등록 방식 — 앱 `ModuleScanConfig`의 패키지 스캔
 
-이 모듈은 스스로를 등록하지 않는다(imports 파일 없음). 각 앱 부트스트랩의 중첩 `ModuleScanConfig`가 이 모듈의 패키지를 **문자열로 골라 스캔**하고, 앱별 차이는 **스캔 범위**로 표현한다. 빈 존재 조건(`@ConditionalOnMissingBean`/`@ConditionalOnBean`)은 일반 `@Configuration`에서 처리 순서에 좌우돼 믿을 수 없어 쓰지 않는다([ADR-0038](../../docs/adr/0038-autoconfiguration-imports-removal.md)).
+이 모듈은 스스로를 등록하지 않는다(imports 파일 없음). 각 앱 부트스트랩의 중첩 `ModuleScanConfig`가 이 모듈의 패키지를 **문자열로 골라 스캔**하고, 앱별 차이는 **스캔 범위**로 표현한다. 빈 존재 조건(`@ConditionalOnMissingBean`/`@ConditionalOnBean`)은 일반 `@Configuration`에서 처리 순서에 좌우돼 믿을 수 없어 쓰지 않는다([결정 0038](../AGENTS.md#decision-0038)).
 
 | 대상 | 등록 방식 |
 |---|---|
@@ -56,10 +56,10 @@
 
 ### Internal
 - `application-core` (**api**). `PaginationResponse.from(PageResult<T>)`의 공개 시그니처에 `com.tastyhouse.application.shared.port.out.page.PageResult`가 노출되므로 `api`로 둔다.
-  - **표현 계층은 `domain`을 보지 않는다.** 예외 판정은 `com.tastyhouse.application.shared.error.ErrorResponses#resolve`, 표현 계층이 직접 쓰는 에러 상수는 이 모듈의 `com.tastyhouse.apicommon.exception.ApiErrorCode`(`RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`)다. `application-core`는 `domain`을 `implementation`으로만 가지므로 presentation 컴파일 클래스패스에 `domain`이 없다([ADR-0025](../../docs/adr/0025-presentation-domain-cut.md)).
+  - **표현 계층은 `domain`을 보지 않는다.** 예외 판정은 `com.tastyhouse.application.shared.error.ErrorResponses#resolve`, 표현 계층이 직접 쓰는 에러 상수는 이 모듈의 `com.tastyhouse.apicommon.exception.ApiErrorCode`(`RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`)다. `application-core`는 `domain`을 `implementation`으로만 가지므로 presentation 컴파일 클래스패스에 `domain`이 없다([결정 0025](../AGENTS.md#decision-0025)).
   - `domain`이 되돌아오는 회귀는 `src/test/java/com/tastyhouse/apicommon/architecture/LayerRulesTest.java` → `shouldNotDependOnDomain`이 잡는다(이 모듈 전체 ✗ `com.tastyhouse.domain..`).
 - `security-core` (implementation) — `RateLimitAspect`·`ApiCommonRateLimitConfig`가 쓰는 `RateLimitCounterPort`의 소유 모듈. `api`로 노출하지 않는다 — web·admin·ceo는 `security-module`의 `api project(':security-core')`로 이미 이 모듈을 받는다. 부수적으로 compileClasspath에 `jjwt-api`가 security-core를 통해 전이로 실리는데 허용 범위다(`spring-security-core`는 원래 직접 선언돼 있다).
-- **`infrastructure:redis`는 main·test 어느 클래스패스에도 없다.** 방향은 **`infrastructure:redis` → `security-core` ← `api-common-module`** 이다 — redis도 이 모듈을 모르고, 이 모듈도 redis를 모른다([ADR-0023](../../docs/adr/0023-rate-limit-port-in-security-core.md)).
+- **`infrastructure:redis`는 main·test 어느 클래스패스에도 없다.** 방향은 **`infrastructure:redis` → `security-core` ← `api-common-module`** 이다 — redis도 이 모듈을 모르고, 이 모듈도 redis를 모른다([결정 0023](../security-core/AGENTS.md#decision-0023)).
 
 ### External
 - `spring-boot-starter-web`·`spring-boot-starter-validation` (**api**) — `@RestControllerAdvice`. 소비 모듈도 각자 선언하지만 중복은 무해하다
@@ -123,7 +123,7 @@ rate limiting은 domain에 대응 개념이 없는 순수 보안 관심사이므
 
 **대상**: `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ApiErrorCode.java` → `RATE_LIMIT_EXCEEDED`(429)·`ACCESS_DENIED`(403)·`AUTH_REQUIRED`(401)
 
-필터·핸들러가 쓰는 에러 상수는 이 모듈의 `ApiErrorCode` enum이다. wire 계약(status·errorCode·message)은 `application`의 `ErrorCatalogSnapshotTest`가 지킨다([ADR-0042](../../docs/adr/0042-error-code-module-split.md)).
+필터·핸들러가 쓰는 에러 상수는 이 모듈의 `ApiErrorCode` enum이다. wire 계약(status·errorCode·message)은 `application`의 `ErrorCatalogSnapshotTest`가 지킨다([결정 0042](../AGENTS.md#decision-0042)).
 
 - **왜 `application`이 아니라 여기인가**: 429·403·401 응답은 서블릿 필터·`@RestControllerAdvice`가 조립하는 HTTP 표현 계층 계약이고, 어떤 유스케이스도 던지지 않는다. 던지는 가장 안쪽 모듈에 둔다는 분할 규칙에 따라 표현 계층이 소유한다.
 - **`ErrorCodeSpec`을 구현하지 않는다**: api 모듈은 `domain`을 볼 수 없다. 대신 `getHttpStatusCode`·`getCode`·`getDefaultMessage` 3개 getter만 같은 이름으로 둔다.
@@ -156,7 +156,7 @@ web-api가 자체 `com.tastyhouse.webapi.exception.GlobalExceptionHandler`를 �
 `ErrorResponses.resolve(e)`를 호출해, 값이 있으면 `warn("BusinessException [{}]: {}")` 후 그 `status`·`code`·`message`로
 `ProblemDetail`을 만들고, 값이 없으면 500을 낸다. 권한 거부(`handleAccessDenied`)는 `ApiErrorCode.ACCESS_DENIED`로 조립한다.
 외부 연동 실패도 최상위가 `BusinessException`(에러코드는 그 실패를 번역하는 앱 모듈의 `WebErrorCode`·`BatchErrorCode` 등)이므로
-같은 경로로 처리된다 — 전용 핸들러가 없는 것은 누락이 아니다([ADR-0025](../../docs/adr/0025-presentation-domain-cut.md)).
+같은 경로로 처리된다 — 전용 핸들러가 없는 것은 누락이 아니다([결정 0025](../AGENTS.md#decision-0025)).
 
 전용 메서드를 되살리지 않는다 — 되살리면 이 모듈이 다시 `com.tastyhouse.domain.exception`을 import해야 하고
 `shouldNotDependOnDomain`이 실패한다. `resolve`가 `getCause()`를 따라가지 않는 이유(래핑 예외가 500→4xx로
@@ -186,7 +186,7 @@ web-api와 admin·ceo-api는 응답 계약이 달라 전역 핸들러를 각자 
 `String`·`int`·`Duration`뿐이라 서블릿·HTTP와 무관하고, 실사용처도 로그인 브루트포스 방어라는 보안
 관심사다. 그래서 토큰 저장소 포트 3종(`RefreshTokenRepository`·`BlacklistRepository`·`SocialTempTokenRepository`)과 같은 "계약은 `security-core`, 구현은 `infrastructure:redis`" 구조를 따른다.
 이 모듈은 `implementation project(':security-core')`로 포트를 받는다. 상세 근거와 기각한 대안(별도 초소형 모듈·`domain`)은
-`security-core/AGENTS.md`의 "rate limit 카운터 계약을 여기 둔 이유"([ADR-0023](../../docs/adr/0023-rate-limit-port-in-security-core.md)).
+`security-core/AGENTS.md`의 "rate limit 카운터 계약을 여기 둔 이유"([결정 0023](../security-core/AGENTS.md#decision-0023)).
 
 카운팅 방식은 Fixed Window이고, 카운터를 어디에 저장하는지는 이 계약의 관심사가 아니다.
 
@@ -211,3 +211,75 @@ web-api와 admin·ceo-api는 응답 계약이 달라 전역 핸들러를 각자 
 `assertScansModulesWithoutFilters`가 맡는다. 이 모듈 `LayerRulesTest`의 클래스 수 하한은 13이다.
 이 테스트들은 **단위 수준 근거**일 뿐이고, 실제 회귀 방지는 4개 앱 기동 후의 등록 빈 확인·로그인 rate
 limit 실측이 담당한다.
+
+## 결정 경위
+
+이 문서가 소유한 규칙이 **왜 지금 모양이 됐는지**를 결정 단위로 적습니다. 본문은 현재 규칙만 담고, "예전에는 어땠고 왜 바뀌었는가"는 이 절에만 둡니다. 이 절은 항상 문서의 마지막 `##` 절이며, 항목은 번호 순입니다. 작성 규칙은 루트 `CLAUDE.md`의 "규칙 문서 개정 규칙" 절에 있습니다.
+
+<a id="decision-0003"></a>
+
+### 0003. 3개 api 모듈에 똑같이 복제된 플럼빙은 api-common-module이 단독 소유한다
+
+- 상태: 채택
+- 결정 커밋: `f15e0b786` (2026-08-02)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/api-common-module/AGENTS.md`의 결정 0003
+
+#### 맥락
+
+`web-api`·`admin-api`·`ceo-api`는 각자 HTTP 응답 래퍼(`ApiResponse<T>`), 페이징 요청·응답(`PageRequest`·`PaginationResponse<T>`), 파일 업로드 어댑터(`FileService`) 같은 **플럼빙**을 갖고 있었다.
+
+- **플럼빙(plumbing)**: 비즈니스 규칙과 무관하게 요청·응답을 실어 나르는 배관 코드.
+
+전수 diff를 해 보니 이 파일들은 **package 선언 1줄만 다른 완전 복제**였다. 한편 복제를 방치한 결과 세 모듈의 `FileService`는 이미 서로 다르게 갈라져 있었다.
+
+#### 이전 규칙
+
+##### `backend/CLAUDE.md` — 페이징 응답 공용 제네릭 래퍼 규칙 (`PaginationResponse<T>`)
+
+"모듈별로 각각 둠" — `ApiResponse<T>`/`PageRequest`가 모듈별로 중복 배치된 선례를 따라 `PaginationResponse<T>`도 각 모듈에 둔다(`a297ab48b`, 2026-07-17 `PaginationResponse` 통합 당시 관례). reference 구현도 `admin-api`/`web-api` 공통 `common/PaginationResponse.java`였다.
+
+- reference 구현이 가리키던 페이징 조회 메서드는 당시 이름 `NoticeQueryService#getNotices`·`EventService#getEvents`·`OrderService#getOrderList` 등이었다(지금은 admin `NoticeManagementListQueryService#getNotices`, web `NoticeListQueryService#getNoticeList` 등).
+- 통합 직후의 "적용 확인" 문구는 `SecurityConfig`(인증 주체·필터체인·인가 정책이 모듈마다 다름)와 `PublicPaths.PATTERNS`(web은 18줄, admin/ceo는 3줄로 공개 경로 목록이 전혀 다름)를 내용이 실제로 다른 정책 파일로 보고 모듈별로 두되, 위치·패키지 이름만 `config/security/`로 통일한다고 적었다.
+
+##### `backend/CLAUDE.md` — api 모듈 공용 플럼빙 소유 규칙 (머리말)
+
+과거 관례는 "모듈별로 각각 둠"이었고 근거는 **모듈 독립성**(소비자별 계약 차이를 보호한다)이었다.
+
+##### `backend/api-common-module/AGENTS.md` — Purpose
+
+과거 루트 CLAUDE.md의 관례는 "모듈별로 각각 둠"이었다.
+
+##### `backend/api-common-module/AGENTS.md` — Subdirectories
+
+- 한때 `src/main/java/com/tastyhouse/apicommon/file/` 행이 있었다 — `FileService`를 "`MultipartFile`을 도메인 `FileUploadCommand`로 바꾸는 얇은 업로드 어댑터(조회·URL 변환 책임 없음)"로 설명했다.
+- `src/main/java/com/tastyhouse/apicommon/shop/response/` 행도 있었다 — admin↔ceo 바이트 동일이던 shop 응답 record 3종(`ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse`)을 담는다고 적었다. 두 패키지 모두 소스 트리에 없어 행이 삭제됐다.
+
+##### `backend/api-common-module/AGENTS.md` — 스캔 주의
+
+`FileService`는 조건부 등록 전환 대상이 아니라 `@Service` 컴포넌트 스캔으로 등록된다고 적었다 — admin/ceo/web 전부 파일 업로드가 필요해 앱별 차이가 없다는 이유였다.
+
+#### 결정
+
+내용이 **완전히 동일한(= package 선언 줄만 다른)** 비도메인 플럼빙은 복제하지 않고 신설 `api-common-module`(`com.tastyhouse.apicommon`)이 단독 소유한다. 동일함이 확인된 것만 통합한다.
+
+| 항목 | before | after |
+|---|---|---|
+| `ApiResponse`·`PaginationResponse`·`PageRequest` | 3모듈 각각 | `api-common-module` 단독 |
+| `FileService` | 3모듈 각각(드리프트) | `api-common-module`(`apicommon.file`) — 이후 소멸(아래) |
+| `GlobalExceptionHandler` | admin·ceo 각각 | `api-common-module`. web-api는 자체 핸들러 유지 || 내용이 다른 정책 파일(`SecurityConfig`·`PublicPaths`·`TokenService`·`AuthService`) | 모듈별 | 모듈별 유지(위치·패키지 이름만 `config/security/`로 통일) |
+| 계약이 다른 응답 record(`ShopDetailResponse` 등) | 모듈별 | 모듈별 유지 |
+
+#### 근거
+
+- 관례가 보호하려던 "소비자별 계약 차이"가 전수 diff 결과 실재하지 않았다.
+- 계약이 같은 것을 복제하면 한쪽만 고쳐지는 드리프트가 생긴다(`FileService` 선례).
+- 이 모듈은 domain 어댑터가 아니라 presentation 공유 유틸이므로 `security-module` 선례대로 `implementation`으로 노출하고 `bootJar`를 끈다.
+
+#### 결과·감수한 손실
+
+- 통합 파일은 원본 대비 package 선언 외 차이가 0줄이라 Swagger 스키마와 HTTP 응답 계약은 바뀌지 않았다(커밋 메시지).
+- `FileService`는 이후 계층 재배치로 소멸했다 — 표현 모듈이 `@Transactional` 경계를 갖는 것이 문제여서 application 유스케이스(처음에는 `application`의 `FileUpload*CommandService`, 지금은 앱 모듈의 `MemberFileUploadService`·`FileManagementUploadService`·`FileOwnerUploadService`)로 내려갔고 `apicommon.file` 패키지는 없다.
+- 커밋은 admin↔ceo 바이트 동일이던 shop 응답 3종(`ShopBreakTimeResponse`·`ShopBusinessHourResponse`·`ShopHygieneBadgeResponse`)도 통합 대상으로 적었으나, 챕터 09에서 확인한 결과 세 record는 `api-common-module`에 존재한 적이 없고 admin·ceo가 각자 소유한다(문서 드리프트 — admin은 챕터 06, ceo는 챕터 09로 각 api 모듈의 `adapter/in/web/response/`에 있다). 필드가 같은 것은 중복이 아니라 우연히 일치한 앱별 응답 계약이다.
+- `backend/CLAUDE.md`의 "통합된 것" 표는 `ProblemDetails`(`apicommon.exception`)도 적었다 — web-api 핸들러와 공용 핸들러의 `problemDetail(...)` private 헬퍼가 바이트 동일 복제라, web-api도 이것만은 공유한다.
+- web-api와 공용 `GlobalExceptionHandler`의 충돌 해소 방식은 스캔 범위 → 조건부 `@Bean`([결정 0017](../AGENTS.md#decision-0017)) → 다시 스캔 범위([결정 0038](../AGENTS.md#decision-0038))로 바뀌었다.

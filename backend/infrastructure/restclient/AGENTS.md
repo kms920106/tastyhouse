@@ -10,7 +10,7 @@
 
 ## 외부 연동 모듈 지도
 
-외부 연동은 앱별 실사용에 맞춰 벤더·채널 모듈로 나뉘어 있고, 이 코어는 HTTP를 쓰는 벤더만 의존한다([ADR-0016](../../../docs/adr/0016-external-vendor-channel-split.md)).
+외부 연동은 앱별 실사용에 맞춰 벤더·채널 모듈로 나뉘어 있고, 이 코어는 HTTP를 쓰는 벤더만 의존한다([결정 0016](../../AGENTS.md#decision-0016)).
 
 | 기능 | 모듈 | 문서 |
 |---|---|---|
@@ -29,7 +29,7 @@
 
 ## 예외·에러코드를 두지 않는 이유
 
-**이 모듈에는 `exception/` 패키지가 없다.** 외부 연동 실패 코드(`SMS_SEND_NO_RESPONSE`·`SMS_SEND_FAILED`·`SMS_SEND_API_ERROR`·`MAIL_SEND_FAILED`·`ADMIN_DONG_BOUNDARY_FETCH_FAILED`, HTTP 502)는 그 실패를 번역하는 앱 모듈의 에러코드 enum이 소유한다 — `WebErrorCode`(`SMS_SEND_*`·`MAIL_SEND_FAILED`)·`BatchErrorCode`(`ADMIN_DONG_BOUNDARY_FETCH_FAILED`). 벤더 어댑터는 예외를 던지지 않고 결과 record(`SmsSendResult`·`MailSendResult` 등)를 돌려주며, 번역은 `SmsVerificationService`(web-application)·batch-application이 맡는다. 코드 문자열·HTTP 502는 `ErrorCatalogSnapshotTest`가 지킨다([ADR-0042](../../../docs/adr/0042-error-code-module-split.md)).
+**이 모듈에는 `exception/` 패키지가 없다.** 외부 연동 실패 코드(`SMS_SEND_NO_RESPONSE`·`SMS_SEND_FAILED`·`SMS_SEND_API_ERROR`·`MAIL_SEND_FAILED`·`ADMIN_DONG_BOUNDARY_FETCH_FAILED`, HTTP 502)는 그 실패를 번역하는 앱 모듈의 에러코드 enum이 소유한다 — `WebErrorCode`(`SMS_SEND_*`·`MAIL_SEND_FAILED`)·`BatchErrorCode`(`ADMIN_DONG_BOUNDARY_FETCH_FAILED`). 벤더 어댑터는 예외를 던지지 않고 결과 record(`SmsSendResult`·`MailSendResult` 등)를 돌려주며, 번역은 `SmsVerificationService`(web-application)·batch-application이 맡는다. 코드 문자열·HTTP 502는 `ErrorCatalogSnapshotTest`가 지킨다([결정 0042](../../AGENTS.md#decision-0042)).
 
 **왜 이 모듈에 두지 않는가**: 이 실패들은 전부 "채널 발송 실패"이고 어느 것도 "HTTP 클라이언트 오류"가 아니다 — SES·SNS SDK 호출과 JavaMail SMTP 연동은 `RestClient`를 쓰지도 않는다. 이 모듈에 예외를 두면 HTTP를 쓰지 않는 벤더까지 예외 하나 때문에 코어를 의존하게 된다. 생성자 위임만 하는 전용 예외 서브클래스도 만들지 않는다 — 타입으로 구분해 catch하는 지점이 없고, 전용 핸들러가 없는 앱에서 의도한 상태 코드 대신 500으로 응답되는 결함을 낳는다. 에러코드 소유 규칙 전문은 [예외·에러코드 소유 규칙](../../CLAUDE.md#예외에러코드-소유-규칙-errorcodespec-공통-계약--businessexception-단일-계층).
 
@@ -41,7 +41,7 @@ com.tastyhouse.infrastructure.restclient/
 └── HttpRequestFactories.java     public static ClientHttpRequestFactory withTimeouts(Duration connect, Duration read) — SimpleClientHttpRequestFactory(HttpURLConnection) 기반, 이 저장소에서 타임아웃 있는 요청 팩토리를 만드는 유일한 지점
 ```
 
-**이 모듈에는 `exception/` 패키지도, 진입 설정 클래스도 없다.** 이 모듈이 실린 앱(web·batch — 벤더 경유 전이)의 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 스캔해 `RestClientConfig`를 등록한다(등록할 Properties record는 없다). 어느 앱에 어떤 벤더 빈이 뜨는지는 **모듈 경계(= 의존 선언)**가 정한다([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md)).
+**이 모듈에는 `exception/` 패키지도, 진입 설정 클래스도 없다.** 이 모듈이 실린 앱(web·batch — 벤더 경유 전이)의 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 스캔해 `RestClientConfig`를 등록한다(등록할 Properties record는 없다). 어느 앱에 어떤 벤더 빈이 뜨는지는 **모듈 경계(= 의존 선언)**가 정한다([결정 0038](../../AGENTS.md#decision-0038)).
 
 ### `RestClient.Builder`는 코어가 직접 등록하지 않는다
 
@@ -49,11 +49,11 @@ com.tastyhouse.infrastructure.restclient/
 
 ### 벤더 패키지를 `external.file` 아래에 두지 않는 이유 (패키지 예외 3건)
 
-벤더 모듈마다 **겹치지 않는 하위 패키지 하나**를 소유한다 — `com.tastyhouse.infrastructure.firebase`(firebase)·`.aws.s3`(aws-s3)·`.aws.ses`(aws-ses)·`.aws.sns`(aws-sns)·`.bbq`(bbq, `RemoteImageDownloader` 포함). 같은 패키지를 두 모듈이 나눠 갖는 split package가 없으므로, 한 모듈의 스캔에 다른 모듈의 빈이 딸려 올라올 수 없다. 공통 상위 패키지(예: 파일 저장 채널 이름) 아래에 벤더 패키지를 두지 않는다([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md)).
+벤더 모듈마다 **겹치지 않는 하위 패키지 하나**를 소유한다 — `com.tastyhouse.infrastructure.firebase`(firebase)·`.aws.s3`(aws-s3)·`.aws.ses`(aws-ses)·`.aws.sns`(aws-sns)·`.bbq`(bbq, `RemoteImageDownloader` 포함). 같은 패키지를 두 모듈이 나눠 갖는 split package가 없으므로, 한 모듈의 스캔에 다른 모듈의 빈이 딸려 올라올 수 없다. 공통 상위 패키지(예: 파일 저장 채널 이름) 아래에 벤더 패키지를 두지 않는다([결정 0037](../../AGENTS.md#decision-0037)).
 
 ## 파일 저장 SPI를 두지 않는 이유
 
-**벤더 구현이 포트를 직접 구현한다.** 파일 저장의 벤더 무관 계약은 `application`이 소유한 포트 `FileStoragePort`(`com.tastyhouse.application.file.port.out`)이고, `FirebaseFileStorage`(`infrastructure:firebase`)·`S3FileStorage`(`infrastructure:aws-s3`)가 `implements FileStoragePort`다. 다른 driven 어댑터(`MailSenderPort`·`SmsSenderPort`·`PgPaymentGatewayPort`)와 같은 형태다. 둘 다 `@ConditionalOnProperty(file.provider)`로 배타 선택되므로 `FileStoragePort` 빈은 항상 하나이며, 주입받는 쪽은 jpa의 `FileUrlResolver`와 `application-core`의 `FileUploadService`(`@Service`)다([ADR-0021](../../../docs/adr/0021-file-storage-spi-removal.md)).
+**벤더 구현이 포트를 직접 구현한다.** 파일 저장의 벤더 무관 계약은 `application`이 소유한 포트 `FileStoragePort`(`com.tastyhouse.application.file.port.out`)이고, `FirebaseFileStorage`(`infrastructure:firebase`)·`S3FileStorage`(`infrastructure:aws-s3`)가 `implements FileStoragePort`다. 다른 driven 어댑터(`MailSenderPort`·`SmsSenderPort`·`PgPaymentGatewayPort`)와 같은 형태다. 둘 다 `@ConditionalOnProperty(file.provider)`로 배타 선택되므로 `FileStoragePort` 빈은 항상 하나이며, 주입받는 쪽은 jpa의 `FileUrlResolver`와 `application-core`의 `FileUploadService`(`@Service`)다([결정 0021](../file-storage/AGENTS.md#decision-0021)).
 
 **이 코어에 전략 인터페이스·위임 어댑터를 두지 않는다.** 포트와 시그니처가 같은 전략 인터페이스를 코어에 두고 위임 어댑터로 잇는 구조는 중간 두 겹이 아무 일도 하지 않는다. 검토한 대안과 비채택 사유:
 
@@ -103,7 +103,7 @@ com.tastyhouse.infrastructure.restclient/
 
 **대상**: `backend/infrastructure/restclient/src/test/java/com/tastyhouse/infrastructure/restclient/architecture/PackageRootTest.java` → `shouldResideInModuleRootPackage` · 벤더 13모듈의 `architecture/VendorLayerRulesTest` → `shouldResideInModuleRootPackage`
 
-**코드가 있는 infrastructure 모듈(이 모듈 + 벤더 13 + jpa·redis·mybatis)의 main 클래스는 전부 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}` 아래에 둔다.** 모듈마다 아키텍처 테스트의 `shouldResideInModuleRootPackage`(이 모듈·redis·mybatis는 `PackageRootTest`, 벤더는 `VendorLayerRulesTest`, jpa는 `LayerRulesTest`)가 강제한다. `com.tastyhouse.external..`·`com.tastyhouse.restclient..` 같은 다른 루트에 두지 않는다([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md)).
+**코드가 있는 infrastructure 모듈(이 모듈 + 벤더 13 + jpa·redis·mybatis)의 main 클래스는 전부 `com.tastyhouse.infrastructure.{모듈명의 하이픈을 점으로}` 아래에 둔다.** 모듈마다 아키텍처 테스트의 `shouldResideInModuleRootPackage`(이 모듈·redis·mybatis는 `PackageRootTest`, 벤더는 `VendorLayerRulesTest`, jpa는 `LayerRulesTest`)가 강제한다. `com.tastyhouse.external..`·`com.tastyhouse.restclient..` 같은 다른 루트에 두지 않는다([결정 0037](../../AGENTS.md#decision-0037)).
 
 ### `@ConfigurationProperties` record는 명시 등록한다
 

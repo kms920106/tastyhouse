@@ -42,7 +42,7 @@ com.tastyhouse.infrastructure.aws.s3/
 └── S3FileStorageProperties.java       file.aws.s3.* (bucketName · baseUrl)
 ```
 
-진입 설정은 `AwsS3ModuleConfig`이고, imports 파일은 없다. 이 모듈이 클래스패스에 실리면(스타터 전환 후) 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 빈을 등록하고, `AwsS3ModuleConfig`는 `@EnableConfigurationProperties`만 한다. ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
+진입 설정은 `AwsS3ModuleConfig`이고, imports 파일은 없다. 이 모듈이 클래스패스에 실리면(스타터 전환 후) 앱 `ModuleScanConfig`의 `com.tastyhouse.infrastructure` 스캔이 빈을 등록하고, `AwsS3ModuleConfig`는 `@EnableConfigurationProperties`만 한다. ([결정 0038](../../AGENTS.md#decision-0038))
 
 ## yml — `application-aws-s3.yml`
 
@@ -79,11 +79,11 @@ com.tastyhouse.infrastructure.aws.s3/
 
 **대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/`
 
-이 모듈의 루트는 `com.tastyhouse.infrastructure.aws.s3`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/aws-s3/src/test/java/com/tastyhouse/infrastructure/aws/s3/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.s3`로도 되돌리지 않는다 — 외부 연동 모듈마다 겹치지 않는 하위 패키지를 소유해 split package를 피하는 구조다(`com.tastyhouse.infrastructure.aws.ses`는 `aws-ses`, `com.tastyhouse.infrastructure.aws.sns`는 `aws-sns` 소유). ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
+이 모듈의 루트는 `com.tastyhouse.infrastructure.aws.s3`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/aws-s3/src/test/java/com/tastyhouse/infrastructure/aws/s3/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 원래 위치 `external.file.s3`로도 되돌리지 않는다 — 외부 연동 모듈마다 겹치지 않는 하위 패키지를 소유해 split package를 피하는 구조다(`com.tastyhouse.infrastructure.aws.ses`는 `aws-ses`, `com.tastyhouse.infrastructure.aws.sns`는 `aws-sns` 소유). ([결정 0037](../../AGENTS.md#decision-0037))
 
 ### 진입 설정은 아무것도 스캔하지 않는다
 
-이 모듈의 설정 클래스 `AwsS3ModuleConfig`는 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — `@EnableConfigurationProperties`만 갖는다). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 뺀다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
+이 모듈의 설정 클래스 `AwsS3ModuleConfig`는 **아무것도 스캔하지 않는다**(`@ComponentScan` 없음 — `@EnableConfigurationProperties`만 갖는다). 스캔은 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 통째로 하므로, 형제 모듈이 같은 클래스패스에 있으면 그 빈도 **함께 등록되는 것이 정상**이다("클래스패스 존재 = 활성화"). 형제 모듈을 안 싣고 싶으면 의존(조립 스타터의 `runtimeOnly`)에서 뺀다. 이 모듈에 `@ComponentScan`을 되살리지 않는다(앱 스캔과 이중이 된다). ([결정 0038](../../AGENTS.md#decision-0038))
 
 **대상**: `backend/infrastructure/aws-s3/src/main/java/com/tastyhouse/infrastructure/aws/s3/AwsS3ModuleConfig.java`
 

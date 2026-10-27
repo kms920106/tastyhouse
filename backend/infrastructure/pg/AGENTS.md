@@ -2,7 +2,7 @@
 
 # infrastructure:pg
 
-결제 **PG(결제대행사) 채널 스타터**(`java-library`). 여기서 `pg`는 PostgreSQL이 아니라 **Payment Gateway**다 — 도메인 어휘 `PgProvider`·`PgPaymentGatewayPort`·`PgOrderId`와 같은 뜻이다. **자바 코드가 없다** — 의존 선언(`build.gradle`)과 설정 진입점(`application-pg.yml`) 둘뿐이며, 형태는 `infrastructure:file-storage`·`infrastructure:oauth`·`infrastructure:mail`·`infrastructure:sms`와 같다. 벤더(토스페이먼츠 등)를 `runtimeOnly`로 조립해 web-api·batch-module에 노출하고, 여러 벤더가 **동시에 공존**할 수 있도록 하는 PG 라우터 빈(`PgPaymentGatewayRouter`)의 등록은 코어 `application-core` 모듈이 맡는다. PG 호출 구현은 이 모듈이 아니라 벤더 모듈(`infrastructure:tosspayments`)에 있다. ([ADR-0061](../../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md))
+결제 **PG(결제대행사) 채널 스타터**(`java-library`). 여기서 `pg`는 PostgreSQL이 아니라 **Payment Gateway**다 — 도메인 어휘 `PgProvider`·`PgPaymentGatewayPort`·`PgOrderId`와 같은 뜻이다. **자바 코드가 없다** — 의존 선언(`build.gradle`)과 설정 진입점(`application-pg.yml`) 둘뿐이며, 형태는 `infrastructure:file-storage`·`infrastructure:oauth`·`infrastructure:mail`·`infrastructure:sms`와 같다. 벤더(토스페이먼츠 등)를 `runtimeOnly`로 조립해 web-api·batch-module에 노출하고, 여러 벤더가 **동시에 공존**할 수 있도록 하는 PG 라우터 빈(`PgPaymentGatewayRouter`)의 등록은 코어 `application-core` 모듈이 맡는다. PG 호출 구현은 이 모듈이 아니라 벤더 모듈(`infrastructure:tosspayments`)에 있다. ([결정 0061](../../../docs/domain/payment.md#decision-0061))
 
 ## 왜 `payment`가 아니라 `pg`인가
 
@@ -29,9 +29,9 @@ backend/infrastructure/pg/
 
 ## 라우터 등록은 어디인가 — `web-application`의 `PgPaymentGatewayRouter`
 
-> 제목은 ADR-0026·0034·0036이 인용하므로 남겨 둔 이름이다. 라우터는 `application-core`에 있다.
+> 제목은 결정 0026·0034·0036이 인용하므로 남겨 둔 이름이다. 라우터는 `application-core`에 있다.
 
-라우터는 **코어 `application-core` 모듈**의 `payment/service/PgPaymentGatewayRouter`에 있고 **`@Service`**를 단다. 코어는 4앱 모두에 실리므로 라우터 빈도 4앱 모두에 뜬다. 벤더 어댑터는 이 모듈을 의존하는 web-api·batch-module에만 있으므로, admin·ceo에서는 라우터가 **빈 목록**으로 생성되고 어떤 PG도 지원하지 않는다(admin·ceo에는 라우터를 주입하는 빈도 없다). 라우터가 다루는 포트 `PgPaymentGatewayPort`·`PgProviderGatewayPort`·`PgCancelResult`·`PgCancelFailure`·`PgCancelLookupResult`·`PgCancelLookupStatus`·`PgProviderCode`와 `PgConfirmResult`·`PgConfirmFailure`·`PgPaymentLookupResult`·`PgPaymentLookupStatus`·`TossPaymentDetail`이 모두 코어에 있다(패키지는 모두 `com.tastyhouse.application.payment.port.out`). 코어로 둔 이유는 web(승인·취소)과 batch(주기 대사) **두 앱이 쓰기 때문**이다 — 2개 앱 이상이 쓰는 계약은 코어 소유다. 빈 이름은 `pgPaymentGatewayRouter`다. ([ADR-0061](../../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md))
+라우터는 **코어 `application-core` 모듈**의 `payment/service/PgPaymentGatewayRouter`에 있고 **`@Service`**를 단다. 코어는 4앱 모두에 실리므로 라우터 빈도 4앱 모두에 뜬다. 벤더 어댑터는 이 모듈을 의존하는 web-api·batch-module에만 있으므로, admin·ceo에서는 라우터가 **빈 목록**으로 생성되고 어떤 PG도 지원하지 않는다(admin·ceo에는 라우터를 주입하는 빈도 없다). 라우터가 다루는 포트 `PgPaymentGatewayPort`·`PgProviderGatewayPort`·`PgCancelResult`·`PgCancelFailure`·`PgCancelLookupResult`·`PgCancelLookupStatus`·`PgProviderCode`와 `PgConfirmResult`·`PgConfirmFailure`·`PgPaymentLookupResult`·`PgPaymentLookupStatus`·`TossPaymentDetail`이 모두 코어에 있다(패키지는 모두 `com.tastyhouse.application.payment.port.out`). 코어로 둔 이유는 web(승인·취소)과 batch(주기 대사) **두 앱이 쓰기 때문**이다 — 2개 앱 이상이 쓰는 계약은 코어 소유다. 빈 이름은 `pgPaymentGatewayRouter`다. ([결정 0061](../../../docs/domain/payment.md#decision-0061))
 
 ```java
 // application/payment/service/PgPaymentGatewayRouter.java (application-core)
@@ -91,7 +91,7 @@ class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 ## 주의
 
 - **실행 단위가 아니다** — `bootJar` 비활성 + plain jar.
-- 벤더 설정은 `TossPaymentsModuleConfig`(일반 `@Configuration`)라 `--debug` 조건 리포트에 나오지 않는다. 스캔된 라우터·어댑터 빈도 리포트에 나오지 않으므로, 배선 확인은 `--logging.level.org.springframework.beans.factory.support=DEBUG`로 띄워 `Autowiring by type from bean name 'pgPaymentGatewayRouter' via factory method to bean named 'tossPaymentGatewayAdapter'` 로그를 본다. ([ADR-0038](../../../docs/adr/0038-autoconfiguration-imports-removal.md))
+- 벤더 설정은 `TossPaymentsModuleConfig`(일반 `@Configuration`)라 `--debug` 조건 리포트에 나오지 않는다. 스캔된 라우터·어댑터 빈도 리포트에 나오지 않으므로, 배선 확인은 `--logging.level.org.springframework.beans.factory.support=DEBUG`로 띄워 `Autowiring by type from bean name 'pgPaymentGatewayRouter' via factory method to bean named 'tossPaymentGatewayAdapter'` 로그를 본다. ([결정 0038](../../AGENTS.md#decision-0038))
 - 결제 실패는 `BusinessException`(에러코드는 던지는 모듈의 enum — 코어 라우터가 던지는 `PG_PROVIDER_UNSUPPORTED`는 `ApplicationErrorCode`)으로 표현한다. 전용 예외 타입과 모듈별 `@ExceptionHandler`를 추가하지 않는다.
 
 ## 봉인·가드 목록

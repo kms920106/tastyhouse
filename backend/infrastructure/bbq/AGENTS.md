@@ -22,7 +22,7 @@ com.tastyhouse.infrastructure.bbq/
 └── BbqMenuCategoryResponse · BbqMenuResponse · BbqMenuSubOptionResponse  wire DTO — package-private
 ```
 
-패키지 루트는 `com.tastyhouse.infrastructure.bbq`다. 포트·DTO 계약은 전부 `application` 소유이고, 외부 API wire DTO는 루트 패키지에 package-private으로 두며 `dto/` 하위 패키지는 없다(아래 봉인·가드 목록). ([ADR-0040](../../../docs/adr/0040-package-private-visibility.md))
+패키지 루트는 `com.tastyhouse.infrastructure.bbq`다. 포트·DTO 계약은 전부 `application` 소유이고, 외부 API wire DTO는 루트 패키지에 package-private으로 두며 `dto/` 하위 패키지는 없다(아래 봉인·가드 목록). ([결정 0040](../../AGENTS.md#decision-0040))
 
 ## 어느 앱이 의존하는가
 
@@ -64,7 +64,7 @@ com.tastyhouse.infrastructure.bbq/
 
 **대상**: `backend/infrastructure/bbq/src/main/java/com/tastyhouse/infrastructure/bbq/`
 
-이 모듈의 루트는 `com.tastyhouse.infrastructure.bbq`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/bbq/src/test/java/com/tastyhouse/infrastructure/bbq/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 옛 위치 `external.crawling`으로도 되돌리지 않는다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
+이 모듈의 루트는 `com.tastyhouse.infrastructure.bbq`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/bbq/src/test/java/com/tastyhouse/infrastructure/bbq/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 옛 위치 `external.crawling`으로도 되돌리지 않는다. ([결정 0037](../../AGENTS.md#decision-0037))
 
 ### 진입 설정은 아무것도 스캔하지 않는다
 

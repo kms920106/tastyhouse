@@ -405,3 +405,477 @@
 ### 점주
 
 점주에게는 결제 기능이 없다. 점주는 자기 가게에 들어온 주문을 받아 조리·완료 처리하며, 결제 자체는 서비스와 회원 사이에서 이뤄진다. 다만 **점주가 조리를 시작하는 순간부터 회원이 스스로 결제를 취소할 수 없게 되므로**, 조리 시작 시점 관리가 취소·환불 문의량에 직접 영향을 준다.
+
+## 결정 경위
+
+이 문서가 소유한 규칙이 **왜 지금 모양이 됐는지**를 결정 단위로 적습니다. 본문은 현재 규칙만 담고, "예전에는 어땠고 왜 바뀌었는가"는 이 절에만 둡니다. 이 절은 항상 문서의 마지막 `##` 절이며, 항목은 번호 순입니다. 작성 규칙은 루트 `CLAUDE.md`의 "규칙 문서 개정 규칙" 절에 있습니다.
+
+<a id="decision-0055"></a>
+
+### 0055. 환불 요청 누적액 검사는 PAYMENT 행 비관적 락으로 직렬화한다
+
+- 상태: 채택
+- 결정 커밋: `03d806112` (2026-10-15)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0055
+
+#### 맥락
+
+- **누적 환불액 불변식**: 같은 결제에 접수된 환불 요청(실패 건 제외)의 합계가 결제 금액을 넘으면 안 된다는 규칙입니다. 규칙 본문은 `docs/domain/payment.md`의 "주요 업무 흐름" > "환불 요청" 절에 있습니다.
+- **비관적 락**: 데이터를 읽는 순간 그 행을 잠가, 다른 트랜잭션이 같은 행을 잠그려 하면 앞 트랜잭션이 끝날 때까지 기다리게 하는 방식입니다(`SELECT … FOR UPDATE`).
+- **낙관적 락**: 잠그지 않고 읽은 뒤, 저장할 때 버전 번호(`@Version`)가 바뀌었으면 충돌로 판정하는 방식입니다.
+
+누적 검사는 "기존 합계를 읽고 → 새 요청을 더해 비교하고 → 새 행을 저장"하는 세 단계입니다. 아무 장치가 없으면 거의 동시에 들어온 두 요청(버튼 두 번 누름)이 둘 다 같은 합계를 읽고 둘 다 통과합니다. 저장소에는 그때까지 비관적 락 사용처가 없었고, `PAYMENT` 테이블에는 `@Version` 컬럼도 없었습니다.
+
+#### 이전 규칙
+
+동시성 제어 규칙은 낙관적 락 하나뿐이었습니다(`backend/infrastructure/jpa/AGENTS.md` "낙관적 락 예외 번역은 이 모듈 책임" — reference `ReservationSlotPersistenceAdapter`). 환불 요청에는 누적 검사도 동시성 제어도 없었습니다.
+
+#### 결정
+
+환불 요청은 `PAYMENT` 행을 비관적 락(PESSIMISTIC_WRITE)으로 먼저 읽고, 그 트랜잭션 안에서 누적 합계를 조회해 판정합니다.
+
+| 항목 | before | after |
+|---|---|---|
+| 결제 로드 | `PaymentLoadPort#findById` | `PaymentLoadPort#findByIdForUpdate`(QueryDSL `setLockMode(PESSIMISTIC_WRITE)`) |
+| 누적 합계 | 없음 | `PaymentRefundLoadPort#findRefundAmountSum` |
+| 같은 결제 동시 요청 | 둘 다 통과 가능 | 두 번째 요청이 첫 요청 커밋까지 대기 후 판정 |
+| 저장소 규칙 | 낙관적 락만 | `backend/infrastructure/jpa/AGENTS.md` "규칙" 절에 비관적 락 규칙 추가 |
+
+#### 근거
+
+| 대안 | 채택하지 않은 이유 |
+|---|---|
+| 낙관적 락(`PAYMENT`에 `@Version`) | 스키마 변경이 필요하고, 환불 요청은 `PAYMENT` 행을 수정하지 않으므로 버전을 올릴 계기가 없습니다. 버전 증가만을 위한 쓰기를 넣어야 합니다 |
+| 유니크 제약 | "합계 ≤ 결제액"은 행 하나의 값이 아니라 여러 행의 합이라 유니크 제약으로 표현할 수 없습니다 |
+| 무방어(누적 검사만) | 이 결함이 생기는 실제 경로가 더블클릭이라, 경합을 막지 않으면 검사의 목적이 사라집니다 |
+
+비관적 락은 스키마 변경 없이, 잠금 범위가 그 결제 행 하나로 좁고, 트랜잭션도 합계 조회 1회와 insert 1회로 짧습니다.
+
+#### 결과·감수한 손실
+
+- **락 로드는 그 트랜잭션의 첫 조회여야 합니다.** MySQL 기본 격리수준(REPEATABLE READ)은 트랜잭션의 첫 일반 SELECT 시점에 읽기 스냅샷을 고정합니다. 락 앞에 일반 조회가 있으면, 대기 끝에 락을 얻어도 합계 조회가 앞 요청의 커밋을 보지 못해 이중 접수가 조용히 다시 생깁니다.
+- 락은 소유권 확인보다 먼저 잡힙니다. 남의 결제 ID로 요청해도 403이 나기 전까지 그 행이 잠겨, 소유자의 동시 요청이 잠깐 대기할 수 있습니다. 소유권 확인을 락 앞으로 옮기면 위의 "첫 조회" 조건이 깨지므로 순서를 바꾸지 않습니다.
+- 락 대기가 `innodb_lock_wait_timeout`(기본 50초)을 넘으면 `CannotAcquireLockException`이 번역되지 않은 채 500으로 나갑니다. 같은 결제의 동시 요청에서만 생기므로 이번에는 번역하지 않았습니다.
+- 이 검사는 새 요청에만 적용됩니다. 도입 전에 이미 접수된 요청 중에는 합계가 결제 금액을 넘는 건이 남아 있을 수 있고, 데이터 정리는 하지 않았습니다(운영자가 처리 전에 확인).
+- 결제 취소 경로(`PaymentCancellationService#prepareCancellation`·`#applyCancellation`)는 락 없이 읽습니다. 환불(주문 조리 중·완료)과 취소(주문 결제 대기·확정)가 허용되는 주문 상태가 겹치지 않아 이 불변식에는 영향이 없습니다.
+
+<a id="decision-0059"></a>
+
+### 0059. PG 승인·실패 반영은 결제 행을 잠그고, PG 승인 성공을 사실로 삼는다
+
+- 상태: 채택(부분 → 0060)
+- 결정 커밋: `fff56ac2b` (2026-10-18)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0059
+
+#### 맥락
+
+같은 기법을 결제 행에 먼저 적용한 결정은 [결정 0055](#decision-0055)(환불 요청)입니다. 이 결정은 그것을 대체하지 않고, 대상을 토스 승인 반영 경로로 넓힙니다.
+
+- **승인 흐름**: 사전 확인(`PaymentConfirmationService#preparePgConfirmation`, 잠금 없는 readOnly 트랜잭션) → PG 호출(트랜잭션 밖) → 성공이면 `applyPgConfirmation`, 실패면 `failPgConfirmation`(각각 별도 트랜잭션, `PaymentConfirmationExecutor`).
+- **load-copy-save**: `PaymentPersistenceAdapter#save`가 관리 엔티티에 도메인 값을 복사하고 커밋 때 UPDATE합니다. `PAYMENT`에는 `@Version`이 없어 늦게 커밋한 쪽이 이깁니다.
+
+같은 결제에 승인 요청이 두 번 오면(버튼 연타·성공 리다이렉트 재요청) 두 요청이 모두 사전 확인을 통과해 PG를 두 번 부릅니다. 첫 요청은 성공하고, 두 번째는 토스가 `ALREADY_PROCESSED_PAYMENT`(HTTP 400) 등으로 거절합니다. 실패 반영은 결제를 잠금 없이 읽고 PENDING이면 `fail()`을 저장했으므로, 돈은 결제됐는데 결제 기록이 FAILED가 되는 경우가 두 방향으로 생겼습니다.
+
+| 커밋 순서 | 결과 |
+|---|---|
+| 승인 반영 → 실패 반영 | 실패 반영이 PENDING으로 읽은 뒤 늦게 커밋 → 결제 FAILED, 주문 CONFIRMED |
+| 실패 반영 → 승인 반영 | 승인 반영이 FAILED를 보고 `PAYMENT_NOT_PENDING_APPROVAL`로 롤백 → 결제 FAILED, 주문 PENDING, 로그 `PG_DB_MISMATCH` |
+
+게다가 `TossPaymentClient`가 4xx 응답의 code를 늘 `PG_API_ERROR`로 덮어써, "이미 처리됨"을 알아볼 수도 없었습니다.
+
+#### 이전 규칙
+
+- 결제 상태 규칙(`docs/domain/payment.md`): 승인 반영은 결제 대기에서만, 실패 반영은 무조건 결제 실패로.
+- `Payment#complete`만 상태 가드(PENDING)가 있었고 `Payment#fail`에는 없었습니다.
+
+#### 결정
+
+세 겹으로 막습니다.
+
+| 항목 | before | after |
+|---|---|---|
+| 승인·실패 반영의 결제 조회 | `PaymentLoadPort#findByPgOrderId`(잠금 없음) | `PaymentLoadPort#findByPgOrderIdForUpdate` — id를 스칼라로 찾은 뒤 PK 한 행에 `PESSIMISTIC_WRITE` |
+| 토스 4xx 응답 code | 항상 `PG_API_ERROR` | 토스 본문의 code·message(해석 실패 시 `PG_API_ERROR`). 5xx는 그대로 `PG_API_ERROR`. 4xx 로그는 ERROR(스택 포함) → WARN(스택 없음) |
+| 벤더 중립 실패 사유 | 없음(`errorCode` 문자열뿐) | `PgConfirmResult.failure` — `PgConfirmFailure.ALREADY_PROCESSED` / `REJECTED` |
+| "이미 처리됨" 거절의 실패 반영 | 결제 FAILED | 결제 상태를 바꾸지 않음(원장은 남김) |
+| 승인 반영이 허용하는 상태 | PENDING | PENDING·FAILED(PG 승인 성공 우선). COMPLETED·CANCELLED는 계속 거절 |
+| `Payment#fail` | 상태 무관하게 FAILED | PENDING이 아니면 `DomainErrorCode.PAYMENT_NOT_PENDING` |
+| 두 번째 요청의 HTTP 응답 | `PAYMENT_APPROVAL_FAILED`(400) + "결제 승인하기 API 호출에 실패했습니다: 400 …" | `PAYMENT_APPROVAL_FAILED`(400) + 토스 원문 메시지 |
+
+#### 근거
+
+| 대안 | 채택하지 않은 이유 |
+|---|---|
+| `@Version` 낙관적 락 | `PAYMENT.version` 컬럼 DDL이 필요합니다. 충돌이 커밋 시점에 나면 실패 반영은 버려도 되지만 승인 반영은 재시도 루프(예약 슬롯의 3단 구조)가 있어야 합니다 |
+| 사전 확인에서 APPROVING 상태로 선점(조건부 UPDATE) | 두 번째 요청이 PG를 아예 부르지 않게 되는 가장 강한 형태지만, 새 상태값과 "APPROVING에서 멈춘 결제" 복구 경로가 필요해 범위가 큽니다 |
+| `pg_order_id`에 인덱스를 추가하고 직접 잠금 | DDL이 필요합니다. 인덱스 없이 `WHERE pg_order_id = ? FOR UPDATE`를 실행하면 테이블 전체가 잠기므로, 지금은 id를 먼저 찾고 PK로 잠급니다 |
+| 잠금만 적용 | 실패 반영이 승인 반영보다 먼저 커밋하는 순서는 막지 못합니다. 그래서 "이미 처리됨" 무시와 PG 성공 우선을 함께 둡니다 |
+| "이미 처리됨" 무시만 적용 | 토스가 동시 중복 승인에 다른 코드를 줄 수 있고, 잠금 없이는 늦게 커밋한 쪽이 여전히 이깁니다 |
+
+FAILED→COMPLETED 허용은 사용자가 정한 규칙입니다. PG가 승인 성공을 돌려줬다면 돈은 이미 결제된 것이므로, 우리 기록이 실패여도 승인 쪽으로 바로잡는 것이 사실에 맞습니다. 사전 확인은 여전히 PENDING만 통과시키므로, 실패한 결제로 새 승인을 시작하는 경로는 생기지 않습니다.
+
+#### 결과·감수한 손실
+
+- **새 에러코드가 없습니다.** `Payment#fail` 가드는 `PAYMENT_NOT_PENDING`을 재사용합니다. 메시지("대기 중인 결제만 완료 처리할 수 있습니다.")가 FAILED 완료 허용·실패 가드와 맞지 않지만, 바꾸면 wire 계약이 바뀝니다.
+- **실패 메시지 문구가 바뀝니다.** 토스 4xx 전부에서 사용자 메시지가 토스 원문이 됩니다. 에러코드와 상태는 같습니다.
+- **두 번째 요청은 여전히 실패 응답을 받습니다.** 결제·주문은 첫 요청 결과대로 완료·확정입니다. "이미 처리됨"이면 기존 paymentId를 성공으로 돌려주는 멱등 응답은 프론트 계약 변경이라 후속 과제입니다.
+- **잠깐 FAILED가 보일 수 있습니다.** "이미 처리됨"이 아닌 코드로 거절된 실패 반영이 먼저 커밋되면, 승인 반영이 도착할 때까지 결제가 FAILED입니다.
+- **응답 없음·통신 오류는 지금도 FAILED입니다.** 이 경우 승인 성공이 나중에 도착하는 경로가 없어 자동 복구되지 않습니다. `PgConfirmFailure.UNKNOWN`(PENDING 유지)과 대사(reconciliation)는 후속 과제입니다. `docs/domain/payment.md`가 이 경우를 "결제 대기 유지"로 적고 있던 서술은 실제 동작에 맞게 고쳤습니다.
+- **`cancel()` 상태 가드와 동시 취소 직렬화는 이번 범위가 아닙니다.** 취소 경로는 별도 작업(M-5, 결제 취소 경로의 상태 가드·동시 취소 직렬화 — 이 결정이 다루는 M-1에 이어지는 후속 결제 안전성 작업 번호이며 아직 스펙 문서가 없음)이 다룹니다.
+- **잠금은 어댑터 단위로만 실제 DB에서 검증합니다.** 단위 테스트 `PaymentPersistenceAdapterTest`가 "id 조회 → PK 잠금" 순서를, Testcontainers 통합 테스트 `PaymentConcurrencyIntegrationTest`가 실제 MySQL에서 대기·행 단위 잠금을 검사합니다(`./gradlew build`에는 포함되지 않음). 승인·실패 반영 서비스 전체의 경합 재현은 하지 않았습니다.
+- **"이미 처리됨" + PENDING은 경합과 반영 실패를 구분하지 못합니다.** 실패 반영은 `PG_DB_MISMATCH`를 WARN으로만 남깁니다(정상 연타 경합에서도 나므로 ERROR가 아님). 반영 실패 자체는 원 요청이 ERROR로 남기므로, WARN만 남는 것은 원 요청이 커밋 전에 프로세스 종료·`Error`로 로그 없이 끝난 경우입니다. 대사가 이 경우를 덮어야 합니다.
+- **후속 과제**: `pg_order_id` 인덱스 추가(DDL), 응답 유실 대사(PG 승인인데 일정 시간 이상 PENDING인 결제 포함).
+
+<a id="decision-0060"></a>
+
+### 0060. PG 승인 결과 불명은 실패가 아니라 대기로 두고, 즉시 조회로 대사한다
+
+- 상태: 채택(부분 → 0063)
+- 결정 커밋: `fff56ac2b` (2026-10-18)
+- 대체한 결정: 결정 0059(응답 없음·통신 오류를 FAILED로 두던 부분, "이미 처리됨"을 실패 응답으로 돌려주던 부분)
+- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0060
+
+#### 맥락
+
+[결정 0059](#decision-0059)는 같은 결제의 승인·실패 반영을 결제 행 잠금으로 직렬화하고 "이미 처리됨" 거절은 상태를 바꾸지 않게 했습니다. 그러나 두 가지를 후속 과제로 남겼습니다.
+
+- **응답 없음·통신 오류는 FAILED였습니다.** `TossPaymentClient`가 5xx를 `PG_API_ERROR`, 예외를 `SYSTEM_ERROR`, 빈 본문을 `UNKNOWN_ERROR`로 바꾸고 `TossPaymentGatewayAdapter`가 이를 `PgConfirmFailure.REJECTED`로 분류해 `failPgConfirmation`이 `payment.fail()`을 호출했습니다. 토스가 실제로 승인했다면 돈은 나갔는데 결제는 FAILED이고, 사전 확인이 PENDING만 통과시켜 재시도로도 복구되지 않았습니다.
+- **"이미 처리됨"의 두 번째 요청은 400을 받았습니다.** 결제는 첫 요청 결과대로 완료인데 사용자는 실패 화면을 봤습니다.
+
+여기에 연관 결함이 하나 더 있었습니다. 결과 확정 전의 PENDING 결제를 사용자가 취소하면 결제가 CANCELLED가 되어, 나중에 승인이 확인돼도 대사 대상에서 빠지고 돈은 환불되지 않은 채 남습니다.
+
+#### 이전 규칙
+
+- `PgConfirmFailure`는 `ALREADY_PROCESSED`·`REJECTED` 둘. `REJECTED`는 "`ALREADY_PROCESSED`가 아닌 모든 실패"(통신 오류 포함).
+- 결과 불명·"이미 처리됨"이면 토스에 결제 상태를 묻지 않음.
+- 결제 취소는 주문 상태로만 판정하고 PENDING 결제도 취소.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| 결과 불명 분류 | `REJECTED` | `PgConfirmFailure.UNKNOWN` — 5xx(`PG_SERVER_ERROR`, `PG_API_ERROR`에서 분리)·예외(`SYSTEM_ERROR`)·빈 응답(`UNKNOWN_ERROR`) |
+| 승인 전 기록 | 없음 | `Payment#recordPgAttempt(PgProvider)` — PENDING일 때만 `pg_provider`를 채움. "PENDING + `pg_provider` 있음" = 돈이 나갔을 수 있는 결제. 서비스(`PaymentConfirmationService#recordPgAttempt`)는 결제를 잠금 조회한 뒤 PENDING이 아니면 `PAYMENT_NOT_PENDING_APPROVAL`로 **PG 호출 전에 중단**한다. 미지원 PG는 기록 전에 `PG_PROVIDER_UNSUPPORTED`로 거절한다 |
+| `UNKNOWN`·`ALREADY_PROCESSED` 이후 | 실패 반영(각각 FAILED / 상태 불변) → 400 | 토스 "주문번호로 결제 조회" 1회 → `APPROVED`면 대사 반영, `NOT_APPROVED`면 FAILED → 400(원래 결과가 `UNKNOWN`이면 기본 메시지, `ALREADY_PROCESSED`면 토스 원문), `UNKNOWN`이면 PENDING 유지 → **503 `PAYMENT_APPROVAL_UNCONFIRMED`** |
+| 토스 조회 상태 매핑 | 없음 | `DONE` → APPROVED, `ABORTED`·`EXPIRED`·`CANCELED`·404 `NOT_FOUND_PAYMENT` → NOT_APPROVED, `READY`·`IN_PROGRESS`·`PARTIAL_CANCELED`·그 밖의 오류 → UNKNOWN |
+| 조회 후 실패 반영에 넘기는 결과 | — | 원래 승인 결과가 아니라 **조회 결과**만 |
+| 승인 반영 | COMPLETED면 거절 | COMPLETED이고 `pgTid == paymentKey`면 그 결제를 반환(멱등) — 원장 기록보다 먼저 판정 |
+| 대사 반영 결과 | 없음 | `PgReconcileOutcome` 4종: `COMPLETED`·`ALREADY_COMPLETED`(200), `AMOUNT_MISMATCH`(상태 불변·원장 미기록 — 금액 검사가 원장 기록보다 먼저)·`ORDER_NOT_CONFIRMABLE`(결제만 완료, 주문 확정·이벤트 생략)(503 + `PG_DB_MISMATCH` ERROR) |
+| 미확정 결제 취소 | 취소 | 취소 반영(`PaymentCancellationService#applyCancellation`)이 트랜잭션 첫 조회로 결제 행을 잠그고(`findByIdForUpdate`), PENDING + `pg_provider` 있음이면 **409 `PAYMENT_CANCEL_UNCONFIRMED`**. 승인 시도 기록도 같은 행을 잠가 두 쓰기가 직렬화된다. 잠그지 않는 사전 판정이 PENDING(PG 취소 불필요)으로 본 결제가 반영 시점에 COMPLETED면 같은 409로 거절한다(환불 없는 취소 방지) |
+
+#### 근거
+
+| 대안 | 채택하지 않은 이유 |
+|---|---|
+| `pgTid`에 시도 표시를 남김 | `pgTid`는 PG 취소에 쓰는 값이라 오염되면 취소가 엉뚱한 거래로 갑니다. 기존 `pg_provider` 컬럼은 PENDING 동안 비어 있어 DDL 없이 쓸 수 있습니다 |
+| 새 결제 상태(APPROVING·UNKNOWN) | 상태값·DDL·전이 표·모든 상태 분기를 함께 바꿔야 합니다. "PENDING + `pg_provider`"만으로 같은 판별이 됩니다 |
+| 결과 불명이면 조회 없이 503 | 대부분의 결과 불명은 조회 한 번으로 확정됩니다. 조회 없이 미루면 모든 건이 수동·batch 대사로 넘어갑니다 |
+| 조회 후에도 원래 결과를 실패 반영에 넘김 | 버튼 연타의 정상 경합(`ALREADY_PROCESSED` → 조회 `IN_PROGRESS`)에서 `PG_DB_MISMATCH` 경고가 나 알럿 노이즈가 됩니다 |
+| `ORDER_NOT_CONFIRMABLE`에서 결제를 PENDING으로 둠 | 재시도·batch가 같은 실패를 끝없이 반복합니다. 돈이 나간 사실을 결제에 반영하고, 환불은 `PG_DB_MISMATCH` ERROR로 운영자에게 넘깁니다 |
+| 미확정 결제 취소를 200 `PaymentCancelCode`로 거절 | 기존 코드는 확정된 거절 결과입니다. 이번 차단은 일시적 상태라 409 예외로 구분합니다 |
+| 취소 반영을 잠그지 않고 `pg_provider`만 판정 | 취소의 일반 조회와 시도 기록이 겹치면 취소가 옛 값(`pg_provider` 없음)을 보고 결제를 CANCELLED로 만든 뒤 PG 승인이 나갈 수 있습니다. 시도 기록도 도메인 no-op만으로는 "취소된 결제에 PG 호출"을 막지 못합니다. 그래서 취소는 잠금 조회, 시도 기록은 PENDING 아니면 예외로 PG 호출 전에 끊습니다 |
+| 토스 `READY`를 미승인으로 봄 | 승인 요청 직후 토스 상태가 아직 `READY`일 수 있어, 돈이 나간 결제를 FAILED로 만들 수 있습니다. 끝내 승인되지 않으면 토스가 `EXPIRED`로 확정하므로 그때 미승인으로 정리합니다. 승인 가능 시한은 인증 후 약 10분이고 그 뒤 승인은 거부되지만, 조회 상태가 `EXPIRED`로 바뀌는 것은 테스트 환경 실측으로 결제 생성 후 약 33분입니다(라이브 미확인) |
+| 토스 `CANCELED`를 UNKNOWN으로 둠 | 전액 취소는 돈이 돌아간 상태라 FAILED로 정리해도 돈이 어긋나지 않습니다. UNKNOWN으로 두면 7일 동안 취소 차단이 이어집니다 |
+
+#### 결과·감수한 손실
+
+- **신규 에러코드 2개**(`WebErrorCode`): `PAYMENT_APPROVAL_UNCONFIRMED`(503), `PAYMENT_CANCEL_UNCONFIRMED`(409). 스냅샷 tsv에 2행 추가([결정 0056](../../backend/application-core/AGENTS.md#decision-0056) 절차).
+- **"결제 완료와 주문 확정은 함께" 불변식에 예외가 생겼습니다.** 주문이 취소된 뒤 승인이 확인되면 결제만 완료이고 주문은 취소 상태입니다. 이 건은 환불 대상이며 `PG_DB_MISMATCH` ERROR로 드러납니다.
+- **응답이 최대 약 30초 걸릴 수 있습니다**(승인 + 조회가 모두 실패하는 경우). web의 승인 호출 타임아웃을 35초로 늘렸습니다.
+- **wire 변화**: 미확정·실패 결제의 `PaymentResponse.pgProvider`가 null 대신 `"TOSS"`입니다. 이 필드를 쓰는 프론트 코드는 없습니다.
+- **승인 1건마다 쓰기 트랜잭션이 1회 늘었습니다**(`recordPgAttempt`).
+- **토스 조회의 "결제 없음" 응답은 404 `NOT_FOUND_PAYMENT`입니다**(토스 에러 코드 문서 "결제 조회" 절). 승인 전에 이탈한 주문을 조회했을 때 404가 오는지 200 `READY`·`IN_PROGRESS`가 오는지는 문서로 확정하지 못했지만, 앞의 것은 미승인으로, 뒤의 것은 `UNKNOWN`으로 처리하므로 어느 쪽이든 돈 손실 방향이 아닙니다.
+- **조회 응답의 `orderId`가 요청과 다르면 `UNKNOWN`으로 둡니다**(토스 보안 체크리스트의 교차 검증). 금액은 `reconcileApproved`가 대조합니다.
+- **조회로도 확정하지 못한 건은 01만으로는 자동 해소되지 않습니다.** 취소 차단도 그동안 유지됩니다. batch 주기 대사는 덩어리 02([결정 0061](#decision-0061))가 다룹니다.
+- **01 배포 전 데이터**(이미 FAILED가 된 결과 불명 건, `pg_provider`가 빈 PENDING 건)는 수동 대사 대상입니다.
+- **같은 결제의 취소와 승인 시도가 서로 기다립니다.** 둘 다 결제 행 잠금을 잡으므로 짧게 직렬화됩니다(PG 호출은 잠금 밖).
+- **금액 불일치 건은 PENDING으로 남아** 02 batch가 10분마다 `PG_DB_MISMATCH` ERROR를 반복합니다. 수동 대사가 필요하다는 신호로 감수합니다.
+- **`pg_order_id` 인덱스는 제안만 하고 적용하지 않았습니다**(`docs/tasks/pg-confirm-recovery/pg-order-id-index.sql`, `schema.sql` 무변경 — 적용 여부는 사용자 결정). 적용하면 결제를 찾는 1단계 조회가 빨라지지만, 잠금 조회를 `pg_order_id` 직접 `FOR UPDATE`로 바꾸면 인덱스 next-key 잠금으로 **잠금 경합이 늘 수 있습니다**. 또 jpa `PaymentConcurrencyIntegrationTest`의 반증 시나리오 B("직접 `FOR UPDATE`면 전체 스캔 잠금이라 실패한다")는 인덱스 추가 후 성립하지 않습니다.
+
+<a id="decision-0061"></a>
+
+### 0061. PG 포트·라우터를 코어로 옮기고, batch가 미확정 결제를 주기적으로 대사한다
+
+- 상태: 채택(부분 → 0062)
+- 결정 커밋: `fff56ac2b` (2026-10-18)
+- 대체한 결정: 결정 0036(PG SPI 포트·라우터를 `web-application`에 두던 부분)
+- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0061
+
+#### 맥락
+
+[결정 0060](#decision-0060)으로 PG 승인 결과를 모르는 결제는 FAILED가 아니라 "PENDING + `pg_provider` 있음"으로 남고, web 요청 안에서 토스에 한 번 조회해 대부분 그 자리에서 확정됩니다. 그러나 조회로도 확정하지 못한 건(토스 `IN_PROGRESS`, 조회 실패)과 승인 반영이 커밋 전에 끊긴 건은 사용자가 승인을 다시 시도하지 않는 한 PENDING으로 남고, 그동안 사용자의 결제 취소도 409로 막힙니다. 이것을 사람 손 없이 풀려면 web 요청과 무관하게 주기적으로 PG에 다시 묻는 잡이 필요합니다.
+
+잡은 `batch-module`에 두는 것이 자연스럽지만, PG 포트(`PgProviderGatewayPort`·`PgPaymentGatewayPort`)와 계약 타입(`PgCancelResult`·`PgProviderCode`), 라우터(`PgPaymentGatewayRouter`)가 모두 `web-application`에 있었고, 벤더 `infrastructure:tosspayments`가 `:web-application`을 의존했습니다. 이 상태로 batch에 `infrastructure:pg`를 붙이면 web-application jar가 batch 클래스패스에 실리고, 필터 없는 `com.tastyhouse.application` 스캔 때문에 **web 빈 전체가 batch에 뜹니다**(`ApplicationModuleClasspathTest`가 실패합니다).
+
+#### 이전 규칙
+
+- PG SPI 포트 4종과 라우터는 "web 전용 SPI"로 `web-application` 소유였습니다([결정 0036](../../backend/AGENTS.md#decision-0036)).
+- `infrastructure:tosspayments`는 `:web-application`을, PG 스타터 `infrastructure:pg`는 web-api만 의존했습니다.
+- 미등록 PG 거절 코드 `PG_PROVIDER_UNSUPPORTED`는 `WebErrorCode`였습니다.
+- 결과를 확정하지 못한 결제는 사용자의 재시도나 운영자의 수동 대사로만 확정됐습니다.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| PG 포트 2종·`PgCancelResult`·`PgProviderCode`·라우터(+`PgPaymentGatewayRouterTest`) | `web-application` | `application-core`(패키지 동일 — import 불변) |
+| `PG_PROVIDER_UNSUPPORTED` | `WebErrorCode` | `ApplicationErrorCode`(code·status·message 동일) |
+| `infrastructure:tosspayments` 의존 | `:web-application` | `:application-core` |
+| `batch-module` | PG 없음 | `runtimeOnly ':infrastructure:pg'` + `classpath:application-pg.yml`, 환경 변수 `TOSS_SECRET_KEY` |
+| 라우터 빈 | web에만 | 4앱 모두. admin·ceo는 벤더가 없어 빈 목록으로 생성 |
+| 대상 조회 | 없음 | `PaymentLoadPort#findAllPgAttemptedByStatusCreatedBetween(PaymentStatus, from, to, limit)` — `payment_status = ?`, `pg_provider IS NOT NULL`, 결제 **생성 시각** 반개구간 `from <= created_at < to`(승인 시도 시각 아님), `created_at, id` 오름차순, `LIMIT`, 잠금 없음 |
+| 주기 대사 잡 | 없음 | `PaymentReconcileScheduler`(cron `${payment.reconcile.cron:0 */10 * * * *}`) → `ReconcileUnconfirmedPaymentsUseCase` → `PaymentReconcileSchedulerService`(대상 PENDING, now−7일 ~ now−10분, 100건) → 건별 `PgPaymentGatewayPort#lookupPayment` → `APPROVED`면 `reconcileApproved`, `NOT_APPROVED`면 조회 결과로 `failPgConfirmation`(FAILED), `UNKNOWN`이면 건너뜀(`PG_CONFIRM_UNKNOWN` WARN). `APPROVED` 반영이 예외면 `PG_DB_MISMATCH` ERROR. 대상 0건은 DEBUG. 반영은 `PaymentReconcileExecutor`(`@Transactional`) |
+
+#### 근거
+
+| 대안 | 채택하지 않은 이유 |
+|---|---|
+| batch-application에 PG 포트를 복제 | 같은 FQCN이 두 모듈에 생겨 `SplitPackageUniquenessTest`가 실패하고, 이름을 바꿔 복제하면 벤더가 두 포트를 함께 구현해야 합니다 |
+| batch가 `web-application`을 의존 | web 빈 전체가 batch에 뜹니다. 앱 간 수평 의존을 막는 모듈 경계의 존재 이유와 정면으로 충돌합니다 |
+| 대사를 web-api의 `@Scheduled`로 | web은 여러 인스턴스로 뜰 수 있어 중복 실행되고, 스케줄러는 batch-module로 일원화돼 있습니다 |
+| 라우터를 batch·web 각 앱 모듈에 하나씩 | 같은 로직 두 벌입니다. 2개 앱 이상이 쓰는 것은 코어에 둔다는 규칙에 맞지 않습니다 |
+| 대상 조회의 상태 비교값을 어댑터에 고정(`findAllPgAttemptedPending…`) | 쓰기 포트는 상태를 도메인 enum 인자로 받는 것이 기존 형태(`existsByProductIdAndStatus(…, ApprovalStatus)` 등)이고, 도메인 정책(PENDING만 대사)을 영속 어댑터에 박지 않습니다 |
+| 대상 창을 생성 직후부터 | web 요청 안의 즉시 조회와 같은 결제를 동시에 다룰 수 있습니다. 결제 행 잠금으로 결과는 맞지만 쓸데없는 PG 호출이 늘어 10분을 둡니다 |
+| `UNKNOWN`이면 실패 반영(`failPgConfirmation(UNKNOWN)`)으로 원장·WARN | 10분마다 같은 원장 행과 `PG_CONFIRM_UNKNOWN` WARN이 쌓입니다. 잡 자체의 건너뜀 WARN과 건수 로그로 충분합니다 |
+
+#### 결과·감수한 손실
+
+- **API 변경 없음.** wire 계약(`PG_PROVIDER_UNSUPPORTED`의 code·status·message)이 같아 `error-catalog-before.tsv`는 바뀌지 않았습니다(스냅샷은 카탈로그 enum 이름을 담지 않습니다). 카탈로그 개수는 `ApplicationErrorCode` 84 → 85, `WebErrorCode` 89 → 88입니다.
+- **라우터 빈이 admin·ceo에도 뜹니다.** 빈 목록이라 동작은 없고, 주입하는 빈도 없습니다. `coreBeansShouldOnlyDependOnCoreVisibleTypes`는 `List` 주입을 검사하지 않으므로 이 상태를 가드가 따로 막지 않습니다.
+- **batch-module 기동에 `TOSS_SECRET_KEY`가 필요합니다.** 없으면 토스 호출이 인증 실패로 끝나 모든 건이 `UNKNOWN`으로 건너뛰어집니다(돈 손실 방향 아님).
+- **처리 상한**: 한 주기 100건, 생성 순. `UNKNOWN`이 계속 쌓이면 오래된 건이 슬롯을 차지할 수 있고, 건너뜀 건수 로그로 관측합니다. 7일을 넘긴 건(토스 `PARTIAL_CANCELED` 같은 예상 밖 상태 포함 — `CANCELED`는 NOT_APPROVED로 FAILED 처리)은 대상에서 빠져 수동 대사로 넘어갑니다.
+- **확정까지 걸리는 시간**: 토스가 결제를 `EXPIRED`로 확정하는 시점에 좌우됩니다. 테스트 환경 실측으로는 결제 생성 후 약 33분이므로(라이브 미확인), 승인 전 상태로 남은 `IN_PROGRESS` 결제는 10분 대기 + 10분 주기의 첫 점검들에서는 정리되지 않고 만료 이후 점검에서 정리됩니다. 그동안 결제 취소 차단(409)이 유지됩니다.
+- **금액 불일치는 10분마다 ERROR를 반복합니다.** `AMOUNT_MISMATCH`는 결제를 PENDING으로 두므로 다음 주기에 다시 조회돼 `PG_DB_MISMATCH` ERROR가 7일 동안 반복됩니다. 수동 대사가 필요하다는 신호로 감수합니다.
+- **단일 인스턴스 전제**: batch-module을 여러 대 띄우면 같은 결제를 동시에 조회합니다. 반영은 결제 행 잠금과 멱등 판정으로 맞지만 PG 호출이 중복됩니다(기존 batch 운영 전제와 같음).
+- `pg/AGENTS.md`의 절 제목 "라우터 등록은 어디인가 — `web-application`의 `PgPaymentGatewayRouter`"는 결정 0026·0034·0036이 인용하므로 바꾸지 않고, 제목 아래에 라우터가 지금 `application-core`에 있다는 안내를 둡니다(참조되는 제목 유지 규칙).
+
+<a id="decision-0062"></a>
+
+### 0062. batch 미확정 결제 대사에 결제별 재시도 백오프를 둔다
+
+- 상태: 채택(부분 → 0064)
+- 결정 커밋: `fff56ac2b` (2026-10-18)
+- 대체한 결정: 결정 0061(대사 대상이 매 주기 같은 결제를 다시 고르고, 금액 불일치 ERROR 반복을 감수하던 부분)
+- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0062
+
+#### 맥락
+
+[결정 0061](#decision-0061)의 주기 대사 잡은 10분마다 "PENDING + `pg_provider` 있음" 결제를 **생성 순으로 100건** 골라 PG에 다시 묻습니다. 그런데 PG 조회 결과가 `UNKNOWN`이거나, `APPROVED`인데 반영 결과가 `AMOUNT_MISMATCH`인 결제는 상태가 PENDING 그대로라 7일 동안 매 주기 다시 뽑힙니다. 그 결과 두 가지가 생깁니다.
+
+- **알럿 반복**: `AMOUNT_MISMATCH` 한 건이 `PG_DB_MISMATCH` ERROR를 7일 × 144회 ≈ 1,000회 남깁니다. 진짜 신호가 노이즈에 묻힙니다.
+- **앞줄 막힘**: 그런 결제가 100건 쌓이면 limit 100을 전부 차지해, 그보다 새 결제는 대사되지 않습니다(그 결제들의 취소 409 차단도 풀리지 않습니다).
+
+#### 이전 규칙
+
+- 대상 조회는 `PaymentLoadPort#findAllPgAttemptedByStatusCreatedBetween(status, from, to, limit)`였고, 이미 시도한 결제를 거르는 조건이 없었습니다.
+- 금액 불일치 ERROR의 10분 반복은 "수동 대사가 필요하다는 신호"로 감수했습니다.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| `PAYMENT` 컬럼 | 없음 | `reconcile_attempt_count INT NOT NULL DEFAULT 0`, `reconcile_next_at DATETIME NULL` |
+| 대상 조회 | `findAllPgAttemptedByStatusCreatedBetween(status, from, to, limit)` | `findAllPgAttemptedReconcileDueByStatusCreatedBetween(status, from, to, dueAt, limit)` — 기존 조건 + `reconcile_next_at IS NULL OR reconcile_next_at <= dueAt` |
+| 건별 처리 | PG 조회부터 | PG 조회 **전에** `PaymentReconcileExecutor#scheduleNextAttempt`(트랜잭션)가 횟수를 1 올리고 다음 시각을 저장. 기록이 실패해도 조회·반영은 계속 |
+| 다음 시각 | — | `now + min(10분 × 2^이전 시도 횟수, 24시간) − 1분`. 1분은 cron 실행 시각의 밀리초 차이로 한 주기씩 밀리지 않게 두는 여유 |
+| web 승인 시도(`PaymentConfirmationService#recordPgAttempt`) | 결제 저장만 | + 대사 일정 초기화: 횟수 0, 다음 시각 = 시도 시각 + 10분 |
+| 엔티티 매핑 | — | `PaymentJpaEntity`의 두 필드는 `insertable = false, updatable = false`. 쓰기는 어댑터의 전용 QueryDSL UPDATE(`PaymentSavePort#saveReconcileSchedule`)만 한다 |
+| 도메인 모델 `Payment` | — | 변경 없음 |
+
+#### 근거
+
+| 대안 | 채택하지 않은 이유 |
+|---|---|
+| 배치 서비스의 메모리에 시도 횟수를 둔다 | DDL이 필요 없지만 batch를 재시작할 때마다 초기화돼 반복 알럿이 다시 시작되고, 인스턴스가 늘면 공유되지 않습니다 |
+| `updated_at`을 마지막 시도 시각으로 쓴다 | 다른 저장도 `updated_at`을 바꾸므로 "대사를 시도했다"는 뜻이 되지 못합니다 |
+| 생성 시각에 비례하는 간격(다음 시각 = now + 결제 나이) | 횟수 컬럼이 필요 없지만, 생성 후 한참 지나 승인을 시도한 결제는 첫 재조회부터 수 시간 뒤로 밀려 취소 409가 오래 풀리지 않습니다 |
+| 시도 횟수 상한을 넘으면 대상에서 아예 뺀다 | 알럿은 완전히 멎지만, 사람이 맞추기 전까지 자동 확정 기회도 사라집니다. 24시간 상한 백오프면 7일 동안 약 14회로 충분히 줄어듭니다 |
+| 두 필드를 `Payment` 도메인 모델에 둔다 | 결제 상태 규칙이 아니라 batch 대사의 운영 일정이고, `reconstitute` 호출부·매퍼·`applyChanges`까지 파급됩니다 |
+| 엔티티를 일반 매핑으로 두고 `applyChanges`에서 빼기만 한다 | Hibernate는 엔티티 flush 때 모든 컬럼을 UPDATE하므로, 다른 저장이 batch가 방금 쓴 값을 옛 값으로 덮을 수 있습니다 |
+| web 승인 시도 때 다음 시각을 NULL로 초기화 | NULL은 "즉시 대상"이라, 생성 후 10분이 지난 결제는 재승인 직후 다음 batch 주기에 바로 대사돼 잠금 밖에서 진행 중인 web PG 호출과 겹칩니다 |
+
+#### 결과·감수한 손실
+
+- **DDL이 배포 선행 조건입니다.** 엔티티가 두 컬럼을 매핑하므로 컬럼이 없으면 4개 앱(web-api·admin-api·ceo-api·batch-module) 모두 `ddl-auto: validate`로 부팅에 실패합니다(`infrastructure:persistence`를 4앱이 모두 싣고 `JpaModuleConfig`가 jpa 엔티티 전체를 스캔합니다). 로컬 반영 DDL은 `docs/tasks/pg-confirm-recovery/03-reconcile-backoff/payment-reconcile-schedule.sql`입니다.
+- **확정이 늦어질 수 있습니다.** 시도가 쌓인 결제는 최대 24시간 간격으로만 다시 확인하므로, 취소 409의 자동 해제와 `PG_DB_MISMATCH` 반영 실패의 자동 교정도 그만큼 늦어집니다. 사용자가 승인을 다시 시도하면 즉시 조회와 일정 초기화가 함께 일어납니다.
+- **금액 불일치 ERROR는 7일 동안 약 14회로 줄어듭니다**(before 약 1,000회). 사라지지는 않으므로 수동 대사 신호로서는 그대로 남습니다.
+- **횟수 읽기·쓰기가 원자적이지 않습니다.** batch를 여러 대 띄우거나 같은 순간 web 초기화가 끼면 횟수가 한 번 덜 세거나 초기화가 덮일 수 있습니다. 결과는 한 번 일찍 또는 한 백오프 간격 늦게 재시도하는 것뿐이지만, 그 간격은 최대 24시간입니다. 같은 순간 사용자의 재승인이 겹치는 드문 경우라 원자화(`count = count + 1`·잠금 조회)는 하지 않았습니다(기존 단일 인스턴스 전제와 같음).
+- 첫 재조회 간격은 10분으로 이전과 같습니다. 다만 테스트 환경 실측으로 토스의 `EXPIRED` 확정은 결제 생성 후 약 33분이라(라이브 미확인), 첫 재조회에서는 대개 아직 `IN_PROGRESS`입니다.
+
+<a id="decision-0063"></a>
+
+### 0063. 본문을 해석할 수 없는 PG 승인 4xx는 거절이 아니라 결과 불명으로 분류한다
+
+- 상태: 채택(부분 → 0065)
+- 결정 커밋: `fff56ac2b` (2026-10-18)
+- 대체한 결정: 결정 0060(결과 불명을 5xx·통신 예외·빈 응답으로 한정하던 부분)
+- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0063
+
+#### 맥락
+
+[결정 0060](#decision-0060)은 결과를 알 수 없는 승인 응답을 `PgConfirmFailure.UNKNOWN`으로 분류했습니다. UNKNOWN이면 결제를 FAILED로 확정하지 않고, 토스에 조회해 대사합니다. 그런데 UNKNOWN의 범위는 5xx·통신 예외·빈 응답 세 가지뿐이었습니다.
+
+리뷰에서 다음 경로가 지적됐습니다. 승인 응답이 4xx인데 본문을 토스 에러 JSON으로 읽지 못하면 `TossPaymentClient#translateResponseError`가 `PG_API_ERROR`를 붙입니다. `TossPaymentGatewayAdapter#toFailure`는 이 코드를 `REJECTED`로 번역합니다. 그 결과 결제는 조회 없이 FAILED가 됩니다.
+
+토스페이먼츠 문서(API 에러 코드 · 인증 및 기타 헤더 설정)로 다음을 확인했습니다.
+
+- 토스는 실패할 때 HTTP 상태 코드와 함께 항상 `{code, message}` JSON 에러 객체를 돌려줍니다.
+- 에러 코드 표에 408·429가 없습니다.
+
+따라서 HTML 본문이나 code가 빈 4xx는 토스의 정상 에러 응답이 아닙니다. 중간 인프라(프록시·로드밸런서·CDN)가 만든 응답일 수도 있고, 토스가 직접 보낸 비JSON 응답일 수도 있습니다. 토스 문서는 라이브 환경에서 요청이 과다하면 `429 Too Many Requests`가 올 수 있다고 하면서(거래 조회) 그 본문 형식은 적지 않았습니다. 테스트 환경 실측에서는 요청 제한을 넘긴 429가 JSON(`TOO_MANY_REQUESTS`)이었으므로 그 429는 이 결정의 대상이 아니라 기존대로 `REJECTED`입니다. 본문이 JSON이 아니거나 code가 빈 응답은 출처를 알 수 없으므로 토스가 승인을 처리했는지 알 수 없습니다. 그런데도 거절로 확정하면, 돈은 나갔는데 결제가 FAILED인 상태가 생길 수 있습니다. 이것은 결정 0060이 막으려던 상태와 같습니다.
+
+#### 이전 규칙
+
+- 4xx 본문이 JSON이 아니거나 깨졌거나 code가 비어 있으면 `PG_API_ERROR`를 붙였습니다. 근거는 "토스가 4xx로 거절했다는 사실은 확실하므로 결과 불명이 아니다"였습니다.
+- 결과 불명 코드는 `PG_SERVER_ERROR`·`SYSTEM_ERROR`·`UNKNOWN_ERROR` 3개였습니다.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| 승인 4xx + 해석할 수 없는 본문(비JSON·깨진 JSON·빈 code) | `PG_API_ERROR` → `REJECTED` → FAILED 확정 | `PG_UNREADABLE_RESPONSE` → `UNKNOWN` → 즉시 토스 조회로 대사 |
+| 승인 4xx + 토스 JSON(code 있음) | 토스 code 보존 → `REJECTED`/`ALREADY_PROCESSED` | 변경 없음 |
+| 조회 4xx + 해석할 수 없는 본문 | `PG_API_ERROR` → 조회 `UNKNOWN` | 코드만 `PG_UNREADABLE_RESPONSE`로 바뀌고 결과(`UNKNOWN`)는 같음 |
+| `PG_API_ERROR` 사용처 | 승인 폴백 + 취소 | 취소 전용 |
+
+#### 근거
+
+- 결과를 모르는 응답을 거절로 확정하면 되돌릴 수 없는 불일치(돈은 나갔는데 결제는 FAILED)가 생깁니다. 반대로 진짜 거절을 UNKNOWN으로 분류하면 조회가 `NOT_APPROVED`를 돌려줘 같은 실패에 도달합니다. 이때 손해는 조회 1회만큼의 지연뿐입니다. 비용이 비대칭이므로 안전한 쪽을 택합니다.
+- 기존 UNKNOWN 흐름(즉시 조회, 503 `PAYMENT_APPROVAL_UNCONFIRMED`, batch 주기 대사)을 그대로 재사용하므로 응답 계약은 바뀌지 않습니다.
+
+##### 고려한 대안
+
+- **감수(현행 유지)**: 변경이 없습니다. 하지만 출처를 알 수 없는 4xx를 받는 드문 경우에 돈과 결제 상태가 어긋날 수 있습니다.
+- **408·429만 UNKNOWN**: 의도는 명확합니다. 하지만 상태 코드만으로는 토스 응답인지 판별할 수 없습니다. 프록시가 만든 403·400 같은 다른 비JSON 4xx는 여전히 FAILED로 확정됩니다.
+- **해석할 수 없는 4xx 전체를 UNKNOWN (채택)**: 판별 기준이 "토스 형식의 응답인가"라는 하나로 정리됩니다.
+
+##### 경계
+
+토스가 JSON code를 담은 4xx를 돌려주면 계속 `REJECTED`입니다. 가정상 429에 code가 있는 경우도 마찬가지입니다. 토스 에러 코드 문서에 408·429가 없으므로 이 경우는 범위에서 뺐습니다.
+
+#### 결과·감수한 손실
+
+- 진짜 토스 거절인데 본문만 깨진 경우(가능성이 극히 낮습니다)에는 조회 1회만큼 응답이 늦어집니다. 최악의 경우 승인과 조회를 합쳐 약 30초가 걸리며, 결정 0060의 상한과 같습니다.
+- 사용자 메시지가 바뀝니다. 조회가 `NOT_APPROVED`면 원문(`결제 승인하기 API 호출에 실패했습니다: 400 …`) 대신 기본 메시지 "결제 승인에 실패했습니다."가 나갑니다. HTTP 400과 에러코드 `PAYMENT_APPROVAL_FAILED`는 같습니다.
+- 원장 `TOSS_PAYMENT_RECORD`에는 최초 승인 4xx가 아니라 조회 결과가 남습니다. 조회 응답의 `status`(예: `ABORTED`)와 토스 `failure.code`가 남고, 조회가 404면 `failureCode`가 `NOT_FOUND_PAYMENT`입니다. 승인 4xx 원문은 로그(클라이언트 WARN·어댑터 ERROR)에만 남습니다. 기존 5xx 경로와 같은 동작입니다.
+
+<a id="decision-0064"></a>
+
+### 0064. batch 대사는 조건부 UPDATE로 결제별 차례를 선점한 뒤에만 PG에 묻는다
+
+- 상태: 채택
+- 결정 커밋: `fff56ac2b` (2026-10-18)
+- 대체한 결정: 결정 0062(일정 기록이 실패해도 조회·반영을 계속하던 부분, 시도 횟수 읽기·쓰기를 원자화하지 않던 부분)
+- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0064
+
+#### 맥락
+
+[결정 0062](#decision-0062)의 대사 잡은 건마다 "시도 횟수 읽기 → 횟수+1·다음 시각 저장 → PG 조회 → 반영" 순서로 처리합니다. 리뷰에서 세 가지가 지적됐습니다.
+
+- **여러 대에서 중복 대사**: `PaymentReconcileScheduler`는 `@Scheduled` cron이라 batch 인스턴스마다 따로 돕니다. 두 대가 같은 대상 목록을 고르면 같은 결제를 두 번 조회하고, 실패 반영(`failPgConfirmation`)은 상태를 보기 전에 원장(`TOSS_PAYMENT_RECORD`)을 쓰므로 원장 행이 중복으로 쌓입니다. 횟수 읽기·쓰기가 원자적이지 않아 시도 횟수 갱신도 유실될 수 있습니다. 결제 상태 자체는 행 잠금 덕분에 안전합니다.
+- **DB 장애 때 슬롯 점유**: 일정 기록이 실패해도 조회를 계속했기 때문에, DB 장애가 이어지면 다음 시각이 기록되지 않은 결제가 매 주기 다시 뽑혀 limit 100을 차지합니다. 커넥션 획득이 건마다 타임아웃까지 기다리면 한 주기가 길게 늘어집니다.
+- **7일 창을 벗어나는 결제가 조용히 빠짐**: 결과를 확정하지 못한 결제는 `created_at` 기준 7일이 지나면 대상에서 빠져 PENDING으로 남습니다. 결정 0062는 이를 수동 대사 대상으로 정했지만 빠지는 시점에 ERROR가 없어 운영이 알아챌 수 없었습니다.
+
+#### 이전 규칙
+
+- `PaymentReconcileExecutor#scheduleNextAttempt`가 횟수를 읽고 `PaymentSavePort#saveReconcileSchedule`로 무조건 덮어썼습니다.
+- 일정 기록이 실패해도 ERROR만 남기고 PG 조회·반영은 계속했습니다.
+- 여러 대 실행은 막지 않고 "단일 인스턴스 전제"로 감수했습니다.
+- 7일 창을 벗어나는 결제에 대한 별도 신호는 없었고, 시도마다 남는 `PG_CONFIRM_UNKNOWN` WARN으로 찾게 했습니다.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| 건별 첫 단계 | `scheduleNextAttempt` — 무조건 저장, 새 횟수 반환 | `claimNextAttemptInNewTx` — 조건부 저장, 성공하면 `PaymentReconcileClaim(attemptCount, nextAttemptAt)`, 아니면 빈 값 |
+| 저장 SQL | `UPDATE … SET count=?, next_at=? WHERE id=?` | `PaymentSavePort#saveReconcileScheduleIfDue` — `… SET count = 읽은 값 + 1, next_at = ? WHERE id = ? AND count = 읽은 값 AND (next_at IS NULL OR next_at <= 실행 시작 시각)`, 영향 행이 1이면 선점 성공 |
+| 다음 시각의 기준 시각 | 실행 시작 시각 | **`max(실행 시작 시각 + 간격 − 1분, 선점 시각 + 2분)`**(`PaymentReconcileBackoffPolicy#nextAttemptAt`, 2분 = `CLAIM_GUARD`). 평소에는 앞항이 이겨 cron 격자에 맞고, 한 주기가 길어져(PG 응답이 느리면 100건에 수십 분) 늦게 선점하면 뒤항이 이겨 저장값이 언제나 선점 시각보다 2분 뒤다 |
+| 선점 실패(영향 행 0) | 없음 | 다른 실행이 먼저 가져갔거나 web 승인 시도가 일정을 초기화한 것 — PG에 묻지 않고 넘어감(DEBUG) |
+| 선점이 예외 | ERROR 후 조회 계속 | ERROR 후 **그 결제는 건너뜀**. **3건 연속**이면 남은 대상을 건드리지 않고 주기 중단(ERROR) |
+| 마지막 시도 판정 | 없음 | 확정하지 못했고(조회 예외·`UNKNOWN`·`AMOUNT_MISMATCH`·반영 예외) `nextAttemptAt + 10분`이 `createdAt + 7일`을 넘으면 `PG_RECONCILE_MANUAL_REQUIRED` ERROR |
+| 요약 INFO | 일정 기록 실패 건수 | 차례 선점 실패·다른 실행이 처리·수동 대사 필요 건수 |
+| DDL | — | 없음(결정 0062의 두 컬럼을 그대로 씀) |
+
+#### 근거
+
+| 대안 | 채택하지 않은 이유 |
+|---|---|
+| ShedLock(잡 단위 분산 락) | 의존성과 락 테이블 DDL이 필요합니다. 잡 전체를 한 대만 돌게 할 뿐이라, 같은 대에서 web 초기화와 겹치는 횟수 유실은 그대로 남습니다 |
+| 대상 조회에 `FOR UPDATE SKIP LOCKED` | 잠금을 PG 조회가 끝날 때까지 쥐어야 의미가 있는데, 그러면 PG HTTP 호출이 DB 트랜잭션 안으로 들어갑니다(`*InNewTx` 호출자 비트랜잭션 원칙 위반) |
+| 횟수를 `count = count + 1`로만 원자화 | 횟수 유실은 막지만, 두 대가 같은 결제를 모두 "선점 성공"으로 보고 중복 조회합니다. 차례 조건(`next_at`)까지 함께 비교해야 중복이 막힙니다 |
+| 선점 예외가 나도 조회는 계속(이전 규칙) | 선점이 확인되지 않은 채 조회하면 여러 대에서 중복이 다시 생깁니다. 선점이 실패할 정도의 DB 상태면 반영도 실패할 가능성이 큽니다 |
+| 다음 시각을 선점 시각만 기준으로 계산 | 주기 시작 1분 뒤에 선점한 결제가 다음 실행을 지나친다(:01:30 선점 → 다음 시각 :10:30 → :10 실행을 건너뛰고 첫 재시도가 20분 뒤). 결정 0062가 실행 시작 시각을 기준으로 삼아 막으려던 현상이다 |
+| 다음 시각을 실행 시작 시각만 기준으로 계산(결정 0062) | 한 주기가 9분을 넘기면 막 선점한 결제의 다음 시각이 이미 지난 값으로 저장돼, 그 사이 시작한 다른 실행이 처리 중인 결제를 다시 선점한다 |
+| 7일이 지난 결제를 매 주기 따로 세어 ERROR | 수동으로 맞출 때까지 10분마다 같은 ERROR가 반복돼 결정 0062가 줄인 알럿 노이즈가 돌아옵니다. 마지막 시도 시점에만 남깁니다(창 끝 직전에는 최대 2건) |
+| 실패 반영에서 원장 기록을 상태 확인 뒤로 이동 | 원장은 PG 응답 기록이라 상태와 무관하게 남기는 것이 의도입니다. 중복의 원인은 같은 결제를 두 번 처리하는 것이므로 선점으로 막습니다 |
+
+#### 결과·감수한 손실
+
+- **여러 대 실행이 안전해졌습니다.** 저장하는 다음 시각이 언제나 선점 시각보다 2분 이상 뒤이므로, 선점 뒤 2분 안에 처리가 끝나는 한 같은 결제는 한 실행만 선점하고, PG 조회·원장 기록이 중복되지 않고, 시도 횟수가 유실되지 않습니다. web 승인 시도의 일정 초기화(다음 시각 = 시도 시각 + 10분)도 batch가 덮지 않습니다 — 선점 조건의 `next_at <= 실행 시각`에서 걸러지기 때문입니다. 다만 대상 목록 조회와 잡 실행 자체는 대마다 돌므로, 선점에서 지는 쪽은 쿼리만 낭비합니다.
+- **중복 선점을 막는 여유가 2분입니다.** 다음 시각을 선점 시각만 기준으로 계산하면 다른 실행과의 여유가 최소 9분이지만, 격자에 맞추면서 최소 `CLAIM_GUARD`(2분)로 줄었습니다. 선점 뒤 한 결제의 최악 처리 시간(토스 조회 소켓 타임아웃 15초 + 반영의 행 잠금 대기 — `innodb_lock_wait_timeout` 미설정이라 MySQL 기본 50초 + 커넥션 획득 3초 ≈ 68초)에 맞춘 값이라, 이보다 오래 걸리는 결제는 **여러 대 운영 시에만** 다른 실행이 다시 선점해 원장이 중복될 수 있습니다. 여러 대 + 긴 주기 + 긴 잠금 대기가 겹쳐야 하고, 단일 인스턴스는 Spring cron이 겹쳐 돌지 않아 영향이 없습니다.
+- **주기 시작 8분 뒤 이후에 선점된 결제는 한 주기 늦게 재시도됩니다.** `선점 시각 + 2분`이 다음 실행 시각(시작 + 10분)을 넘기 때문입니다. 한 주기가 8분을 넘길 때만 생깁니다.
+- **선점 일시 실패 시 그 결제는 이번 주기에 대사되지 않습니다.** 다음 시각이 바뀌지 않았으므로 다음 주기에 다시 고릅니다.
+- **연속 실패 3건은 휴리스틱입니다.** 서로 다른 결제 3건이 연이어 선점에 실패하면 DB 장애로 보고 중단합니다. 드문 일시 오류가 겹쳐도 주기 하나를 건너뛸 뿐입니다.
+- **수동 대사 신호는 기본 주기(10분)를 전제로 합니다.** `payment.reconcile.cron`을 10분보다 길게 바꾸면, 마지막이 아니라고 판정한 시도 뒤 다음 실행이 7일 창 밖에 떨어져 ERROR 없이 빠질 수 있습니다. 또 마지막 시도의 선점 자체가 예외로 실패하거나, 앞 주기가 길어져 다음 실행이 밀리거나, 선점 연속 실패로 주기가 중단돼 남은 대상이 판정을 받지 못하면 그 결제는 신호 없이 빠질 수 있습니다. 이때도 시도마다 남는 `PG_CONFIRM_UNKNOWN` WARN으로는 찾을 수 있습니다.
+- **창 끝 직전에는 수동 대사 ERROR가 최대 2건입니다.** 판정식 `nextAttemptAt + 10분 > createdAt + 7일`의 10분은 다음 실행이 조금 밀려도 신호를 놓치지 않게 하는 여유라, `nextAttemptAt ≤ 창 끝 < nextAttemptAt + 10분`이면 이번 실행과 다음 실행이 모두 마지막으로 판정됩니다. 판정을 좁히면 tick 건너뜀·재기동 때 ERROR 없이 빠지는 결제가 늘어나므로 누락보다 중복을 택했습니다.
+- **`AMOUNT_MISMATCH` 마지막 시도는 ERROR가 두 건입니다**(`PG_DB_MISMATCH` + `PG_RECONCILE_MANUAL_REQUIRED`). 앞의 것은 불일치, 뒤의 것은 자동 대사 종료를 알립니다.
+
+<a id="decision-0065"></a>
+
+### 0065. PG 취소의 "이미 취소됨"·결과 불명은 조회로 확정하고, 취소 실패 원인을 분류한다
+
+- 상태: 채택
+- 결정 커밋: `93aa93994` (2026-10-27)
+- 대체한 결정: 결정 0063(`PG_API_ERROR`를 취소 전용으로 남기던 부분)
+- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0065
+
+#### 맥락
+
+결제 취소는 세 단계다 — 취소 가능 판정, 토스 취소 호출, 결제 행을 잠그고 재판정한 뒤 반영. 두 가지 문제가 있었다.
+
+1. **토스는 취소했는데 DB가 모르는 상태가 자동으로 맞춰지지 않았다.** web은 취소 응답을 20초까지 기다린다. 서버가 토스 취소를 끝냈는데 응답이 늦으면 사용자는 다시 누르고, 서버는 토스에 취소를 한 번 더 보내 "이미 취소된 결제"로 거절당해 `CANCEL_FAILED`가 됐다. 토스 취소 호출이 타임아웃·5xx로 끝났는데 토스가 실제로는 취소한 경우, DB는 `COMPLETED`인데 토스는 이미 취소된 데이터 불일치도 같은 경로로 `CANCEL_FAILED`로 끝났다.
+2. **취소 실패 원인이 하나로 합쳐졌다.** `TossPaymentClient#cancelPayment`는 HTTP 오류 응답을 전부 `PG_API_ERROR`로 덮어써서, 404 `NOT_FOUND_PAYMENT`(DB에는 완료 결제가 있는데 PG에는 없음 — 데이터 불일치 신호)와 400 `ALREADY_CANCELED_PAYMENT`를 구분할 수 없었다.
+
+승인 쪽은 같은 문제를 이미 풀었다 — "이미 처리됨"·결과 불명이면 토스에 한 번 조회해 확정한다([결정 0060](#decision-0060), [결정 0063](#decision-0063)).
+
+#### 이전 규칙
+
+- 취소 HTTP 오류는 `PG_API_ERROR` 하나, 그 밖의 예외는 `SYSTEM_ERROR`였다. `PgCancelResult`는 `success`·`errorCode`·`errorMessage`만 실었다.
+- `PaymentCancelService`는 토스 취소가 실패하면 원인과 관계없이 `CANCEL_FAILED`를 돌려줬다.
+- 토스 취소 성공 후 재판정이 `SUCCESS`가 아니면 원인과 관계없이 `PG_DB_MISMATCH`를 남겼다.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| 취소 HTTP 오류 변환 | 전부 `PG_API_ERROR` | 승인·조회와 같은 `translateResponseError` — 4xx 토스 code 보존, 해석 불가 4xx `PG_UNREADABLE_RESPONSE`, 5xx `PG_SERVER_ERROR`. `PG_API_ERROR` 상수 삭제 |
+| 취소 실패 계약 | `errorCode` 문자열뿐 | `PgCancelFailure` 4종(`ALREADY_CANCELED`·`NOT_FOUND`·`REJECTED`·`UNKNOWN`)을 어댑터가 분류해 `PgCancelResult.failure`로 싣는다 |
+| `ALREADY_CANCELED`·`UNKNOWN` | `CANCEL_FAILED` | 새 포트 메서드 `lookupCancellation(pgOrderId, paymentKey)`로 한 번 조회해 `CANCELED`면 기존 반영 경로(`applyInNewTx`)로 취소를 반영하고 `SUCCESS`. 아니면(조회 `NOT_CANCELED`·`UNKNOWN`·예외, 조회 키 `pgOrderId` 없음) `CANCEL_FAILED` + ERROR 로그 마커 `PG_CANCEL_UNKNOWN` |
+| `NOT_FOUND` | `CANCEL_FAILED` | `CANCEL_FAILED` + ERROR 로그 마커 `PG_CANCEL_NOT_FOUND` |
+| PG 취소 확인 후 재판정 `ALREADY_CANCELLED` | `PG_DB_MISMATCH` | 결제도 `CANCELLED`면 마커 없음, 결제가 `CANCELLED`가 아니면(주문만 취소) `PG_DB_MISMATCH` 유지 |
+| 사용자 응답 코드·HTTP 상태·에러코드 | — | 변경 없음 |
+
+#### 근거
+
+- **조회는 읽기뿐이라 중복 환불을 만들지 않는다.** 토스에 보내는 취소 요청 횟수는 그대로이고, 반영은 성공·조회 확인 두 경로 모두 같은 `applyInNewTx`(결제 행 잠금 + 주문 상태 재판정)를 지난다.
+- **조회 결과가 우리 결제의 것인지 확인한다.** 응답의 `orderId`·`paymentKey`가 요청과 같고 `status = CANCELED`일 때만 반영 근거로 쓴다. `PARTIAL_CANCELED`는 전액 취소가 아니므로 확정하지 않는다.
+- **조회로도 확정하지 못하면 `PG_CANCEL_UNKNOWN` 마커를 남긴다.** 이 상태는 PG가 이미 환불했는데 DB는 `COMPLETED`일 수 있다. 사용자가 다시 취소하면 "이미 취소됨" → 조회로 맞춰지지만, 그사이 가게가 조리를 시작하면 재취소가 `ALREADY_PREPARING`으로 막히고 취소 대사 배치도 없다. 이 저장소는 알림을 로그 레벨이 아니라 마커 문자열로 걸므로, 마커 없는 ERROR로는 운영자가 이 건을 찾을 수 없다. 조회로 정상 복구된 경우에는 ERROR를 남기지 않으므로 거짓 경보는 늘지 않는다.
+- **`NOT_FOUND`는 조회하지 않는다.** 실측에서 취소가 404인 테스트 결제도 조회는 `DONE`이었다. 조회로는 확정할 수 없고, 운영자가 찾을 표식만 필요하다.
+- **기존 `lookupPayment`를 재사용하지 않았다.** 그 메서드는 `CANCELED`를 `ABORTED`·`EXPIRED`·404와 함께 `NOT_APPROVED`로 묶는다. 구분하려면 `PgPaymentLookupStatus`에 값을 추가해야 하고, 그러면 승인·batch 대사의 `switch`가 함께 바뀐다. 토스 HTTP 호출(`lookupPaymentByOrderId`)은 그대로 재사용한다.
+- **`ALREADY_CANCELLED`에서 결제 상태를 따로 읽는다.** 재판정은 주문 상태로만 `ALREADY_CANCELLED`를 판정한다. 관리자 주문 상태 변경 API는 결제 취소 없이 주문만 `CANCELLED`로 바꿀 수 있으므로, 주문 취소만 보고 마커를 빼면 "토스 환불 완료·결제 `COMPLETED`·포인트 미복원" 불일치를 놓친다. 반대로 재클릭한 다른 요청이 먼저 반영한 경우(결제도 `CANCELLED`)에는 불일치가 아니므로 거짓 경보를 없앤다.
+
+##### 고려한 대안
+
+- **취소 요청에 `Idempotency-Key`를 붙인다**: 토스는 실패 응답도 키별로 캐시해 재생한다는 실측이 있다(`backend/infrastructure/tosspayments/AGENTS.md`의 "주문번호로 결제 조회" 절). 첫 시도가 일시 실패하면 같은 키의 재시도가 유효기간 동안 같은 실패를 재생한다. 또 이미 생긴 불일치는 키로 고칠 수 없다. 기각.
+- **`PgPaymentLookupStatus`에 `CANCELED` 추가**: 위 근거대로 기각.
+- **결과 불명은 조회 없이 둔다(이미 취소됨만 조회)**: 타임아웃 뒤 토스가 실제로 취소한 경우를 사용자가 다시 누를 때까지 맞추지 못한다. 승인 쪽 결정과도 대칭이 깨진다. 기각.
+
+#### 결과·감수한 손실
+
+- 결정 시점에는 토스 취소 API가 재취소에 `ALREADY_CANCELED_PAYMENT`를 돌려주는지 문서(전체 에러 목록에만 400으로 있음)로 확인하지 못했다. 구현 직후 테스트 환경에서 전액 취소된 결제에 취소를 한 번 더 보내 400 `ALREADY_CANCELED_PAYMENT`임을 확인했다(2026-10-25). `NOT_CANCELABLE_PAYMENT` 등 그 밖의 취소 거절 코드의 발생 조건은 여전히 미확정이며 `REJECTED`로 분류돼 이전과 같이 `CANCEL_FAILED`다. 돈이 어긋나지는 않는다. 카드 결제의 잔액 초과·면세 금액·부분 취소 조건으로는 `NOT_CANCELABLE_AMOUNT`(403)·`INVALID_REQUEST`(400)만 나왔고 위 세 코드는 만들어지지 않았다(2026-10-27).
+- 부분 취소 뒤 남은 금액을 전액 취소한 결제는 잔액이 0원인데도 토스 상태가 `CANCELED`가 아니라 `PARTIAL_CANCELED`로 남는다(2026-10-27 실측, 취소 2건 모두 `DONE`). 이 결정은 `PARTIAL_CANCELED`를 전액 취소가 아닌 것으로 보고 확정하지 않으므로, 그런 결제는 응답이 유실돼도 조회로 복구되지 않고 `CANCEL_FAILED` + `PG_CANCEL_UNKNOWN`으로 남는다. 우리 앱은 부분 취소를 하지 않아 운영자가 토스 어드민에서 먼저 일부 환불한 결제에서만 생긴다. 후속 과제로 `balanceAmount`가 0인 `PARTIAL_CANCELED`를 `CANCELED`로 보는 변경이 있다.
+- 결과 불명(최악 15초) 뒤 조회(최악 15초)가 붙으면 서버 처리가 최대 약 30초다. web의 결과 확인 창(약 35초) 안이지만, 넘기면 사용자는 주문 내역을 다시 열어야 결과를 본다.
+- 결과 불명 직후 조회하면 토스가 아직 처리 중이라 `DONE`이 올 수 있다. 이때는 이전과 같이 `CANCEL_FAILED`(+ `PG_CANCEL_UNKNOWN`)이고, 사용자가 다시 취소하면 "이미 취소됨" → 조회로 맞춰진다. 그사이 조리가 시작돼 재취소가 막히면 운영자가 마커로 찾아 맞춘다. 토스가 실제로는 취소하지 않은 건에도 마커가 남으므로, 운영자는 토스 쪽 상태를 확인한 뒤 판단한다.
+- 이미 생긴 불일치(DB `COMPLETED`·토스 `CANCELED`)는 누군가 취소를 다시 눌러야 맞춰진다. 취소 대사 배치는 없다.

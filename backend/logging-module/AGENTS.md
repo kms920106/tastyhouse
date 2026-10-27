@@ -13,7 +13,7 @@ com.tastyhouse.logging/
 
 - `ApiLoggingFilter`는 `@Order(Ordered.HIGHEST_PRECEDENCE)`로 필터 체인 최상단에서 동작하며, `requestId`를 MDC에 등록해 같은 요청에서 발생하는 모든 로그(p6spy 포함)에 자동으로 첨부되게 한다.
 - `ApiLoggingAspect`는 `@RestController`가 붙은 모든 클래스에 AOP로 적용되며, Filter 레이어에서 처리되는 401/403 등은 컨트롤러에 도달하지 않으므로 별도 로깅되지 않는다.
-- **`ApiLoggingAspect`가 `SensitiveFieldMasker`를 생성자 주입받아, `[BODY]` 로그의 요청 바디를 `mask(...)`로 변환한 문자열로 출력한다.** `SENSITIVE_FIELDS`에 있는 필드는 `***`로 바뀐다([ADR-0029](../../docs/adr/0029-no-suppress-warnings.md)).
+- **`ApiLoggingAspect`가 `SensitiveFieldMasker`를 생성자 주입받아, `[BODY]` 로그의 요청 바디를 `mask(...)`로 변환한 문자열로 출력한다.** `SENSITIVE_FIELDS`에 있는 필드는 `***`로 바뀐다([결정 0029](../AGENTS.md#decision-0029)).
   - `[BODY]` 로그 형식은 마스킹된 JSON이다 — 예: `{"username":"a","password":"***"}`.
   - 배열 원소도 재귀해 마스킹한다.
   - 직렬화에 실패하면 요청은 막지 않고 바디 자리에 `[직렬화 실패]`를 남긴다(로깅이 요청을 막지 않는다는 불변).

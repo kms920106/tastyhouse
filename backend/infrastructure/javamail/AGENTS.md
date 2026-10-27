@@ -38,7 +38,7 @@ com.tastyhouse.infrastructure.javamail/
 
 **대상**: `backend/infrastructure/javamail/src/main/java/com/tastyhouse/infrastructure/javamail/`
 
-옛 위치 `external.mail.javamail`로 되돌리지 않는다 — 채널 모듈의 스캔에 동반 스캔된다. 이 모듈의 루트는 `com.tastyhouse.infrastructure.javamail`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/javamail/src/test/java/com/tastyhouse/infrastructure/javamail/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
+옛 위치 `external.mail.javamail`로 되돌리지 않는다 — 채널 모듈의 스캔에 동반 스캔된다. 이 모듈의 루트는 `com.tastyhouse.infrastructure.javamail`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/javamail/src/test/java/com/tastyhouse/infrastructure/javamail/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. ([결정 0037](../../AGENTS.md#decision-0037))
 
 ### 최상위 클래스에 `public`을 붙이지 않는다 (package-private 적용)
 

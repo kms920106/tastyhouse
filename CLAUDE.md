@@ -158,10 +158,47 @@ docs/tasks/README.md          ← 덩어리 목록·진행 순서·의존 관계
 `CLAUDE.md`·`AGENTS.md`·`docs/domain` 같은 규칙 문서는 **현재 규칙만** 담습니다. 이력이 본문에 섞이면 현재 규칙을 찾는 비용이 이력 더미에 묻히기 때문입니다.
 
 - **규칙을 바꾸면 본문을 현재 규칙으로 덮어씁니다.** 지운 줄 표시(취소선)나 "언제 무엇에서 바뀌었다"는 개정 이력 꼬리표를 남기지 않습니다.
-- **결정 경위는 ADR로 남깁니다.** `docs/adr/NNNN-{slug}.md`를 새로 만들고, 그 결정이 대체한 기존 ADR의 상태를 "대체됨(→ 새 번호)"로 갱신합니다.
+- **결정 경위는 그 규칙을 소유한 문서의 `## 결정 경위` 절에 적습니다.** 소유 문서는 규칙이 사는 모듈의 `AGENTS.md`나 `docs/domain/{도메인}.md`이고, 여러 모듈에 걸친 backend 규칙은 `backend/AGENTS.md`, 문서 운영 규칙은 `docs/workflow/README.md`입니다. **한 결정은 한 문서에만 둡니다** — 다른 문서는 링크로 가리킵니다.
+- **결정 기록용 별도 디렉터리·파일을 만들지 않습니다.** `docs/adr/` 같은 결정 전용 폴더나 "결정 1건 = 파일 1개" 형식은 쓰지 않습니다(`.claude/settings.json`의 PreToolUse 훅이 `docs/adr/` 쓰기를 막습니다). 결정이 소유 문서와 갈라져 두 벌이 되기 때문입니다.
+- **`CLAUDE.md`에는 결정 경위를 두지 않습니다.** 세션마다 자동으로 읽히는 파일이라 이력이 쌓이면 매 세션의 컨텍스트를 잡아먹습니다. `CLAUDE.md` 규칙의 경위는 그 규칙의 상세판이 있는 `AGENTS.md`(없으면 `backend/AGENTS.md`·`docs/workflow/README.md`)에 둡니다.
 - **다른 문서·테스트 메시지가 참조하는 제목은 유지합니다.** 앵커 링크·`"…" 절` 언급·ArchUnit `.because("...")` 문구가 깨지기 때문입니다.
-- **본문의 ADR 링크는 결정 경위가 꼭 필요한 곳에만 답니다.** 절마다 다는 것이 기본이 아닙니다.
-- 잔존 이력 표기 검사 명령과 ADR 작성 규칙은 `docs/adr/README.md`에 있습니다.
+- **본문의 결정 링크는 결정 경위가 꼭 필요한 곳에만 답니다.** 절마다 다는 것이 기본이 아닙니다.
+
+**`## 결정 경위` 절 작성 규칙**
+
+- 이 절은 **항상 문서의 마지막 `##` 절**입니다. 없으면 문서 끝에 새로 만들고, 항목은 번호 순으로 둡니다.
+- 번호는 **저장소 전체에서 하나로 이어지는 4자리 일련번호**입니다. 새 번호는 아래 명령의 출력 + 1입니다.
+
+  ```bash
+  git grep -ohE 'id="decision-[0-9]{4}"' -- '*.md' | sort | tail -1
+  ```
+
+- 항목 형식은 다음과 같습니다. 앵커는 `<a id="decision-NNNN">`로 고정해 제목을 고쳐도 링크가 깨지지 않게 합니다. 링크는 `[결정 NNNN](경로#decision-NNNN)`(같은 문서면 `#decision-NNNN`)으로 겁니다.
+
+  ```markdown
+  <a id="decision-NNNN"></a>
+
+  ### NNNN. {결정 제목}
+
+  - 상태: 채택 | 대체됨(→ [결정 MMMM](…#decision-MMMM))
+  - 결정 커밋: `{해시 9자리}` ({YYYY-MM-DD})
+  - 대체한 결정: [결정 KKKK](…#decision-KKKK) (없으면 —)
+
+  #### 맥락
+  #### 이전 규칙
+  #### 결정
+  #### 근거
+  #### 결과·감수한 손실
+  ```
+
+- 결정이 앞선 결정을 덮으면 **새 번호의 항목을 추가**하고, 덮인 항목은 상태를 `대체됨(→ 새 번호)`으로 바꾼 뒤 **"결정" 절의 요약(before/after 표)만 남기고 나머지 절을 지웁니다.** 지운 원문은 git 이력에 남습니다.
+- 잔존 이력 표기 검사는 리포 루트에서 실행하며 **기대값은 0줄**입니다. `## 결정 경위` 절은 이력을 담는 곳이라 검사에서 뺍니다. 패턴의 `[복]` 같은 문자 클래스는 이 명령 줄이 자기 자신에 걸리지 않게 하려는 것입니다.
+
+  ```bash
+  for f in CLAUDE.md $(git ls-files 'backend/*.md' 'docs/domain/*.md' 'docs/workflow/*.md'); do
+    awk -v f="$f" '/^## /{skip=($0=="## 결정 경위")} !skip && /번[복]|~[~]|후 갱[신]\)|\(개[정]|개[정] —|당시 이[름]|당시 기[록]/{print f":"FNR": "$0}' "$f"
+  done
+  ```
 
 ## E2E 테스트 (MCP Playwright) — 검증 세션 전용
 
@@ -232,12 +269,12 @@ docs/tasks/README.md          ← 덩어리 목록·진행 순서·의존 관계
 ```
 backend/    Spring Boot Gradle 멀티모듈 (rootProject: tastyhouse-api)
 frontend/   Next.js 앱 3개 — web(사용자 모바일 웹) · admin(관리자) · ceo(점주)
-docs/       domain(도메인별 비즈니스 지식 문서) · adr(규칙 문서의 결정 이력) · oauth · pg
+docs/       domain(도메인별 비즈니스 지식 문서) · workflow(명령·작업 흐름) · oauth · pg
 ```
 
 - **backend 모듈** (`backend/settings.gradle`, include 38줄 + 암묵 `infrastructure` 컨테이너 = 39개)은 세 갈래입니다.
   - **실행 앱 4개**(bootJar): `web-api`, `admin-api`, `ceo-api`, `batch-module` — 컨트롤러/스케줄러 트리거와 부트스트랩만 갖는 thin adapter입니다.
-  - **application 계층 5개**: 코어 `application-core`(2개 앱 이상이 쓰는 도메인 서비스·도메인 이벤트 리스너·`@Configuration`·앱 전용 SPI 포트를 뺀 모든 `port.out` 계약) + 앱 모듈 `web-application`·`admin-application`·`ceo-application`·`batch-application`(그 앱 하나만 쓰는 UseCase·Command·서비스·앱 전용 SPI 포트). 어느 쪽도 infrastructure를 컴파일 클래스패스에 두지 않습니다. 자바 패키지는 5모듈 모두 `com.tastyhouse.application..` 하나를 나눠 씁니다(split package). **앱 소속은 Gradle 모듈이 표현합니다** — 다른 앱의 타입을 쓰면 컴파일 에러입니다. 규칙·근거는 `backend/CLAUDE.md`의 "앱 모듈 경계 규칙" 절과 `backend/application-core/AGENTS.md`에 있습니다([ADR-0036](docs/adr/0036-app-marker-removal.md)).
+  - **application 계층 5개**: 코어 `application-core`(2개 앱 이상이 쓰는 도메인 서비스·도메인 이벤트 리스너·`@Configuration`·앱 전용 SPI 포트를 뺀 모든 `port.out` 계약) + 앱 모듈 `web-application`·`admin-application`·`ceo-application`·`batch-application`(그 앱 하나만 쓰는 UseCase·Command·서비스·앱 전용 SPI 포트). 어느 쪽도 infrastructure를 컴파일 클래스패스에 두지 않습니다. 자바 패키지는 5모듈 모두 `com.tastyhouse.application..` 하나를 나눠 씁니다(split package). **앱 소속은 Gradle 모듈이 표현합니다** — 다른 앱의 타입을 쓰면 컴파일 에러입니다. 규칙·근거는 `backend/CLAUDE.md`의 "앱 모듈 경계 규칙" 절과 `backend/application-core/AGENTS.md`에 있습니다([결정 0036](backend/AGENTS.md#decision-0036)).
   - **공유 모듈**: `domain`, `security-core`, `security-module`, `logging-module`, `api-common-module`, 그리고 `infrastructure:*` 24개.
 
   `infrastructure`는 기술별로 나뉜 **중첩 프로젝트**입니다(디렉터리 `backend/infrastructure/{이름}/`, Gradle 좌표 `:infrastructure:{이름}`). 24개는 **driven 18 + 조립 6**입니다.
@@ -258,7 +295,7 @@ docs/       domain(도메인별 비즈니스 지식 문서) · adr(규칙 문서
 
   **자바 패키지는 코드가 있는 17모듈 모두 `com.tastyhouse.infrastructure.{Gradle 모듈명의 하이픈을 점으로}` 하나를 루트로 씁니다**(`jpa`→`..infrastructure.jpa..`, `kakao-oauth`→`..infrastructure.kakao.oauth..`, `aws-s3`→`..infrastructure.aws.s3..`). 조립 스타터 6개와 `mysql`은 패키지가 없습니다. 각 모듈 아키텍처 테스트의 `shouldResideInModuleRootPackage`가 이 규칙을 강제합니다(`backend/CLAUDE.md`의 "infrastructure 패키지 규칙" 절). 모듈 설정 클래스 `{Xxx}ModuleConfig`(필요한 모듈만)는 그 루트에 있고 스스로 스캔하지 않습니다 — 각 앱 부트스트랩의 중첩 `ModuleScanConfig`가 `com.tastyhouse.infrastructure`를 문자열로 스캔합니다(`backend/CLAUDE.md`의 "모듈 등록 컨벤션" 절). 벤더의 외부 API wire DTO는 루트에 평면으로 두고 package-private으로 선언합니다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문입니다(`backend/CLAUDE.md`의 "접근 제어자 규칙" 절).
 
-  **앱별 사용**: 4앱 모두 `persistence`·`file-storage`를 의존하고, `redis`는 web·admin·ceo, `mybatis`는 web·admin, `oauth`·`mail`·`sms`는 web만, `pg`는 web·batch, `bbq`·`admdongkor`는 batch만 직접 의존합니다. 벤더 구현(`firebase`·소셜 벤더 4종·`tosspayments`·`javamail`·`solapi`)은 앱이 아니라 조립 스타터가 의존합니다. `aws-s3`·`aws-ses`·`aws-sns`는 **어느 앱도 의존하지 않고 컴파일만 검증**합니다(provider 기본값이 전부 비-AWS — 전환 절차는 각 모듈 `AGENTS.md`). 웹 전용 포트를 구현하는 벤더(`javamail`·`solapi`·소셜 벤더 4종·`aws-ses`·`aws-sns`)는 `:web-application`을, `bbq`·`admdongkor`는 `:batch-application`을 의존합니다. 그 포트를 쓰는 서비스(`MailVerificationService`·`SmsVerificationService` 등)는 `web-application` 모듈의 `@Service`이므로 web에만 뜹니다. PG는 web(승인·취소)과 batch(주기 대사)가 함께 쓰므로 포트·라우터(`PgPaymentGatewayRouter`)가 코어 `application-core`에 있고 `tosspayments`는 `:application-core`를 의존합니다([ADR-0061](docs/adr/0061-pg-ports-to-core-batch-reconcile.md)).
+  **앱별 사용**: 4앱 모두 `persistence`·`file-storage`를 의존하고, `redis`는 web·admin·ceo, `mybatis`는 web·admin, `oauth`·`mail`·`sms`는 web만, `pg`는 web·batch, `bbq`·`admdongkor`는 batch만 직접 의존합니다. 벤더 구현(`firebase`·소셜 벤더 4종·`tosspayments`·`javamail`·`solapi`)은 앱이 아니라 조립 스타터가 의존합니다. `aws-s3`·`aws-ses`·`aws-sns`는 **어느 앱도 의존하지 않고 컴파일만 검증**합니다(provider 기본값이 전부 비-AWS — 전환 절차는 각 모듈 `AGENTS.md`). 웹 전용 포트를 구현하는 벤더(`javamail`·`solapi`·소셜 벤더 4종·`aws-ses`·`aws-sns`)는 `:web-application`을, `bbq`·`admdongkor`는 `:batch-application`을 의존합니다. 그 포트를 쓰는 서비스(`MailVerificationService`·`SmsVerificationService` 등)는 `web-application` 모듈의 `@Service`이므로 web에만 뜹니다. PG는 web(승인·취소)과 batch(주기 대사)가 함께 쓰므로 포트·라우터(`PgPaymentGatewayRouter`)가 코어 `application-core`에 있고 `tosspayments`는 `:application-core`를 의존합니다([결정 0061](docs/domain/payment.md#decision-0061)).
 
   **에러코드는 그것을 던지는 가장 안쪽 모듈이 소유합니다**(`DomainErrorCode`·`ApplicationErrorCode`·`{Web,Admin,Ceo,Batch}ErrorCode`·`ApiErrorCode`). 외부 연동 실패 코드도 벤더 모듈이 아니라 그 실패를 번역하는 앱의 application 모듈이 소유합니다 — `SMS_SEND_*`·`MAIL_SEND_FAILED`·`SOCIAL_OAUTH_FAILED`는 `WebErrorCode`, `ADMIN_DONG_BOUNDARY_FETCH_FAILED`는 `BatchErrorCode`입니다. 벤더는 코드를 던지지 않고 실패를 담은 결과 record를 돌려주며, application 서비스가 `ApplicationException`으로 번역합니다. 규칙은 `backend/CLAUDE.md`의 "예외·에러코드 소유 규칙" 절에, 모듈 지도와 배치 기준은 같은 파일의 "모듈 지도" 절에 있습니다.
 - **작업 전 해당 영역 문서를 먼저 읽습니다.** backend 각 모듈과 frontend 각 앱의 `src/` 하위 디렉터리에는 그 영역의 최신 상세 가이드가 담긴 `AGENTS.md`가 있으므로, 이 파일의 요약에 의존하지 말고 해당 문서를 직접 확인합니다.

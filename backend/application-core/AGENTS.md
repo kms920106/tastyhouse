@@ -6,7 +6,7 @@
 
 ## 앱 모듈 재분리 — 앱 소속은 Gradle 모듈이 표현한다
 
-**앱 소속은 애노테이션이 아니라 클래스가 들어 있는 Gradle 모듈이 표현한다.** 앱 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`/`@SharedApp`)은 없다 — 되살리지 않는다(아래 "봉인·가드 목록"의 "앱 모듈 경계 가드"). 자바 패키지는 5모듈이 하나를 나눠 쓴다(아래 [패키지 평탄화](#패키지-평탄화-챕터-03)). 경위는 [ADR-0036](../../docs/adr/0036-app-marker-removal.md).
+**앱 소속은 애노테이션이 아니라 클래스가 들어 있는 Gradle 모듈이 표현한다.** 앱 마커 애노테이션(`@WebApp`/`@AdminApp`/`@CeoApp`/`@BatchApp`/`@SharedApp`)은 없다 — 되살리지 않는다(아래 "봉인·가드 목록"의 "앱 모듈 경계 가드"). 자바 패키지는 5모듈이 하나를 나눠 쓴다(아래 [패키지 평탄화](#패키지-평탄화-챕터-03)). 경위는 [결정 0036](../AGENTS.md#decision-0036).
 
 **용어 풀이**
 
@@ -39,7 +39,7 @@
 - `ceo-application`: `ceo.port.out.ReplyPhraseTextValidatorPort` — 구현(`shop/service/ReplyPhraseProhibitedWordValidatorAdapter`)과 유일한 소비자가 모두 ceo라 코어에서 옮겨왔다. 이 포트는 구현이 infrastructure가 아니라 같은 앱 모듈에 있다는 점이 다른 SPI와 다르다
 - `batch-application`: `crawling.bbq.port.out.*`(`BbqMenuPort`·`RemoteImagePort`·DTO), `region.port.out.{AdminDongBoundaryPort,AdminDongBoundaryFetchResult,AdminDongBoundarySource,BoundaryCoordinate,BoundaryRing}`
 
-**PG SPI는 앱 전용이 아니다** — `payment.port.out.{PgProviderGatewayPort,PgPaymentGatewayPort,PgCancelResult,PgCancelFailure,PgCancelLookupResult,PgCancelLookupStatus,PgProviderCode}`와 라우터 `payment/service/PgPaymentGatewayRouter`는 web(승인·취소·즉시 조회)과 batch(주기 대사) 두 앱이 쓰므로 이 모듈(코어)에 있다. 구현 벤더 `infrastructure:tosspayments`는 `infrastructure:pg`를 조립한 web·batch에만 실리므로, admin·ceo에서는 라우터가 `List` 주입으로 빈 목록이 되어 어떤 PG도 지원하지 않는다(admin·ceo에는 라우터를 주입하는 빈도 없다). [ADR-0061](../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md)
+**PG SPI는 앱 전용이 아니다** — `payment.port.out.{PgProviderGatewayPort,PgPaymentGatewayPort,PgCancelResult,PgCancelFailure,PgCancelLookupResult,PgCancelLookupStatus,PgProviderCode}`와 라우터 `payment/service/PgPaymentGatewayRouter`는 web(승인·취소·즉시 조회)과 batch(주기 대사) 두 앱이 쓰므로 이 모듈(코어)에 있다. 구현 벤더 `infrastructure:tosspayments`는 `infrastructure:pg`를 조립한 web·batch에만 실리므로, admin·ceo에서는 라우터가 `List` 주입으로 빈 목록이 되어 어떤 PG도 지원하지 않는다(admin·ceo에는 라우터를 주입하는 빈도 없다). [결정 0061](../../docs/domain/payment.md#decision-0061)
 
 **새 클래스를 어디에 두나**
 
@@ -69,11 +69,11 @@
 
 ## 앱 축 통합 (챕터 01) — 폐기됨
 
-폐기됨. application 계층을 앱별 모듈 없이 `application` 하나로 두던 구조는 다시 앱 모듈 4개로 나뉘었다. 현재 규칙은 [앱 모듈 재분리](#앱-모듈-재분리--앱-소속은-gradle-모듈이-표현한다). 경위는 [ADR-0013](../../docs/adr/0013-application-module-merge.md)·[ADR-0036](../../docs/adr/0036-app-marker-removal.md).
+폐기됨. application 계층을 앱별 모듈 없이 `application` 하나로 두던 구조는 다시 앱 모듈 4개로 나뉘었다. 현재 규칙은 [앱 모듈 재분리](#앱-모듈-재분리--앱-소속은-gradle-모듈이-표현한다). 경위는 [결정 0013](../AGENTS.md#decision-0013)·[결정 0036](../AGENTS.md#decision-0036).
 
 ## 패키지 평탄화 (챕터 03)
 
-**application 5모듈은 자바 패키지 `com.tastyhouse.application` 하나를 나눠 쓴다(split package).** 앱별 패키지(`com.tastyhouse.{web|admin|ceo|batch}application`)는 없다. 앱 소속은 패키지가 아니라 클래스가 들어 있는 Gradle 모듈이 표현한다(위 [앱 모듈 재분리](#앱-모듈-재분리--앱-소속은-gradle-모듈이-표현한다)). 경위는 [ADR-0014](../../docs/adr/0014-package-flattening-app-markers.md).
+**application 5모듈은 자바 패키지 `com.tastyhouse.application` 하나를 나눠 쓴다(split package).** 앱별 패키지(`com.tastyhouse.{web|admin|ceo|batch}application`)는 없다. 앱 소속은 패키지가 아니라 클래스가 들어 있는 Gradle 모듈이 표현한다(위 [앱 모듈 재분리](#앱-모듈-재분리--앱-소속은-gradle-모듈이-표현한다)). 경위는 [결정 0014](../AGENTS.md#decision-0014).
 
 - **왜 하나로 두나**: 앱별 패키지가 있으면 ArchUnit 슬라이스 규칙·import 정렬 규칙이 "접두어가 겹치는 4개 패키지"를 특별 취급해야 하고, 그 특별 취급 자체가 문서·규칙의 복잡도가 된다. 패키지가 하나면 클래스를 모듈 사이로 옮겨도 import가 바뀌지 않는다.
 - **패키지만 봐서는 앱 소속을 알 수 없다**: `com.tastyhouse.application.notice.service`의 클래스가 어느 앱 것인지는 그 파일이 어느 모듈(`{앱}-application` / 코어) 아래 있는지로 판단한다.
@@ -105,7 +105,7 @@
 
 ## 덩어리 03a — 나머지 포트·도메인 서비스·이벤트 발행기를 `domain`에서 이관
 
-**포트와 포트를 주입받는 서비스는 전부 이 application 계층에 있다.** `domain`에는 모델·VO·이벤트 타입·포트 없는 순수 계산기/정책·공유 커널·예외만 남는다. 이관은 클래스 위치만 바꿨고 로직은 바꾸지 않았다(HTTP·DB 계약 불변). write 포트 시그니처는 domain 모델(`Optional<Notice> findById(NoticeId)`)이고, persistence는 `:domain`을 `implementation`으로 의존해 그것을 구현한다(아래 [persistence domain 재허용](#persistence-domain-재허용--persistence가-도메인-모델을-직접-쓴다)). 이관된 서비스는 `@Service`로 스캔 등록된다 — 등록용 config는 없다(아래 [application `*ServiceConfig`를 두지 않는다](#application-serviceconfig를-두지-않는다--도메인-서비스는-service로-스캔-등록)). 경위는 [ADR-0027](../../docs/adr/0027-domain-ports-to-application.md).
+**포트와 포트를 주입받는 서비스는 전부 이 application 계층에 있다.** `domain`에는 모델·VO·이벤트 타입·포트 없는 순수 계산기/정책·공유 커널·예외만 남는다. 이관은 클래스 위치만 바꿨고 로직은 바꾸지 않았다(HTTP·DB 계약 불변). write 포트 시그니처는 domain 모델(`Optional<Notice> findById(NoticeId)`)이고, persistence는 `:domain`을 `implementation`으로 의존해 그것을 구현한다(아래 [persistence domain 재허용](#persistence-domain-재허용--persistence가-도메인-모델을-직접-쓴다)). 이관된 서비스는 `@Service`로 스캔 등록된다 — 등록용 config는 없다(아래 [application `*ServiceConfig`를 두지 않는다](#application-serviceconfig를-두지-않는다--도메인-서비스는-service로-스캔-등록)). 경위는 [결정 0027](#decision-0027).
 
 | 항목 | before | after |
 |---|---|---|
@@ -151,7 +151,7 @@ domain `ContextBoundaryTest`가 도메인 서비스에 걸던 컨텍스트 경�
 Service → XxxLoadPort·XxxSavePort(도메인 타입) ← persistence XxxPersistenceAdapter (XxxMapper: JpaEntity ↔ Domain)
 ```
 
-**write 경로에 번역 계층(State record·StatePort·Store·StateMapper)을 다시 끼우지 않는다.** 애그리거트 하나를 저장하려고 파일 5개를 거치고 변환이 두 번 일어나는 비용이, "persistence가 domain을 모른다"는 격리보다 크다. persistence는 원래 도메인 포트의 어댑터라 domain을 아는 방향이 의존 규칙에 맞고, `implementation` 의존이면 domain이 앱 컴파일 클래스패스로 새지 않아 presentation의 domain 절단도 유지된다. 경위는 [ADR-0031](../../docs/adr/0031-persistence-domain-reallowed.md).
+**write 경로에 번역 계층(State record·StatePort·Store·StateMapper)을 다시 끼우지 않는다.** 애그리거트 하나를 저장하려고 파일 5개를 거치고 변환이 두 번 일어나는 비용이, "persistence가 domain을 모른다"는 격리보다 크다. persistence는 원래 도메인 포트의 어댑터라 domain을 아는 방향이 의존 규칙에 맞고, `implementation` 의존이면 domain이 앱 컴파일 클래스패스로 새지 않아 presentation의 domain 절단도 유지된다. 경위는 [결정 0031](../infrastructure/jpa/AGENTS.md#decision-0031).
 
 **엔티티의 `String` 컬럼과 `*Embeddable` 5종은 유지한다**: 조회 DAO 31개 파일이 String 컬럼을 193곳에서 쓴다. enum으로 되돌리면 `Projections.constructor` 투영이 **컴파일은 통과하고 런타임에만** 깨진다. 그래서 String ↔ enum(`valueOf`/`name()`) 변환은 persistence `XxxMapper`의 몫이다.
 
@@ -197,7 +197,7 @@ Service → XxxLoadPort·XxxSavePort(도메인 타입) ← persistence XxxPersis
 
 ## application `*ServiceConfig`를 두지 않는다 — 도메인 서비스는 `@Service`로 스캔 등록
 
-**도메인 서비스는 클래스에 `@Service`를 달고, 그것이 사는 모듈(쓰는 앱이 둘 이상이면 코어, 하나면 그 `{앱}-application`)의 스캔으로 등록된다.** 서비스를 `new`로 만들어 `@Bean`으로 등록하는 `<ctx>/config/*ServiceConfig`·`PgRouterConfig` 같은 설정은 없다. 경위는 [ADR-0034](../../docs/adr/0034-service-config-removal.md)·[ADR-0036](../../docs/adr/0036-app-marker-removal.md).
+**도메인 서비스는 클래스에 `@Service`를 달고, 그것이 사는 모듈(쓰는 앱이 둘 이상이면 코어, 하나면 그 `{앱}-application`)의 스캔으로 등록된다.** 서비스를 `new`로 만들어 `@Bean`으로 등록하는 `<ctx>/config/*ServiceConfig`·`PgRouterConfig` 같은 설정은 없다. 경위는 [결정 0034](../AGENTS.md#decision-0034)·[결정 0036](../AGENTS.md#decision-0036).
 
 **용어 풀이**
 
@@ -232,7 +232,7 @@ class BugReportRegistrationService { ... }
 
 ## 덩어리 03b — 읽기 계약은 domain을 모른다
 
-**읽기 계약(`port/out`의 `{Ctx}QueryPort`·`*Result`·`*SearchCondition`·스펙 record)과 persistence 조회 DAO는 domain 타입을 모른다.** enum은 `String`, ID는 `Long`으로 싣고, 승격·강등·도메인 판정은 QueryService가 한다. write 경로는 도메인 타입을 쓴다(위 [persistence domain 재허용](#persistence-domain-재허용--persistence가-도메인-모델을-직접-쓴다)). 경위는 [ADR-0028](../../docs/adr/0028-persistence-state-layer.md)·[ADR-0031](../../docs/adr/0031-persistence-domain-reallowed.md).
+**읽기 계약(`port/out`의 `{Ctx}QueryPort`·`*Result`·`*SearchCondition`·스펙 record)과 persistence 조회 DAO는 domain 타입을 모른다.** enum은 `String`, ID는 `Long`으로 싣고, 승격·강등·도메인 판정은 QueryService가 한다. write 경로는 도메인 타입을 쓴다(위 [persistence domain 재허용](#persistence-domain-재허용--persistence가-도메인-모델을-직접-쓴다)). 경위는 [결정 0028](../infrastructure/jpa/AGENTS.md#decision-0028)·[결정 0031](../infrastructure/jpa/AGENTS.md#decision-0031).
 
 ### 읽기 계약 평탄화 — `port/out`은 domain을 모른다
 
@@ -243,7 +243,7 @@ class BugReportRegistrationService { ... }
 | `*Result`의 enum 라벨(`{field}Description`/`{field}DisplayName`) | **QueryService가 채운다** — DAO는 `Expressions.nullExpression(String.class)`로 자리만 두고, QueryService가 `XxxEnum.valueOf(result.status()).getDescription()`을 Result wither(`withDescriptions(...)` 등)에 넘긴다. 참고: ceo-application `shop/service/ShopChangeHistoryListQueryService` → `shop/port/out/ShopChangeHistoryResult#withDescriptions`, ceo-application `ceo/service/CeoLoginHistoryListQueryService` → `ceo/port/out/CeoLoginHistoryResult` |
 | DAO가 enum 상수와 비교 | `.eq(status)` — 비교값을 **포트 인자**로 받고, application(QueryService)이 도메인 enum의 `name()`으로 넘긴다(아래 "enum 비교값 전달 규칙") |
 
-**enum 비교값 전달 규칙** — **조회 DAO는 enum 어휘를 전혀 모른다.** 비교할 값은 application이 도메인 enum의 `name()`으로 만들어 포트 인자로 넘긴다. `port.out`에 도메인 enum을 복제한 문자열 상수 클래스(`XxxCodes`)를 두지 않는다 — 복제본은 도메인 enum과 두 벌이 돼 일치 검사가 따로 필요하고, DAO가 쓰지 않는 상수마다 미사용 경고가 나 억제 어노테이션이 붙으며(`backend/CLAUDE.md`의 `@SuppressWarnings` 지양 규칙), "판매 완료 주문만 센다"·"탈퇴 회원 제외" 같은 **도메인 정책이 persistence에 박힌다.** 경위는 [ADR-0029](../../docs/adr/0029-no-suppress-warnings.md).
+**enum 비교값 전달 규칙** — **조회 DAO는 enum 어휘를 전혀 모른다.** 비교할 값은 application이 도메인 enum의 `name()`으로 만들어 포트 인자로 넘긴다. `port.out`에 도메인 enum을 복제한 문자열 상수 클래스(`XxxCodes`)를 두지 않는다 — 복제본은 도메인 enum과 두 벌이 돼 일치 검사가 따로 필요하고, DAO가 쓰지 않는 상수마다 미사용 경고가 나 억제 어노테이션이 붙으며(`backend/CLAUDE.md`의 `@SuppressWarnings` 지양 규칙), "판매 완료 주문만 센다"·"탈퇴 회원 제외" 같은 **도메인 정책이 persistence에 박힌다.** 경위는 [결정 0029](../AGENTS.md#decision-0029).
 
 | 형태 | 언제 | 예 |
 |---|---|---|
@@ -484,7 +484,7 @@ static class ApplicationLayerScanConfig {
 
 domain이 `shared/event/DomainEventPublisher` 포트로 발행한 도메인 이벤트를 구독하는 크로스커팅 리스너를 둔다. 전부 `@TransactionalEventListener(phase = AFTER_COMMIT)`이며, 발행 구현 `shared/event/SpringDomainEventPublisher`가 `ApplicationEventPublisher`로 위임한다(포트와 구현 모두 이 모듈 소유, 등록은 `shared/config/SharedBeanConfig`).
 
-**위치는 `com.tastyhouse.application.<ctx>.listener`이고, 리스너는 전부 `@Component`이며 코어 `application-core` 모듈에만 둔다**(코어가 4앱 전부의 클래스패스에 있으므로 코어에 두는 것만으로 4앱 전부에 뜬다 — `LayerRulesTest#listenersAndConfigsShouldResideInCore`가 강제). 현재 12종 — `coupon`·`file`·`mail`·`member`(`MemberEventListener`·`ReferralRegisteredEventListener`)·`notification`(`ReviewOwnerReplyEventListener`·`ReviewBlindApprovedEventListener`)·`payment`·`point`·`policy`·`product`·`sms`. **리스너를 `infrastructure:persistence`나 앱 모듈에 두지 않는다** — 이벤트를 받아 도메인 서비스를 오케스트레이션하는 것은 유스케이스 계층의 일이고, 앱 모듈에 두면 다른 앱이 발행한 이벤트의 후속 처리가 **예외도 로그도 없이** 빠진다([ADR-0024](../../docs/adr/0024-event-listeners-in-application.md)). 빈 등록은 위 [빈 배선](#빈-배선--앱-부트스트랩의-중첩-스캔-설정) 참고. 리스너가 infra DAO를 직접 주입하지 않는다 — 이 모듈은 infra를 컴파일 클래스패스에 두지 않으므로 필요한 조회는 `port/out` 읽기 포트로 받는다(`ReviewOwnerReplyEventListener` → `ShopBasicInfoQueryPort#findShopName`).
+**위치는 `com.tastyhouse.application.<ctx>.listener`이고, 리스너는 전부 `@Component`이며 코어 `application-core` 모듈에만 둔다**(코어가 4앱 전부의 클래스패스에 있으므로 코어에 두는 것만으로 4앱 전부에 뜬다 — `LayerRulesTest#listenersAndConfigsShouldResideInCore`가 강제). 현재 12종 — `coupon`·`file`·`mail`·`member`(`MemberEventListener`·`ReferralRegisteredEventListener`)·`notification`(`ReviewOwnerReplyEventListener`·`ReviewBlindApprovedEventListener`)·`payment`·`point`·`policy`·`product`·`sms`. **리스너를 `infrastructure:persistence`나 앱 모듈에 두지 않는다** — 이벤트를 받아 도메인 서비스를 오케스트레이션하는 것은 유스케이스 계층의 일이고, 앱 모듈에 두면 다른 앱이 발행한 이벤트의 후속 처리가 **예외도 로그도 없이** 빠진다([결정 0024](#decision-0024)). 빈 등록은 위 [빈 배선](#빈-배선--앱-부트스트랩의-중첩-스캔-설정) 참고. 리스너가 infra DAO를 직접 주입하지 않는다 — 이 모듈은 infra를 컴파일 클래스패스에 두지 않으므로 필요한 조회는 `port/out` 읽기 포트로 받는다(`ReviewOwnerReplyEventListener` → `ShopBasicInfoQueryPort#findShopName`).
 
 **미소비 이벤트를 남기지 않는다.** 모든 `*Event` record에는 대응 리스너가 있어야 한다. 리스너 없는 이벤트는 "누군가 처리하고 있겠지"라는 착각을 낳고, 발행 지점만 보고는 그 착각이 드러나지 않는다. 소비 수요가 없다고 판단되면 리스너를 만드는 대신 **이벤트 record와 발행 호출을 함께 삭제**한다 — 둘 중 하나를 고르되 "발행만 하고 두는" 상태는 허용하지 않는다.
 
@@ -572,7 +572,7 @@ reference 구현: `PaymentEventListenerTest`(협력자 mock + 조건 분기 3종
 - **리스너와 `@Configuration`은 코어에만 둔다**(`listenersAndConfigsShouldResideInCore`). 리스너가 앱 모듈에 있으면 다른 앱이 같은 이벤트를 발행할 때 후속 처리가 조용히 사라진다(AFTER_COMMIT 실패는 예외도 남지 않는다). `@Configuration`이 스테레오타입 클래스를 `@Bean`으로 다시 등록하면 스캔 빈과 이름이 겹쳐 기동이 실패한다(`configurationsShouldNotRegisterStereotypedClasses`).
 - **코어에 UseCase·오케스트레이터를 두지 않는다**(`coreShouldNotContainUseCasesOrOrchestrators`, `moduleUseCaseCounts`의 core =0). 코어는 4앱 전부에 뜨므로 거기 둔 UseCase는 쓰지 않는 앱에도 뜬다.
 - **빈은 자기가 뜨는 앱 컨텍스트에서 보이지 않는 구현에 의존하지 않는다**(`coreBeansShouldOnlyDependOnCoreVisibleTypes`). 컴파일은 통과해도(인터페이스가 코어에 있으면) 그 구현이 없는 앱에서 기동이 실패한다. 판정: 모든 `@Service`/`@Component` 빈(코어·앱 모듈 모두)의 생성자 파라미터 중 `com.tastyhouse.application.` 인터페이스마다 **후보** = 그 인터페이스의 추상이 아닌 스테레오타입 구현체(같은 인터페이스를 생성자로 받는 데코레이터는 제외) + 그 타입을 반환하는 `@Bean` 메서드. 후보가 1개 이상이면, 그 빈이 뜨는 **각 앱 컨텍스트**(코어 빈 → 4앱 전부, 앱 빈 → 자기 앱. 컨텍스트 = 코어 + 그 앱 모듈)에서 보이는 후보가 0개면 위반(구현이 다른 앱 모듈에만 있어 그 앱이 기동하지 못한다), 2개 이상이면 모호 위반이다. 위반은 Set으로 모아 한 번에 보고한다. anchor: 검사한 의존 ≥ 300, 후보가 1개 이상인 의존(`RESOLVED_FLOOR`) ≥ 43. **알려진 한계**: `@Primary`/`@Qualifier`는 모델링하지 않는다. infrastructure 구현체는 import 대상이 아니어서 후보 0인 의존(persistence·벤더가 구현하는 포트)은 건너뛴다. **anchor 하한(300 / `RESOLVED_FLOOR` 43)을 낮추지 않는다** — 후보 계산이 깨지면 모든 의존이 "후보 0, 건너뜀"이 되어 규칙이 공허 통과한다.
-- **`moduleBeanCounts`·`moduleUseCaseCounts` 하한을 낮추지 않는다**(빈: web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47 / UseCase: web ≥185 · admin ≥207 · ceo ≥188 · batch =8 · core =0). 한 모듈의 클래스가 통째로 사라지거나 엉뚱한 모듈로 옮겨지면 깨지는 것이 의도다. 유스케이스를 의도적으로 삭제할 때만 삭제 후 실측값으로 맞추며, 클래스 이동·출처 판정 오류로 줄어든 경우는 낮추지 않는다([ADR-0057](../../docs/adr/0057-anchor-floor-on-intentional-deletion.md)).
+- **`moduleBeanCounts`·`moduleUseCaseCounts` 하한을 낮추지 않는다**(빈: web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47 / UseCase: web ≥185 · admin ≥207 · ceo ≥188 · batch =8 · core =0). 한 모듈의 클래스가 통째로 사라지거나 엉뚱한 모듈로 옮겨지면 깨지는 것이 의도다. 유스케이스를 의도적으로 삭제할 때만 삭제 후 실측값으로 맞추며, 클래스 이동·출처 판정 오류로 줄어든 경우는 낮추지 않는다([결정 0057](#decision-0057)).
 - **`ModuleOrigin`은 main 출력만 인정하고, 나머지는 예외를 던져야 한다.** 규칙은 `ModuleOrigin.from(module)`(`DescribedPredicate`)로 대상을 고른다. 인정하는 것은 클래스 디렉터리 `.../{module}/build/classes/java/main/...`와 main jar `{module}-<버전>.jar`뿐이다. testFixtures 출력(`build/classes/java/testFixtures`, `*-test-fixtures.jar`), IntelliJ 자체 빌드 출력(`out/production/...`), opaque·형식이 깨진 URI는 전부 `IllegalStateException`이다. 모르는 형태에서 빈 값이나 기본값을 돌려주면, 출처로 고르는 규칙(batch 선별 등)이 대상을 잃고 공허하게 통과한다. **그래서 아키텍처 테스트는 Gradle로 실행한다** — IntelliJ 자체 빌드로 돌리면 `out/production/...` 출력 때문에 예외로 실패한다. IntelliJ에서는 Settings → Build Tools → Gradle → "Build and run using: Gradle"(테스트 실행도 Gradle)로 둔다. 이 예외를 피하려고 `out/production`을 인정하도록 넓히지 않는다.
 - **`EXCLUDED_COLLABORATORS` 21개의 근거** — 모든 서비스가 `@Service`를 달므로 "스테레오타입이 없으면 도메인 서비스"라는 술어를 쓸 수 없다. 그래서 `ServiceContextBoundaryTest#domainServices()`는 구조 조건(`..service..`, 인터페이스 아님, `@Configuration` 아님, `port.in` 구현 아님 — 유스케이스 서비스는 전부 `port.in`을 구현하므로 이 조건이 걸러 낸다)으로 고르고, **원래부터 스테레오타입이 있어 검사 대상이 아니던 협력 빈 21개**(Executor 6 · `SocialLoginService` 1 · Validator 7 · Reader 1(`ShopFoodTypeCategoryReader`) · `OwnedShopIdProvider` · `MemberAuthService` · `CredentialLoginService` · `PhoneLoginService` · `AuthPasswordResetService` · `AdminDongSyncRunner`)를 FQN으로 뺀다. `SocialLoginService`는 `member.service.MemberRegistrationService`·`member.port.out.write.*`를 직접 참조하므로 제외 대상이고, 같은 컨텍스트의 `auth.service.SocialOAuthClientRouter`는 auth 타입만 참조해 경계 검사를 통과하므로 넣지 않는다. 유스케이스 분리로 생긴 `{도메인}{명사}Reader`·`Validator`(예: ceo `ShopNoticeOwnerReader`·`ShopContentBoardOwnerReader`·`ShopBusinessHourOwnerValidator`)와 `ProductSoldOutUntilValidator`는 이 목록에 넣지 않았다 — **새 협력 빈은 경계 검사를 받게 두며 목록은 줄어들기만 한다.** 이 목록에서 항목을 빼면 그 협력 빈이 처음으로 경계 검사를 받아 봉인 밖 위반이 드러날 수 있다 — 빼려면 위반부터 확인한다. 새 협력 빈을 만들 때는 도메인 서비스인지 협력 빈인지 판단해 넣을지 정한다. 낡은 항목은 `excludedCollaboratorsShouldNotBeStale`이 잡는다 — **알려진 한계**: 이 짝 테스트는 더 이상 존재하지 않거나 구조 조건에 맞지 않게 된 항목만 잡고, "목록에서 빼도 경계 규칙을 통과할 항목"은 잡지 못한다. **이 술어는 사실상 "구조 + 이름 목록"이다.**
 - **앱 테스트 클래스패스의 `com.tastyhouse.application` 클래스는 코어와 자기 앱 모듈에서만 와야 한다**(각 앱 `ApplicationModuleClasspathTest` → `assertLoadsOnlyOwnApplicationModule(ModuleOrigin.{WEB,ADMIN,CEO,BATCH})`, 출처 모듈 집합 == `{application-core, 자기 앱 모듈}`). 스캔에 필터가 없으므로 다른 앱 모듈이 의존에 섞이면 그 앱의 빈이 전부 뜬다("클래스패스 존재 = 활성화"). 판정은 클래스 출처(`ModuleOrigin`)로 하며, 앱 모듈에 표식 리소스(`META-INF/tastyhouse/application-module.properties` 같은 것)를 두지 않는다. 판정 대상에서 자기 앱 모듈이 빠져도 실패하므로 공허 통과가 없다.
@@ -662,7 +662,7 @@ testFixtures에는 두 패키지가 있다 — `com.tastyhouse.architecture`(`Ap
 - **왜 1:1인가**: 도메인당 한 쌍이던 시절 서비스 하나가 연산 수십 개를 떠안았다(web shop 조회 서비스 하나가 714줄·public 메서드 20개, admin shop 명령 서비스 하나가 UseCase 37개를 구현했다). 그러면 트랜잭션 속성·주입 의존이 그 클래스의 모든 연산에 묶이고, 한 연산을 고칠 때 무관한 연산이 같은 diff에 섞인다. 『만들면서 배우는 클린 아키텍처』의 `SendMoneyService implements SendMoneyUseCase` 형태로 바꿔, 주입 목록이 곧 그 연산 하나의 의존을 증명하게 했다. 네 규칙 중 하나만 빠져도 1:1이 무너진다 — 포트 2개를 구현하는 서비스, 연산 2개짜리 포트, 포트와 이름이 어긋난 서비스, public 헬퍼를 노출한 서비스가 각각 다른 규칙에서 잡힌다.
 - **왜 판별을 서비스 이름이 아니라 구현 포트 이름으로 하나**: 명령 서비스 이름에서 `Command`가 빠졌다(`PgPaymentConfirmService`). 접미어로 고르던 CQRS 교차 주입 규칙(`commandServicesShouldNotDependOnQueryPorts`·`queryServicesShouldNotDependOnWritePorts`·`commandServicesShouldNotDependOnRequestRecords`)이 대상을 통째로 잃고 공허 통과하므로, 판별자를 포트 이름 끝의 `QueryUseCase` 하나로 옮겼다.
 - **왜 batch는 제외하나**: `*SchedulerService` 8개는 이미 UseCase 1개 = 서비스 1개다. 이름은 `BatchSchedulerRulesTest`가 `*SchedulerService`로 지키므로 `useCaseServiceNameShouldMatchPort`(포트명 기반)와 충돌한다. `SearchKeywordSchedulerService`는 UseCase 하나에 메서드 2개라 `useCaseServicesShouldHaveSinglePublicOperation`·`useCasesShouldDeclareSingleOperation`에 걸리는데, 이번 분할의 범위 밖이라 손대지 않았다. 그래서 `isUseCaseService`와 `useCasesShouldDeclareSingleOperation`이 `ModuleOrigin.BATCH` 출처를 뺀다.
-- **하한 580을 낮추지 않는다**: 출처 판정이나 `port.in` 판정이 깨지면 대상이 줄어 네 규칙이 공허 통과한다. 하한은 실측(web 185 · admin 207 · ceo 188)이다. 유스케이스를 의도적으로 삭제할 때만 삭제 후 실측값으로 맞춘다([ADR-0057](../../docs/adr/0057-anchor-floor-on-intentional-deletion.md)).
+- **하한 580을 낮추지 않는다**: 출처 판정이나 `port.in` 판정이 깨지면 대상이 줄어 네 규칙이 공허 통과한다. 하한은 실측(web 185 · admin 207 · ceo 188)이다. 유스케이스를 의도적으로 삭제할 때만 삭제 후 실측값으로 맞춘다([결정 0057](#decision-0057)).
 - **`allowEmptyShould`를 쓰지 않고, 위반은 손으로 모아 한 번에 보고한다**(`assertThat(violations).isEmpty()`).
 - **반증**: 네 규칙 모두 위반 probe(포트 2개를 구현하는 임시 클래스, 추상 메서드 2개짜리 포트, 포트와 이름이 다른 서비스, public 메서드 2개짜리 서비스)로 실패를 확인하고 probe를 지웠다.
 - **이 규칙이 생긴 김에 함께 바뀐 이름**: ceo 도메인 서비스 `ShopRequestCancelService`(요청 유형별 취소 분기)를 `ShopRequestCancellationService`로 개명했다(`backend/ceo-application/src/main/java/com/tastyhouse/application/shop/service/ShopRequestCancellationService.java`, 테스트 `ShopRequestCancellationServiceTest`). 유스케이스 `cancelRequest`의 서비스 이름이 `ShopRequestCancelService`가 되어 완전히 같은 이름이 생기기 때문이다 — **도메인 서비스는 명사형, 유스케이스 서비스는 동사형**으로 구분한다. `ServiceContextBoundaryTest.SEALED_VIOLATIONS`의 해당 FQN도 함께 바뀌었고 항목 수는 그대로다.
@@ -689,7 +689,7 @@ testFixtures에는 두 패키지가 있다 — `com.tastyhouse.architecture`(`Ap
 
 ### `commandRecordsShouldBeBoundaryTyped` carve-out 3건 — 느슨한 판을 batch에 적용하지 않는다
 
-**carve-out은 1건(`MultipartFile`)이다.** 제목의 "3건"은 앵커 호환을 위해 그대로 둔다. Command의 구조적 가드는 `ApplicationException(ApplicationErrorCode.INVALID_INPUT)`을 던지고 domain 타입을 import하지 않으며, 페이징 타입 `PageQuery`/`PageResult`는 `com.tastyhouse.application.shared.port.out.page`에 있어 domain 타입이 아니므로 제외할 것이 더 없다. 경위는 [ADR-0042](../../docs/adr/0042-error-code-module-split.md)·[ADR-0025](../../docs/adr/0025-presentation-domain-cut.md).
+**carve-out은 1건(`MultipartFile`)이다.** 제목의 "3건"은 앵커 호환을 위해 그대로 둔다. Command의 구조적 가드는 `ApplicationException(ApplicationErrorCode.INVALID_INPUT)`을 던지고 domain 타입을 import하지 않으며, 페이징 타입 `PageQuery`/`PageResult`는 `com.tastyhouse.application.shared.port.out.page`에 있어 domain 타입이 아니므로 제외할 것이 더 없다. 경위는 [결정 0042](../AGENTS.md#decision-0042)·[결정 0025](../AGENTS.md#decision-0025).
 
 **대상**: `backend/application-core/src/test/java/com/tastyhouse/application/architecture/LayerRulesTest.java`
 → `commandRecordsShouldBeBoundaryTyped()`
@@ -1167,8 +1167,8 @@ wither 3개가 빠져 **현재 13개**다 — `MenuReviewWritableItemResult#with
 - **승인 반영은 PENDING·FAILED 모두에서 완료로 전이한다(PG 성공 우선).** 토스가 동시 중복 승인에 `ALREADY_PROCESSED_PAYMENT`가 아닌 코드를 줄 수도 있으므로 마지막 방어선이다. `Payment#complete`도 같은 상태를 허용하고, COMPLETED·CANCELLED는 계속 거절한다(중복 승인 방지). 사전 확인(`preparePgConfirmation`)은 여전히 PENDING만 통과시키므로, 사용자가 FAILED 결제로 새 승인을 시작할 수는 없다.
 - **`Payment#fail`은 PENDING에서만 허용한다.** 서비스가 먼저 상태를 확인하므로 정상 흐름에서는 도달하지 않는 방어선이며, 새 에러코드를 만들지 않고 `DomainErrorCode.PAYMENT_NOT_PENDING`을 재사용한다(메시지가 "완료 처리"를 말하지만 바꾸면 wire 변경이다).
 - **두 번째 요청은 조회를 거쳐 응답이 정해진다.** 첫 요청이 이미 완료했으면 조회 `DONE` → 대사 `ALREADY_COMPLETED` → 기존 paymentId로 200, 첫 요청이 아직 승인 중이면 조회 `IN_PROGRESS` → 503 `PAYMENT_APPROVAL_UNCONFIRMED`다. 토스가 거절한 경우의 메시지는 토스 원문이다.
-- **batch 주기 대사가 web 요청 밖에서 남은 미확정 결제를 확정한다.** `batch-application`의 `payment/service/PaymentReconcileSchedulerService`(트리거 `batch-module`의 `PaymentReconcileScheduler`, 기본 10분 주기)가 `PaymentLoadPort#findAllPgAttemptedReconcileDueByStatusCreatedBetween(PENDING, now-7일, now-10분, now, 100)`으로 "PENDING + `pg_provider` 있음 + 다음 대사 시각(`reconcile_next_at`)이 비었거나 지남" 결제를 생성 순으로 고르고, 건마다 먼저 `PaymentReconcileExecutor#claimNextAttemptInNewTx`(트랜잭션)로 **대사 차례를 선점**한다 — `PaymentSavePort#saveReconcileScheduleIfDue`가 "시도 횟수가 방금 읽은 값 그대로 **그리고** 다음 시각이 비었거나 실행 시각 이하"일 때만 횟수를 1 올리고 다음 시각을 `max(실행 시작 시각 + min(10분 × 2^이전 시도 횟수, 24시간) − 1분, 선점 시각 + 2분)`(계산은 `PaymentReconcileBackoffPolicy#nextAttemptAt`)으로 저장한다. 차례 비교(`dueAt`)와 다음 시각의 앞항은 대상 조회와 같은 실행 시작 시각이다 — 선점 순간만 기준으로 삼으면 주기 시작 1분 뒤에 선점한 결제가 다음 실행을 지나쳐 첫 재시도가 20분 뒤가 된다. 뒤항(선점 시각 + 2분)은 한 주기가 길어져 늦게 선점했을 때 저장값이 이미 지난 값이 되어 그 사이 시작한 다른 실행이 처리 중인 결제를 다시 선점하는 것을 막는다(2분의 근거와 타임아웃 결합은 `batch-application/AGENTS.md`의 대사 재시도 일정 항목). 영향 행이 0이면 다른 실행(다른 batch 인스턴스)이 먼저 가져갔거나 web 승인 시도가 일정을 초기화한 것이라 PG에 묻지 않고 넘어간다 — 그래서 batch를 여러 대 띄워도 같은 결제를 두 번 조회·반영하지 않고(`failPgConfirmation`이 원장을 상태 확인 전에 쓰므로 중복 처리는 곧 원장 중복이다), 횟수 갱신도 유실되지 않는다. 선점이 예외면 ERROR를 남기고 그 결제를 건너뛰며, **3건 연속** 예외면 DB 장애로 보고 남은 대상을 건드리지 않은 채 주기를 중단한다(다음 시각이 바뀌지 않아 다음 주기에 다시 고른다). 선점한 결제만 `PgPaymentGatewayPort#lookupPayment`(트랜잭션 밖)로 PG에 묻는다([ADR-0064](../../docs/adr/0064-payment-reconcile-claim.md)). 조회 `APPROVED`면 `PaymentReconcileExecutor#reconcileApprovedInNewTx`(→ `reconcileApproved`, 트랜잭션), `NOT_APPROVED`면 `#failUnapprovedInNewTx`(→ 조회 결과로 `failPgConfirmation`, FAILED), `UNKNOWN`이면 건드리지 않고 `PG_CONFIRM_UNKNOWN` WARN(`attempt=` 시도 횟수 포함)만 남겨 다음 차례로 넘긴다. `APPROVED` 반영이 예외면 `PG_DB_MISMATCH` ERROR다(PG는 승인, DB는 미반영). 확정하지 못한 결제(조회 예외·`UNKNOWN`·`AMOUNT_MISMATCH`·반영 예외)의 이번 시도가 **7일 창 안의 마지막 시도**면(`nextAttemptAt + 10분`이 `createdAt + 7일`을 넘음 — 기본 cron 주기 10분이고 다음 실행이 밀리지 않는다는 전제라, 앞 주기가 길어지거나 주기가 중단되면 신호 없이 빠지는 결제가 생길 수 있다) `PG_RECONCILE_MANUAL_REQUIRED` ERROR를 남긴다. 다음 주기부터 대상에서 빠져 수동 대사로만 풀리기 때문이다. 판정에 `+ 10분` 여유를 두어 다음 실행이 조금 밀려도 놓치지 않는 대신, 창 끝 직전에는 연속한 두 실행이 모두 마지막으로 판정돼 **최대 2건**이 남을 수 있다(누락보다 중복을 택했다). 건별 예외는 격리하고 결과별 건수(선점 실패·다른 실행이 처리·수동 대사 필요 포함)를 INFO로 남기며, 대상이 0건이면 DEBUG만 남긴다. 대상 창은 결제 **생성 시각**(`created_at`) 기준 반개구간 `[now-7일, now-10분)`이다. 생성 후 10분 미만은 web 요청 안의 즉시 조회와 겹치지 않게 제외하고, 7일을 넘긴 건은 수동 대사 대상이다. `pg_provider`가 비어 있는 PENDING(결제창을 닫고 떠난 결제)은 PG를 부른 적이 없으므로 건드리지 않는다. 조회 순서는 `created_at`(같으면 `id`) 오름차순이지만, 한 번 시도한 결제는 다음 차례까지 대상에서 빠지므로 결과를 확정하지 못하는 결제가 100건 슬롯을 계속 차지하지 않는다. 같은 이유로 `AMOUNT_MISMATCH`의 `PG_DB_MISMATCH` ERROR도 7일 동안 약 14회로 줄어든다. web 승인 시도(`PaymentConfirmationService#recordPgAttempt`)는 같은 트랜잭션에서 `PaymentSavePort#saveReconcileSchedule(paymentId, 0, 지금+10분)`으로 일정을 초기화한다 — 재승인한 결제가 이전 백오프에 묶여 하루씩 기다리지 않게 하고, 잠금 밖에서 진행 중인 web PG 호출과 batch 조회가 겹치지 않게 10분을 둔다([ADR-0062](../../docs/adr/0062-payment-reconcile-backoff.md)).
-- 결정 경위: [ADR-0059](../../docs/adr/0059-payment-confirm-race-lock.md)(잠금), [ADR-0060](../../docs/adr/0060-pg-confirm-unknown-lookup.md)(결과 불명·조회 대사), [ADR-0061](../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md)(PG 포트 코어 이동·batch 주기 대사), [ADR-0065](../../docs/adr/0065-pg-cancel-lookup-recovery.md)(취소 조회 복구).
+- **batch 주기 대사가 web 요청 밖에서 남은 미확정 결제를 확정한다.** `batch-application`의 `payment/service/PaymentReconcileSchedulerService`(트리거 `batch-module`의 `PaymentReconcileScheduler`, 기본 10분 주기)가 `PaymentLoadPort#findAllPgAttemptedReconcileDueByStatusCreatedBetween(PENDING, now-7일, now-10분, now, 100)`으로 "PENDING + `pg_provider` 있음 + 다음 대사 시각(`reconcile_next_at`)이 비었거나 지남" 결제를 생성 순으로 고르고, 건마다 먼저 `PaymentReconcileExecutor#claimNextAttemptInNewTx`(트랜잭션)로 **대사 차례를 선점**한다 — `PaymentSavePort#saveReconcileScheduleIfDue`가 "시도 횟수가 방금 읽은 값 그대로 **그리고** 다음 시각이 비었거나 실행 시각 이하"일 때만 횟수를 1 올리고 다음 시각을 `max(실행 시작 시각 + min(10분 × 2^이전 시도 횟수, 24시간) − 1분, 선점 시각 + 2분)`(계산은 `PaymentReconcileBackoffPolicy#nextAttemptAt`)으로 저장한다. 차례 비교(`dueAt`)와 다음 시각의 앞항은 대상 조회와 같은 실행 시작 시각이다 — 선점 순간만 기준으로 삼으면 주기 시작 1분 뒤에 선점한 결제가 다음 실행을 지나쳐 첫 재시도가 20분 뒤가 된다. 뒤항(선점 시각 + 2분)은 한 주기가 길어져 늦게 선점했을 때 저장값이 이미 지난 값이 되어 그 사이 시작한 다른 실행이 처리 중인 결제를 다시 선점하는 것을 막는다(2분의 근거와 타임아웃 결합은 `batch-application/AGENTS.md`의 대사 재시도 일정 항목). 영향 행이 0이면 다른 실행(다른 batch 인스턴스)이 먼저 가져갔거나 web 승인 시도가 일정을 초기화한 것이라 PG에 묻지 않고 넘어간다 — 그래서 batch를 여러 대 띄워도 같은 결제를 두 번 조회·반영하지 않고(`failPgConfirmation`이 원장을 상태 확인 전에 쓰므로 중복 처리는 곧 원장 중복이다), 횟수 갱신도 유실되지 않는다. 선점이 예외면 ERROR를 남기고 그 결제를 건너뛰며, **3건 연속** 예외면 DB 장애로 보고 남은 대상을 건드리지 않은 채 주기를 중단한다(다음 시각이 바뀌지 않아 다음 주기에 다시 고른다). 선점한 결제만 `PgPaymentGatewayPort#lookupPayment`(트랜잭션 밖)로 PG에 묻는다([결정 0064](../../docs/domain/payment.md#decision-0064)). 조회 `APPROVED`면 `PaymentReconcileExecutor#reconcileApprovedInNewTx`(→ `reconcileApproved`, 트랜잭션), `NOT_APPROVED`면 `#failUnapprovedInNewTx`(→ 조회 결과로 `failPgConfirmation`, FAILED), `UNKNOWN`이면 건드리지 않고 `PG_CONFIRM_UNKNOWN` WARN(`attempt=` 시도 횟수 포함)만 남겨 다음 차례로 넘긴다. `APPROVED` 반영이 예외면 `PG_DB_MISMATCH` ERROR다(PG는 승인, DB는 미반영). 확정하지 못한 결제(조회 예외·`UNKNOWN`·`AMOUNT_MISMATCH`·반영 예외)의 이번 시도가 **7일 창 안의 마지막 시도**면(`nextAttemptAt + 10분`이 `createdAt + 7일`을 넘음 — 기본 cron 주기 10분이고 다음 실행이 밀리지 않는다는 전제라, 앞 주기가 길어지거나 주기가 중단되면 신호 없이 빠지는 결제가 생길 수 있다) `PG_RECONCILE_MANUAL_REQUIRED` ERROR를 남긴다. 다음 주기부터 대상에서 빠져 수동 대사로만 풀리기 때문이다. 판정에 `+ 10분` 여유를 두어 다음 실행이 조금 밀려도 놓치지 않는 대신, 창 끝 직전에는 연속한 두 실행이 모두 마지막으로 판정돼 **최대 2건**이 남을 수 있다(누락보다 중복을 택했다). 건별 예외는 격리하고 결과별 건수(선점 실패·다른 실행이 처리·수동 대사 필요 포함)를 INFO로 남기며, 대상이 0건이면 DEBUG만 남긴다. 대상 창은 결제 **생성 시각**(`created_at`) 기준 반개구간 `[now-7일, now-10분)`이다. 생성 후 10분 미만은 web 요청 안의 즉시 조회와 겹치지 않게 제외하고, 7일을 넘긴 건은 수동 대사 대상이다. `pg_provider`가 비어 있는 PENDING(결제창을 닫고 떠난 결제)은 PG를 부른 적이 없으므로 건드리지 않는다. 조회 순서는 `created_at`(같으면 `id`) 오름차순이지만, 한 번 시도한 결제는 다음 차례까지 대상에서 빠지므로 결과를 확정하지 못하는 결제가 100건 슬롯을 계속 차지하지 않는다. 같은 이유로 `AMOUNT_MISMATCH`의 `PG_DB_MISMATCH` ERROR도 7일 동안 약 14회로 줄어든다. web 승인 시도(`PaymentConfirmationService#recordPgAttempt`)는 같은 트랜잭션에서 `PaymentSavePort#saveReconcileSchedule(paymentId, 0, 지금+10분)`으로 일정을 초기화한다 — 재승인한 결제가 이전 백오프에 묶여 하루씩 기다리지 않게 하고, 잠금 밖에서 진행 중인 web PG 호출과 batch 조회가 겹치지 않게 10분을 둔다([결정 0062](../../docs/domain/payment.md#decision-0062)).
+- 결정 경위: [결정 0059](../../docs/domain/payment.md#decision-0059)(잠금), [결정 0060](../../docs/domain/payment.md#decision-0060)(결과 불명·조회 대사), [결정 0061](../../docs/domain/payment.md#decision-0061)(PG 포트 코어 이동·batch 주기 대사), [결정 0065](../../docs/domain/payment.md#decision-0065)(취소 조회 복구).
 
 ### 도메인 서비스를 둘 모듈은 소비 앱 집합으로 정한다 — 공유 커널 단방향
 
@@ -1602,7 +1602,7 @@ application 계층 스캔에는 필터가 없다. **무엇이 뜨는지는 앱�
 
 - **다른 앱 모듈을 앱 의존에 추가하지 않는다** — 클래스패스에 있는 것은 다 스캔되므로 그 앱의 빈이 전부 뜬다. 각 앱 `ApplicationModuleClasspathTest`(`assertLoadsOnlyOwnApplicationModule`)가 막는다.
 - **앱 소속을 표현하는 애노테이션을 만들지 않는다**(위 "앱 모듈 경계 가드").
-- **application은 자기 등록하지 않는다** — 라이브러리 모듈처럼 이 모듈도 `AutoConfiguration.imports`·스캔 설정을 갖지 않는다. 스캔 범위는 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 정하고, 라이브러리 모듈은 같은 부트스트랩의 중첩 `ModuleScanConfig`가 문자열 스캔으로 조립한다. 경위는 [ADR-0035](../../docs/adr/0035-application-config-into-bootstrap.md)·[ADR-0038](../../docs/adr/0038-autoconfiguration-imports-removal.md).
+- **application은 자기 등록하지 않는다** — 라이브러리 모듈처럼 이 모듈도 `AutoConfiguration.imports`·스캔 설정을 갖지 않는다. 스캔 범위는 각 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 정하고, 라이브러리 모듈은 같은 부트스트랩의 중첩 `ModuleScanConfig`가 문자열 스캔으로 조립한다. 경위는 [결정 0035](../AGENTS.md#decision-0035)·[결정 0038](../AGENTS.md#decision-0038).
 
 ### `applicationShouldNotDeclareComponentScan` — application에 `@ComponentScan`을 되살리지 않는다
 
@@ -1633,7 +1633,7 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 
 **대상**: `application-core/src/main/java/com/tastyhouse/application/**/port/in/*UseCase.java`(5모듈)와 그 구현 서비스
 
-- **UseCase를 구현한 클래스는 구체 타입으로 주입하지 않는다.** 서비스 간 협력도 `port.in` UseCase 인터페이스로 주입한다(`LayerRulesTest#servicesShouldDependOnUseCasesNotImplementations`). 경위는 [ADR-0033](../../docs/adr/0033-usecase-interface-injection.md).
+- **UseCase를 구현한 클래스는 구체 타입으로 주입하지 않는다.** 서비스 간 협력도 `port.in` UseCase 인터페이스로 주입한다(`LayerRulesTest#servicesShouldDependOnUseCasesNotImplementations`). 경위는 [결정 0033](#decision-0033).
 - **협력에 필요한 것이 domain-free 타입(`port.out` `*Result`·원시값)이면 UseCase에 선언한다.** 예: `ReviewShopByRatingQueryUseCase`·`ReviewShopStatisticsQueryUseCase`·`ReviewMemberCountQueryUseCase`·`ReviewWrittenProductIdsQueryUseCase`·`ReviewMyListQueryUseCase`.
 - **도메인 타입을 주고받는 협력이면 UseCase에 올리지 않고, 그 타입을 소유한 write 포트나 도메인 서비스를 직접 주입한다** — 예: 인증 계정 로드는 `AdminLoadPort`/`CeoLoadPort`, 회원 가입은 도메인 서비스 `MemberRegistrationService`. UseCase에 올리지 않는 이유는 둘이다. 도메인 타입이라 `commandRecordsShouldBeBoundaryTyped`(`..port.in..`에서 `com.tastyhouse.domain..` 금지)에 걸리고, 비밀번호 해시를 담은 `Admin`/`Ceo`를 컨트롤러가 닿는 인터페이스로 노출하게 되기 때문이다.
 - **위임만 하는 협력 빈을 두지 않는다** — 포트·UseCase 호출 한 줄을 넘겨주기만 하는 빈 대신 호출부가 그 포트나 UseCase를 직접 주입한다. 위임을 걷어낼 때는 그 위임 대상이 제공하던 `@Transactional` 속성을 호출부로 옮긴다(예: `CredentialLoginService#signUp`은 `@Transactional` — 회원 저장과 추천 등록의 원자성, `AdminTokenService#refresh`·`CeoTokenService#refresh`는 `@Transactional(readOnly = true)`).
@@ -1684,7 +1684,7 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 - **최상위 예외만 본다 — `getCause()`를 따라가지 않는다.** `resolve`는 넘겨받은 예외 자체가 `BusinessException`(하위 타입 `ResourceNotFoundException` 등 포함)일 때만 `ErrorDescriptor(status, code, message)`를 돌려주고, 그 밖은 `Optional.empty()`다(`message`는 `getMessage()`). 삭제된 전용 `@ExceptionHandler(BusinessException.class)`도 최상위 타입으로만 매칭했으므로 이것이 기존 동작과 같은 의미다. cause를 따라가면 **오늘 500으로 응답되는, 다른 예외에 감싸인 `BusinessException`이 조용히 4xx로 바뀐다** — wire 계약 변경이다. "더 친절하게" 만들려고 cause 탐색을 넣지 않는다.
 - **빈이 아니라 정적 유틸이다.** 빈으로 만들면 application 계층 스캔은 앱 부트스트랩의 중첩 `ApplicationLayerScanConfig`가 하므로, api-common의 `ratelimit/ApiCommonRateLimitConfigTest`처럼 앱 부트스트랩 없이 뜨는 컨텍스트에서는 빈을 찾지 못해 실패한다. 상태 없는 순수 번역이라 빈일 이유도 없다(`ProblemDetails`가 static인 것과 같은 판단).
 - **AOP로 예외를 번역하지 않는다.** 서비스 경계에서 `BusinessException`을 다른 타입으로 감싸는 aspect를 두면, 예약 경로(web-application `reservation/service/ReservationCreateService` → `ReservationBookingExecutor`)가 **`OptimisticLockConflictException`을 잡아 재시도**하는 루프가 감싼 예외를 못 알아봐 재시도가 깨진다. 게다가 이 모듈에는 aspectjweaver가 없다. 번역은 응답 직전(핸들러)에서 한 번만 한다.
-- **표현 계층이 직접 내는 코드(rate limit 429·권한 403·인증 401)는 `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ApiErrorCode.java`의 `RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`가 갖는다**(`security-module`이 `api-common-module`을 `implementation`으로 의존한다). application에 HTTP 계약 미러(`ErrorContracts`)를 두지 않는다. `AUTH_REQUIRED`는 `WebErrorCode.AUTH_REQUIRED`의 미러라 같은 값이어야 하며, 전역 유일성 검사의 **봉인 예외 1건**이다(아래 "에러 카탈로그 가드"). 경위는 [ADR-0042](../../docs/adr/0042-error-code-module-split.md).
+- **표현 계층이 직접 내는 코드(rate limit 429·권한 403·인증 401)는 `backend/api-common-module/src/main/java/com/tastyhouse/apicommon/exception/ApiErrorCode.java`의 `RATE_LIMIT_EXCEEDED`·`ACCESS_DENIED`·`AUTH_REQUIRED`가 갖는다**(`security-module`이 `api-common-module`을 `implementation`으로 의존한다). application에 HTTP 계약 미러(`ErrorContracts`)를 두지 않는다. `AUTH_REQUIRED`는 `WebErrorCode.AUTH_REQUIRED`의 미러라 같은 값이어야 하며, 전역 유일성 검사의 **봉인 예외 1건**이다(아래 "에러 카탈로그 가드"). 경위는 [결정 0042](../AGENTS.md#decision-0042).
 
 ### 에러 카탈로그 가드 — 코드는 던지는 가장 안쪽 모듈에 두고, 봉인 집합을 늘리지 않는다 (에러코드 모듈 분할)
 
@@ -1709,7 +1709,7 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 
 **`ErrorCatalogConventionTest`가 검사하는 것과 봉인 집합** — 전역 code 유일성(봉인: `AUTH_REQUIRED` 미러 1건), `name == code`(봉인: `*_VERIFICATION_CODE_*` 6건 — `SMS_`/`MAIL_` × `NOT_FOUND`·`EXPIRED`·`MISMATCH`), `*_NOT_FOUND → 404`(봉인 4건: `SMS_VERIFICATION_CODE_NOT_FOUND`·`MAIL_VERIFICATION_CODE_NOT_FOUND`·`REFERRAL_REFERRER_NOT_FOUND`·`FOLLOW_NOT_FOUND`), HTTP 상태 400~599, 메시지 비공백, 계층 계약(각 enum이 자기 계층 예외로만 던져지는 구조). 봉인 사유는 프론트가 분기하는 wire 계약이라 지금 고치면 클라이언트가 깨지는 것이다 — `backend/domain/AGENTS.md`의 같은 이름 봉인 항목 참고. **봉인 집합에 새 항목을 추가하지 않는다.** 노후 감지 짝 테스트(`whitelistIsNotStale`)가 고쳐진 봉인을 알려준다.
 
-**`ErrorCatalogSnapshotTest`** — 7개 카탈로그의 `(code, status, message)` 합집합이 스냅샷 `error-catalog-before.tsv`(445행)에서 삭제한 23개를 뺀 **422건**과 같음을 단정한다. 분할이 wire 계약을 바꾸지 않았다는 증거다. **스냅샷 파일을 갱신해 테스트를 맞추지 않는다** — 기존 코드의 코드·상태·메시지를 바꾸면 이 테스트가 실패해야 정상이다. 의도한 wire 변경이라면 그 사실을 문서에 먼저 적는다. **신규 에러코드는 additive라 wire 계약을 깨지 않으므로** 다음 절차로 추가한다 — (1) 소유 카탈로그 enum에 상수 추가, (2) tsv에 `NAME\tstatus\tCODE\tmessage` 한 행 추가, (3) `hasSize`를 1 올림, (4) `backend/CLAUDE.md`의 "예외·에러코드 소유 규칙" 절과 이 문서 위 표의 개수 표기를 함께 갱신. ([ADR-0056](../../docs/adr/0056-error-catalog-additive-snapshot.md)) `application`의 build.gradle에 `testImplementation project(':api-common-module')`가 추가됐다(`ApiErrorCode`를 검사하기 위함).
+**`ErrorCatalogSnapshotTest`** — 7개 카탈로그의 `(code, status, message)` 합집합이 스냅샷 `error-catalog-before.tsv`(445행)에서 삭제한 23개를 뺀 **422건**과 같음을 단정한다. 분할이 wire 계약을 바꾸지 않았다는 증거다. **스냅샷 파일을 갱신해 테스트를 맞추지 않는다** — 기존 코드의 코드·상태·메시지를 바꾸면 이 테스트가 실패해야 정상이다. 의도한 wire 변경이라면 그 사실을 문서에 먼저 적는다. **신규 에러코드는 additive라 wire 계약을 깨지 않으므로** 다음 절차로 추가한다 — (1) 소유 카탈로그 enum에 상수 추가, (2) tsv에 `NAME\tstatus\tCODE\tmessage` 한 행 추가, (3) `hasSize`를 1 올림, (4) `backend/CLAUDE.md`의 "예외·에러코드 소유 규칙" 절과 이 문서 위 표의 개수 표기를 함께 갱신. ([결정 0056](#decision-0056)) `application`의 build.gradle에 `testImplementation project(':api-common-module')`가 추가됐다(`ApiErrorCode`를 검사하기 위함).
 
 ### 03a로 domain에서 옮겨 온 설계 근거 (도메인 서비스)
 
@@ -1928,3 +1928,636 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 **대상**: `backend/application-core/src/main/java/com/tastyhouse/application/shared/event/SpringDomainEventPublisher.java`
 
 `DomainEventPublisher` 포트(03a로 domain에서 이동, 같은 패키지)를 Spring `ApplicationEventPublisher`에 위임한다. `@TransactionalEventListener`/`@EventListener` 기반 리스너가 그대로 수신한다. **03a 이전에는 persistence의 마커 없는 `@Component`였고**, 지금은 `@Component`를 떼고 `shared/config/SharedBeanConfig`(`@SharedApp`, 구 `SharedEventConfig`)가 `@Bean domainEventPublisher`로 등록한다 — 포트가 `port.out` 밖(`shared/event`)에 있어 persistence가 볼 수 없게 됐기 때문이다. 리스너도 같은 모듈의 `<ctx>/listener/`에 있다.
+
+## 결정 경위
+
+이 문서가 소유한 규칙이 **왜 지금 모양이 됐는지**를 결정 단위로 적습니다. 본문은 현재 규칙만 담고, "예전에는 어땠고 왜 바뀌었는가"는 이 절에만 둡니다. 이 절은 항상 문서의 마지막 `##` 절이며, 항목은 번호 순입니다. 작성 규칙은 루트 `CLAUDE.md`의 "규칙 문서 개정 규칙" 절에 있습니다.
+
+<a id="decision-0007"></a>
+
+### 0007. 읽기 계약을 application-common-module에 모으고 application은 QueryPort로만 읽는다
+
+- 상태: 대체됨(→ [결정 0009](#decision-0009))
+- 결정 커밋: `c50e39780` (2026-08-29)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0007
+
+| 항목 | before | after |
+|---|---|---|
+| Result·SearchCondition 위치 | infra `<ctx>/query/`(Result 189개·SearchCondition 20개) | 신설 프레임워크-프리 모듈 `application-common-module`, 패키지 `com.tastyhouse.application.<ctx>.port.out` |
+| 조회 인터페이스 | 없음(DAO 구체 클래스 주입) | `{Ctx}QueryPort` 48개 신설, DAO가 implements |
+| QueryService가 주입하는 타입 | DAO 구현체 | `{Ctx}QueryPort` 인터페이스 |
+| api 모듈의 infra query import | 있음 | 0건 |
+| Result 투영 | `@QueryProjection` | `Projections.constructor(XxxResult.class, ...)`(`@QueryProjection` 선언 0건) |
+
+<a id="decision-0009"></a>
+
+### 0009. 읽기 계약을 소비 앱 수로 나눠 다중 앱 공유분은 domain이, 단독분은 그 앱 모듈이 소유한다
+
+- 상태: 대체됨(→ [결정 0015](#decision-0015))
+- 결정 커밋: `2b583d0c2` (2026-08-30)
+- 대체한 결정: [결정 0007](#decision-0007)
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0009
+
+| 항목 | before | after |
+|---|---|---|
+| 2개 이상 앱이 쓰는 계약(당시 50개: Result 44·QueryPort 5·SearchCondition 1, 이후 55개) | `application-common-module` | `domain`(git mv) |
+| 한 앱만 쓰는 계약 | `application-common-module` | 그 앱의 `{앱}-application`(`a096c5e13`·`99a3d020b`·`45de28c1c`) |
+| 패키지 | `com.tastyhouse.application..port.out` | 불변 — split package(5모듈) |
+| `application-common-module` | 존재 | 삭제(`45db4cbbd`, 모듈 18 → 17) |
+| 가드 | — | `ReadContractPurityTest`(domain)·`ReadContractSingleOwnerTest`(persistence)·`RuleAnchorTest` 소유 모듈 필터 |
+
+<a id="decision-0012"></a>
+
+### 0012. Response.from은 읽기 계약 XxxResult를 통째로 받는다
+
+- 상태: 채택
+- 결정 커밋: `787dd580f` (2026-09-01)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0012
+
+#### 맥락
+
+- **Response record**: HTTP 응답 본문 record. 정적 팩토리 `from(...)`으로 조립한다.
+- **읽기 계약 `XxxResult`**: 조회 결과 record. 지금은 `com.tastyhouse.application..port.out`에 있는 프레임워크-프리 계약이다.
+
+챕터 06(Response 계약 승격)이 Response record를 application 모듈에서 api 모듈로 옮기고 api 모듈의 Service를 삭제했다. 그러자 "Result를 Response로 바꾸는 언패킹은 Service가 한다"는 기존 규칙이 지킬 수 없는 문장이 됐다.
+
+#### 이전 규칙
+
+##### `backend/CLAUDE.md` — DTO 조립 규칙 — "도메인/DTO → 응답 변환 (result 객체가 아니라 개별 원시타입으로 수신)"
+
+응답 record의 정적 팩토리 `from(...)`은 infra query DAO의 result 객체(`XxxResult`)를 통째로 받지 않고, **result의 각 필드를 원시타입(String/Long/Integer/LocalDateTime 등)으로 낱개 언패킹해서 받는다**(`XxxResponse.from(id, title, content, ...)`). result를 낱개로 풀어 넘기는 책임은 이 Response를 호출하는 **Service**가 지며, Service에 private 매퍼(`toXxxResponse(XxxResult dto)`)를 두어 `dto.id()`, `dto.title()`처럼 이름 기반으로 꺼낸다. 근거는 "result 객체를 그대로 받으면 Response record가 infra query result의 필드 구조를 알아야 해 infrastructure에 결합된다"였다.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| `from` 시그니처 | `from(Long id, String title, ...)` 원시타입 낱개 | `from(XxxResult result)` 통째로 |
+| 매퍼 위치 | Service의 private `toXxxResponse` | Response record 자신. 중첩 조립(리스트 필드·하위 Response)도 그 record의 private 헬퍼 |
+
+#### 근거
+
+1. **문언이 지정한 언패킹 주체가 사라졌다** — 규칙은 그 책임을 "Service"에 맡기는데, 챕터 06이 api 모듈의 Service를 삭제했고 `apiModuleMustNotContainApplicationLayer`가 재생성을 막는다. 남는 후보는 컨트롤러뿐이라, 규칙을 지켜도 언패킹이 api 모듈에 그대로 남는다(위반이 이동만 한다).
+2. **`PageResult.map`이 arity 1을 요구한다** — `PaginationResponse.from(pageResult.map(XxxResponse::from))` 형태가 admin-api에 56곳이고 `PageResult#map`은 `Function<T,R>`이다. 다인자 `from(Long, String, ...)`은 메서드 레퍼런스가 될 수 없어, 문언을 지키려면 56곳을 인라인 람다로 풀어야 하고 **그러면 같은 타입 인자의 위치 착오 위험이 응답 타입 85개에 되살아난다.**
+3. **폐기된 근거** — "infrastructure에 결합된다"는 더 이상 성립하지 않는다. `from`이 받는 타입은 `com.tastyhouse.infrastructure..`의 result가 아니라 `com.tastyhouse.application..port.out`의 읽기 계약이고(챕터 04 읽기 경로 포트화·챕터 05 소유 규칙의 결과), 그 계약은 프레임워크-프리라 api 모듈이 정당하게 아는 대상이다. 결합 대상이 "infra 구현"에서 "계약"으로 바뀌었다.
+
+#### 결과·감수한 손실
+
+- Response가 Result의 필드 구조를 안다. Result 필드가 바뀌면 그것을 쓰는 Response도 함께 바뀐다 — 계약 결합이므로 감수한다.
+- 이후 ceo(챕터 09)·web(챕터 10)도 같은 형태로 Response를 api 모듈로 승격해 3개 앱 전부 `from(Result)`를 쓴다.
+
+<a id="decision-0015"></a>
+
+### 0015. 공유 읽기 계약 55개를 domain에서 application으로 되돌린다(챕터 04)
+
+- 상태: 채택
+- 결정 커밋: `b5ad5e5be` (2026-09-04)
+- 대체한 결정: [결정 0009](#decision-0009)
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0015
+
+#### 맥락
+
+[결정 0009](#decision-0009)는 2개 이상 앱이 쓰는 읽기 계약(`{Ctx}QueryPort`·`*Result`·`*SearchCondition`) 55개를 `domain`에 두었다. 근거는 하나였다 — 공유 계약을 어느 한 앱의 application 모듈에 주면 나머지 앱이 그 모듈을 의존하는 **앱 간 수평 의존**이 생긴다.
+
+그런데 [결정 0013](../AGENTS.md#decision-0013)(챕터 01)이 앱별 application 모듈 4개를 `application` 하나로 합쳤다.
+
+#### 이전 규칙
+
+##### `backend/CLAUDE.md` — "다중 앱 공유 계약은 `domain`이 소유한다"
+
+2개 이상의 앱이 함께 쓰는 읽기 계약은 `domain`에, 한 앱만 쓰는 계약은 그 앱의 application 모듈에 둔다. 새 계약은 소비 앱 수를 세어 소유 모듈을 정한다. 그동안 `com.tastyhouse.application.<ctx>.port.out`은 여러 모듈이 나눠 갖는 split package였고, `ReadContractPurityTest`(domain)·`ReadContractSingleOwnerTest`(persistence)·`RuleAnchorTest` 소유 모듈 필터가 지켰다.
+
+당시 문서가 적은 원래 근거는 이것 하나였다 — "포트를 소비자별로 쪼개도 여러 앱이 함께 쓰는 메서드와 `*Result`가 남는다. 그것을 어느 한 앱의 application 모듈에 주면 나머지 앱이 그 모듈을 의존해야 한다(앱 간 수평 의존). `domain`은 이미 4개 앱이 전부 의존하므로 소유자를 여기로 옮기면 새 의존 간선이 하나도 생기지 않는다." 그 시점에는 타당했다.
+
+##### `backend/CLAUDE.md` — query DAO·QueryPort·Result DTO·SearchCondition 소유 규칙 (챕터 03/04 경위)
+
+- 챕터 03까지는 `infrastructure:persistence`의 `<ctx>/query/` 패키지 하나가 `{도메인}QueryAdapter` + `@QueryProjection` Result DTO + `{도메인}SearchCondition`을 전부 소유했고, api 모듈이 그 DAO를 직접 주입했다.
+- 챕터 04(읽기 경로 포트화)가 이를 역전하면서, infra → api 의존은 만들 수 없고(`LayerRulesTest#shouldNotDependOnApiModules`) domain에 두면 표현용 투영 184개가 순수 도메인에 섞이므로 계약 전용 모듈 `application-common-module`을 신설했다([결정 0007](#decision-0007)). 동기는 api 모듈이 인프라 구현 상세(DAO 클래스)를 컴파일 타임에 직접 알아야 했던 마지막 결합을 인터페이스 경계로 끊는 것이었다.
+
+##### `backend/AGENTS.md` — Purpose (`@QueryProjection` 폐지 항목)
+
+Result가 이관된 계약 모듈을 "현재는 `{앱}-application`·`domain`"으로 적었다 — 공유분이 `domain`에 있던 시기의 표기다.
+
+##### `backend/AGENTS.md` — Purpose
+
+조회 계약의 소유 모듈은 소비자 수로 갈린다 — 한 앱만 쓰면 그 앱의 `{앱}-application`, 2개 이상이 쓰면 `domain`이다.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| 공유 읽기 계약 55개 | `domain` | `application`(git mv) |
+| 소유 판정 | 소비 앱 수를 센다 | 판정 없음 — 읽기 계약이면 `application`의 `com.tastyhouse.application.<ctx>.port.out` |
+| split package | 있음 | 종료(당시 기준) |
+| 가드 | `ReadContractPurityTest`·`ReadContractSingleOwnerTest`·`RuleAnchorTest` 소유 모듈 필터 | 삭제(`application` `RuleAnchorTest` 하한 227 → 282) |
+| `domain`에 두는 것 | 모델·VO·write 포트·도메인 서비스 + 공유 계약 | 모델·VO·write 포트·도메인 서비스 |
+
+#### 근거
+
+- **근거가 소멸했다**: 앱별 모듈이 하나로 합쳐지면서 "어느 한 앱의 모듈"이라는 것이 존재하지 않게 됐다. 공유 계약을 `application`에 두어도 의존할 다른 앱 모듈이 없으니 수평 의존이 생길 자리가 없다(원문 "왜 번복했나").
+- 같은 모듈 안의 FQCN 중복은 컴파일 에러라 split package 가드가 필요 없다.
+- `domain`이 "표현 투영의 쓰레기통"이 될 위험(계약 전용 모듈을 처음 만든 이유)이 공유분 55개에 한해 되살아나 있던 상태를 해소한다.
+
+#### 결과·감수한 손실
+
+- 이동은 `git mv`뿐이었다 — 패키지 경로가 같아 소비자 import 변경 0건(persistence DAO·앱 QueryService·api Response record 전부 무변경), `build.gradle` 변경도 없었다. api 모듈은 그동안 `persistence → domain` 전이로 이 55개를 봤으나 이후 이미 선언돼 있던 `application` 의존(`implementation project(':application-core')`)으로 직접 본다.
+- 계약 이름은 기존 명명(`Result` 접미어·`Management` 한정어 등)을 그대로 승계했다 — `View`로의 개명은 184개 개명 + 소비 99파일 연쇄 수정 비용 대비 이득이 없어 하지 않았다.
+- 프레임워크-프리는 컴파일 게이트(domain) 대신 ArchUnit `LayerRulesTest#readContractsShouldBeFrameworkFree`가 강제한다 — `application`은 spring starter를 받아 컴파일 게이트가 없다.
+- 이후 앱 마커 제거([결정 0036](../AGENTS.md#decision-0036))로 `{web,admin,ceo,batch}-application` 4모듈이 다시 생겼지만 **이 결정의 결론은 그대로다** — `port.out`은 전부 코어 `application`에 두므로 앱 모듈끼리 계약을 공유하려고 서로를 의존할 일이 없다. 다만 `com.tastyhouse.application..` 패키지는 다시 5모듈이 나눠 쓰는 split package가 됐다.
+
+<a id="decision-0024"></a>
+
+### 0024. 도메인 이벤트 리스너는 persistence가 아니라 application에 둔다
+
+- 상태: 채택(`@SharedApp` 마커 부분은 [결정 0036](../AGENTS.md#decision-0036)으로 대체)
+- 결정 커밋: `59285a4e7` (2026-09-27)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0024
+
+#### 맥락
+
+**도메인 이벤트 리스너**는 domain이 `DomainEventPublisher` 포트로 발행한 이벤트(가입·결제·리뷰 답글 등)를 구독해 후속 처리를 하는 클래스입니다. 포인트 적립·환급, 알림 적재 같은 일을 하며, 전부 `@TransactionalEventListener(phase = AFTER_COMMIT)`입니다.
+
+리스너 12종은 영속화 어댑터 모듈 `infrastructure:persistence`의 `com.tastyhouse.infrastructure.<ctx>.listener`에 있었습니다(`1f3945b41`, 2026-08-15). 그 모듈은 모든 실행 앱이 스캔했으므로, 어느 앱이 이벤트를 발행해도 리스너가 떴습니다. 하지만 이벤트를 받아 도메인 서비스를 조합(오케스트레이션)하는 일은 DB 어댑터의 일이 아닙니다. 또 `ReviewOwnerReplyEventListener`는 같은 모듈의 `ShopQueryDao`를 구체 타입으로 직접 주입하고 있었습니다.
+
+#### 이전 규칙
+
+##### backend/infrastructure/persistence/AGENTS.md(현 `backend/infrastructure/jpa/AGENTS.md`) — 규칙 / 패키지 구조
+
+이벤트 리스너는 이 모듈의 `<ctx>/listener/`에 둔다. 특정 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 리스너가 없어 누락되므로, 크로스커팅 리스너는 모든 실행 모듈이 스캔하는 이 모듈에 둔다. `<ctx>/listener/`를 가진 도메인은 `coupon`·`file`·`mail`·`member`·`payment`·`point`·`policy`·`product`·`sms`였다. 같은 모듈 안에서는 포트에 없는 public 조회도 쓸 수 있었다(`ShopQueryDao#findShopName`을 `ReviewOwnerReplyEventListener`가 구체 타입으로 주입).
+
+##### backend/domain/src/main/java/com/tastyhouse/domain/AGENTS.md — Common Patterns
+
+DomainEvent는 "발행은 포트 경유, 리스너는 infra"였다. 리스너를 api 모듈에 두면 다른 모듈이 같은 이벤트를 트리거할 때 누락되므로 infrastructure 모듈에 두었다.
+
+##### backend/AGENTS.md — Common Patterns
+
+계층 배치 요약에서 영속화 어댑터 모듈의 하위 패키지를 `<ctx>/{persistence,query,listener}`로 적어, 리스너를 persistence(현 `infrastructure:jpa`) 쪽 계층으로 분류했다. 이 결정 이후 리스너는 코어 application의 `<ctx>/listener/`로 옮겨졌고, 앱 마커 제거 전에는 `@Component`에 `@SharedApp`도 달았다.
+
+#### 결정
+
+리스너 12종을 `application`의 `com.tastyhouse.application.<ctx>.listener`로 옮깁니다. 당시에는 4앱 공통 스캔을 위해 리스너 전용 마커 `@SharedApp`을 신설해 앱별 `{App}ApplicationConfig` 스캔 필터에 추가했습니다.
+
+| 항목 | before | after(이 결정) | 지금([결정 0036](../AGENTS.md#decision-0036) 이후) |
+|---|---|---|---|
+| 리스너 위치 | `infrastructure:persistence`의 `com.tastyhouse.infrastructure.<ctx>.listener` | `application`의 `com.tastyhouse.application.<ctx>.listener` | 코어 `application-core`의 같은 패키지 |
+| 4앱에 뜨게 하는 수단 | persistence 모듈 스캔 | `@Component` + `@SharedApp` 마커 스캔 | `@Component`만. 코어가 4앱 전부의 클래스패스에 있음 |
+| 리스너의 조회 | `ShopQueryDao` 구체 타입 주입 | 읽기 포트 `ShopBasicInfoQueryPort#findShopName` | 같음 |
+| 가드 | — | `listenersShouldBeShared`(마커 누락 차단)·`sharedAppOnlyOnListeners`(`@SharedApp`은 `@TransactionalEventListener` 보유 클래스에만) | `LayerRulesTest#listenersAndConfigsShouldResideInCore` |
+
+#### 근거
+
+- 포인트 적립·환급·알림 적재 같은 이벤트 오케스트레이션은 **유스케이스 계층의 일**입니다. 영속화 어댑터에 둘 이유가 없습니다.
+- 특정 앱에만 뜨게 두면 다른 앱이 같은 이벤트를 발행할 때 후속 처리가 조용히 누락됩니다. 그래서 4앱 전부가 스캔하는 위치여야 합니다.
+- 마커를 빠뜨리면 리스너가 어느 앱에도 뜨지 않아 이벤트가 **예외도 로그도 없이** 유실됩니다. 그래서 누락과 남용을 양방향으로 막는 ArchUnit 규칙을 함께 추가했습니다.
+- application은 infra를 컴파일 클래스패스에 두지 않습니다. 그래서 리스너가 DAO를 직접 주입하지 않고 `port/out` 읽기 포트로 받습니다.
+
+#### 결과·감수한 손실
+
+- 동작 변경은 없습니다. 테스트가 없던 `ReviewBlindApprovedEventListener`에 테스트를 추가했습니다.
+- 이후 [결정 0027](#decision-0027)(덩어리 03a)로 발행 포트·구현(`DomainEventPublisher`·`SpringDomainEventPublisher`)도 application으로 옮겨져, persistence(현 jpa)에는 이벤트 관련 코드가 남지 않았습니다.
+- `@SharedApp` 마커는 [결정 0036](../AGENTS.md#decision-0036)에서 제거됐습니다. 지금은 리스너를 코어 `application-core`에 두는 것만으로 4앱 전부에 뜹니다.
+
+<a id="decision-0026"></a>
+
+### 0026. 벤더 16모듈의 domain 의존을 끊고 벤더 포트·서비스를 application으로, 등록은 application config(PgRouterConfig·Mail/SmsServiceConfig)로 옮긴다(덩어리 02)
+
+- 상태: 대체됨(→ [결정 0034](../AGENTS.md#decision-0034))
+- 결정 커밋: `d98b46c0c` (2026-09-27)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0026
+
+| 항목 | before | after |
+|---|---|---|
+| 파일·메일·SMS·PG 포트 | `domain.file.port.FileStoragePort`, `domain.mail.port.MailSender`, `domain.sms.port.SmsSender`, `domain.payment.port.{PgPaymentGatewayPort,PgProviderGatewayPort}` | `application/<ctx>/port/out`(`FileStoragePort`·`MailSenderPort`·`SmsSenderPort`·`PgPaymentGatewayPort`·`PgProviderGatewayPort` + 결과 record) |
+| 그 포트를 쓰는 서비스 | domain의 `FileUploadService`·`MailVerificationService`·`SmsVerificationService`·`PaymentConfirmationService`·`PgPaymentGatewayRouter` | application `<ctx>/service/`의 마커 없는 POJO |
+| 등록 | persistence `FileDomainConfig`·`PaymentDomainConfig`(일부), 채널 모듈 `MailDomainConfig`·`SmsDomainConfig`·`PgGatewayConfig` | application 마커 설정: `FileServiceConfig`·`PaymentServiceConfig`(`@SharedApp`), `MailServiceConfig`·`SmsServiceConfig`·`PgRouterConfig`(`@WebApp`) |
+| 채널 모듈 `pg`·`mail`·`sms` | 설정·자동구성 코드 있음 | 코드 없는 조립 스타터(`runtimeOnly` 벤더 한 줄). 조립 모듈 전부가 코드 없는 스타터가 됨 |
+| 벤더 실패 표현 | 벤더가 `BusinessException`을 던짐 | 결과 record(`MailSendResult`·`SmsSendResult`·`FileDeleteResult`·`SocialOAuthResult`·`ImageDownloadResult`·`AdminDongBoundaryFetchResult`)를 돌려주고 application이 같은 트랜잭션 안에서 기존과 같은 에러코드로 번역 |
+| 벤더 쪽 PG 식별자 | domain `PgProvider` | application 신설 enum `PgProviderCode`. 라우터가 `name()`으로 `PgProvider`와 연결 |
+| 행정동 경계 | 어댑터가 domain `GeoPoint`/`GeoRing`을 조립 | 어댑터는 원시 좌표(`BoundaryRing`·`BoundaryCoordinate`)만, 중심점 계산은 `AdminDongSchedulerService` |
+| ArchUnit | — | 벤더 13모듈 `VendorLayerRulesTest`(domain 의존 금지), `AppIsolationTest#sharedBeansShouldNotDependOnWebOnlyServices`, `EnumCodeConstantsTest` 신설, domain `ContextBoundaryTest` 봉인 목록 2건 삭제(16 → 14) |
+
+<a id="decision-0027"></a>
+
+### 0027. 나머지 포트·포트 주입 도메인 서비스·이벤트 발행기를 application으로 옮기고 등록은 <Ctx>ServiceConfig가 한다(덩어리 03a)
+
+- 상태: 대체됨(→ [결정 0034](../AGENTS.md#decision-0034))
+- 결정 커밋: `ef957e488` (2026-09-27)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0027
+
+| 항목 | before | after |
+|---|---|---|
+| write 포트 106개 + 보조 타입 2개 | `domain/<ctx>/repository/` | `application/<ctx>/port/out/write/` |
+| 출력 포트 7개 + record 3개 | `domain/<ctx>/port/` | `application/<ctx>/port/out/` |
+| 포트를 주입받는 서비스 71개(+`NotificationMessage`) | `domain/<ctx>/service/` | `application/<ctx>/service/`(마커 없는 POJO) |
+| 빈 등록 18개 | persistence `<Ctx>DomainConfig` | application `<ctx>/config/<Ctx>ServiceConfig`(`@Configuration(proxyBeanMethods = false) @SharedApp`). `@Bean` 메서드 이름 불변. `PaymentDomainConfig`는 기존 `PaymentServiceConfig`에 병합 |
+| `DomainEventPublisher` / `SpringDomainEventPublisher` | domain / persistence `@Component` | `application/shared/event/`, `SharedEventConfig`(`@SharedApp`)의 `@Bean domainEventPublisher` |
+| `OptimisticLockConflictException` | `domain/shared/exception/` | `application/shared/port/out/` |
+| 서비스 연결 어댑터 2개·금칙어 캐시 데코레이터 | persistence | `application/shop/service/` |
+| domain `ContextBoundaryTest` | 봉인 위반 14 · 순환 성분 1 봉인 | 봉인 위반 1(`DeliveryAreaProjection`) · 순환 봉인 해제, `beFreeOfCycles()` 예외 없이 강제 |
+| application ArchUnit | — | `ServiceContextBoundaryTest` 신설(domain에서 봉인 15건·순환 성분 1개 승계), `RuleAnchorTest#writePortsExist`(≥106) 신설, `queryServicesShouldNotDependOnWritePorts` 대상을 `port.out.write`로 교체 |
+
+<a id="decision-0033"></a>
+
+### 0033. 서비스 간 협력도 UseCase 인터페이스로 주입하고 구체 클래스를 주입하지 않는다
+
+- 상태: 채택
+- 결정 커밋: `9b0582c33` (2026-10-01)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0033
+
+#### 맥락
+
+**UseCase 인터페이스**(인바운드 포트, `port.in`)는 컨트롤러가 application을 부르는 진입 계약입니다([결정 0005](../AGENTS.md#decision-0005)). 서비스 클래스(`*QueryService`·`*CommandService`)가 이를 구현합니다.
+
+챕터 03에서 인바운드 포트를 도입할 때, 스펙 문언은 "`QueryService`의 public 메서드를 인터페이스로 전사한다"였습니다. 그런데 public 메서드에는 컨트롤러가 부르는 것과 **다른 서비스가 부르는 협력용**이 섞여 있었습니다. 협력용 메서드는 도메인 모델이나 infra `*Result`를 그대로 주고받았기 때문에, 인터페이스로 올리면 `commandRecordsShouldBeBoundaryTyped`(`port.in`의 domain·infrastructure 의존 금지)에 걸렸습니다. 그래서 협력 서비스는 구체 클래스를 주입하는 길을 택했고, 그 결과 UseCase를 구현한 서비스를 다른 서비스가 구체 타입으로 주입하는 곳이 28건(24개 파일) 생겼습니다.
+
+#### 이전 규칙
+
+##### backend/application-core/AGENTS.md — `QueryUseCase`에는 컨트롤러 표면만 올린다 — 협력용 public 메서드를 전사하지 않는다
+
+스펙 §3의 목적은 "컨트롤러 주입 타입 교체"이므로, 인터페이스에는 컨트롤러 표면만 올리고 협력용 메서드는 구체 클래스에 그대로 둔다. 이러면 조회 로직 diff 0을 유지하면서 두 ArchUnit 규칙을 모두 만족한다. 이것은 규칙을 무르게 하는 것이 아니라, 인바운드 포트가 애초에 겨냥한 표면(컨트롤러 경계)에 대상을 한정하는 것이다.
+
+당시 걸리던 협력용 메서드는 9개였고(챕터 03 시점에는 `MemberQueryService#getMember` 포함 10개였으나, 그 경로가 `MemberAuthService`의 `memberRepository` 직접 로드로 바뀌어 사라졌다), 전부 다른 서비스가 호출했다.
+
+| 메서드 | 반환 | 호출부 |
+|---|---|---|
+| `AdminQueryService#findByUsername` | `Optional<Admin>` | `TokenService`·`UserDetailsService` |
+| `CeoOwnerQueryService#findByUsername` | `Optional<Ceo>` | 위와 동일 |
+| `ProductQueryService`의 `findPopularProducts`·`findShopProductCategories`·`findShopProducts`·`searchByKeyword` | `*Result`·`PageResult` | `ShopQueryService`·`SearchQueryService` |
+| `ReviewQueryService`의 `findMyReviews`·`findShopReviewStatistics`·`findShopReviewsByRating` | 위와 동일 | 상동 |
+
+판별법: `port/in` 인터페이스 파일에 `com.tastyhouse.domain.`·`com.tastyhouse.infrastructure.` import가 생기면 잘못 올린 것이다(carve-out 제외). carve-out은 처음에 `domain.exception..`(에러 계약)과 `domain.shared.page..`(페이징 계약) 둘이었습니다(실측: `port/in` 전체의 domain import는 `domain.exception` 602건 · `domain.shared.page` 43건, 그 밖은 0건). 이후 덩어리 01로 페이징 계약이 `com.tastyhouse.application.shared.port.out.page`로 옮겨가 페이징 43건은 domain import가 아니게 됐고, carve-out은 `domain.exception..` 하나가 됐습니다. 새 조회를 추가할 때 컨트롤러가 부르지 않는 메서드라면 `*QueryService`에만 두고, **협력 서비스는 인터페이스가 아니라 구체 클래스를 주입해 쓴다.**
+
+원래 표는 `findByUsername` 호출부에 "시더"도 적었다. 하지만 이것은 당시에도 틀린 서술이었다. `AdminSeeder`·`CeoSeeder`는 `existsByUsername`만 호출한다.
+
+#### 결정
+
+UseCase를 구현한 클래스는 application 안에서도 구체 타입으로 주입하지 않습니다.
+
+| 항목 | before | after |
+|---|---|---|
+| 서비스 간 협력 주입 | 구체 `XxxService` 주입(28건, 24개 파일) | `port.in` UseCase 인터페이스 주입(0건) |
+| 이미 UseCase에 있던 메서드 호출(11개 파일) | 구체 타입으로 주입 | 주입 타입만 인터페이스로 교체 |
+| 반환 타입이 domain-free인 협력 메서드 9개 | 구체 클래스에만 존재 | `ReviewQueryUseCase`·`ProductQueryUseCase`에 선언(본문 불변) |
+| 도메인 타입을 주고받는 단순 위임(`Admin`/`CeoQueryService#findByUsername`, `MemberCommandService#signUp`·`signUpSocial`·`saveSocialAccount`) | 구체 클래스에 두고 협력 서비스가 호출 | 삭제. 호출부가 write 포트·`MemberRegistrationService`·`PasswordEncoder`를 직접 주입 |
+| 트랜잭션 경계 | 위임 대상 서비스의 클래스 `@Transactional`이 제공 | 호출부로 같은 속성을 옮김(`CredentialLoginService#signUp`에 `@Transactional`, `Admin`/`CeoTokenService#refresh`에 `readOnly`) |
+| 컨트롤러 UseCase 필드명(web-api·ceo-api 69곳) | `*Service` | `*UseCase` |
+| 가드 | — | `servicesShouldDependOnUseCasesNotImplementations`, `useCaseFieldsShouldBeNamedUseCase`(5개 모듈), `commandServicesShouldNotDependOnQueryPorts`에 `*QueryUseCase` 추가 |
+
+#### 근거
+
+- 협력에 필요한 것이 domain-free 타입이면 UseCase에 선언해도 `port.in` 경계 규칙을 어기지 않습니다. 그러니 구체 주입을 할 이유가 없습니다.
+- 도메인 타입을 쓰는 위임은 UseCase에 올릴 수 없습니다. `port.in` 규칙에 걸리고, 비밀번호 해시를 담은 `Admin`/`Ceo` 도메인을 컨트롤러가 닿는 인터페이스로 노출하게 되기 때문입니다. 그래서 위임을 없애고 실제 협력자(write 포트·도메인 서비스)를 직접 주입합니다.
+- `commandServicesShouldNotDependOnQueryPorts`에 `*QueryUseCase`를 추가해, 협력 주입을 UseCase로 바꾸면서 생길 수 있는 CQRS 우회를 막습니다.
+
+#### 결과·감수한 손실
+
+- HTTP 응답·DB·에러코드는 바뀌지 않았습니다. `refresh`의 트랜잭션 범위는 조회 한 번에서 메서드 전체로 넓어졌지만, 나머지 작업이 Redis 호출이라 동작은 같습니다.
+- UseCase에 올린 협력 메서드는 컨트롤러 표면이 아닙니다. 컨트롤러가 이런 메서드를 새로 호출하려면 그 화면 계약이 맞는지 먼저 확인해야 합니다.
+- 도메인 타입 위임을 걷어낸 호출부가 직접 주입한 협력자는 `AdminPersistencePort`/`CeoPersistencePort`, 마커 없는 도메인 서비스 `MemberRegistrationService`, `PasswordEncoder`, `MemberSocialAccountPersistencePort`입니다(전부 당시 이름 — write 포트는 이후 [결정 0046](#decision-0046)으로 Load/Save 분리). `CredentialLoginService#signUp`의 `@Transactional`은 회원 저장과 추천 등록의 원자성을 지키기 위한 것입니다.
+- UseCase에 올린 domain-free 협력 메서드 9개는 `ReviewQueryService`의 `findShopReviewsByRating`·`findShopReviewStatistics`·`countVisibleReviewsByMemberId`·`findReviewedProductIds`·`findMyReviews`, `ProductQueryService`의 `searchByKeyword`·`findShopProducts`·`findPopularProducts`·`findShopProductCategories`입니다. 반환 타입이 전부 `port.out` `*Result`라 `commandRecordsShouldBeBoundaryTyped`를 통과합니다. 유스케이스 분리 후에는 각각 `ReviewShopByRatingQueryUseCase`·`ReviewShopStatisticsQueryUseCase`·`ReviewMemberCountQueryUseCase`·`ReviewWrittenProductIdsQueryUseCase`·`ReviewMyListQueryUseCase`, `ProductKeywordSearchQueryUseCase`·`ProductByShopQueryUseCase`·`ProductPopularQueryUseCase`·`ProductCategoryByShopQueryUseCase`에 하나씩 선언됐습니다. 예를 들어 `ReviewMyListQueryUseCase#findMyReviews`는 `MemberMyReviewListQueryService`가 쓰는 협력 메서드입니다(위임 래퍼 `MemberReviewService`는 삭제됨).
+- 같은 시그니처 주의: `ReviewMemberListQueryUseCase#findMemberReviews`와 `ReviewMyListQueryUseCase#findMyReviews`는 둘 다 `(Long, int, int) → PageResult<MyReviewListItemResult>`입니다(분리 전에는 `ReviewQueryUseCase` 한 포트의 두 메서드). `findMemberReviews`는 `visibleToCustomer()` 조건이라 고객에게 보이는 리뷰만 나오고 `ownerOnly`가 항상 `false`이며, `findMyReviews`는 `hidden = false` 조건만 걸려 점주에게만 공개한 리뷰도 포함하고 `ownerOnly`에 실제 값이 들어갑니다. 구현은 둘 다 `ReviewQueryAdapter`의 `findReviewsByMemberId`·`findMyReviews`입니다.
+- 가드 위반이 나면 `@SuppressWarnings`나 예외 목록을 두지 않고, 호출부가 UseCase 인터페이스를 주입하게 바꿉니다. 필요한 메서드가 도메인 타입을 쓰면 write 포트나 도메인 서비스를 직접 주입합니다.
+- 반증으로 확인했습니다. 구체 서비스를 주입하는 probe 클래스를 넣으면 가드가 실패합니다. 가드는 공허 통과를 막기 위해 구현 집합 크기 ≥ 200도 함께 단정합니다(도입 시점 실측 202).
+- 이후 유스케이스 분리([결정 0043](#decision-0043))로 협력 메서드는 per-op 포트(`ReviewMyListQueryUseCase` 등)에 하나씩 선언됐습니다. "한 줄 위임만 하는 협력 빈도 두지 않는다"는 원칙이 덧붙었습니다.
+
+<a id="decision-0043"></a>
+
+### 0043. CQRS 쌍 서비스를 유스케이스당 서비스 1개로 분리한다
+
+- 상태: 채택
+- 결정 커밋: `d0b32cfe1` (2026-10-08)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0043
+
+#### 맥락
+
+- **CQRS**: 명령(상태 변경)과 조회를 다른 클래스로 나누는 방식입니다. 이 저장소는 트랜잭션 속성(`readOnly`)과 주입 대상을 클래스 단위로 일관되게 하려고 썼습니다.
+- **인바운드 포트(UseCase 인터페이스)**: 컨트롤러가 호출하는 application 계층 인터페이스입니다(`<ctx>/port/in/`).
+
+결정 전에는 `{web,admin,ceo}-application`의 서비스가 도메인마다 `{도메인}CommandService`/`{도메인}QueryService` 한 쌍이었습니다(합계 194개: web 47 · admin 59 · ceo 88). 이 한 쌍이 그 도메인의 연산을 전부 떠안았습니다. 예를 들어 web `ShopQueryService`는 714줄에 public 메서드가 20개였고, admin `ShopManagementCommandService`는 UseCase 37개를 혼자 구현했습니다(`docs/tasks/usecase-service-split/README.md`).
+
+#### 이전 규칙
+
+##### backend/CLAUDE.md — application 서비스 CQRS 분리 규칙 (`{도메인}CommandService`/`{도메인}QueryService`)
+
+"`{앱}-application` 모듈의 서비스는 도메인당 `{도메인}CommandService`(쓰기)와 `{도메인}QueryService`(읽기) 두 클래스로 분리한다." 근거는 과거 단일 서비스가 명령과 조회를 한 클래스에 담아 트랜잭션 속성이 메서드마다 갈리고, 조회에도 write 포트가 주입돼 의존이 과했다는 것이었습니다. 포트는 애그리거트 단위 `CommandUseCase`/`QueryUseCase` 쌍([결정 0005](../AGENTS.md#decision-0005))이었습니다. 예: `PaymentCommandUseCase`(메서드 6개) / `PaymentCommandService`.
+
+명령/조회 판별은 서비스 클래스명 접미어로 했고, 가드도 규칙마다 `haveSimpleNameEndingWith("CommandService"/"QueryService")`를 썼습니다.
+
+- **클래스명 접미어를 바꾸지 않는다**: "클래스명은 그대로 `{도메인}CommandService`/`{도메인}QueryService`를 유지한다 — 기존 ArchUnit 규칙들이 접미어로 대상을 매칭하므로 이름을 바꾸면 규칙이 조용히 대상을 잃는다"가 규칙이었습니다.
+- **"도메인당 2개"는 상한이 아니라 이름 규칙**: 조회만 있는 도메인은 `QueryService`만, 쓰기만 있는 경로는 `CommandService`만 두었습니다.
+- **worked example(ceo shop 영업시간)**: 포트는 연산 6개를 담은 `ShopBusinessHourCommandUseCase` 하나, 구현은 `ShopBusinessHourCommandService` 한 클래스, 조회는 `ShopBusinessHourQueryService`였습니다(지금은 `ShopBusinessHourOwnerCreateUseCase`/`ShopBusinessHourOwnerCreateService`·`ShopBusinessHourListQueryService` 등).
+- **reference 당시 이름**: web `NoticeQueryService`·`FaqQueryService`(조회 전용), web `ReservationCommandService`(지금 `ReservationCreateService`).
+- **가드의 접미어 절**: `coreShouldNotContainUseCasesOrOrchestrators`·`ServiceContextBoundaryTest#isStructuralDomainService`도 `*CommandService`/`*QueryService` 이름을 함께 봤습니다. `commandServicesShouldNotDependOnRequestRecords`의 대상도 `*CommandService`(접미어)였습니다.
+- **규칙 수와 anchor**: application `LayerRulesTest`는 26개, `{web,admin,ceo}-api` `LayerRulesTest`는 각 14개였습니다. `RuleAnchorTest`는 `countSuffix` 기반으로 `commandServicesExist` ≥91 · `queryServicesExist` ≥100, `moduleUseCaseCounts` web ≥50 · admin ≥100 · ceo ≥95, `inboundPortsExist` ≥556을 검사했습니다.
+
+##### backend/CLAUDE.md — 컨트롤러 분할 기준 (하위 리소스별로 나눈다)
+
+"남은 긴장(후속)"으로 `MemberScreenUseCase`·`MemberAuthCommandUseCase`·`ShopManagementQueryUseCase`가 메서드 7개를 넘고 분할 후 컨트롤러 여러 개가 공유해 per-operation 분해 대상이지만, 컨트롤러 분할을 application 계층을 건드리지 않는 범위로 진행해 남겨 두었다고 적혀 있었습니다.
+
+##### backend/AGENTS.md — Purpose / Working In This Directory / Common Patterns
+
+- Purpose: "도메인당 `{도메인}CommandService`/`{도메인}QueryService` CQRS 쌍은 이제 api 모듈이 아니라 `{web|admin|ceo|batch}-application`이 소유"(예: 당시 `com.tastyhouse.application.notice.service.NoticeQueryService`)로 서술했습니다.
+- Working In This Directory: "presentation의 도메인 결합 격리 — 도메인당 CQRS 서비스 쌍" 항목이 `{도메인}CommandService`(`@Transactional`, write 포트·도메인 서비스만 주입, 식별자만 반환)와 `{도메인}QueryService`(`@Transactional(readOnly = true)`, `{Ctx}QueryPort`만 주입)를 규정했습니다. 전환 도중에는 "(번복 진행 중) 쌍 서술은 전환이 끝나지 않은 컨텍스트에만 해당한다"는 단서가 붙었습니다.
+- Common Patterns: "CQS: 쓰기 `{도메인}CommandService`(`@Transactional`) / 읽기 `{도메인}QueryService`(`@Transactional(readOnly = true)`)".
+
+##### backend/AGENTS.md — 계층 규칙 봉인 — api 앱 3종 공통
+
+컨트롤러의 구체 서비스 주입 금지를 두 규칙이 축을 나눠 지켰습니다. `controllersShouldDependOnUseCasesOnly`는 접미어 기준(`*ApiController` ✗ `*CommandService`/`*QueryService`), `webAdaptersShouldNotDependOnApplicationServices`는 위치(`com.tastyhouse.application..service..`) 기준이었습니다. 위치 규칙이 `MemberApiController`/`MemberMeApiController`의 `MemberService` 파사드 직접 주입을 잡아내 `MemberScreenUseCase` 포트를 신설해 해소한 이력이 있었습니다.
+
+##### 앱 모듈 AGENTS.md
+
+- `backend/web-api/AGENTS.md`·`backend/web-api/src/main/java/com/tastyhouse/webapi/AGENTS.md`: 컨트롤러는 도메인당 CQRS로 분리된 두 서비스(`{도메인}CommandService`+`{도메인}QueryService`)를 각각 주입했습니다.
+- `backend/admin-api/AGENTS.md`·`backend/ceo-api/AGENTS.md`: "도메인당 CQRS 분리(Command/Query 서비스 한 쌍)". admin reference는 `NoticeCommandService`·`NoticeManagementQueryService` 한 쌍이었습니다.
+- `backend/ceo-api/AGENTS.md` Testing Requirements: `controllersShouldDependOnUseCasesOnly`가 대상 쪽 접미어 `*CommandService`로 컨트롤러 의존을 검사했습니다.
+
+#### 결정
+
+유스케이스 하나 = 인바운드 포트 하나 = 서비스 하나입니다. CQRS(명령/조회 구분, 트랜잭션 속성, 교차 주입 금지, 명령은 식별자만 반환)는 유지합니다.
+
+| 항목 | before | after |
+|---|---|---|
+| 서비스 입도 | 도메인당 `{도메인}CommandService` + `{도메인}QueryService` 한 쌍 | 유스케이스 하나 = 포트 하나 = 서비스 하나 (194개 → 582개) |
+| 명령 포트·서비스 | `PaymentCommandUseCase`(메서드 6개) / `PaymentCommandService` | `{도메인}{동작}UseCase` / `{도메인}{동작}Service` — 예: `PaymentConfirmUseCase` / `PaymentConfirmService` |
+| 조회 포트·서비스 | `PaymentQueryUseCase`(메서드 4개) / `PaymentQueryService` | `{도메인}{관점}QueryUseCase` / `{도메인}{관점}QueryService` — 예: `PaymentDetailQueryUseCase` / `PaymentDetailQueryService` |
+| 명령/조회 판별 | 서비스 클래스명 접미어 | 구현한 포트 이름이 `QueryUseCase`로 끝나는가 (testFixtures `UseCaseServices#commands()`·`#queries()`) |
+| 트랜잭션 | 클래스 레벨(일부 메서드 레벨) | 클래스 레벨. 원본에 클래스 레벨이 없던 12개는 메서드별 원래 속성 유지 |
+| 공유 헬퍼 | 서비스의 private 메서드 | 한 연산 전용이면 그 서비스로, 순수 변환이면 대상 record의 `from(...)`, 포트가 필요하면 같은 패키지의 `{도메인}{명사}Reader` |
+| 1:1 강제 가드 | 없음("포트를 최소 1개 구현"만) | 신설 4개: `useCaseServicesShouldImplementExactlyOneUseCase` · `useCasesShouldDeclareSingleOperation` · `useCaseServiceNameShouldMatchPort` · `useCaseServicesShouldHaveSinglePublicOperation` |
+| api 모듈 가드 | `controllersShouldDependOnUseCasesOnly`(접미어) | 삭제 — 패키지 기반 `webAdaptersShouldNotDependOnApplicationServices`가 실제 가드 |
+
+#### 근거
+
+- 『만들면서 배우는 클린 아키텍처』의 헥사고날 형태(`SendMoneyService implements SendMoneyUseCase`)를 따릅니다(`docs/tasks/usecase-service-split/README.md`).
+- 한 쌍이 도메인의 연산을 전부 떠안아 클래스가 비대해졌습니다(위 맥락의 714줄·UseCase 37개 사례).
+- 접미어는 이름 규칙일 뿐이라 판별 근거로 약합니다. 구현한 포트 종류로 판별하면 이름을 지키지 않아도 분류가 정확합니다.
+
+#### 결과·감수한 손실
+
+- 동작 변경은 없습니다(4앱 빈 집합 diff·api-docs 경로 수 동일). 메서드 본문·예외·에러코드·트랜잭션 속성은 그대로 옮겼습니다.
+- web `MemberService` 파사드는 트랜잭션 없는 조립 서비스 4개로 해체됐습니다. ceo 도메인 서비스 `ShopRequestCancelService`는 `ShopRequestCancellationService`로 개명됐습니다(도메인 서비스는 명사형, 유스케이스 서비스는 동사형).
+- 오버로드는 이름으로 나눕니다(예: `PaymentDetailQueryUseCase`/`PaymentDetailByIdQueryUseCase`).
+- 1:1 분리는 인바운드(`port.in`)에만 적용합니다. 아웃바운드 `port.out`과 `*QueryAdapter`는 대상이 아닙니다.
+- batch는 대상이 아니었습니다 — `*SchedulerService` 7개가 이미 UseCase 1개 = 서비스 1개였습니다.
+- anchor(`RuleAnchorTest`)는 실측값으로 올렸습니다(`commandServicesExist` ≥314 · `queryServicesExist` ≥268, `inboundPortsExist` ≥891).
+- 규칙 수는 application `LayerRulesTest` 26 → 28, `{web,admin,ceo}-api` `LayerRulesTest` 각 14 → 13이 됐습니다. 신설 1:1 규칙 4개는 대상 하한 582를 스스로 단정하고 각각 반증 probe로 실패를 확인했습니다.
+- `moduleUseCaseCounts`는 web ≥187 · admin ≥207 · ceo ≥188(batch =7 · core =0 불변)이 됐습니다. ceo는 서비스 88개가 유스케이스 서비스 188개(명령 120 · 조회 68)가 됐습니다.
+- 컨트롤러 분할 기준의 "남은 긴장"이 해소됐습니다. web `MemberScreenUseCase`·`MemberAuthCommandUseCase`는 사라졌고(예: `MemberLoginUseCase`·`MemberVerifiedPasswordUpdateUseCase`), admin `ShopManagementQueryUseCase`는 per-operation 조회 포트 17개(예: `ShopListManagementQueryUseCase`·`ShopDetailManagementQueryUseCase`)로 나뉘었습니다.
+- `backend/CLAUDE.md` import 순서 예시의 `BannerCommandUseCase`는 분리 전 이름이지만 정렬 예시로서 그대로 둡니다(지금은 `BannerCreateUseCase` 등).
+- split package(`com.tastyhouse.application.<ctx>.service`를 세 앱이 나눠 씀) 때문에 앱별 작업은 병렬이 아니라 순차로 진행했습니다.
+
+<a id="decision-0046"></a>
+
+### 0046. 쓰기 포트를 LoadPort·SavePort로 목적별 분리한다
+
+- 상태: 채택
+- 결정 커밋: `085fa5559` (2026-10-09)
+- 대체한 결정: [결정 0032](../infrastructure/jpa/AGENTS.md#decision-0032)(일부 — `XxxPersistencePort` 단일 포트)
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0046
+
+#### 맥락
+
+- **쓰기 포트**: `application/<ctx>/port/out/write/`에 있는 아웃바운드 포트로, 명령 경로가 애그리거트를 읽고 저장할 때 씁니다.
+- **ISP(인터페이스 분리 원칙)**: 클라이언트가 쓰지 않는 메서드에 의존하지 않도록 인터페이스를 작게 나누라는 원칙입니다.
+
+[결정 0032](../infrastructure/jpa/AGENTS.md#decision-0032)로 쓰기 포트는 컨텍스트마다 `{Ctx}PersistencePort` 하나였습니다(106개). 한 포트에 조회와 변경이 섞여 있어, 서비스가 쓰지 않는 메서드까지 의존했고 가드가 "이 서비스는 읽기만 한다"를 표현할 수 없었습니다.
+
+#### 이전 규칙
+
+##### backend/CLAUDE.md — 아웃바운드 포트·어댑터 네이밍 규칙
+
+- 대칭 규칙은 `XxxPersistencePort` ↔ `XxxPersistenceAdapter`였습니다. 예: `BannerPersistenceAdapter implements BannerPersistencePort`(조회+변경 한 인터페이스).
+- 서비스 필드는 `bannerPersistencePort` 하나였습니다.
+- 데코레이터는 `CachingProhibitedWordPersistencePort implements ProhibitedWordPersistencePort`였습니다.
+- 테스트 더블은 `FakeXxxPersistencePort`였습니다.
+- 가드 `writePortsShouldBeNamedPort`가 `port.out.write` 인터페이스 이름을 검사했고, api 3모듈의 `controllersShouldNotDependOnPersistencePorts`는 이름 조건이 `PersistencePort`였습니다.
+- 예외 포트 `ShopDeliveryTipRegionLookupPort`가 있었습니다.
+
+- 기술 공존 어댑터 `BannerJpaPersistenceAdapter`·`BannerMyBatisPersistenceAdapter`는 둘 다 `BannerPersistencePort`를 구현하고 `@ConditionalOnProperty`로 하나만 등록됐습니다([결정 0045](../infrastructure/persistence/AGENTS.md#decision-0045)).
+
+##### backend/domain/src/main/java/com/tastyhouse/domain/AGENTS.md — Common Patterns
+
+write 포트 예시는 분리 전 단일 포트 하나였습니다. 분리 후 예시는 `application/banner/port/out/write/BannerLoadPort.java`(03a로 domain 패키지에서 이동, 이후 Load/Save 분리)로 바뀌었습니다.
+
+##### backend/application-core/AGENTS.md — anchor 하한
+
+`RuleAnchorTest#writePortsExist`의 하한은 107이었습니다.
+
+#### 결정
+
+쓰기 포트를 조회 전용 `{Ctx}LoadPort`와 변경 전용 `{Ctx}SavePort`(삭제 포함)로 나눕니다. 어댑터는 이름을 그대로 두고 두 포트를 함께 구현하며, 서비스는 실제로 호출하는 포트만 주입합니다.
+
+| 항목 | before | after |
+|---|---|---|
+| 쓰기 포트 | `BannerPersistencePort`(조회+변경) | `BannerLoadPort`(상태를 바꾸지 않는 조회) + `BannerSavePort`(상태를 바꾸는 모든 것) |
+| 개수 | 106개 + `ShopDeliveryTipRegionLookupPort` = 107 | 192개(Load·Save 85쌍 = 170 + Save만 18 + Load만 4) |
+| 예외 포트 | `ShopDeliveryTipRegionLookupPort` | `ShopDeliveryTipRegionLoadPort`(구현 어댑터는 `ShopDeliveryTipPersistenceAdapter` — 대칭 규칙의 예외) |
+| 기술 공존 어댑터 | `BannerJpaPersistenceAdapter`·`BannerMyBatisPersistenceAdapter` implements `BannerPersistencePort` | 이름 불변 — 둘 다 `implements BannerLoadPort, BannerSavePort`(당시 선택은 `@ConditionalOnProperty`, 이후 [결정 0052](../infrastructure/persistence/AGENTS.md#decision-0052)로 `@Primary`) |
+| 영속 어댑터 | `BannerPersistenceAdapter implements BannerPersistencePort` | 이름 불변 — `implements BannerLoadPort, BannerSavePort` |
+| 서비스 필드 | `bannerPersistencePort` | 호출하는 쪽만: `bannerLoadPort`·`bannerSavePort` |
+| 데코레이터 | `CachingProhibitedWordPersistencePort` | `CachingProhibitedWordLoadPort` |
+| 테스트 더블 | `FakeXxxPersistencePort` | 두 포트면 `FakeXxxPersistence`, 한 포트면 `FakeXxxLoadPort`/`FakeXxxSavePort` |
+| 가드 | `writePortsShouldBeNamedPort` | `writePortsShouldBeLoadOrSavePort` + 신설 `loadPortsShouldOnlyQuery`(`LOAD_PREFIXES`)·`savePortsShouldOnlyMutate`(`SAVE_PREFIXES`) |
+| anchor | `writePortsExist` ≥107 | ≥192 |
+
+#### 근거
+
+- 원문의 분리 이유: "한 포트에 조회와 변경이 섞이면 서비스가 쓰지 않는 메서드까지 의존하고, 가드가 '이 서비스는 읽기만 한다'를 표현할 수 없습니다."
+- 포트는 목적(조회·변경)으로, 어댑터는 역할로 이름을 짓는다는 헥사고날 원칙에 맞춥니다. 개수 규칙이 아니라 이름 짝 규칙이라 어댑터 1개가 포트 N개를 구현합니다.
+
+#### 결과·감수한 손실
+
+- 동작·빈 이름·HTTP·DB 변경은 없습니다. 어댑터 이름이 그대로라 어댑터 빈 이름도 그대로입니다.
+- 생성자를 바꾼 클래스가 많았습니다(작업 스펙 기준 약 230개 클래스, 테스트 더블 개명 포함).
+- 이 결정 이전 시점의 이력 서술에 나오는 `XxxPersistencePort`는 분리 전 이름입니다. 현재 코드를 찾을 때는 `XxxLoadPort`/`XxxSavePort`로 바꿔 검색합니다.
+- 컨트롤러 가드 `controllersShouldNotDependOnPersistencePorts`(api 3모듈)는 규칙 이름을 유지하고, 이름 조건만 `LoadPort`·`SavePort`로 바꿨습니다. `port.out.write` 패키지 조건과 패키지 기반 규칙(`queryServicesShouldNotDependOnWritePorts` 등)은 그대로입니다.
+- 과거 이관 기록의 이름은 다음 기준으로 처리했습니다. "03a 시점의 `XxxPersistencePort`"는 당시 이름 `XxxRepository`를 가리킵니다. 이미 사라진 클래스(`FollowRepositoryImpl`·`EmailVerificationRepositoryImpl` 등)는 새 이름으로 바꾸면 존재한 적 없는 이름이 되므로 옛 이름을 유지합니다. 다른 문서가 링크하는 일부 제목도 앵커를 보존하려고 옛 표현을 유지합니다.
+- banner의 기술 공존 어댑터는 이후 [결정 0053](../infrastructure/mybatis/AGENTS.md#decision-0053)에서 MyBatis 구현이 삭제되고 JPA 쪽이 `BannerPersistenceAdapter`로 이름을 되돌렸습니다. 지금 공존 어댑터는 notice의 `NoticeJpaPersistenceAdapter`·`NoticeMyBatisPersistenceAdapter`(둘 다 `implements NoticeLoadPort, NoticeSavePort`, JPA 쪽만 `@Primary`)입니다.
+
+<a id="decision-0048"></a>
+
+### 0048. AsyncConfig(@EnableAsync)를 앱이 아니라 코어 application이 소유한다
+
+- 상태: 채택
+- 결정 커밋: `456db1b13` (2026-10-09) — 커밋 메시지 1번째 줄 `fix(async)`
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0048
+
+#### 맥락
+
+- **`@Async`**: 메서드를 별도 스레드에서 실행하게 하는 Spring 애노테이션입니다. `@EnableAsync`가 어딘가에 선언돼 있어야 동작하고, 없으면 **에러 없이 조용히 동기**(호출한 스레드에서 그대로) 실행됩니다.
+- **코어 `application`**(현 `application-core` 모듈): 4개 앱(web-api, admin-api, ceo-api, batch-module)이 모두 의존하는 공통 application 모듈입니다.
+
+`@EnableAsync`는 web-api의 `AsyncConfig`에만 있었습니다. 그런데 `@Async` 리스너 3개(`notification/listener/ReviewBlindApprovedEventListener`·`ReviewOwnerReplyEventListener`, `product/listener/ProductMenuReviewEventListener`)는 코어에 있어 4앱이 모두 로드했습니다. 그 결과 ceo(`ReviewOwnerReplyCreatedEvent` 발행)와 admin(`ReviewBlindApprovedEvent` 발행)에서는 알림 리스너가 요청 스레드에서 동기로 돌았습니다. 알림이 실패하면 DB는 반영됐는데 API는 실패로 응답하는 상태가 됩니다(`docs/tasks/async-config-core/backend.md`).
+
+#### 이전 규칙
+
+##### backend/CLAUDE.md — 컴포지션 루트 규칙 > 앱이 가질 수 있는 조립 코드의 상한
+
+허용되는 앱 `@Configuration` 중 **정책**은 "`SecurityConfig`·`PublicPaths`(web·admin·ceo 각자)와 `OpenApiConfig`·`AsyncConfig`(web만). 앱마다 값이 실제로 다른 결정이라 공유할 수 없다"였습니다.
+
+##### backend/CLAUDE.md — 접근 제어자 규칙
+
+앱 설정 표에 `AsyncConfig`가 `{web,admin,ceo}-api`의 앱 설정 중 하나로 들어 있었습니다(설정 10 + 예외 핸들러 1 = 11).
+
+#### 결정
+
+`AsyncConfig`를 web-api에서 코어 `application/shared/config/AsyncConfig`로 옮깁니다.
+
+| 항목 | before | after |
+|---|---|---|
+| `@EnableAsync` 위치 | `backend/web-api/.../webapi/config/AsyncConfig.java` | 코어 `.../application/shared/config/AsyncConfig.java`(package-private `@Configuration`, `SharedBeanConfig`과 같은 위치) |
+| web-api `AsyncConfig` | 있음 | 삭제 |
+| web 알림 리스너 | 비동기 | 비동기 |
+| ceo·admin 알림 리스너 | 동기(요청 스레드) | 비동기 |
+| 실행기 | Boot 기본 `applicationTaskExecutor` | 동일 |
+| 가드 | 없음 | 코어 `AsyncRulesTest`(@Async 클래스 존재·코어 `@EnableAsync` 1개·위치 `shared.config`) + 각 앱 `LayerRulesTest.appModuleShouldNotEnableAsync` |
+
+#### 근거
+
+- `AsyncConfig`는 값이 앱마다 다른 결정이 아닙니다. `@Async` 리스너 3개가 코어에 있어 4앱 공통입니다.
+- web에만 두면 ceo·admin이 발행한 이벤트의 리스너가 조용히 동기로 도는 결함이 생깁니다.
+- 앱 모듈 규칙을 코어가 아니라 각 앱 테스트에 둔 이유: 코어 테스트 모듈은 api 모듈 클래스를 클래스패스에 두지 않아 볼 수 없습니다.
+
+#### 결과·감수한 손실
+
+- **의도된 동작 변경(결함 수정)**: ceo·admin 알림 리스너가 비동기로 바뀌었습니다. web과 batch는 영향이 없습니다(batch는 이벤트를 발행하지 않음). API 요청·응답·에러코드·DB 스키마는 불변입니다.
+- `@EnableAsync`가 앱 모듈에 다시 생기면 `appModuleShouldNotEnableAsync`가 실패합니다.
+
+<a id="decision-0054"></a>
+
+### 0054. ..service..의 협력 서비스도 package-private으로 좁히고 다른 패키지가 쓰는 30개만 허용 목록에 둔다
+
+- 상태: 채택
+- 결정 커밋: `58774e4a9` (2026-10-11)
+- 대체한 결정: [결정 0040](../AGENTS.md#decision-0040)(후속 과제 행 — "UseCase 없는 도메인 서비스 약 48개")
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0054
+
+#### 맥락
+
+- **협력 서비스**: `..service..` 패키지에 있지만 인바운드 포트(UseCase)를 구현하지 않는 클래스입니다. 도메인 서비스·Reader·Validator처럼 유스케이스 서비스가 함께 쓰는 빈입니다.
+- **split package**: 같은 자바 패키지를 여러 Gradle 모듈이 나눠 쓰는 상태입니다. 이 저장소의 `com.tastyhouse.application..`은 코어와 앱 모듈 4개가 나눠 씁니다.
+
+[결정 0040](../AGENTS.md#decision-0040)은 UseCase 구현 서비스를 package-private으로 좁혔지만, 가드 `useCaseImplementationsShouldNotBePublic`은 UseCase 구현만 검사했습니다. 그래서 협력 서비스는 가드 밖에 있는 빈틈이었습니다(커밋 메시지).
+
+#### 이전 규칙
+
+##### backend/CLAUDE.md — 접근 제어자 규칙 (내부 구현은 package-private)
+
+`public` 유지 대상 표에 "UseCase 없는 도메인 서비스(약 48개는 다른 패키지에서 import) — `application` 5모듈" 행이 있었고, 이것은 후속 과제로 남아 있었습니다.
+
+같은 표의 `SpringDomainEventPublisher` 행(다른 패키지의 `SharedBeanConfig`가 참조)에는 `ProhibitedWordValidator`·`CachingProhibitedWordLoadPort`도 함께 들어 있었습니다.
+
+#### 결정
+
+`..service..`의 협력 서비스도 package-private으로 좁힙니다. 다른 패키지가 import하는 것만 허용 목록 `PUBLIC_BY_NECESSITY`로 관리합니다.
+
+| 항목 | before | after |
+|---|---|---|
+| 협력 서비스(`..service..`의 UseCase 비구현 class) 103개 | `public`, 가드 밖 | 다른 패키지가 참조하지 않는 73개는 package-private |
+| 다른 패키지가 import하는 협력 서비스 | 후속 과제 "약 48개" | 30개 — 허용 목록 `PUBLIC_BY_NECESSITY`(사유 표와 함께) |
+| `ProhibitedWordValidator`·`CachingProhibitedWordLoadPort` | `SpringDomainEventPublisher` 행에 동거 | `..service..`에 있어 협력 서비스 30개 행·`PUBLIC_BY_NECESSITY`로 이동 |
+| 같은 패키지의 모듈 간 참조(split package 20건) | — | package-private으로 성립하므로 허용 목록 등재 사유가 아니다 |
+| 가드 | `useCaseImplementationsShouldNotBePublic`(UseCase 구현만) | 추가: `LayerRulesTest#serviceClassesShouldNotBePublic`(하한 650) + `publicByNecessityShouldStillBePublic`(허용 목록 낡음 검사) |
+
+#### 근거
+
+- 가드가 UseCase 구현만 보면 같은 패키지의 협력 서비스는 아무 제약 없이 `public`으로 남아, 다른 패키지가 구현에 직접 결합할 수 있었습니다.
+- 다른 패키지가 쓰는 협력 서비스(리스너→`PointLedgerService`, ceo의 `product.service`·`review.service`→`shop.service.ShopOwnershipValidator`, 다른 컨텍스트 서비스→`PublicHolidayCalendar` 등)는 컴파일을 위해 `public`이어야 하므로 이름과 사유를 목록으로 관리합니다.
+- split package는 패키지가 같으므로 모듈이 달라도 package-private 접근이 성립합니다.
+
+#### 결과·감수한 손실
+
+- 선언 키워드만 바꿨고 동작 변경은 없습니다.
+- `CeoUserDetails`(`auth/security`)는 `..service..` 밖이라 이 규칙의 대상이 아닙니다.
+- 허용 목록은 줄어드는 방향으로만 관리합니다. 낡은 항목은 `publicByNecessityShouldStillBePublic`이 잡습니다.
+
+<a id="decision-0056"></a>
+
+### 0056. 신규 에러코드는 스냅샷 tsv에 행을 추가하고 개수 단정을 올린다
+
+- 상태: 채택
+- 결정 커밋: `03d806112` (2026-10-15)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0056
+
+#### 맥락
+
+- **에러 카탈로그 스냅샷**: `backend/application-core/src/test/resources/error-catalog-before.tsv`는 HTTP 응답으로 나가는 에러의 `(이름, status, code, message)`를 한 줄씩 적은 파일입니다. `ErrorCatalogSnapshotTest`가 7개 카탈로그 enum의 실제 값이 이 파일과 정확히 같은지 비교합니다.
+- **wire 계약**: 프론트가 응답의 `code`·status로 분기하므로, 이미 나가고 있는 값은 바꾸면 안 되는 계약입니다.
+
+[결정 0042](../AGENTS.md#decision-0042)는 에러코드를 모듈별 카탈로그로 나누면서, 분할이 wire 계약을 바꾸지 않았다는 증거로 이 스냅샷을 만들었습니다. 그 뒤로 "스냅샷 파일을 갱신해 테스트를 맞추지 않는다"가 규칙이었는데, 이 규칙대로라면 새 에러코드를 추가하는 것 자체가 테스트 실패로 막힙니다. 분할 이후 처음 추가된 신규 코드(`WebErrorCode.PAYMENT_REFUND_ORDER_STATUS_INVALID`, [결정 0055](../../docs/domain/payment.md#decision-0055))에서 이 공백이 드러났습니다.
+
+#### 이전 규칙
+
+`backend/application-core/AGENTS.md`의 "에러 카탈로그 가드 — 코드는 던지는 가장 안쪽 모듈에 두고, 봉인 집합을 늘리지 않는다 (에러코드 모듈 분할)" 절, `ErrorCatalogSnapshotTest` 항목: 스냅샷 파일을 갱신해 테스트를 맞추지 않는다. 코드·상태·메시지를 바꾸면 이 테스트가 실패해야 정상이며, 의도한 wire 변경이면 그 사실을 문서에 먼저 적는다. 신규 코드에 대한 예외는 없었습니다.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| 기존 행의 code·status·message 변경 | 금지 | 금지(변경 없음) |
+| 신규 상수 추가 | 규칙 없음(테스트 실패로 사실상 불가) | 허용 — 아래 4단계 |
+| 개수 단정 `hasSize` | 419 고정 | 신규 코드 수만큼 올림 |
+
+신규 상수 추가 절차:
+
+1. 소유 카탈로그 enum에 상수를 추가한다(배치는 `backend/CLAUDE.md`의 예외·에러코드 소유 규칙).
+2. tsv에 `NAME⇥status⇥CODE⇥message` 한 행을 추가한다(⇥ = 탭).
+3. `ErrorCatalogSnapshotTest`의 `hasSize`를 1 올린다.
+4. `backend/CLAUDE.md`와 `backend/application-core/AGENTS.md`의 카탈로그 개수 표기를 함께 갱신한다.
+
+#### 근거
+
+- 신규 코드는 기존 클라이언트가 분기하던 값을 하나도 바꾸지 않으므로(additive) 스냅샷이 지키려던 wire 계약을 깨지 않습니다.
+- 스냅샷을 신규 코드에도 동결하면 카탈로그를 넓히는 정상 작업이 막히고, 우회하려고 기존 코드를 재사용해 의미가 다른 에러가 같은 `code`로 나가게 됩니다.
+- 기존 행 변경은 여전히 테스트 실패로 드러나므로, 이 테스트의 원래 목적(조용한 계약 변경 차단)은 그대로 남습니다.
+
+#### 결과·감수한 손실
+
+- tsv 파일명 `error-catalog-before.tsv`의 "before"(분할 전)는 더 이상 내용과 정확히 맞지 않습니다. 테스트가 이 경로를 참조하므로 파일명은 바꾸지 않았습니다.
+- 개수 표기가 문서 두 곳과 테스트 한 곳에 흩어져 있어, 신규 코드를 추가할 때마다 함께 고쳐야 합니다. 병행 작업이 각자 코드를 추가하면 개수가 충돌할 수 있으므로 커밋 직전에 tsv 행 수와 `hasSize`를 다시 확인합니다.
+
+<a id="decision-0057"></a>
+
+### 0057. 개수 anchor 하한은 유스케이스를 의도적으로 삭제할 때만 실측값으로 내린다
+
+- 상태: 채택
+- 결정 커밋: `0068b7eae` (2026-10-16)
+- 대체한 결정: —
+- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0057
+
+#### 맥락
+
+- **개수 anchor**: `backend/application-core/src/test/java/com/tastyhouse/application/architecture/RuleAnchorTest.java`와 같은 디렉터리의 `LayerRulesTest.java`는 규칙이 검사하는 대상 클래스의 수가 하한 이상인지 단정합니다. 대상이 0건이 되어 규칙이 아무것도 검사하지 않고 통과하는 상태(공허 통과)를 잡기 위한 장치입니다.
+- 유스케이스 분리([결정 0043](#decision-0043)) 직후 실측값을 하한으로 고정했고, 문서에는 "하한을 낮추지 않는다"고만 적혀 있었습니다.
+
+웹 결제 API `POST /api/payments/v1/confirm`은 소유권·금액·PG 조회 없이 PENDING 결제를 완료 처리할 수 있는 보안 결함이 있었습니다. 프론트가 호출하지 않는 경로라 엔드포인트와 그 전용 유스케이스 2개(`PaymentConfirmUseCase`, `PaymentDetailByIdQueryUseCase`)를 삭제했습니다. 그런데 실측값이 하한과 정확히 같아서(web UseCase 187, 명령 서비스 314, 조회 서비스 268, 유스케이스 서비스 582), 삭제만으로 가드 테스트가 실패했습니다. "낮추지 않는다"를 문자 그대로 따르면 쓰지 않는 결함 코드를 지울 수 없습니다.
+
+#### 이전 규칙
+
+`backend/application-core/AGENTS.md` · "`moduleBeanCounts`·`moduleUseCaseCounts` 하한을 낮추지 않는다" 항목과 "하한 582를 낮추지 않는다" 항목: 예외 없이 하한을 낮추지 않는다.
+
+#### 결정
+
+| 상황 | before | after |
+|---|---|---|
+| 클래스 이동·출처 판정 오류로 개수가 줄어듦 | 낮추지 않음 | 낮추지 않음(변경 없음) |
+| 유스케이스를 의도적으로 삭제함 | 규칙 없음(삭제가 막힘) | 삭제 후 실측값으로 하한을 맞춘다 |
+
+이번 변경에서 맞춘 값: `moduleUseCaseCounts` web 187 → 185, `commandServicesExist` 314 → 313, `queryServicesExist` 268 → 267, `LayerRulesTest`의 유스케이스 하한 2곳 582 → 580. `inboundPortsExist`는 ArchUnit이 중첩 타입까지 세어 실측이 894였고 삭제 후에도 891 = 하한이라 바꾸지 않았습니다.
+
+#### 근거
+
+- anchor가 막으려는 것은 "판정이 깨져 대상이 조용히 사라지는 것"이지, 의도한 삭제가 아닙니다.
+- 실측보다 낮게 내리면 가드가 느슨해지므로 "삭제 후 실측값"으로만 맞춥니다. 실측은 파일 수가 아니라 규칙이 세는 방식(중첩 타입 포함 등)으로 잽니다.
+
+#### 결과·감수한 손실
+
+- 의도한 삭제인지는 리뷰가 판단합니다. 하한을 내리는 diff에는 삭제한 유스케이스 목록이 함께 있어야 합니다.
+- 하한 수치가 `backend/CLAUDE.md`와 `backend/application-core/AGENTS.md`에 여러 번 적혀 있어 함께 고쳐야 합니다.

@@ -251,3 +251,71 @@ jar mtime이 더 나중이면 실행 중에 덮어쓴 것입니다. `내리기 �
 | `backend/CLAUDE.md`·`backend/AGENTS.md` | backend 컨벤션 |
 | `frontend/{admin,ceo}/CLAUDE.md` | frontend 앱별 컨벤션 |
 | `docs/domain/{도메인}.md` | 주문·쿠폰·포인트·등급 등 도메인 비즈니스 규칙 |
+
+## 결정 경위
+
+이 문서가 소유한 규칙이 **왜 지금 모양이 됐는지**를 결정 단위로 적습니다. 본문은 현재 규칙만 담고, "예전에는 어땠고 왜 바뀌었는가"는 이 절에만 둡니다. 이 절은 항상 문서의 마지막 `##` 절이며, 항목은 번호 순입니다. 작성 규칙은 루트 `CLAUDE.md`의 "규칙 문서 개정 규칙" 절에 있습니다.
+
+<a id="decision-0066"></a>
+
+### 0066. 결정 전용 디렉터리(docs/adr)를 없애고 결정 경위를 소유 문서의 `## 결정 경위` 절로 흡수한다
+
+- 상태: 채택
+- 결정 커밋: `081456d16` (2026-10-27)
+- 대체한 결정: —
+
+#### 맥락
+
+규칙 문서 본문에 지난 규칙과 바뀐 규칙이 취소선·이력 꼬리표로 겹겹이 쌓이자(2026-10-12 기준 43개 문서 663줄), 이력을 결정 단위로 걷어 `docs/adr/NNNN-{slug}.md` 파일 54개로 옮겼고, 이후 65개까지 늘었습니다. 본문은 현재 규칙만 담는다는 원칙은 효과가 있었지만, 결정 파일이 그 규칙을 소유한 문서와 떨어져 있어 문제가 생겼습니다.
+
+- 같은 규칙의 현재 모습(`AGENTS.md`)과 경위(`docs/adr`)가 다른 디렉터리에 있어, 규칙을 고칠 때 두 곳을 함께 갱신해야 했습니다.
+- 결정마다 파일·색인 행·상태 문구를 손으로 맞추는 비용이 들었습니다(색인과 파일의 "결정 커밋" 자리표시자가 어긋나는 리뷰 지적이 반복됨).
+- `docs/domain`처럼 "주제 하나 = 문서 하나"로 찾는 다른 문서들과 구조가 달랐습니다.
+
+#### 이전 규칙
+
+결정 경위는 `docs/adr/NNNN-{slug}.md`에 결정 1건 = 파일 1개로 적고, `docs/adr/README.md`가 색인·작성 규칙·잔존 이력 검사 명령을 소유했습니다. 대체된 결정은 본문을 지우지 않고 상태만 바꿨습니다.
+
+#### 결정
+
+| 항목 | before | after |
+|---|---|---|
+| 결정 경위 위치 | `docs/adr/NNNN-{slug}.md` 65개 + `README.md` 색인 | 규칙을 소유한 `AGENTS.md`·`docs/domain/*.md`·`docs/workflow/README.md`의 마지막 `## 결정 경위` 절 |
+| 번호·앵커 | 파일명 번호, 파일 경로 링크 | 번호 유지, `<a id="decision-NNNN">` 앵커 링크 |
+| 대체된 결정 | 본문 전체 유지 | "결정" 절 요약(before/after 표)만 유지, 원문은 git 이력 |
+| 영향받은 문서 절 | 결정마다 있음 | 삭제 — 결정이 소유 문서 안에 있으므로 불필요 |
+| 색인 | `docs/adr/README.md` | 없음 — 번호는 `git grep 'id="decision-'`로 찾음 |
+| 작성 규칙·잔존 검사 | `docs/adr/README.md` | 루트 `CLAUDE.md`의 "규칙 문서 개정 규칙" 절. 검사는 `## 결정 경위` 절을 제외 |
+| 재생성 방지 | 없음 | `.claude/settings.json` PreToolUse 훅이 `docs/adr/` 쓰기를 차단 |
+
+결정 65개의 소유 문서 배치는 다음과 같습니다.
+
+| 소유 문서 | 결정 번호 |
+|---|---|
+| `backend/AGENTS.md` | 0005·0006·0008·0010·0013·0014·0016·0017·0018·0020·0022·0025·0029·0030·0034·0035·0036·0037·0038·0040·0042·0049 |
+| `backend/application-core/AGENTS.md` | 0007·0009·0012·0015·0024·0026·0027·0033·0043·0046·0048·0054·0056·0057 |
+| `backend/domain/AGENTS.md` | 0001·0041 |
+| `backend/infrastructure/jpa/AGENTS.md` | 0002·0004·0028·0031·0032·0039·0044·0047 |
+| `backend/infrastructure/persistence/AGENTS.md` | 0045·0052 |
+| `backend/infrastructure/mybatis/AGENTS.md` | 0053 |
+| `backend/infrastructure/mysql/AGENTS.md` | 0051 |
+| `backend/infrastructure/file-storage/AGENTS.md` | 0021 |
+| `backend/infrastructure/oauth/AGENTS.md` | 0050 |
+| `backend/api-common-module/AGENTS.md` | 0003 |
+| `backend/security-core/AGENTS.md` | 0011·0019·0023 |
+| `docs/domain/payment.md` | 0055·0059·0060·0061·0062·0063·0064·0065 |
+| `docs/domain/point.md` | 0058 |
+| `docs/workflow/README.md` | 0066 |
+
+#### 근거
+
+- 규칙과 그 경위가 한 문서에 있으면 규칙을 고칠 때 경위도 같은 diff에서 갱신됩니다.
+- 앵커를 `decision-NNNN`으로 고정하면 제목을 고쳐도 링크가 깨지지 않고, 번호는 기존 결정과 이어지므로 커밋 메시지·리뷰 기록의 번호 언급이 그대로 유효합니다.
+- 결정 경위를 `CLAUDE.md`에 두지 않는 이유는 매 세션 자동으로 읽히는 파일이라 이력이 컨텍스트를 잡아먹기 때문입니다.
+
+#### 결과·감수한 손실
+
+- `docs/adr/README.md`의 "원문 표기 → ADR 대응표"(정리 전 이력 꼬리표로 검색하던 사람을 위한 표)와 전체 색인 표는 옮기지 않았습니다. git 이력에 남습니다.
+- 대체된 결정 14개(0004·0007·0008·0009·0010·0011·0013·0014·0017·0026·0027·0028·0034·0045)는 맥락·근거·이전 규칙 절이 소유 문서에서 빠졌습니다. 각 항목의 "원문" 줄이 git 이력의 경로를 가리킵니다.
+- 결정 경위 절이 붙으면서 소유 문서가 길어졌습니다(`backend/AGENTS.md`·`application-core/AGENTS.md`·`jpa/AGENTS.md`·`docs/domain/payment.md`). 절은 항상 문서 끝에 있으므로 현재 규칙을 읽는 데는 영향이 없습니다.
+- `docs/tasks/`(커밋 대상 아님)의 옛 스펙·리뷰 기록에 남은 `docs/adr/...` 경로는 고치지 않았습니다.

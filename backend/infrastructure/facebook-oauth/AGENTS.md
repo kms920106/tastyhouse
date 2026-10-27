@@ -4,7 +4,7 @@
 
 페이스북 로그인 **벤더 모듈**(`java-library`). `web-application`(앱 마커 제거 전에는 `application`)의 SPI `SocialOAuthClientPort`를 `FacebookOAuthClient`가 구현하고 `provider()`로 `SocialProvider.FACEBOOK`을 알린다. 앱이 아니라 소셜 로그인 채널 스타터 `infrastructure:oauth`가 `runtimeOnly`로 조립한다.
 
-채널·벤더 분리로 `infrastructure:oauth`에서 갈라진 벤더 모듈이다. 패키지 루트는 `com.tastyhouse.infrastructure.facebook.oauth`이고 wire DTO도 루트 패키지에 평면으로 있으며 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명이 빈 이름 `facebookOAuthClient`를 정한다. ([ADR-0040](../../../docs/adr/0040-package-private-visibility.md))
+채널·벤더 분리로 `infrastructure:oauth`에서 갈라진 벤더 모듈이다. 패키지 루트는 `com.tastyhouse.infrastructure.facebook.oauth`이고 wire DTO도 루트 패키지에 평면으로 있으며 package-private이다 — 그 DTO를 쓰는 Client와 같은 패키지여야 하기 때문이다(아래 봉인·가드 목록). 클래스명이 빈 이름 `facebookOAuthClient`를 정한다. ([결정 0040](../../AGENTS.md#decision-0040))
 
 ## 무엇을 소유하는가
 
@@ -41,7 +41,7 @@ oauth:
 - `infrastructure:restclient` (implementation) — Boot `RestClient.Builder` customizer. Graph API 호출은 **동기 `RestClient`**다.
 - `web-application` (implementation) — 구현하는 SPI(`com.tastyhouse.application.auth.port.out`)의 소유 모듈. **앱 마커 제거로 `:application-core` → `:web-application`으로 바뀌었다** — 소셜 로그인 SPI가 web 전용이라 web 앱 모듈로 옮겨갔기 때문이다(패키지는 그대로)
 
-**`domain` 의존은 없다.** `exchange()`가 `app_id` 불일치를 `BusinessException(SOCIAL_OAUTH_FAILED)`로 직접 던지지 않고, `SocialOAuthResult.failed(SocialOAuthFailure.ACCESS_TOKEN_REJECTED)`(둘 다 `application.auth.port.out` 소유)를 반환한다. 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 `backend/web-application/src/main/java/com/tastyhouse/application/auth/service/SocialOAuthFailures.java`(`WebErrorCode.SOCIAL_OAUTH_FAILED`)에 있고, 소비 측 `SocialLoginService` 1개가 `.orElseThrow(SocialOAuthFailures::toException)`으로 호출한다. ([ADR-0050](../../../docs/adr/0050-social-login-router.md))
+**`domain` 의존은 없다.** `exchange()`가 `app_id` 불일치를 `BusinessException(SOCIAL_OAUTH_FAILED)`로 직접 던지지 않고, `SocialOAuthResult.failed(SocialOAuthFailure.ACCESS_TOKEN_REJECTED)`(둘 다 `application.auth.port.out` 소유)를 반환한다. 실패를 `BusinessException`으로 번역하는 책임은 이 어댑터가 아니라 `backend/web-application/src/main/java/com/tastyhouse/application/auth/service/SocialOAuthFailures.java`(`WebErrorCode.SOCIAL_OAUTH_FAILED`)에 있고, 소비 측 `SocialLoginService` 1개가 `.orElseThrow(SocialOAuthFailures::toException)`으로 호출한다. ([결정 0050](../oauth/AGENTS.md#decision-0050))
 - `infrastructure:oauth`를 의존하지 않는다(순환 방지)
 
 ## 주의
@@ -64,7 +64,7 @@ oauth:
 
 **대상**: `backend/infrastructure/facebook-oauth/src/main/java/com/tastyhouse/infrastructure/facebook/oauth/`
 
-이 모듈의 루트는 `com.tastyhouse.infrastructure.facebook.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/facebook-oauth/src/test/java/com/tastyhouse/infrastructure/facebook/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(바꿀 때는 그 규칙의 목록을 함께 고친다 — 목록은 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`다). ([ADR-0037](../../../docs/adr/0037-infrastructure-package-root.md))
+이 모듈의 루트는 `com.tastyhouse.infrastructure.facebook.oauth`이고 main 클래스는 전부 그 아래에 있어야 한다 — `backend/infrastructure/facebook-oauth/src/test/java/com/tastyhouse/infrastructure/facebook/oauth/architecture/VendorLayerRulesTest.java` → `shouldResideInModuleRootPackage`이 강제한다. 또한 이 패키지 이름은 web-api ArchUnit `LayerRulesTest#shouldDependOnOauthSpiOnlyNotProviderPackages`가 문자열로 참조하므로, 이름을 바꾸면 **규칙이 조용히 대상을 잃는다**(바꿀 때는 그 규칙의 목록을 함께 고친다 — 목록은 `com.tastyhouse.infrastructure.{kakao,naver,facebook,apple}.oauth..`다). ([결정 0037](../../AGENTS.md#decision-0037))
 
 ### 쿼리는 문자열 연결이 아니라 URI 템플릿 변수로 조립한다
 
