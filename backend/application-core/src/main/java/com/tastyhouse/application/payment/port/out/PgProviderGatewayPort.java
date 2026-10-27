@@ -9,4 +9,6 @@ public interface PgProviderGatewayPort {
     PgCancelResult cancelPayment(String pgTid, String cancelReason);
 
     PgPaymentLookupResult lookupPayment(String pgOrderId);
+
+    PgCancelLookupResult lookupCancellation(String pgOrderId, String paymentKey);
 }

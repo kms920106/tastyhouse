@@ -31,7 +31,7 @@ backend/infrastructure/pg/
 
 > 제목은 ADR-0026·0034·0036이 인용하므로 남겨 둔 이름이다. 라우터는 `application-core`에 있다.
 
-라우터는 **코어 `application-core` 모듈**의 `payment/service/PgPaymentGatewayRouter`에 있고 **`@Service`**를 단다. 코어는 4앱 모두에 실리므로 라우터 빈도 4앱 모두에 뜬다. 벤더 어댑터는 이 모듈을 의존하는 web-api·batch-module에만 있으므로, admin·ceo에서는 라우터가 **빈 목록**으로 생성되고 어떤 PG도 지원하지 않는다(admin·ceo에는 라우터를 주입하는 빈도 없다). 라우터가 다루는 포트 `PgPaymentGatewayPort`·`PgProviderGatewayPort`·`PgCancelResult`·`PgProviderCode`와 `PgConfirmResult`·`PgConfirmFailure`·`PgPaymentLookupResult`·`PgPaymentLookupStatus`·`TossPaymentDetail`이 모두 코어에 있다(패키지는 모두 `com.tastyhouse.application.payment.port.out`). 코어로 둔 이유는 web(승인·취소)과 batch(주기 대사) **두 앱이 쓰기 때문**이다 — 2개 앱 이상이 쓰는 계약은 코어 소유다. 빈 이름은 `pgPaymentGatewayRouter`다. ([ADR-0061](../../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md))
+라우터는 **코어 `application-core` 모듈**의 `payment/service/PgPaymentGatewayRouter`에 있고 **`@Service`**를 단다. 코어는 4앱 모두에 실리므로 라우터 빈도 4앱 모두에 뜬다. 벤더 어댑터는 이 모듈을 의존하는 web-api·batch-module에만 있으므로, admin·ceo에서는 라우터가 **빈 목록**으로 생성되고 어떤 PG도 지원하지 않는다(admin·ceo에는 라우터를 주입하는 빈도 없다). 라우터가 다루는 포트 `PgPaymentGatewayPort`·`PgProviderGatewayPort`·`PgCancelResult`·`PgCancelFailure`·`PgCancelLookupResult`·`PgCancelLookupStatus`·`PgProviderCode`와 `PgConfirmResult`·`PgConfirmFailure`·`PgPaymentLookupResult`·`PgPaymentLookupStatus`·`TossPaymentDetail`이 모두 코어에 있다(패키지는 모두 `com.tastyhouse.application.payment.port.out`). 코어로 둔 이유는 web(승인·취소)과 batch(주기 대사) **두 앱이 쓰기 때문**이다 — 2개 앱 이상이 쓰는 계약은 코어 소유다. 빈 이름은 `pgPaymentGatewayRouter`다. ([ADR-0061](../../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md))
 
 ```java
 // application/payment/service/PgPaymentGatewayRouter.java (application-core)
@@ -56,7 +56,7 @@ class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
 
 | 계약 (`com.tastyhouse.application.payment.port.out`) | 누가 구현하나 | 누가 주입하나 |
 |---|---|---|
-| `PgProviderGatewayPort` — `provider()`(반환 타입 `PgProviderCode`) + 승인·취소·조회(`lookupPayment(pgOrderId)`) | 벤더 어댑터(`TossPaymentGatewayAdapter` 등), 벤더마다 하나 | 라우터(`List`로) |
+| `PgProviderGatewayPort` — `provider()`(반환 타입 `PgProviderCode`) + 승인·취소·조회(`lookupPayment(pgOrderId)`)·취소 확인 조회(`lookupCancellation(pgOrderId, paymentKey)`) | 벤더 어댑터(`TossPaymentGatewayAdapter` 등), 벤더마다 하나 | 라우터(`List`로) |
 | `PgPaymentGatewayPort` — `supports(String pgProvider)`(도메인 `PgProvider`의 상수명) + 승인·취소·조회(첫 인자 `String pgProvider`) | **라우터 `PgPaymentGatewayRouter` 하나뿐** | web `PgPaymentConfirmService`·`PaymentCancelService`, batch `PaymentReconcileSchedulerService` |
 
 - 벤더가 둘 이상 떠도 `PgPaymentGatewayPort` 구현은 라우터 하나라 **빈 모호성이 없다.** 벤더 어댑터가 `PgPaymentGatewayPort`를 직접 구현하게 하지 않는다 — 두 번째 벤더가 들어오는 순간 `NoUniqueBeanDefinitionException`으로 web-api가 뜨지 않는다.

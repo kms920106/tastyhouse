@@ -32,4 +32,9 @@ class PaymentCancellationExecutor {
     ) {
         return paymentCancellationService.applyCancellation(memberId, paymentId, cancelReason, pgCancelRequiredAtPrepare);
     }
+
+    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
+    public boolean isPaymentCancelledInNewTx(PaymentId paymentId) {
+        return paymentCancellationService.isPaymentCancelled(paymentId);
+    }
 }

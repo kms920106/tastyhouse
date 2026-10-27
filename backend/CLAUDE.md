@@ -310,7 +310,7 @@ static class ModuleScanConfig {
 | 위 중 다른 패키지가 import하는 것 | `application` 5모듈 | 30 | `public class` | `public class` 유지 + `PUBLIC_BY_NECESSITY` 등재 |
 
 - **73개 중 20개는 코어 `application` 클래스를 앱 모듈이 같은 자바 패키지에서 쓴다**(split package — 예: `shop/service/ShopLifecycleService` ← admin·ceo·web). 이름이 같은 패키지이고 fat jar의 클래스로더가 하나라서 package-private 접근이 컴파일·런타임 모두 성립한다. 선례는 코어의 package-private `product/service/ProductOptionDepositAmounts`·`ShopCodeDescriptions`다. **그래서 "같은 패키지의 모듈 간 참조"는 `PUBLIC_BY_NECESSITY` 등재 사유가 아니다.**
-- `..service..`의 public record·enum(`ProductAvailabilityChangeResult`·`ReviewListType`·`FileUploadCommand` 등 5개)은 반환·계약 타입이라 대상이 아니다.
+- `..service..`의 public record·enum(`ProductAvailabilityChangeResult`·`ReviewListType`·`FileUploadCommand`·`PgReconcileOutcome`·`PgReconcileResult` 등 7개)은 반환·계약 타입이라 대상이 아니다.
 - **가드 범위는 `..service..` 패키지다 — 이름이 `*Service`여도 그 밖에 있으면 검사하지 않는다.** `batch-application`의 `crawling/bbq/BbqService`·`BbqProductSyncService`, `auth/token/*TokenService`, `*JwtTokenProvider`, `auth/security/*UserDetailsService` 등은 아직 public이며 이번 범위가 아니다(후속 판정 대상).
 
 - **선언 키워드만 바꿨다 — 생성자·메서드의 `public`은 유지한다.** `@Transactional`은 public 메서드에만 적용되고, `RateLimitAspect`·`@PreAuthorize`가 감싸는 컨트롤러 핸들러 메서드도 public이어야 프록시 대상이 된다. 클래스를 package-private으로 좁혀도 메서드 가시성은 손대지 않는다.
@@ -362,7 +362,7 @@ static class ModuleScanConfig {
 
 | 모듈 | 담는 것 | 의존 |
 |---|---|---|
-| `application-core`(코어) | **2개 앱 이상이 쓰는 것** — 공유 도메인 서비스, 도메인 이벤트 리스너 12종(`<ctx>/listener`), `shared/**`(`SharedBeanConfig` 포함), **모든 `port.out` 계약**(읽기 계약·write 포트·Command 반환 Result), web·batch가 함께 쓰는 PG SPI `payment.port.out.{PgProviderGatewayPort,PgPaymentGatewayPort,PgCancelResult,PgProviderCode,PgConfirmResult,PgConfirmFailure,PgPaymentLookupResult,PgPaymentLookupStatus,TossPaymentDetail}`와 라우터 `payment/service/PgPaymentGatewayRouter` | 앱 모듈을 모른다 |
+| `application-core`(코어) | **2개 앱 이상이 쓰는 것** — 공유 도메인 서비스, 도메인 이벤트 리스너 12종(`<ctx>/listener`), `shared/**`(`SharedBeanConfig` 포함), **모든 `port.out` 계약**(읽기 계약·write 포트·Command 반환 Result), web·batch가 함께 쓰는 PG SPI `payment.port.out.{PgProviderGatewayPort,PgPaymentGatewayPort,PgCancelResult,PgCancelFailure,PgCancelLookupResult,PgCancelLookupStatus,PgProviderCode,PgConfirmResult,PgConfirmFailure,PgPaymentLookupResult,PgPaymentLookupStatus,TossPaymentDetail}`와 라우터 `payment/service/PgPaymentGatewayRouter` | 앱 모듈을 모른다 |
 | `web-application` | web 전용 `@Service`/`@Component`·UseCase(`port.in`)·Command record·web 전용 도메인 서비스 + **web 전용 SPI 포트**: `emailverification.port.out.{MailSenderPort,MailSendResult}`, `phoneverification.port.out.{SmsSenderPort,SmsSendResult,SmsSendFailure}`, `auth.port.out.{SocialOAuthClientPort,SocialAuthorization,SocialCredential,SocialOAuthResult,SocialOAuthFailure,SocialProfile,SocialProvider}` | `api project(':application-core')` |
 | `admin-application` | admin 전용 빈·UseCase·Command·도메인 서비스 | `api project(':application-core')` |
 | `ceo-application` | ceo 전용 빈·UseCase·Command·도메인 서비스 + **ceo 전용 SPI 포트**: `ceo.port.out.ReplyPhraseTextValidatorPort`(구현 `shop/service/ReplyPhraseProhibitedWordValidatorAdapter`와 유일한 소비자가 ceo다) | `api project(':application-core')` |

@@ -1,9 +1,14 @@
 package com.tastyhouse.infrastructure.tosspayments;
 
+import java.util.Objects;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.tastyhouse.application.payment.port.out.PgCancelFailure;
+import com.tastyhouse.application.payment.port.out.PgCancelLookupResult;
+import com.tastyhouse.application.payment.port.out.PgCancelLookupStatus;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmFailure;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
@@ -19,8 +24,10 @@ class TossPaymentGatewayAdapter implements PgProviderGatewayPort {
     private static final Logger log = LoggerFactory.getLogger(TossPaymentGatewayAdapter.class);
 
     private static final String ALREADY_PROCESSED_PAYMENT = "ALREADY_PROCESSED_PAYMENT";
+    private static final String ALREADY_CANCELED_PAYMENT = "ALREADY_CANCELED_PAYMENT";
     private static final String NOT_FOUND_PAYMENT = "NOT_FOUND_PAYMENT";
     private static final String ORDER_ID_MISMATCH = "ORDER_ID_MISMATCH";
+    private static final String PAYMENT_MISMATCH = "PAYMENT_MISMATCH";
 
     private final TossPaymentClient tossPaymentClient;
 
@@ -142,13 +149,30 @@ class TossPaymentGatewayAdapter implements PgProviderGatewayPort {
         if (ALREADY_PROCESSED_PAYMENT.equals(errorCode)) {
             return PgConfirmFailure.ALREADY_PROCESSED;
         }
-        if (TossPaymentClient.PG_SERVER_ERROR.equals(errorCode)
-            || TossPaymentClient.SYSTEM_ERROR.equals(errorCode)
-            || TossPaymentClient.UNKNOWN_ERROR.equals(errorCode)
-            || TossPaymentClient.PG_UNREADABLE_RESPONSE.equals(errorCode)) {
+        if (isUnknownOutcome(errorCode)) {
             return PgConfirmFailure.UNKNOWN;
         }
         return PgConfirmFailure.REJECTED;
+    }
+
+    private static PgCancelFailure toCancelFailure(String errorCode) {
+        if (ALREADY_CANCELED_PAYMENT.equals(errorCode)) {
+            return PgCancelFailure.ALREADY_CANCELED;
+        }
+        if (NOT_FOUND_PAYMENT.equals(errorCode)) {
+            return PgCancelFailure.NOT_FOUND;
+        }
+        if (isUnknownOutcome(errorCode)) {
+            return PgCancelFailure.UNKNOWN;
+        }
+        return PgCancelFailure.REJECTED;
+    }
+
+    private static boolean isUnknownOutcome(String errorCode) {
+        return TossPaymentClient.PG_SERVER_ERROR.equals(errorCode)
+            || TossPaymentClient.SYSTEM_ERROR.equals(errorCode)
+            || TossPaymentClient.UNKNOWN_ERROR.equals(errorCode)
+            || TossPaymentClient.PG_UNREADABLE_RESPONSE.equals(errorCode);
     }
 
     @Override
@@ -156,12 +180,50 @@ class TossPaymentGatewayAdapter implements PgProviderGatewayPort {
         TossPaymentConfirmResponse response = tossPaymentClient.cancelPayment(pgTid, cancelReason);
 
         if (response.isError()) {
-            log.error("Toss cancel failed. pgTid: {}, errorCode: {}, msg: {}",
-                pgTid, response.getCode(), response.getMessage());
-            return new PgCancelResult(false, response.getCode(), response.getMessage());
+            PgCancelFailure failure = toCancelFailure(response.getCode());
+            if (failure == PgCancelFailure.ALREADY_CANCELED) {
+                log.warn("Toss cancel already canceled. pgTid: {}, errorCode: {}, msg: {}",
+                    pgTid, response.getCode(), response.getMessage());
+            } else {
+                log.error("Toss cancel failed. pgTid: {}, errorCode: {}, msg: {}, failure: {}",
+                    pgTid, response.getCode(), response.getMessage(), failure);
+            }
+            return new PgCancelResult(false, response.getCode(), response.getMessage(), failure);
         }
 
-        return new PgCancelResult(true, null, null);
+        return new PgCancelResult(true, null, null, null);
+    }
+
+    @Override
+    public PgCancelLookupResult lookupCancellation(String pgOrderId, String paymentKey) {
+        TossPaymentConfirmResponse response = tossPaymentClient.lookupPaymentByOrderId(pgOrderId);
+
+        if (response.isError()) {
+            if (NOT_FOUND_PAYMENT.equals(response.getCode())) {
+                return new PgCancelLookupResult(PgCancelLookupStatus.NOT_CANCELED, response.getCode());
+            }
+            log.warn("Toss cancel lookup unconfirmed. pgOrderId: {}, errorCode: {}, msg: {}",
+                pgOrderId, response.getCode(), response.getMessage());
+            return new PgCancelLookupResult(PgCancelLookupStatus.UNKNOWN, response.getCode());
+        }
+
+        if (!pgOrderId.equals(response.getOrderId()) || !Objects.equals(paymentKey, response.getPaymentKey())) {
+            log.error(
+                "Toss cancel lookup returned another payment. requested pgOrderId: {}, paymentKey: {}, response orderId: {}, paymentKey: {}",
+                pgOrderId, paymentKey, response.getOrderId(), response.getPaymentKey()
+            );
+            return new PgCancelLookupResult(PgCancelLookupStatus.UNKNOWN, PAYMENT_MISMATCH);
+        }
+
+        String status = response.getStatus();
+        if ("CANCELED".equals(status)) {
+            return new PgCancelLookupResult(PgCancelLookupStatus.CANCELED, status);
+        }
+        if ("PARTIAL_CANCELED".equals(status)) {
+            log.warn("Toss cancel lookup returned partial cancel. pgOrderId: {}, status: {}", pgOrderId, status);
+            return new PgCancelLookupResult(PgCancelLookupStatus.UNKNOWN, status);
+        }
+        return new PgCancelLookupResult(PgCancelLookupStatus.NOT_CANCELED, status);
     }
 
     private TossPaymentDetail buildTossPaymentDetail(TossPaymentConfirmResponse response) {

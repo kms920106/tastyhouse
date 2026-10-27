@@ -17,7 +17,6 @@ class TossPaymentClient {
 
     private static final Logger log = LoggerFactory.getLogger(TossPaymentClient.class);
 
-    static final String PG_API_ERROR = "PG_API_ERROR";
     static final String PG_SERVER_ERROR = "PG_SERVER_ERROR";
     static final String SYSTEM_ERROR = "SYSTEM_ERROR";
     static final String UNKNOWN_ERROR = "UNKNOWN_ERROR";
@@ -114,8 +113,7 @@ class TossPaymentClient {
             log.info("토스 전액 취소하기 API 완료. paymentKey: {}, status: {}", paymentKey, response.getStatus());
             return response;
         } catch (RestClientResponseException e) {
-            log.error("토스 전액 취소하기 API 실패. status: {}, body: {}", e.getStatusCode(), e.getResponseBodyAsString());
-            return errorResponse(PG_API_ERROR, "결제 취소 API 호출에 실패했습니다: " + e.getMessage());
+            return translateResponseError("전액 취소하기", e);
         } catch (Exception e) {
             log.error("토스 전액 취소하기 API 에러. error: ", e);
             return errorResponse(SYSTEM_ERROR, "결제 취소 중 오류가 발생했습니다: " + e.getMessage());

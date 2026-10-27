@@ -7,6 +7,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.tastyhouse.domain.exception.BusinessException;
+import com.tastyhouse.application.payment.port.out.PgCancelLookupResult;
+import com.tastyhouse.application.payment.port.out.PgCancelLookupStatus;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgPaymentLookupResult;
@@ -56,6 +58,20 @@ class PgPaymentGatewayRouterTest {
         assertThat(lookup.status()).isEqualTo(PgPaymentLookupStatus.APPROVED);
         assertThat(toss.lookupCalls).containsExactly("pg-order-1");
         assertThat(kakao.lookupCalls).isEmpty();
+    }
+
+    @Test
+    @DisplayName("취소 확인 조회: 요청한 PG의 게이트웨이로 주문번호·paymentKey를 그대로 위임하고 결과를 돌려준다")
+    void lookupCancellation_routesToMatchingGateway() {
+        GatewayStub toss = new GatewayStub(PgProviderCode.TOSS);
+        GatewayStub kakao = new GatewayStub(PgProviderCode.KAKAO);
+        PgPaymentGatewayRouter router = new PgPaymentGatewayRouter(List.of(toss, kakao));
+
+        PgCancelLookupResult lookup = router.lookupCancellation("TOSS", "pg-order-1", "tid-1");
+
+        assertThat(lookup.status()).isEqualTo(PgCancelLookupStatus.CANCELED);
+        assertThat(toss.cancelLookupCalls).containsExactly("pg-order-1:tid-1");
+        assertThat(kakao.cancelLookupCalls).isEmpty();
     }
 
     @Test
@@ -115,6 +131,7 @@ class PgPaymentGatewayRouterTest {
         private final List<String> confirmCalls = new ArrayList<>();
         private final List<String> cancelCalls = new ArrayList<>();
         private final List<String> lookupCalls = new ArrayList<>();
+        private final List<String> cancelLookupCalls = new ArrayList<>();
 
         private GatewayStub(PgProviderCode provider) {
             this.provider = provider;
@@ -134,7 +151,7 @@ class PgPaymentGatewayRouterTest {
         @Override
         public PgCancelResult cancelPayment(String pgTid, String cancelReason) {
             cancelCalls.add(pgTid);
-            return new PgCancelResult(true, null, null);
+            return new PgCancelResult(true, null, null, null);
         }
 
         @Override
@@ -144,6 +161,12 @@ class PgPaymentGatewayRouterTest {
                 PgPaymentLookupStatus.APPROVED,
                 new PgConfirmResult(true, "payment-key", "DONE", 21000, null, null, null, null, null, null, null, null, null)
             );
+        }
+
+        @Override
+        public PgCancelLookupResult lookupCancellation(String pgOrderId, String paymentKey) {
+            cancelLookupCalls.add(pgOrderId + ":" + paymentKey);
+            return new PgCancelLookupResult(PgCancelLookupStatus.CANCELED, "CANCELED");
         }
     }
 }

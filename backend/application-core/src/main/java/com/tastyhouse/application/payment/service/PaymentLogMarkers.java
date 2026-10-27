@@ -8,6 +8,10 @@ final class PaymentLogMarkers {
 
     static final String PG_RECONCILE_MANUAL_REQUIRED = "PG_RECONCILE_MANUAL_REQUIRED";
 
+    static final String PG_CANCEL_NOT_FOUND = "PG_CANCEL_NOT_FOUND";
+
+    static final String PG_CANCEL_UNKNOWN = "PG_CANCEL_UNKNOWN";
+
     private PaymentLogMarkers() {
     }
 }

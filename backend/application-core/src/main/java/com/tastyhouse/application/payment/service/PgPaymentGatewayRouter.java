@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 
 import com.tastyhouse.domain.payment.model.PgProvider;
+import com.tastyhouse.application.payment.port.out.PgCancelLookupResult;
 import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgPaymentGatewayPort;
@@ -52,6 +53,11 @@ class PgPaymentGatewayRouter implements PgPaymentGatewayPort {
     @Override
     public PgPaymentLookupResult lookupPayment(String pgProvider, String pgOrderId) {
         return resolve(pgProvider).lookupPayment(pgOrderId);
+    }
+
+    @Override
+    public PgCancelLookupResult lookupCancellation(String pgProvider, String pgOrderId, String paymentKey) {
+        return resolve(pgProvider).lookupCancellation(pgOrderId, paymentKey);
     }
 
     private PgProviderGatewayPort resolve(String pgProvider) {

@@ -69,7 +69,8 @@ class PaymentCancellationService {
         return PaymentCancellationTarget.cancellable(
             isPgCancelRequired(payment),
             payment.getPgProvider(),
-            payment.getPgTid()
+            payment.getPgTid(),
+            payment.getPgOrderId()
         );
     }
 
@@ -114,6 +115,10 @@ class PaymentCancellationService {
         ));
 
         return PaymentCancelCode.SUCCESS;
+    }
+
+    public boolean isPaymentCancelled(PaymentId paymentId) {
+        return loadPayment(paymentId).getPaymentStatus() == PaymentStatus.CANCELLED;
     }
 
     public PaymentRefundId requestRefund(

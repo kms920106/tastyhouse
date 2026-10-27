@@ -69,7 +69,7 @@ class PaymentCancellationServiceTest {
     }
 
     @Test
-    @DisplayName("사전 판정: 완료된 토스 결제는 PG 취소가 필요하다고 알리고 pgTid를 함께 돌려준다")
+    @DisplayName("사전 판정: 완료된 토스 결제는 PG 취소가 필요하다고 알리고 pgTid·pgOrderId를 함께 돌려준다")
     void prepareCancellation_requiresPgCancelForCompletedTossPayment() {
         Fixture fixture = Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CONFIRMED);
 
@@ -79,6 +79,16 @@ class PaymentCancellationServiceTest {
         assertThat(target.pgCancelRequired()).isTrue();
         assertThat(target.pgProvider()).isEqualTo(PgProvider.TOSS);
         assertThat(target.pgTid()).isEqualTo("tid-1");
+        assertThat(target.pgOrderId()).isEqualTo("pg-order-1");
+    }
+
+    @Test
+    @DisplayName("결제 상태 확인: 결제가 취소 상태면 true, 완료 상태면 false다")
+    void isPaymentCancelled_reflectsPaymentStatus() {
+        assertThat(Fixture.with(PaymentStatus.CANCELLED, OrderStatus.CANCELLED).service
+            .isPaymentCancelled(PAYMENT_ID)).isTrue();
+        assertThat(Fixture.with(PaymentStatus.COMPLETED, OrderStatus.CANCELLED).service
+            .isPaymentCancelled(PAYMENT_ID)).isFalse();
     }
 
     @Test

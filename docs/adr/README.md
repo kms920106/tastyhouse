@@ -100,16 +100,17 @@ grep -rn --include='*.md' -e '번복' -e '~~' -e '후 갱신)' -e '(개정' -e '
 | [0052](0052-banner-write-primary.md) | 같은 포트를 여러 기술이 구현하면 둘 다 등록하고 쓰는 쪽에 @Primary를 단다(provider 키 삭제) | 채택 | `f91ff6659` 2026-10-09 | 0045 |
 | [0053](0053-notice-mybatis-legacy.md) | mybatis 모듈의 banner 파일럿을 지우고 notice 레거시 MyBatis 구현(쓰기+조회)을 둔다 | 채택 | `8ea00a525` 2026-10-10 | 0045 |
 | [0054](0054-collaborator-service-package-private.md) | ..service..의 협력 서비스도 package-private으로 좁히고 다른 패키지가 쓰는 30개만 허용 목록에 둔다 | 채택 | `58774e4a9` 2026-10-11 | 0040(후속 과제) |
-| [0055](0055-payment-refund-pessimistic-lock.md) | 환불 요청 누적액 검사는 PAYMENT 행 비관적 락으로 직렬화한다 | 채택 | 커밋 후 기입 | — |
-| [0056](0056-error-catalog-additive-snapshot.md) | 신규 에러코드는 스냅샷 tsv에 행을 추가하고 개수 단정을 올린다 | 채택 | 커밋 후 기입 | — |
-| [0057](0057-anchor-floor-on-intentional-deletion.md) | 개수 anchor 하한은 유스케이스를 의도적으로 삭제할 때만 실측값으로 내린다 | 채택 | 커밋 후 기입 | — |
-| [0058](0058-point-balance-pessimistic-lock.md) | 포인트 잔액 변경은 POINT 행 비관적 락으로 직렬화한다 | 채택 | 커밋 후 기입 | — |
-| [0059](0059-payment-confirm-race-lock.md) | PG 승인·실패 반영은 결제 행을 잠그고, PG 승인 성공을 사실로 삼는다 | 채택(부분 → 0060) | 커밋 후 기입 | — |
-| [0060](0060-pg-confirm-unknown-lookup.md) | PG 승인 결과 불명은 실패가 아니라 대기로 두고, 즉시 조회로 대사한다 | 채택(부분 → 0063) | 커밋 후 기입 | 0059(통신 오류 FAILED·"이미 처리됨" 400 부분) |
-| [0061](0061-pg-ports-to-core-batch-reconcile.md) | PG 포트·라우터를 코어로 옮기고, batch가 미확정 결제를 주기적으로 대사한다 | 채택(부분 → 0062) | 커밋 후 기입 | 0036(PG SPI를 web-application에 두던 부분) |
-| [0062](0062-payment-reconcile-backoff.md) | batch 미확정 결제 대사에 결제별 재시도 백오프를 둔다 | 채택(부분 → 0064) | 커밋 후 기입 | 0061(같은 결제를 매 주기 다시 고르고 반복 ERROR를 감수하던 부분) |
-| [0063](0063-pg-confirm-unreadable-4xx-unknown.md) | 본문을 해석할 수 없는 PG 승인 4xx는 거절이 아니라 결과 불명으로 분류한다 | 채택 | 커밋 후 기입 | 0060(결과 불명을 5xx·예외·빈 응답으로 한정하던 부분) |
-| [0064](0064-payment-reconcile-claim.md) | batch 대사는 조건부 UPDATE로 결제별 차례를 선점한 뒤에만 PG에 묻는다 | 채택 | 커밋 후 기입 | 0062(일정 기록 실패 시 조회 계속·횟수 비원자화 부분) |
+| [0055](0055-payment-refund-pessimistic-lock.md) | 환불 요청 누적액 검사는 PAYMENT 행 비관적 락으로 직렬화한다 | 채택 | `03d806112` 2026-10-15 | — |
+| [0056](0056-error-catalog-additive-snapshot.md) | 신규 에러코드는 스냅샷 tsv에 행을 추가하고 개수 단정을 올린다 | 채택 | `03d806112` 2026-10-15 | — |
+| [0057](0057-anchor-floor-on-intentional-deletion.md) | 개수 anchor 하한은 유스케이스를 의도적으로 삭제할 때만 실측값으로 내린다 | 채택 | `0068b7eae` 2026-10-16 | — |
+| [0058](0058-point-balance-pessimistic-lock.md) | 포인트 잔액 변경은 POINT 행 비관적 락으로 직렬화한다 | 채택 | `18112f232` 2026-10-17 | — |
+| [0059](0059-payment-confirm-race-lock.md) | PG 승인·실패 반영은 결제 행을 잠그고, PG 승인 성공을 사실로 삼는다 | 채택(부분 → 0060) | `fff56ac2b` 2026-10-18 | — |
+| [0060](0060-pg-confirm-unknown-lookup.md) | PG 승인 결과 불명은 실패가 아니라 대기로 두고, 즉시 조회로 대사한다 | 채택(부분 → 0063) | `fff56ac2b` 2026-10-18 | 0059(통신 오류 FAILED·"이미 처리됨" 400 부분) |
+| [0061](0061-pg-ports-to-core-batch-reconcile.md) | PG 포트·라우터를 코어로 옮기고, batch가 미확정 결제를 주기적으로 대사한다 | 채택(부분 → 0062) | `fff56ac2b` 2026-10-18 | 0036(PG SPI를 web-application에 두던 부분) |
+| [0062](0062-payment-reconcile-backoff.md) | batch 미확정 결제 대사에 결제별 재시도 백오프를 둔다 | 채택(부분 → 0064) | `fff56ac2b` 2026-10-18 | 0061(같은 결제를 매 주기 다시 고르고 반복 ERROR를 감수하던 부분) |
+| [0063](0063-pg-confirm-unreadable-4xx-unknown.md) | 본문을 해석할 수 없는 PG 승인 4xx는 거절이 아니라 결과 불명으로 분류한다 | 채택(부분 → 0065) | `fff56ac2b` 2026-10-18 | 0060(결과 불명을 5xx·예외·빈 응답으로 한정하던 부분) |
+| [0064](0064-payment-reconcile-claim.md) | batch 대사는 조건부 UPDATE로 결제별 차례를 선점한 뒤에만 PG에 묻는다 | 채택 | `fff56ac2b` 2026-10-18 | 0062(일정 기록 실패 시 조회 계속·횟수 비원자화 부분) |
+| [0065](0065-pg-cancel-lookup-recovery.md) | PG 취소의 "이미 취소됨"·결과 불명은 조회로 확정하고, 취소 실패 원인을 분류한다 | 채택 | 커밋 후 기입 | 0063(`PG_API_ERROR`를 취소 전용으로 남기던 부분) |
 
 ## 원문 표기 → ADR 대응표
 

@@ -17,6 +17,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+import com.tastyhouse.application.payment.port.out.PgCancelFailure;
+import com.tastyhouse.application.payment.port.out.PgCancelLookupResult;
+import com.tastyhouse.application.payment.port.out.PgCancelLookupStatus;
+import com.tastyhouse.application.payment.port.out.PgCancelResult;
 import com.tastyhouse.application.payment.port.out.PgConfirmFailure;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
 import com.tastyhouse.application.payment.port.out.PgPaymentLookupResult;
@@ -33,6 +37,7 @@ class TossPaymentGatewayAdapterTest {
     private static final String BASE_URL = "https://pg.test";
     private static final String CONFIRM_URL = BASE_URL + "/v1/payments/confirm";
     private static final String LOOKUP_URL = BASE_URL + "/v1/payments/orders/order-1";
+    private static final String CANCEL_URL = BASE_URL + "/v1/payments/pk-1/cancel";
 
     private MockRestServiceServer server;
     private TossPaymentGatewayAdapter adapter;
@@ -326,6 +331,182 @@ class TossPaymentGatewayAdapterTest {
     @DisplayName("조회 결과가 PARTIAL_CANCELED면 승인 뒤 일부 취소된 상태라 UNKNOWN이다")
     void lookupPartialCanceledIsUnknown() {
         assertLookupStatus("PARTIAL_CANCELED", PgPaymentLookupStatus.UNKNOWN, PgConfirmFailure.UNKNOWN);
+    }
+
+    @Test
+    @DisplayName("취소 성공 응답은 실패 사유를 갖지 않는다")
+    void cancelSuccessHasNoFailure() {
+        server.expect(requestTo(CANCEL_URL))
+            .andRespond(withSuccess("{\"paymentKey\":\"pk-1\",\"orderId\":\"order-1\",\"status\":\"CANCELED\"}",
+                MediaType.APPLICATION_JSON));
+
+        PgCancelResult result = adapter.cancelPayment("pk-1", "고객 요청");
+
+        assertThat(result.success()).isTrue();
+        assertThat(result.failure()).isNull();
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("취소의 400 ALREADY_CANCELED_PAYMENT는 ALREADY_CANCELED로 번역하고 WARN만 남긴다")
+    void cancelAlreadyCanceledIsTranslated() {
+        PgCancelResult result = cancelWithTossError(HttpStatus.BAD_REQUEST, "ALREADY_CANCELED_PAYMENT");
+
+        assertThat(result.success()).isFalse();
+        assertThat(result.failure()).isEqualTo(PgCancelFailure.ALREADY_CANCELED);
+        assertThat(result.errorCode()).isEqualTo("ALREADY_CANCELED_PAYMENT");
+        assertThat(adapterLogLevels()).containsExactly(Level.WARN);
+    }
+
+    @Test
+    @DisplayName("취소의 404 NOT_FOUND_PAYMENT는 NOT_FOUND로 번역한다")
+    void cancelNotFoundIsTranslated() {
+        PgCancelResult result = cancelWithTossError(HttpStatus.NOT_FOUND, "NOT_FOUND_PAYMENT");
+
+        assertThat(result.failure()).isEqualTo(PgCancelFailure.NOT_FOUND);
+        assertThat(result.errorCode()).isEqualTo("NOT_FOUND_PAYMENT");
+        assertThat(adapterLogLevels()).containsExactly(Level.ERROR);
+    }
+
+    @Test
+    @DisplayName("취소의 그 밖의 토스 JSON 4xx는 REJECTED로 번역한다")
+    void cancelOtherErrorIsRejected() {
+        PgCancelResult result = cancelWithTossError(HttpStatus.FORBIDDEN, "NOT_CANCELABLE_PAYMENT");
+
+        assertThat(result.failure()).isEqualTo(PgCancelFailure.REJECTED);
+        assertThat(result.errorCode()).isEqualTo("NOT_CANCELABLE_PAYMENT");
+    }
+
+    @Test
+    @DisplayName("취소 5xx·본문 해석 불가 4xx·호출 예외·빈 응답은 토스가 처리했는지 모르므로 UNKNOWN으로 번역한다")
+    void cancelUnknownOutcomesAreTranslated() {
+        server.expect(requestTo(CANCEL_URL)).andRespond(withServerError());
+        assertThat(adapter.cancelPayment("pk-1", "고객 요청").failure()).isEqualTo(PgCancelFailure.UNKNOWN);
+        server.verify();
+
+        server.reset();
+        server.expect(requestTo(CANCEL_URL))
+            .andRespond(withStatus(HttpStatus.REQUEST_TIMEOUT).contentType(MediaType.TEXT_HTML).body("<html>408</html>"));
+        assertThat(adapter.cancelPayment("pk-1", "고객 요청").failure()).isEqualTo(PgCancelFailure.UNKNOWN);
+        server.verify();
+
+        server.reset();
+        server.expect(requestTo(CANCEL_URL)).andRespond(request -> {
+            throw new SocketTimeoutException("Read timed out");
+        });
+        assertThat(adapter.cancelPayment("pk-1", "고객 요청").failure()).isEqualTo(PgCancelFailure.UNKNOWN);
+        server.verify();
+
+        server.reset();
+        server.expect(requestTo(CANCEL_URL)).andRespond(withSuccess());
+        assertThat(adapter.cancelPayment("pk-1", "고객 요청").failure()).isEqualTo(PgCancelFailure.UNKNOWN);
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("취소 확인 조회: CANCELED면 CANCELED다")
+    void cancelLookupCanceled() {
+        assertCancelLookup("{\"orderId\":\"order-1\",\"paymentKey\":\"pk-1\",\"status\":\"CANCELED\"}",
+            PgCancelLookupStatus.CANCELED);
+    }
+
+    @Test
+    @DisplayName("취소 확인 조회: DONE이면 취소되지 않은 것이므로 NOT_CANCELED다")
+    void cancelLookupDoneIsNotCanceled() {
+        assertCancelLookup("{\"orderId\":\"order-1\",\"paymentKey\":\"pk-1\",\"status\":\"DONE\"}",
+            PgCancelLookupStatus.NOT_CANCELED);
+    }
+
+    @Test
+    @DisplayName("취소 확인 조회: PARTIAL_CANCELED는 전액 취소가 아니므로 UNKNOWN이다")
+    void cancelLookupPartialCanceledIsUnknown() {
+        assertCancelLookup("{\"orderId\":\"order-1\",\"paymentKey\":\"pk-1\",\"status\":\"PARTIAL_CANCELED\"}",
+            PgCancelLookupStatus.UNKNOWN);
+    }
+
+    @Test
+    @DisplayName("취소 확인 조회: orderId가 요청과 다르면 CANCELED여도 UNKNOWN이다")
+    void cancelLookupOrderIdMismatchIsUnknown() {
+        assertCancelLookup("{\"orderId\":\"order-2\",\"paymentKey\":\"pk-1\",\"status\":\"CANCELED\"}",
+            PgCancelLookupStatus.UNKNOWN);
+        assertThat(adapterLogLevels()).containsExactly(Level.ERROR);
+    }
+
+    @Test
+    @DisplayName("취소 확인 조회: paymentKey가 우리 결제와 다르면 CANCELED여도 UNKNOWN이다")
+    void cancelLookupPaymentKeyMismatchIsUnknown() {
+        assertCancelLookup("{\"orderId\":\"order-1\",\"paymentKey\":\"pk-other\",\"status\":\"CANCELED\"}",
+            PgCancelLookupStatus.UNKNOWN);
+    }
+
+    @Test
+    @DisplayName("취소 확인 조회: 404 NOT_FOUND_PAYMENT면 NOT_CANCELED, 5xx면 UNKNOWN이다")
+    void cancelLookupErrors() {
+        server.expect(requestTo(LOOKUP_URL))
+            .andRespond(withStatus(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"code\":\"NOT_FOUND_PAYMENT\",\"message\":\"존재하지 않는 결제 정보 입니다.\"}"));
+        assertThat(adapter.lookupCancellation("order-1", "pk-1").status()).isEqualTo(PgCancelLookupStatus.NOT_CANCELED);
+        server.verify();
+
+        server.reset();
+        server.expect(requestTo(LOOKUP_URL)).andRespond(withServerError());
+        assertThat(adapter.lookupCancellation("order-1", "pk-1").status()).isEqualTo(PgCancelLookupStatus.UNKNOWN);
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("취소 확인 조회: 404라도 코드가 NOT_FOUND_PAYMENT가 아니면 취소되지 않았다고 단정하지 않고 UNKNOWN이다")
+    void cancelLookupNotFoundOtherCodeIsUnknown() {
+        server.expect(requestTo(LOOKUP_URL))
+            .andRespond(withStatus(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"code\":\"NOT_FOUND\",\"message\":\"요청한 리소스를 찾을 수 없습니다.\"}"));
+
+        PgCancelLookupResult lookup = adapter.lookupCancellation("order-1", "pk-1");
+
+        assertThat(lookup.status()).isEqualTo(PgCancelLookupStatus.UNKNOWN);
+        assertThat(lookup.pgStatus()).isEqualTo("NOT_FOUND");
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("취소 확인 조회: 본문을 해석할 수 없는 4xx와 호출 예외도 UNKNOWN이다")
+    void cancelLookupUnreadableClientErrorAndSystemErrorAreUnknown() {
+        server.expect(requestTo(LOOKUP_URL))
+            .andRespond(withStatus(HttpStatus.REQUEST_TIMEOUT).contentType(MediaType.TEXT_HTML).body("<html>408</html>"));
+        PgCancelLookupResult unreadable = adapter.lookupCancellation("order-1", "pk-1");
+        assertThat(unreadable.status()).isEqualTo(PgCancelLookupStatus.UNKNOWN);
+        assertThat(unreadable.pgStatus()).isEqualTo("PG_UNREADABLE_RESPONSE");
+        server.verify();
+
+        server.reset();
+        server.expect(requestTo(LOOKUP_URL)).andRespond(request -> {
+            throw new SocketTimeoutException("Read timed out");
+        });
+        PgCancelLookupResult systemError = adapter.lookupCancellation("order-1", "pk-1");
+        assertThat(systemError.status()).isEqualTo(PgCancelLookupStatus.UNKNOWN);
+        assertThat(systemError.pgStatus()).isEqualTo("SYSTEM_ERROR");
+        server.verify();
+    }
+
+    private PgCancelResult cancelWithTossError(HttpStatus status, String code) {
+        server.expect(requestTo(CANCEL_URL))
+            .andRespond(withStatus(status)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("{\"code\":\"" + code + "\",\"message\":\"토스 메시지\"}"));
+        PgCancelResult result = adapter.cancelPayment("pk-1", "고객 요청");
+        server.verify();
+        return result;
+    }
+
+    private void assertCancelLookup(String body, PgCancelLookupStatus expectedStatus) {
+        server.expect(requestTo(LOOKUP_URL)).andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
+
+        PgCancelLookupResult lookup = adapter.lookupCancellation("order-1", "pk-1");
+
+        assertThat(lookup.status()).isEqualTo(expectedStatus);
+        server.verify();
     }
 
     private void assertLookupStatus(String tossStatus, PgPaymentLookupStatus expectedStatus, PgConfirmFailure expectedFailure) {

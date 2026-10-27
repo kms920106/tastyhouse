@@ -18,7 +18,8 @@
 - `api project(':application-core')` — 코어(공유 도메인 서비스·`port.out` 계약·리스너·`shared/**`)를 이 모듈의 소비자에게 함께 노출한다.
 - `implementation project(':domain')`, `implementation project(':security-core')`, 그리고 `spring-security-core`·`spring-web`·`jackson-databind`·`spring-tx`.
 - **이 모듈을 의존하는 쪽**: `web-api`(`implementation`), 그리고 위 SPI 포트를 구현하는 벤더 모듈 `infrastructure:{kakao,naver,apple,facebook}-oauth`·`javamail`·`solapi`·`aws-ses`·`aws-sns`.
-- **PG 포트·라우터는 이 모듈이 아니라 코어에 있다** — `payment.port.out.{PgProviderGatewayPort,PgPaymentGatewayPort,PgCancelResult,PgProviderCode}`와 `payment/service/PgPaymentGatewayRouter`는 web(승인·취소)과 batch(주기 대사)가 함께 쓰므로 `application-core` 소유이고, 구현 벤더 `infrastructure:tosspayments`도 이 모듈이 아니라 `:application-core`를 의존한다. 이 모듈의 `PgPaymentConfirmService`·`PaymentCancelService`는 코어 포트를 주입받는다([ADR-0061](../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md)).
+- **PG 포트·라우터는 이 모듈이 아니라 코어에 있다** — `payment.port.out.{PgProviderGatewayPort,PgPaymentGatewayPort,PgCancelResult,PgCancelFailure,PgCancelLookupResult,PgCancelLookupStatus,PgProviderCode}`와 `payment/service/PgPaymentGatewayRouter`는 web(승인·취소)과 batch(주기 대사)가 함께 쓰므로 `application-core` 소유이고, 구현 벤더 `infrastructure:tosspayments`도 이 모듈이 아니라 `:application-core`를 의존한다. 이 모듈의 `PgPaymentConfirmService`·`PaymentCancelService`는 코어 포트를 주입받는다([ADR-0061](../../docs/adr/0061-pg-ports-to-core-batch-reconcile.md)).
+- **결제 취소(`payment/service/PaymentCancelService`)의 PG 실패 분류·조회 복구·로그 마커 규칙**은 `application-core/AGENTS.md`의 "PG 승인·실패 반영은 결제 행을 잠그고…" 절에 있다(5모듈 공통 규칙 정본). 마커 상수(`PG_CANCEL_NOT_FOUND`·`PG_CANCEL_UNKNOWN` 포함)는 코어의 `payment/service/PaymentLogMarkers`를 같은 패키지로 참조한다 — 이 모듈에 같은 이름의 클래스를 만들지 않는다(`SplitPackageUniquenessTest`).
 - **다른 앱 모듈(`admin`·`ceo`·`batch-application`)을 의존하지 않는다.** 앱 간 수평 의존을 컴파일러가 막는 것이 이 모듈이 존재하는 이유다.
 
 ## 규칙

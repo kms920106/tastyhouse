@@ -22,11 +22,11 @@ class PaymentReconcileScheduler {
 
     @Scheduled(cron = "${payment.reconcile.cron:0 */10 * * * *}")
     public void reconcileUnconfirmedPayments() {
-        log.info("=== PG 미확정 결제 대사 스케줄러 시작 ===");
+        log.debug("=== PG 미확정 결제 대사 스케줄러 시작 ===");
 
         try {
             reconcileUnconfirmedPaymentsUseCase.reconcileUnconfirmedPayments();
-            log.info("=== PG 미확정 결제 대사 스케줄러 완료 ===");
+            log.debug("=== PG 미확정 결제 대사 스케줄러 완료 ===");
         } catch (Exception e) {
             log.error("PG 미확정 결제 대사 중 오류 발생", e);
         }
