@@ -57,11 +57,7 @@ export default async function OrderDetailContent({ orderId }: Props) {
           />
         </BorderedSection>
         <BorderedSection>
-          <OrderedProductList
-            orderId={orderId}
-            shopName={shopName}
-            orderProducts={orderProducts}
-          />
+          <OrderedProductList orderId={orderId} shopName={shopName} orderProducts={orderProducts} />
         </BorderedSection>
         <BorderedSection>
           <OrdererInformationAccordion
@@ -89,6 +85,7 @@ export default async function OrderDetailContent({ orderId }: Props) {
         </BorderedSection>
       </SectionStack>
       <CancelOrderButton
+        orderId={orderId}
         paymentId={payment.id}
         paymentStatus={paymentStatus}
         phoneNumber={shopPhoneNumber}

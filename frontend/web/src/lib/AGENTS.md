@@ -22,6 +22,7 @@
 | `review.ts`                                      | 리뷰 관련 순수 헬퍼                                                                                                                     |
 | `form.ts` / `sanitize.ts`                        | 폼 유틸·HTML sanitize                                                                                                                   |
 | `uploadFile.ts` / `share.ts` / `delay.ts`        | 파일 업로드·공유·지연 유틸                                                                                                              |
+| `tossPayments.ts`                                | 토스 결제창 SDK 예외 판별 — `isTossPaymentUserCancel`(사용자가 결제창을 닫아 SDK가 던진 취소 예외인지)                                  |
 
 ## For AI Agents
 

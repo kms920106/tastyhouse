@@ -1,4 +1,4 @@
-import type { PaymentCancelCode, PaymentMethod } from './payment.types'
+import type { PaymentCancelCode, PaymentMethod, PaymentStatus } from './payment.types'
 
 export interface PaymentCreateRequest {
   orderId: number
@@ -23,5 +23,6 @@ export interface PaymentCancelResponse {
 export interface PaymentResponse {
   id: number
   orderId: number
+  paymentStatus: PaymentStatus
   pgOrderId: string
 }

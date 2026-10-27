@@ -56,13 +56,18 @@ export async function GET(request: NextRequest) {
     }
 
     // API 응답 에러 처리
-    if (result.error || !result.data) {
+    if (result.error) {
       const failUrl = new URL('/payments/fail', origin)
-      failUrl.searchParams.set('message', result.error || '결제 승인에 실패했습니다.')
+      failUrl.searchParams.set('message', result.error)
       if (result.errorCode) {
         failUrl.searchParams.set('code', result.errorCode)
       }
       return NextResponse.redirect(failUrl)
+    }
+
+    // 2xx인데 본문을 읽지 못함(본문을 읽는 도중 타임아웃 등) — 서버는 승인을 끝냈을 수 있으므로 '확인 중'으로 안내
+    if (!result.data) {
+      return redirectToUnconfirmed(origin)
     }
 
     // 결제 승인 성공 시 주문 완료 페이지로 리다이렉트

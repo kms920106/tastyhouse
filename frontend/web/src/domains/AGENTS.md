@@ -18,7 +18,7 @@
 | `member/`      | 회원 정보·등급·프로필                                                                                                         |
 | `order/`       | 주문·장바구니·주문수단                                                                                                        |
 | `reservation/` | 예약                                                                                                                          |
-| `payment/`     | 결제 (TossPayments 연동)                                                                                                      |
+| `payment/`     | 결제 (TossPayments 연동) — 취소 결과 재조회 hook(`useCancelResultCheck`) 포함                                                 |
 | `product/`     | 상품                                                                                                                          |
 | `review/`      | 리뷰·댓글                                                                                                                     |
 | `rank/`        | 랭킹                                                                                                                          |
@@ -37,6 +37,7 @@
 - `repository`에 가공 로직(map/filter/조합) 금지 → `service`로
 - `service`에서 `api.*` 직접 호출 금지 → 반드시 `repository` 경유
 - 다른 도메인 참조 시 내부 파일이 아닌 폴더 index(`../[other]`) 경로 사용
+- 결과를 모르는 응답(타임아웃·연결 끊김·2xx 본문 미수신)은 실패로 보이지 않고 "확인 중"으로 안내한 뒤 조회로 확정 — 승인은 `PAYMENT_APPROVAL_UNCONFIRMED` 화면, 취소는 `payment.hook.ts`의 `useCancelResultCheck`(3초 간격 최대 6회)
 
 ### 파일별 책임 (요약 — 상세는 CLAUDE.md)
 

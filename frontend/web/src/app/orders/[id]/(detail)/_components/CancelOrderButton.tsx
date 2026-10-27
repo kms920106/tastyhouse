@@ -1,34 +1,48 @@
 'use client'
 
-import type { CancelPaymentResult } from '@/actions/payment'
 import { cancelPayment } from '@/actions/payment'
 import AppConfirmDialog from '@/components/ui/AppConfirmDialog'
 import AppSubmitButton from '@/components/ui/AppSubmitButton'
 import { toast } from '@/components/ui/AppToaster'
 import type { PaymentStatus } from '@/domains/payment'
+import { useCancelResultCheck } from '@/domains/payment/payment.hook'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import CancelResultDialog from './CancelResultDialog'
+import { useEffect, useState } from 'react'
+import CancelResultDialog, { type CancelResultDialogCode } from './CancelResultDialog'
 
 interface Props {
+  orderId: number
   paymentId: number
   paymentStatus: PaymentStatus
   phoneNumber: string
 }
 
-export default function CancelOrderButton({ paymentId, paymentStatus, phoneNumber }: Props) {
+export default function CancelOrderButton({
+  orderId,
+  paymentId,
+  paymentStatus,
+  phoneNumber,
+}: Props) {
   const router = useRouter()
 
   const [isLoading, setIsLoading] = useState(false)
-  const [cancelResult, setCancelResult] = useState<CancelPaymentResult | null>(null)
+  const [isCheckingResult, setIsCheckingResult] = useState(false)
+  const [isLocked, setIsLocked] = useState(false)
+  const [cancelResultCode, setCancelResultCode] = useState<CancelResultDialogCode | null>(null)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
-  const handleCancelClick = () => {
-    if (paymentStatus === 'CANCELLED') {
-      setCancelResult({ success: true, code: 'ALREADY_CANCELLED' })
-      return
-    }
+  const checkStatus = useCancelResultCheck(orderId, isCheckingResult)
 
+  useEffect(() => {
+    if (checkStatus !== 'cancelled' && checkStatus !== 'unconfirmed') return
+
+    setCancelResultCode(checkStatus === 'cancelled' ? 'SUCCESS' : 'RESULT_UNCONFIRMED')
+    setIsCheckingResult(false)
+    setIsLocked(true)
+    router.refresh()
+  }, [checkStatus, router])
+
+  const handleCancelClick = () => {
     setShowCancelConfirm(true)
   }
 
@@ -44,24 +58,37 @@ export default function CancelOrderButton({ paymentId, paymentStatus, phoneNumbe
 
     setIsLoading(false)
 
-    if (!result.success) {
-      toast(result.error ?? '결제 취소 중 오류가 발생했습니다.')
+    if (result.success) {
+      setCancelResultCode(result.code)
+      if (result.code === 'SUCCESS') {
+        router.refresh()
+      }
       return
     }
 
-    setCancelResult(result)
-    if (result.code === 'SUCCESS') {
-      router.refresh()
+    // 서버가 취소를 끝냈을 수 있으므로 실패로 보이지 않고 결제 상태를 다시 조회한다
+    if ('unconfirmed' in result) {
+      setIsCheckingResult(true)
+      return
     }
+
+    toast(result.error ?? '결제 취소 중 오류가 발생했습니다.')
   }
 
   return (
     <>
-      <div className="px-[15px] py-5">
-        <AppSubmitButton onClick={handleCancelClick} isSubmitting={isLoading} loadingText="취소 중">
-          결제취소
-        </AppSubmitButton>
-      </div>
+      {paymentStatus !== 'CANCELLED' && (
+        <div className="px-[15px] py-5">
+          <AppSubmitButton
+            onClick={handleCancelClick}
+            isSubmitting={isLoading || isCheckingResult}
+            disabled={isLocked}
+            loadingText={isCheckingResult ? '취소 결과를 확인하고 있습니다' : '취소 중'}
+          >
+            결제취소
+          </AppSubmitButton>
+        </div>
+      )}
       <AppConfirmDialog
         open={showCancelConfirm}
         title="주문을 취소하시겠습니까?"
@@ -72,9 +99,9 @@ export default function CancelOrderButton({ paymentId, paymentStatus, phoneNumbe
         confirmLabel="확인"
       />
       <CancelResultDialog
-        cancelResultCode={cancelResult?.success ? cancelResult.code : null}
+        cancelResultCode={cancelResultCode}
         phoneNumber={phoneNumber}
-        onClose={() => setCancelResult(null)}
+        onClose={() => setCancelResultCode(null)}
       />
     </>
   )

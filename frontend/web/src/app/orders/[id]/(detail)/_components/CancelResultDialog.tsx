@@ -8,6 +8,9 @@ import { useRouter } from 'next/navigation'
 import { BiSupport } from 'react-icons/bi'
 import { IoIosCall } from 'react-icons/io'
 
+// 서버 취소 코드에 더해, 타임아웃 뒤 재조회로도 취소를 확인하지 못한 화면 전용 상태
+export type CancelResultDialogCode = PaymentCancelCode | 'RESULT_UNCONFIRMED'
+
 interface CancelResultModalConfig {
   title: string
   description: string
@@ -15,7 +18,7 @@ interface CancelResultModalConfig {
   showContactSupport: boolean
 }
 
-const CANCEL_RESULT_CONFIG: Record<PaymentCancelCode, CancelResultModalConfig> = {
+const CANCEL_RESULT_CONFIG: Record<CancelResultDialogCode, CancelResultModalConfig> = {
   SUCCESS: {
     title: '알림',
     description:
@@ -49,10 +52,16 @@ const CANCEL_RESULT_CONFIG: Record<PaymentCancelCode, CancelResultModalConfig> =
     showContactStore: false,
     showContactSupport: true,
   },
+  RESULT_UNCONFIRMED: {
+    title: '알림',
+    description: '취소 결과를 확인하지 못했습니다.\n잠시 후 주문 내역에서 결과를 확인해 주세요.',
+    showContactStore: false,
+    showContactSupport: false,
+  },
 }
 
 interface Props {
-  cancelResultCode: PaymentCancelCode | null
+  cancelResultCode: CancelResultDialogCode | null
   phoneNumber: string
   onClose: () => void
 }

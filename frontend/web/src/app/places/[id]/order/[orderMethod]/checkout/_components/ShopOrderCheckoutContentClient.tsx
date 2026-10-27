@@ -19,6 +19,7 @@ import { useCartInfo } from '@/hooks/useCartInfo'
 import { useTossPayments } from '@/hooks/useTossPayments'
 import { formatNumber } from '@/lib/number'
 import { PAGE_PATHS } from '@/lib/paths'
+import { isTossPaymentUserCancel } from '@/lib/tossPayments'
 import {
   calculateCupDepositAmount,
   calculateMinOrderShortfall,
@@ -397,7 +398,7 @@ export default function ShopOrderCheckoutContentClient({
       const orderName =
         totalItemCount > 1 ? `${firstProductName} 외 ${totalItemCount - 1}건` : firstProductName
 
-      await tossPayment.requestPayment({
+      const paymentRequest = tossPayment.requestPayment({
         method: 'CARD',
         amount: {
           currency: 'KRW',
@@ -406,7 +407,7 @@ export default function ShopOrderCheckoutContentClient({
         orderId: pgOrderId,
         orderName,
         successUrl: `${window.location.origin}/api/payments/tosspayments/success`,
-        failUrl: `${window.location.origin}/api/payments/tosspayments/fail`,
+        failUrl: `${window.location.origin}${PAGE_PATHS.PAYMENT_FAIL}`,
         customerEmail: member.email,
         customerName: member.fullName,
         customerMobilePhone: member.phoneNumber,
@@ -417,6 +418,15 @@ export default function ShopOrderCheckoutContentClient({
           useAppCardOnly: false,
         },
       })
+
+      // 결제창을 닫으면 SDK가 예외를 던질 뿐 failUrl로 이동하지 않는다. 처리하지 않으면 unhandledrejection으로 오류 로그가 남는다.
+      try {
+        await paymentRequest
+      } catch (error) {
+        if (!isTossPaymentUserCancel(error)) {
+          toast(COMMON_ERROR_MESSAGES.MUTATION_ERROR)
+        }
+      }
     }
   }
 

@@ -16,7 +16,8 @@ const ENDPOINT = '/api/payments'
 const CONFIRM_TIMEOUT_MS = 35000
 
 // PG 취소 1회(연결 5초+읽기 10초) 최악값 15초에 반영 단계의 행 잠금 대기 여유를 더한 값.
-// 기본 3초를 쓰면 PG 취소가 늦을 때 backend는 환불을 끝냈는데 web은 실패로 보여준다
+// 기본 3초를 쓰면 PG 취소가 늦을 때 backend는 환불을 끝냈는데 web은 실패로 보여준다.
+// 결과 불명이라 확인 조회(15초)가 이어 붙으면 넘을 수 있으며, 그때는 '확인 중' 화면으로 간다
 const CANCEL_TIMEOUT_MS = 20000
 
 export const paymentRepository = {

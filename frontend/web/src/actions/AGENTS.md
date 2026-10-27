@@ -32,6 +32,7 @@
 - `revalidatePath`는 **성공 분기에서만** 호출
 - `api.*` 직접 호출·가공(`map`/`filter`) 금지 → repository/service로
 - `try/catch`로 에러 삼키기 금지 (repository가 이미 `{ error }` 반환)
+- 결과를 모르는 응답은 실패와 구분해 돌려준다 — `cancelPayment`는 `status === 0`(타임아웃·연결 끊김)이나 2xx 본문 미수신이면 `{ success: false, unconfirmed: true }`
 
 ### 4가지 표준 패턴
 
