@@ -2535,7 +2535,7 @@ DAO 안에서만 쓰는 중간 투영이라도 **package-private이나 DAO 중�
 - 상태: 채택
 - 결정 커밋: `70eb33376` (2026-08-02)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0002
+- 원문: 삭제 전 git 이력의 `docs/adr/0002-file-url-resolved-in-query-dao.md`
 
 #### 맥락
 
@@ -2587,7 +2587,7 @@ DB에는 파일의 저장 경로(`UPLOADED_FILE.file_path`)만 저장하고, 화
 - 상태: 대체됨(→ [결정 0028](#decision-0028))
 - 결정 커밋: `f37028ab4` (2026-08-06)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0004
+- 원문: 삭제 전 git 이력의 `docs/adr/0004-entity-fk-raw-long-idmapping.md`
 
 | 항목 | before (정책 A) | after (정책 B) |
 |---|---|---|
@@ -2606,7 +2606,7 @@ DB에는 파일의 저장 경로(`UPLOADED_FILE.file_path`)만 저장하고, 화
 - 상태: 대체됨(→ [결정 0031](#decision-0031))
 - 결정 커밋: `cdd6c7727` (2026-09-27)
 - 대체한 결정: [결정 0004](#decision-0004)
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0028
+- 원문: 삭제 전 git 이력의 `docs/adr/0028-persistence-state-layer.md`
 
 write 경로에 상태 record 한 겹을 끼워, persistence가 domain을 몰라도 저장할 수 있게 합니다. 서비스가 주입하던 도메인 타입 인터페이스는 `application/<ctx>/store/`로 옮기고 이름·시그니처는 그대로 둡니다. 그 인터페이스를 application의 `XxxStore`가 구현해 도메인 모델을 `XxxState`로 바꾼 뒤, 원시 타입 포트 `XxxStatePort`에 넘깁니다. persistence는 `XxxStatePort`만 구현합니다.
 
@@ -2650,7 +2650,7 @@ write 경로에 상태 record 한 겹을 끼워, persistence가 domain을 몰라
 - 상태: 채택
 - 결정 커밋: `9d6f4a1ba` (2026-09-28)
 - 대체한 결정: [결정 0028](#decision-0028)
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0031
+- 원문: 삭제 전 git 이력의 `docs/adr/0031-persistence-domain-reallowed.md`
 
 #### 맥락
 
@@ -2759,7 +2759,7 @@ after: Service → XxxPersistencePort(도메인) ← persistence XxxPersistenceA
 - 상태: 채택(`XxxPersistencePort`는 [결정 0046](../../application-core/AGENTS.md#decision-0046)에서 `XxxLoadPort`·`XxxSavePort`로 세분)
 - 결정 커밋: `64b985bba` (2026-09-30)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0032
+- 원문: 삭제 전 git 이력의 `docs/adr/0032-outbound-port-adapter-naming.md`
 
 #### 맥락
 
@@ -2812,7 +2812,7 @@ write 포트는 `port.out.write`의 `*Repository` 인터페이스로 셌다. 덩
 - 상태: 채택
 - 결정 커밋: `a373e0a4d` (2026-10-04)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0039
+- 원문: 삭제 전 git 이력의 `docs/adr/0039-querydsl-tuple-removal.md`
 
 #### 맥락
 
@@ -2864,7 +2864,7 @@ write 포트는 `port.out.write`의 `*Repository` 인터페이스로 셌다. 덩
 - 상태: 채택
 - 결정 커밋: `65da13f9a` (2026-10-08)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0044
+- 원문: 삭제 전 git 이력의 `docs/adr/0044-jparepository-method-ban.md`
 
 #### 맥락
 
@@ -2938,7 +2938,7 @@ write 포트는 `port.out.write`의 `*Repository` 인터페이스로 셌다. 덩
 - 상태: 채택
 - 결정 커밋: `4178929c3` (2026-10-09)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/jpa/AGENTS.md`의 결정 0047
+- 원문: 삭제 전 git 이력의 `docs/adr/0047-jpa-module-split.md`
 
 #### 맥락
 

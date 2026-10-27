@@ -165,7 +165,7 @@ web-api는 이 클래스를 상속해 검증용 토큰(휴대폰/이메일/비�
 - 상태: 대체됨(→ [결정 0023](#decision-0023))
 - 결정 커밋: `8bcf3e2f3` (2026-09-01)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/security-core/AGENTS.md`의 결정 0011
+- 원문: 삭제 전 git 이력의 `docs/adr/0011-rate-limit-port-in-api-common.md`
 
 웹 관심사를 표현으로 올리고 Redis 카운터만 인프라에 남긴다.
 
@@ -185,7 +185,7 @@ web-api는 이 클래스를 상속해 검증용 토큰(휴대폰/이메일/비�
 - 상태: 채택
 - 결정 커밋: `8cba65373` (2026-09-06)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/security-core/AGENTS.md`의 결정 0019
+- 원문: 삭제 전 git 이력의 `docs/adr/0019-token-store-port-inversion.md`
 
 #### 맥락
 
@@ -255,7 +255,7 @@ batch-module은 이 모듈을 직접 의존하지 않았지만, 위 전이 사�
 - 상태: 채택
 - 결정 커밋: `8485c0e8a` (2026-09-27)
 - 대체한 결정: [결정 0011](#decision-0011)
-- 원문: 삭제 전 git 이력의 `backend/security-core/AGENTS.md`의 결정 0023
+- 원문: 삭제 전 git 이력의 `docs/adr/0023-rate-limit-port-in-security-core.md`
 
 #### 맥락
 

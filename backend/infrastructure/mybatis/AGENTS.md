@@ -162,7 +162,7 @@ MyBatis 구현은 이 모듈을 의존하는 앱에서만 쓸 수 있다. 지금
 - 상태: 채택
 - 결정 커밋: `8ea00a525` (2026-10-10)
 - 대체한 결정: [결정 0045](../persistence/AGENTS.md#decision-0045)(banner MyBatis 구현)
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/mybatis/AGENTS.md`의 결정 0053
+- 원문: 삭제 전 git 이력의 `docs/adr/0053-notice-mybatis-legacy.md`
 
 #### 맥락
 

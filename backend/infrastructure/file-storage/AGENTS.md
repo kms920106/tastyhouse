@@ -76,7 +76,7 @@ backend/infrastructure/file-storage/
 - 상태: 채택
 - 결정 커밋: `13127bc9f` (2026-09-26)
 - 대체한 결정: [결정 0016](../../AGENTS.md#decision-0016)(일부 — 7모듈로 나눌 때 코어에 둔 파일 저장 SPI)
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/file-storage/AGENTS.md`의 결정 0021
+- 원문: 삭제 전 git 이력의 `docs/adr/0021-file-storage-spi-removal.md`
 
 #### 맥락
 

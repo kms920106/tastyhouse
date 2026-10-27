@@ -1940,7 +1940,7 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 - 상태: 대체됨(→ [결정 0009](#decision-0009))
 - 결정 커밋: `c50e39780` (2026-08-29)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0007
+- 원문: 삭제 전 git 이력의 `docs/adr/0007-application-common-module-read-ports.md`
 
 | 항목 | before | after |
 |---|---|---|
@@ -1957,7 +1957,7 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 - 상태: 대체됨(→ [결정 0015](#decision-0015))
 - 결정 커밋: `2b583d0c2` (2026-08-30)
 - 대체한 결정: [결정 0007](#decision-0007)
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0009
+- 원문: 삭제 전 git 이력의 `docs/adr/0009-read-contracts-split-by-consumer.md`
 
 | 항목 | before | after |
 |---|---|---|
@@ -1974,7 +1974,7 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 - 상태: 채택
 - 결정 커밋: `787dd580f` (2026-09-01)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0012
+- 원문: 삭제 전 git 이력의 `docs/adr/0012-response-from-whole-result.md`
 
 #### 맥락
 
@@ -2014,7 +2014,7 @@ application 모듈의 어떤 클래스도 `@ComponentScan`(직접·메타)이나
 - 상태: 채택
 - 결정 커밋: `b5ad5e5be` (2026-09-04)
 - 대체한 결정: [결정 0009](#decision-0009)
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0015
+- 원문: 삭제 전 git 이력의 `docs/adr/0015-shared-read-contracts-in-application.md`
 
 #### 맥락
 
@@ -2073,7 +2073,7 @@ Result가 이관된 계약 모듈을 "현재는 `{앱}-application`·`domain`"�
 - 상태: 채택(`@SharedApp` 마커 부분은 [결정 0036](../AGENTS.md#decision-0036)으로 대체)
 - 결정 커밋: `59285a4e7` (2026-09-27)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0024
+- 원문: 삭제 전 git 이력의 `docs/adr/0024-event-listeners-in-application.md`
 
 #### 맥락
 
@@ -2126,7 +2126,7 @@ DomainEvent는 "발행은 포트 경유, 리스너는 infra"였다. 리스너를
 - 상태: 대체됨(→ [결정 0034](../AGENTS.md#decision-0034))
 - 결정 커밋: `d98b46c0c` (2026-09-27)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0026
+- 원문: 삭제 전 git 이력의 `docs/adr/0026-vendor-ports-to-application.md`
 
 | 항목 | before | after |
 |---|---|---|
@@ -2146,7 +2146,7 @@ DomainEvent는 "발행은 포트 경유, 리스너는 infra"였다. 리스너를
 - 상태: 대체됨(→ [결정 0034](../AGENTS.md#decision-0034))
 - 결정 커밋: `ef957e488` (2026-09-27)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0027
+- 원문: 삭제 전 git 이력의 `docs/adr/0027-domain-ports-to-application.md`
 
 | 항목 | before | after |
 |---|---|---|
@@ -2167,7 +2167,7 @@ DomainEvent는 "발행은 포트 경유, 리스너는 infra"였다. 리스너를
 - 상태: 채택
 - 결정 커밋: `9b0582c33` (2026-10-01)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0033
+- 원문: 삭제 전 git 이력의 `docs/adr/0033-usecase-interface-injection.md`
 
 #### 맥락
 
@@ -2232,7 +2232,7 @@ UseCase를 구현한 클래스는 application 안에서도 구체 타입으로 �
 - 상태: 채택
 - 결정 커밋: `d0b32cfe1` (2026-10-08)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0043
+- 원문: 삭제 전 git 이력의 `docs/adr/0043-usecase-per-service.md`
 
 #### 맥락
 
@@ -2318,7 +2318,7 @@ UseCase를 구현한 클래스는 application 안에서도 구체 타입으로 �
 - 상태: 채택
 - 결정 커밋: `085fa5559` (2026-10-09)
 - 대체한 결정: [결정 0032](../infrastructure/jpa/AGENTS.md#decision-0032)(일부 — `XxxPersistencePort` 단일 포트)
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0046
+- 원문: 삭제 전 git 이력의 `docs/adr/0046-write-port-load-save-split.md`
 
 #### 맥락
 
@@ -2386,7 +2386,7 @@ write 포트 예시는 분리 전 단일 포트 하나였습니다. 분리 후 �
 - 상태: 채택
 - 결정 커밋: `456db1b13` (2026-10-09) — 커밋 메시지 1번째 줄 `fix(async)`
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0048
+- 원문: 삭제 전 git 이력의 `docs/adr/0048-async-config-core.md`
 
 #### 맥락
 
@@ -2436,7 +2436,7 @@ write 포트 예시는 분리 전 단일 포트 하나였습니다. 분리 후 �
 - 상태: 채택
 - 결정 커밋: `58774e4a9` (2026-10-11)
 - 대체한 결정: [결정 0040](../AGENTS.md#decision-0040)(후속 과제 행 — "UseCase 없는 도메인 서비스 약 48개")
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0054
+- 원문: 삭제 전 git 이력의 `docs/adr/0054-collaborator-service-package-private.md`
 
 #### 맥락
 
@@ -2484,7 +2484,7 @@ write 포트 예시는 분리 전 단일 포트 하나였습니다. 분리 후 �
 - 상태: 채택
 - 결정 커밋: `03d806112` (2026-10-15)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0056
+- 원문: 삭제 전 git 이력의 `docs/adr/0056-error-catalog-additive-snapshot.md`
 
 #### 맥락
 
@@ -2530,7 +2530,7 @@ write 포트 예시는 분리 전 단일 포트 하나였습니다. 분리 후 �
 - 상태: 채택
 - 결정 커밋: `0068b7eae` (2026-10-16)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/application-core/AGENTS.md`의 결정 0057
+- 원문: 삭제 전 git 이력의 `docs/adr/0057-anchor-floor-on-intentional-deletion.md`
 
 #### 맥락
 

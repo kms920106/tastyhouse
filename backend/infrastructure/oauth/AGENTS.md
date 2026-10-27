@@ -131,7 +131,7 @@ backend/infrastructure/oauth/
 - 상태: 채택
 - 결정 커밋: `456db1b13` (2026-10-09) — 커밋 메시지 4번째 줄 `refactor(auth)`
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/oauth/AGENTS.md`의 결정 0050
+- 원문: 삭제 전 git 이력의 `docs/adr/0050-social-login-router.md`
 
 #### 맥락
 

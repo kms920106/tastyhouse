@@ -127,7 +127,7 @@ backend/infrastructure/mysql/
 - 대체한 결정: [결정 0047](../jpa/AGENTS.md#decision-0047)(드라이버·datasource 소유 부분)
 
 > 커밋 `34edab8d2`의 메시지는 `456db1b13`의 메시지를 글자 그대로 복사한 것이라 mysql 언급이 없습니다. 이 커밋이 mysql 모듈 분리라는 것은 `backend/settings.gradle`에 `include 'infrastructure:mysql'` 한 줄이 추가된 것으로 판별합니다.
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/mysql/AGENTS.md`의 결정 0051
+- 원문: 삭제 전 git 이력의 `docs/adr/0051-mysql-module-split.md`
 
 #### 맥락
 

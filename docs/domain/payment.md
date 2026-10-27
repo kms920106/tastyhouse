@@ -417,7 +417,7 @@
 - 상태: 채택
 - 결정 커밋: `03d806112` (2026-10-15)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0055
+- 원문: 삭제 전 git 이력의 `docs/adr/0055-payment-refund-pessimistic-lock.md`
 
 #### 맥락
 
@@ -467,7 +467,7 @@
 - 상태: 채택(부분 → 0060)
 - 결정 커밋: `fff56ac2b` (2026-10-18)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0059
+- 원문: 삭제 전 git 이력의 `docs/adr/0059-payment-confirm-race-lock.md`
 
 #### 맥락
 
@@ -535,7 +535,7 @@ FAILED→COMPLETED 허용은 사용자가 정한 규칙입니다. PG가 승인 �
 - 상태: 채택(부분 → 0063)
 - 결정 커밋: `fff56ac2b` (2026-10-18)
 - 대체한 결정: 결정 0059(응답 없음·통신 오류를 FAILED로 두던 부분, "이미 처리됨"을 실패 응답으로 돌려주던 부분)
-- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0060
+- 원문: 삭제 전 git 이력의 `docs/adr/0060-pg-confirm-unknown-lookup.md`
 
 #### 맥락
 
@@ -601,7 +601,7 @@ FAILED→COMPLETED 허용은 사용자가 정한 규칙입니다. PG가 승인 �
 - 상태: 채택(부분 → 0062)
 - 결정 커밋: `fff56ac2b` (2026-10-18)
 - 대체한 결정: 결정 0036(PG SPI 포트·라우터를 `web-application`에 두던 부분)
-- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0061
+- 원문: 삭제 전 git 이력의 `docs/adr/0061-pg-ports-to-core-batch-reconcile.md`
 
 #### 맥락
 
@@ -658,7 +658,7 @@ FAILED→COMPLETED 허용은 사용자가 정한 규칙입니다. PG가 승인 �
 - 상태: 채택(부분 → 0064)
 - 결정 커밋: `fff56ac2b` (2026-10-18)
 - 대체한 결정: 결정 0061(대사 대상이 매 주기 같은 결제를 다시 고르고, 금액 불일치 ERROR 반복을 감수하던 부분)
-- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0062
+- 원문: 삭제 전 git 이력의 `docs/adr/0062-payment-reconcile-backoff.md`
 
 #### 맥락
 
@@ -711,7 +711,7 @@ FAILED→COMPLETED 허용은 사용자가 정한 규칙입니다. PG가 승인 �
 - 상태: 채택(부분 → 0065)
 - 결정 커밋: `fff56ac2b` (2026-10-18)
 - 대체한 결정: 결정 0060(결과 불명을 5xx·통신 예외·빈 응답으로 한정하던 부분)
-- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0063
+- 원문: 삭제 전 git 이력의 `docs/adr/0063-pg-confirm-unreadable-4xx-unknown.md`
 
 #### 맥락
 
@@ -768,7 +768,7 @@ FAILED→COMPLETED 허용은 사용자가 정한 규칙입니다. PG가 승인 �
 - 상태: 채택
 - 결정 커밋: `fff56ac2b` (2026-10-18)
 - 대체한 결정: 결정 0062(일정 기록이 실패해도 조회·반영을 계속하던 부분, 시도 횟수 읽기·쓰기를 원자화하지 않던 부분)
-- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0064
+- 원문: 삭제 전 git 이력의 `docs/adr/0064-payment-reconcile-claim.md`
 
 #### 맥락
 
@@ -829,7 +829,7 @@ FAILED→COMPLETED 허용은 사용자가 정한 규칙입니다. PG가 승인 �
 - 상태: 채택
 - 결정 커밋: `93aa93994` (2026-10-27)
 - 대체한 결정: 결정 0063(`PG_API_ERROR`를 취소 전용으로 남기던 부분)
-- 원문: 삭제 전 git 이력의 `docs/domain/payment.md`의 결정 0065
+- 원문: 삭제 전 git 이력의 `docs/adr/0065-pg-cancel-lookup-recovery.md`
 
 #### 맥락
 

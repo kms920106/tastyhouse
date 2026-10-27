@@ -360,7 +360,7 @@ backend 전체 `*.java`를 소스 파일로 읽어(`build`·`bin`·`.gradle` 제
 - 상태: 채택
 - 결정 커밋: `4f82b1ea7` (2026-07-21)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/domain/AGENTS.md`의 결정 0001
+- 원문: 삭제 전 git 이력의 `docs/adr/0001-domain-framework-free.md`
 
 #### 맥락
 
@@ -411,7 +411,7 @@ domain 모듈은 프레임워크를 전혀 모른다. 공유 VO도 예외가 아
 - 상태: 채택
 - 결정 커밋: `b4f1dc866` (2026-10-04)
 - 대체한 결정: [결정 0027](../application-core/AGENTS.md#decision-0027)(일부 — "domain의 `<ctx>/service/`에는 순수 계산기·정책만 남는다")
-- 원문: 삭제 전 git 이력의 `backend/domain/AGENTS.md`의 결정 0041
+- 원문: 삭제 전 git 이력의 `docs/adr/0041-domain-service-into-model.md`
 
 #### 맥락
 

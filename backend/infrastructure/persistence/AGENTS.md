@@ -98,7 +98,7 @@ DB 연결 코어(mysql)를 다른 DB로 바꿀 때도 같은 쌍이다 — `runt
 - 상태: 대체됨(→ [결정 0052](#decision-0052))
 - 결정 커밋: `79cebac26` (2026-10-09)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/persistence/AGENTS.md`의 결정 0045
+- 원문: 삭제 전 git 이력의 `docs/adr/0045-banner-mybatis-provider-pilot.md`
 
 banner 쓰기를 JPA·MyBatis 두 모듈이 모두 구현하고, 설정 키로 하나만 빈으로 등록합니다.
 
@@ -119,7 +119,7 @@ banner 쓰기를 JPA·MyBatis 두 모듈이 모두 구현하고, 설정 키로 �
 - 상태: 채택
 - 결정 커밋: `f91ff6659` (2026-10-09)
 - 대체한 결정: [결정 0045](#decision-0045)
-- 원문: 삭제 전 git 이력의 `backend/infrastructure/persistence/AGENTS.md`의 결정 0052
+- 원문: 삭제 전 git 이력의 `docs/adr/0052-banner-write-primary.md`
 
 #### 맥락
 

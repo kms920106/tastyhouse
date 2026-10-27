@@ -416,7 +416,7 @@ cd backend && ./gradlew dependencies --configuration runtimeClasspath
 - 상태: 채택
 - 결정 커밋: `01d6d7494` (2026-08-29)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0005
+- 원문: 삭제 전 git 이력의 `docs/adr/0005-inbound-port-full-mapping.md`
 
 #### 맥락
 
@@ -473,7 +473,7 @@ cd backend && ./gradlew dependencies --configuration runtimeClasspath
 - 상태: 채택
 - 결정 커밋: `01d6d7494` (2026-08-29)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0006
+- 원문: 삭제 전 git 이력의 `docs/adr/0006-request-to-command-in-controller.md`
 
 #### 맥락
 
@@ -515,7 +515,7 @@ cd backend && ./gradlew dependencies --configuration runtimeClasspath
 - 상태: 대체됨(→ [결정 0013](#decision-0013))
 - 결정 커밋: `c55520733` (2026-08-30)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0008
+- 원문: 삭제 전 git 이력의 `docs/adr/0008-per-app-application-modules.md`
 
 batch(파일럿, `c55520733`) → web(`fbc301bd3`) → admin(`9612a64d3`) → ceo(`928178555`) 순으로 application 계층을 앱별 모듈로 물리 분리한다.
 
@@ -534,7 +534,7 @@ batch(파일럿, `c55520733`) → web(`fbc301bd3`) → admin(`9612a64d3`) → ce
 - 상태: 대체됨(→ [결정 0025](#decision-0025))
 - 결정 커밋: `3bf8f9171` (2026-09-01) — enum accessor carve-out은 `787dd580f` (2026-09-01)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0010
+- 원문: 삭제 전 git 이력의 `docs/adr/0010-api-domain-free-carve-outs.md`
 
 `apiModuleShouldBeDomainModelFree`(web/admin/ceo-api 3곳)를 신설해 모듈 전역에서 `com.tastyhouse.domain..`을 금지하고 아래 3종만 허용했다.
 
@@ -558,7 +558,7 @@ batch(파일럿, `c55520733`) → web(`fbc301bd3`) → admin(`9612a64d3`) → ce
 - 상태: 대체됨(→ [결정 0036](#decision-0036))
 - 결정 커밋: `68d160710` (2026-09-04)
 - 대체한 결정: [결정 0008](#decision-0008)
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0013
+- 원문: 삭제 전 git 이력의 `docs/adr/0013-application-module-merge.md`
 
 | 항목 | before | after |
 |---|---|---|
@@ -575,7 +575,7 @@ batch(파일럿, `c55520733`) → web(`fbc301bd3`) → admin(`9612a64d3`) → ce
 - 상태: 대체됨(→ [결정 0036](#decision-0036))
 - 결정 커밋: `9b888f1c5` (2026-09-04)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0014
+- 원문: 삭제 전 git 이력의 `docs/adr/0014-package-flattening-app-markers.md`
 
 | 항목 | before | after |
 |---|---|---|
@@ -596,7 +596,7 @@ batch(파일럿, `c55520733`) → web(`fbc301bd3`) → admin(`9612a64d3`) → ce
 - 상태: 채택(aws 벤더 묶음은 [결정 0022](#decision-0022), 파일 저장 코어 SPI는 [결정 0021](infrastructure/file-storage/AGENTS.md#decision-0021)로 대체)
 - 결정 커밋: `109fb06de` (2026-09-05)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0016
+- 원문: 삭제 전 git 이력의 `docs/adr/0016-external-vendor-channel-split.md`
 
 #### 맥락
 
@@ -678,7 +678,7 @@ admin/ceo/batch가 메일·SMS 어댑터까지 들여와야 했던 직접 원인
 - 상태: 대체됨(→ [결정 0038](#decision-0038))
 - 결정 커밋: `cad5e5880` (2026-09-05)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0017
+- 원문: 삭제 전 git 이력의 `docs/adr/0017-library-auto-configuration.md`
 
 | 항목 | before | after |
 |---|---|---|
@@ -700,7 +700,7 @@ admin/ceo/batch가 메일·SMS 어댑터까지 들여와야 했던 직접 원인
 - 상태: 채택
 - 결정 커밋: `ae9870cd4` (2026-09-05)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0018
+- 원문: 삭제 전 git 이력의 `docs/adr/0018-channel-starter-vendor-modules.md`
 
 #### 맥락
 
@@ -775,7 +775,7 @@ admin/ceo/batch가 메일·SMS 어댑터까지 들여와야 했던 직접 원인
 - 상태: 채택
 - 결정 커밋: `104b04d74` (2026-09-22)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0020
+- 원문: 삭제 전 git 이력의 `docs/adr/0020-java-comments-forbidden.md`
 
 #### 맥락
 
@@ -825,7 +825,7 @@ backend java 코드에는 Javadoc(`/** */`)·라인 주석(`// `)·블록 주석
 - 상태: 채택
 - 결정 커밋: `15e76e263` (2026-09-26)
 - 대체한 결정: [결정 0016](#decision-0016)(일부 — AWS 어댑터를 `infrastructure:aws` 한 벤더 모듈로 묶은 부분)
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0022
+- 원문: 삭제 전 git 이력의 `docs/adr/0022-aws-module-three-way-split.md`
 
 #### 맥락
 
@@ -893,7 +893,7 @@ external 분리 때 이 대안을 채택으로 바꿔 AWS 어댑터를 `infrastr
 - 상태: 채택(ErrorContracts 부분 → [결정 0042](#decision-0042), `@SharedApp` 설정 허용 부분 → [결정 0036](#decision-0036))
 - 결정 커밋: `dfb8f4685` (2026-09-27)
 - 대체한 결정: [결정 0010](#decision-0010)
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0025
+- 원문: 삭제 전 git 이력의 `docs/adr/0025-presentation-domain-cut.md`
 
 #### 맥락
 
@@ -1009,7 +1009,7 @@ external 분리 때 이 대안을 채택으로 바꿔 AWS 어댑터를 `infrastr
 - 상태: 채택
 - 결정 커밋: `d555b0325` (2026-09-27)
 - 대체한 결정: [결정 0028](infrastructure/jpa/AGENTS.md#decision-0028)(일부 — `XxxCodes` 복제 상수와 그 일치 검사)
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0029
+- 원문: 삭제 전 git 이력의 `docs/adr/0029-no-suppress-warnings.md`
 
 #### 맥락
 
@@ -1075,7 +1075,7 @@ getter 없는 필드에 `@SuppressWarnings("unused")`가 붙어 있는 자리도
 - 상태: 채택
 - 결정 커밋: `1e3818c5b` (2026-09-27)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0030
+- 원문: 삭제 전 git 이력의 `docs/adr/0030-import-order-clean-architecture.md`
 
 #### 맥락
 
@@ -1142,7 +1142,7 @@ getter 없는 필드에 `@SuppressWarnings("unused")`가 붙어 있는 자리도
 - 상태: 대체됨(→ [결정 0036](#decision-0036))
 - 결정 커밋: `251c74c06` (2026-10-02)
 - 대체한 결정: [결정 0026](application-core/AGENTS.md#decision-0026), [결정 0027](application-core/AGENTS.md#decision-0027)
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0034
+- 원문: 삭제 전 git 이력의 `docs/adr/0034-service-config-removal.md`
 
 `<ctx>/config/*ServiceConfig` 22개와 `payment/config/PgRouterConfig`를 전부 삭제합니다. 그 설정들이 만들던 도메인 서비스 78개는 **클래스에 앱 마커 하나만** 달고(`@Service`는 달지 않음) 마커 기반 컴포넌트 스캔으로 등록합니다.
 
@@ -1208,7 +1208,7 @@ ArchUnit 규칙도 바꿨습니다.
 - 상태: 채택
 - 결정 커밋: `deae9a8e0` (2026-10-03)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0035
+- 원문: 삭제 전 git 이력의 `docs/adr/0035-application-config-into-bootstrap.md`
 
 #### 맥락
 
@@ -1270,7 +1270,7 @@ ArchUnit 규칙도 바꿨습니다.
 - 상태: 채택(PG SPI 포트·라우터 배치 → [결정 0061](../docs/domain/payment.md#decision-0061))
 - 결정 커밋: `d4688a682` (2026-10-04). 후속 `406c34ebe`(같은 날, `application-module.properties` 표식 제거 → `ModuleOrigin` 판정)도 이 결정에 포함합니다.
 - 대체한 결정: [결정 0013](#decision-0013), [결정 0014](#decision-0014), [결정 0034](#decision-0034). [결정 0024](application-core/AGENTS.md#decision-0024)·[결정 0025](#decision-0025)의 `@SharedApp` 부분도 대체합니다.
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0036
+- 원문: 삭제 전 git 이력의 `docs/adr/0036-app-marker-removal.md`
 
 #### 맥락
 
@@ -1431,7 +1431,7 @@ ArchUnit 규칙도 바꿨습니다.
 - 상태: 채택
 - 결정 커밋: `e03a0df33` (2026-10-04)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0037
+- 원문: 삭제 전 git 이력의 `docs/adr/0037-infrastructure-package-root.md`
 
 #### 맥락
 
@@ -1534,7 +1534,7 @@ persistence를 `com.tastyhouse.infrastructure.persistence`로 한 겹 내리고 
 - 상태: 채택
 - 결정 커밋: `a400ec42e` (2026-10-04)
 - 대체한 결정: [결정 0017](#decision-0017)
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0038
+- 원문: 삭제 전 git 이력의 `docs/adr/0038-autoconfiguration-imports-removal.md`
 
 #### 맥락
 
@@ -1649,7 +1649,7 @@ api-common-module·redis·jpa(당시 persistence)·logging-module·security-modu
 - 상태: 채택
 - 결정 커밋: `151eadb88` (2026-10-04)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0040
+- 원문: 삭제 전 git 이력의 `docs/adr/0040-package-private-visibility.md`
 
 #### 맥락
 
@@ -1712,7 +1712,7 @@ api-common-module·redis·jpa(당시 persistence)·logging-module·security-modu
 - 상태: 채택
 - 결정 커밋: `b188384ee` (2026-10-05)
 - 대체한 결정: [결정 0025](#decision-0025)(ErrorContracts 미러링 부분)
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0042
+- 원문: 삭제 전 git 이력의 `docs/adr/0042-error-code-module-split.md`
 
 #### 맥락
 
@@ -1803,7 +1803,7 @@ restclient 문서에 "예외·에러코드를 두지 않는 이유" 절이 있�
 - 상태: 채택
 - 결정 커밋: `456db1b13` (2026-10-09) — 커밋 메시지 3번째 줄 `refactor(verification)`
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/AGENTS.md`의 결정 0049
+- 원문: 삭제 전 git 이력의 `docs/adr/0049-verification-context-rename.md`
 
 #### 맥락
 

@@ -155,7 +155,7 @@
 - 상태: 채택
 - 결정 커밋: `18112f232` (2026-10-17)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `docs/domain/point.md`의 결정 0058
+- 원문: 삭제 전 git 이력의 `docs/adr/0058-point-balance-pessimistic-lock.md`
 
 #### 맥락
 

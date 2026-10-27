@@ -223,7 +223,7 @@ limit 실측이 담당한다.
 - 상태: 채택
 - 결정 커밋: `f15e0b786` (2026-08-02)
 - 대체한 결정: —
-- 원문: 삭제 전 git 이력의 `backend/api-common-module/AGENTS.md`의 결정 0003
+- 원문: 삭제 전 git 이력의 `docs/adr/0003-api-common-shared-plumbing.md`
 
 #### 맥락
 
