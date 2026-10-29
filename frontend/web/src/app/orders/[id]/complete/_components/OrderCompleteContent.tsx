@@ -1,6 +1,7 @@
 import AppPrimaryButton from '@/components/ui/AppPrimaryButton'
 import Icon from '@/components/ui/Icon'
 import { orderRepository } from '@/domains/order/order.repository'
+import { isOnSitePaymentMethod } from '@/domains/payment'
 import { PAGE_PATHS } from '@/lib/paths'
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
@@ -20,7 +21,9 @@ export default async function OrderCompleteContent({ orderId }: Props) {
     notFound()
   }
 
-  const { orderNumber } = data
+  const { orderNumber, payment } = data
+  const awaitingOnSitePayment =
+    payment?.paymentStatus === 'PENDING' && isOnSitePaymentMethod(payment.paymentMethod)
 
   return (
     <>
@@ -35,7 +38,16 @@ export default async function OrderCompleteContent({ orderId }: Props) {
           <p className="mt-[30px] text-sm leading-[14px] text-[#666666]">
             주문번호 : {orderNumber}
           </p>
-          <h2 className="mt-[15px] text-[23px] leading-[23px]">결제가 완료되었습니다.</h2>
+          <h2 className="mt-[15px] text-[23px] leading-[23px]">
+            {awaitingOnSitePayment ? '주문이 접수되었습니다.' : '결제가 완료되었습니다.'}
+          </h2>
+          {awaitingOnSitePayment && (
+            <p className="mt-[21px] text-sm leading-relaxed text-[#666666]">
+              결제는 매장에서 진행해 주세요.
+              <br />
+              매장에서 결제를 확인하면 포인트가 적립됩니다.
+            </p>
+          )}
           <p className="mt-[21px] text-sm leading-relaxed text-[#999999]">
             결제 취소는 상세 페이지에서 가능합니다.
           </p>

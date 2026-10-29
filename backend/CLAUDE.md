@@ -422,7 +422,7 @@ static class ModuleScanConfig {
 | `@Configuration`의 이중 등록 | `#configurationsShouldNotRegisterStereotypedClasses` |
 | `commandRecordsShouldBeBoundaryTyped`의 batch 예외 | 클래스의 출처 모듈(`batch-application`)로 판정 |
 | `BatchSchedulerRulesTest` 대상 | `batch-application` 출처 클래스 |
-| 개수 anchor(`RuleAnchorTest`) | `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥185 · admin ≥207 · ceo ≥188 · batch =8 · core =0) |
+| 개수 anchor(`RuleAnchorTest`) | `#moduleBeanCounts`(web ≥83 · admin ≥65 · ceo ≥122 · batch ≥15 · core ≥47)·`#moduleUseCaseCounts`(web ≥184 · admin ≥207 · ceo ≥189 · batch =8 · core =0) |
 | 스캔 형태(`ApplicationLayerScanConfigTest`) | `assertScansApplicationLayerWithoutFilters` — basePackages가 정확히 `com.tastyhouse.application`, `useDefaultFilters = true`, include/exclude 필터 없음 |
 | 다른 앱 모듈의 클래스패스 유입 | 4앱 각 `ApplicationModuleClasspathTest` + `ApplicationLayerScanAssertions#assertLoadsOnlyOwnApplicationModule(ModuleOrigin.XXX)` — 앱 테스트 클래스패스의 `com.tastyhouse.application` 클래스(main 출력)를 ArchUnit으로 읽어 출처 모듈 집합이 **정확히 `{application-core, 자기 앱 모듈}`**인지 `ModuleOrigin`으로 판정한다. 테스트 전용 표식 리소스를 main 산출물에 싣지 않는다 |
 
@@ -1778,7 +1778,7 @@ reference 구현: `infrastructure/jpa/src/test/.../architecture/LayerRulesTest`.
 | `batch-module/.../architecture/LayerRulesTest` | `@Scheduled` 트리거 |
 | `infrastructure/jpa/.../architecture/LayerRulesTest` | infra 계층 방향(위 절) |
 | `domain/.../architecture/{DomainPurityTest,ContextBoundaryTest}` | 프레임워크 순수성 · 컨텍스트 수평 경계 |
-| `application-core/.../architecture/RuleAnchorTest` | 공허 통과 검출(아래) — **앱별 하한**을 유지해 한 앱이 통째로 사라지는 것을 잡는다. `commandServicesExist`(≥313)·`queryServicesExist`(≥267)는 `UseCaseServices` 술어로 센다. `moduleUseCaseCounts` web ≥185 · admin ≥207 · ceo ≥188 · batch =8 · core =0, `inboundPortsExist` ≥891 |
+| `application-core/.../architecture/RuleAnchorTest` | 공허 통과 검출(아래) — **앱별 하한**을 유지해 한 앱이 통째로 사라지는 것을 잡는다. `commandServicesExist`(≥313)·`queryServicesExist`(≥267)는 `UseCaseServices` 술어로 센다. `moduleUseCaseCounts` web ≥184 · admin ≥207 · ceo ≥189 · batch =8 · core =0, `inboundPortsExist` ≥891 |
 
 **계층을 모듈로 분리했기에 표현 가능한 규칙** — 한 모듈에 두 계층이 함께 있으면 컨트롤러가 정당하게 서블릿 타입을 쓰므로 모듈 전역 금지를 걸 수 없다:
 
@@ -1822,7 +1822,7 @@ reference 구현: `infrastructure/jpa/src/test/.../architecture/LayerRulesTest`.
 | 공유 헬퍼 | 한 연산 전용이면 그 서비스로, 순수 변환이면 대상 record의 `from(...)`(예: `PaymentViewResult.from(PaymentResult)`), 포트가 필요하면 같은 패키지의 `{도메인}{명사}Reader` |
 | 가드 — 판별 술어 | testFixtures `com.tastyhouse.architecture.UseCaseServices` — `isUseCaseService`(`..service..`의 비인터페이스 + `port.in` 인터페이스 구현 + batch 출처 제외) / `isQueryService`(구현 포트명이 `QueryUseCase`로 끝남) / `isCommandService`(나머지). `commandServicesShouldNotDependOnQueryPorts`·`queryServicesShouldNotDependOnWritePorts`·`commandServicesShouldNotDependOnRequestRecords`가 `commands()`/`queries()`로 대상을 고른다 |
 | 가드 — 1:1 강제 | application `LayerRulesTest`: `useCaseServicesShouldImplementExactlyOneUseCase`(`port.in` 인터페이스 정확히 1개 구현) · `useCasesShouldDeclareSingleOperation`(web·admin·ceo 출처 `port.in` `*UseCase`는 추상 메서드 1개 — 오버로드도 금지) · `useCaseServiceNameShouldMatchPort`(서비스명 = 포트명의 `UseCase`→`Service`) · `useCaseServicesShouldHaveSinglePublicOperation`(생성자를 뺀 public 메서드 1개). 대상 하한 580 |
-| 가드 — anchor(`RuleAnchorTest`) | 술어 기반 `commandServicesExist` ≥313 · `queryServicesExist` ≥267, `moduleUseCaseCounts` web ≥185 · admin ≥207 · ceo ≥188 · batch =8 · core =0, `inboundPortsExist` ≥891 |
+| 가드 — anchor(`RuleAnchorTest`) | 술어 기반 `commandServicesExist` ≥313 · `queryServicesExist` ≥267, `moduleUseCaseCounts` web ≥184 · admin ≥207 · ceo ≥189 · batch =8 · core =0, `inboundPortsExist` ≥891 |
 
 - **도메인 서비스는 명사형, 유스케이스 서비스는 동사형이다** — `PaymentConfirmationService`(도메인) vs `PgPaymentConfirmService`(유스케이스).
 - **오버로드는 이름으로 나눈다** — 소유자 검증 조회와 식별자만으로의 조회 → `ReservationDetailQueryUseCase`/`ReservationDetailByIdQueryUseCase`.

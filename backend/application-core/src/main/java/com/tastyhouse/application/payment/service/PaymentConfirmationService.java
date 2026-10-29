@@ -21,6 +21,7 @@ import com.tastyhouse.domain.payment.model.TossPaymentRecord;
 import com.tastyhouse.domain.payment.vo.Amount;
 import com.tastyhouse.domain.payment.vo.PaymentId;
 import com.tastyhouse.domain.payment.vo.PgOrderId;
+import com.tastyhouse.domain.shop.vo.ShopId;
 import com.tastyhouse.application.order.service.OrderTransitionService;
 import com.tastyhouse.application.payment.port.out.PgConfirmFailure;
 import com.tastyhouse.application.payment.port.out.PgConfirmResult;
@@ -200,19 +201,20 @@ public class PaymentConfirmationService {
         paymentSavePort.save(payment);
     }
 
-    public PaymentId completeOnSitePayment(MemberId memberId, PaymentId paymentId) {
-        Payment payment = paymentLoadPort.findById(paymentId)
+    public PaymentId completeOnSitePayment(ShopId shopId, PaymentId paymentId) {
+        Payment payment = paymentLoadPort.findByIdForUpdate(paymentId)
             .orElseThrow(() -> new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND));
 
-        Order order = orderTransitionService.loadOwnedBy(
-            payment.getOrderId(), memberId, ApplicationErrorCode.PAYMENT_ACCESS_DENIED
-        );
+        Order order = orderTransitionService.load(payment.getOrderId());
+        if (!shopId.equals(order.getShopId())) {
+            throw new ResourceNotFoundException(ApplicationErrorCode.PAYMENT_NOT_FOUND);
+        }
 
         if (payment.getPaymentStatus() != PaymentStatus.PENDING) {
             throw new DomainException(DomainErrorCode.PAYMENT_NOT_PENDING);
         }
 
-        if (!isOnSitePayment(payment.getPaymentMethod())) {
+        if (!payment.getPaymentMethod().isOnSite()) {
             throw new ApplicationException(ApplicationErrorCode.PAYMENT_NOT_ON_SITE);
         }
 
@@ -226,7 +228,7 @@ public class PaymentConfirmationService {
         domainEventPublisher.publish(new PaymentCompletedEvent(
             savedPayment.getPaymentId(),
             savedPayment.getOrderId(),
-            memberId,
+            order.getMemberId(),
             savedPayment.getAmount(),
             savedPayment.getPaymentMethod(),
             true,
@@ -282,10 +284,6 @@ public class PaymentConfirmationService {
 
     private boolean isNotAwaitingPgApproval(PaymentStatus paymentStatus) {
         return paymentStatus != PaymentStatus.PENDING && paymentStatus != PaymentStatus.FAILED;
-    }
-
-    private boolean isOnSitePayment(PaymentMethod paymentMethod) {
-        return paymentMethod == PaymentMethod.CASH_ON_SITE || paymentMethod == PaymentMethod.CARD_ON_SITE;
     }
 
     private void recordTossDetail(PaymentId paymentId, TossPaymentDetail detail) {

@@ -64,7 +64,7 @@ export interface OrderListItemResponse {
   totalItemCount: number
   amount: number
   paymentStatus: PaymentStatus
-  paymentDate: string
+  paymentDate: string | null
   /** 수령 예약 시각(슬롯 시작). null이면 즉시 주문 */
   scheduledAt: string | null
 }

@@ -50,6 +50,8 @@ class PaymentConfirmationServiceTest {
     private static final MemberId OTHER_MEMBER_ID = MemberId.of(99L);
     private static final OrderId ORDER_ID = OrderId.of(100L);
     private static final PaymentId PAYMENT_ID = PaymentId.of(200L);
+    private static final ShopId SHOP_ID = ShopId.of(1L);
+    private static final ShopId OTHER_SHOP_ID = ShopId.of(2L);
 
     private LogCapture logCapture;
 
@@ -470,8 +472,10 @@ class PaymentConfirmationServiceTest {
     void completeOnSitePayment_appliesEarnedPointAndConfirmsOrder() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING, PaymentMethod.CASH_ON_SITE);
 
-        fixture.service.completeOnSitePayment(MEMBER_ID, PAYMENT_ID);
+        fixture.service.completeOnSitePayment(SHOP_ID, PAYMENT_ID);
 
+        assertThat(fixture.paymentPersistence.lockedLoadCount).isEqualTo(1);
+        assertThat(fixture.paymentPersistence.unlockedLoadCount).isZero();
         assertThat(fixture.paymentPersistence.lastSaved.getPaymentStatus()).isEqualTo(PaymentStatus.COMPLETED);
         assertThat(fixture.orderPersistence.lastSaved.getOrderStatus()).isEqualTo(OrderStatus.CONFIRMED);
 
@@ -479,6 +483,23 @@ class PaymentConfirmationServiceTest {
 
         PaymentCompletedEvent event = (PaymentCompletedEvent) fixture.eventPublisher.published.getFirst();
         assertThat(event.isOnSitePayment()).isTrue();
+        assertThat(event.memberId()).isEqualTo(MEMBER_ID);
+    }
+
+    @Test
+    @DisplayName("현장결제 완료: 다른 가게 주문의 결제면 없는 결제로 거절하고 아무것도 바꾸지 않는다")
+    void completeOnSitePayment_rejectsOtherShopAsNotFound() {
+        Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING, PaymentMethod.CASH_ON_SITE);
+
+        assertThatThrownBy(() -> fixture.service.completeOnSitePayment(OTHER_SHOP_ID, PAYMENT_ID))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_FOUND.getDefaultMessage());
+
+        assertThat(fixture.paymentPersistence.lockedLoadCount).isEqualTo(1);
+        assertThat(fixture.paymentPersistence.unlockedLoadCount).isZero();
+        assertThat(fixture.paymentPersistence.lastSaved).isNull();
+        assertThat(fixture.orderPersistence.lastSaved).isNull();
+        assertThat(fixture.eventPublisher.published).isEmpty();
     }
 
     @Test
@@ -486,7 +507,7 @@ class PaymentConfirmationServiceTest {
     void completeOnSitePayment_rejectsNonOnSiteMethod() {
         Fixture fixture = Fixture.withPendingPayment(OrderStatus.PENDING, PaymentMethod.CREDIT_CARD);
 
-        assertThatThrownBy(() -> fixture.service.completeOnSitePayment(MEMBER_ID, PAYMENT_ID))
+        assertThatThrownBy(() -> fixture.service.completeOnSitePayment(SHOP_ID, PAYMENT_ID))
             .isInstanceOf(BusinessException.class)
             .hasMessageContaining(ApplicationErrorCode.PAYMENT_NOT_ON_SITE.getDefaultMessage());
 
@@ -616,7 +637,7 @@ class PaymentConfirmationServiceTest {
 
         private static Order order(OrderStatus orderStatus) {
             return Order.reconstitute(
-                ORDER_ID.value(), MEMBER_ID, ShopId.of(1L), "ORD-1", null, orderStatus,
+                ORDER_ID.value(), MEMBER_ID, SHOP_ID, "ORD-1", null, orderStatus,
                 "주문자", "01012345678", "orderer@tastyhouse.com",
                 21000, 0, 0, 0, 0, 0, 0, 21000, OrderDeliveryDestination.none(), OrderSchedule.none(), null, 0, 0,
                 false, LocalDateTime.of(2026, 7, 31, 9, 0), LocalDateTime.of(2026, 7, 31, 9, 0)
@@ -641,11 +662,13 @@ class PaymentConfirmationServiceTest {
 
         @Override
         public Optional<Payment> findById(PaymentId paymentId) {
+            unlockedLoadCount++;
             return Optional.of(stored);
         }
 
         @Override
         public Optional<Payment> findByIdForUpdate(PaymentId paymentId) {
+            lockedLoadCount++;
             return Optional.of(stored);
         }
 

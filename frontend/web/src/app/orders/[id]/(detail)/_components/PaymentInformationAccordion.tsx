@@ -27,7 +27,7 @@ export default function PaymentInformationAccordion({ payment }: Props) {
               <div className="flex justify-between">
                 <span className="text-sm leading-[14px]">결제일시</span>
                 <span className="text-sm leading-[14px]">
-                  {formatDate(approvedAt, 'YYYY-MM-DD HH:mm')}
+                  {approvedAt ? formatDate(approvedAt, 'YYYY-MM-DD HH:mm') : '결제 대기'}
                 </span>
               </div>
               <div className="flex justify-between">

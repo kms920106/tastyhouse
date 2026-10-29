@@ -36,6 +36,12 @@ export const PAYMENT_METHODS: PaymentMethodOption[] = [
   // { type: 'ZERO_PAY', label: '제로페이' },
 ]
 
+const ON_SITE_PAYMENT_METHODS: PaymentMethod[] = ['CASH_ON_SITE', 'CARD_ON_SITE']
+
+export const isOnSitePaymentMethod = (paymentMethod: PaymentMethod): boolean => {
+  return ON_SITE_PAYMENT_METHODS.includes(paymentMethod)
+}
+
 export const getPaymentMethodName = (paymentMethod: PaymentMethod): string => {
   return PAYMENT_METHODS.find((m) => m.type === paymentMethod)?.label || paymentMethod
 }

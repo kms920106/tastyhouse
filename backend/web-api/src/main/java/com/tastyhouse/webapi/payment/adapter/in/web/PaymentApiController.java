@@ -18,8 +18,6 @@ import com.tastyhouse.application.payment.port.in.PaymentCancelUseCase;
 import com.tastyhouse.application.payment.port.in.PaymentCreateCommand;
 import com.tastyhouse.application.payment.port.in.PaymentCreateUseCase;
 import com.tastyhouse.application.payment.port.in.PaymentDetailQueryUseCase;
-import com.tastyhouse.application.payment.port.in.PaymentOnSiteCompleteCommand;
-import com.tastyhouse.application.payment.port.in.PaymentOnSiteCompleteUseCase;
 import com.tastyhouse.application.payment.port.in.PaymentRefundDetailQueryUseCase;
 import com.tastyhouse.application.payment.port.in.PaymentRefundRequestCommand;
 import com.tastyhouse.application.payment.port.in.PaymentRefundRequestUseCase;
@@ -42,7 +40,6 @@ class PaymentApiController {
 
     private final PaymentCreateUseCase paymentCreateUseCase;
     private final PgPaymentConfirmUseCase pgPaymentConfirmUseCase;
-    private final PaymentOnSiteCompleteUseCase paymentOnSiteCompleteUseCase;
     private final PaymentCancelUseCase paymentCancelUseCase;
     private final PaymentRefundRequestUseCase paymentRefundRequestUseCase;
     private final PaymentDetailQueryUseCase paymentDetailQueryUseCase;
@@ -52,7 +49,6 @@ class PaymentApiController {
     public PaymentApiController(
         PaymentCreateUseCase paymentCreateUseCase,
         PgPaymentConfirmUseCase pgPaymentConfirmUseCase,
-        PaymentOnSiteCompleteUseCase paymentOnSiteCompleteUseCase,
         PaymentCancelUseCase paymentCancelUseCase,
         PaymentRefundRequestUseCase paymentRefundRequestUseCase,
         PaymentDetailQueryUseCase paymentDetailQueryUseCase,
@@ -61,7 +57,6 @@ class PaymentApiController {
     ) {
         this.paymentCreateUseCase = paymentCreateUseCase;
         this.pgPaymentConfirmUseCase = pgPaymentConfirmUseCase;
-        this.paymentOnSiteCompleteUseCase = paymentOnSiteCompleteUseCase;
         this.paymentCancelUseCase = paymentCancelUseCase;
         this.paymentRefundRequestUseCase = paymentRefundRequestUseCase;
         this.paymentDetailQueryUseCase = paymentDetailQueryUseCase;
@@ -112,19 +107,6 @@ class PaymentApiController {
     ) {
         PaymentCancelCommand command = request.toCommand(userDetails.getMemberId(), id);
         PaymentCancelResponse response = PaymentCancelResponse.from(paymentCancelUseCase.cancelPayment(command));
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    @Operation(summary = "현장결제 완료", description = "현장결제를 완료 처리합니다. 구매자가 직접 호출합니다.")
-    @PostMapping("/v1/{id}/complete")
-    public ResponseEntity<ApiResponse<PaymentResponse>> completeOnSitePayment(
-        @PathVariable Long id,
-        @CurrentUser MemberUserDetails userDetails
-    ) {
-        Long memberId = userDetails.getMemberId();
-        PaymentOnSiteCompleteCommand command = PaymentOnSiteCompleteCommand.of(memberId, id);
-        Long paymentId = paymentOnSiteCompleteUseCase.completeOnSitePayment(command);
-        PaymentResponse response = PaymentResponse.from(paymentDetailQueryUseCase.getPayment(memberId, paymentId));
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

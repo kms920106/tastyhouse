@@ -17,10 +17,6 @@ export async function getPaymentByOrderId(orderId: number) {
   return paymentRepository.getPaymentByOrderId(orderId)
 }
 
-export async function completeOnSitePayment(paymentId: number) {
-  return paymentRepository.completeOnSitePayment(paymentId)
-}
-
 export async function confirmPaymentToss({
   paymentKey,
   pgOrderId,

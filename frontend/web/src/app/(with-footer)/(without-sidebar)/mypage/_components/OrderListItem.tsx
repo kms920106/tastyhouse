@@ -14,7 +14,8 @@ interface Props {
   firstProductName: string
   totalItemCount: number
   price: number
-  date: string
+  /** 결제 완료 시각. 현장결제 대기 건은 아직 결제되지 않아 null이다 */
+  date: string | null
   paymentStatus: PaymentStatus
   /** 수령 예약 시각. null이면 즉시 주문이라 배지를 노출하지 않는다 */
   scheduledAt: string | null
@@ -33,7 +34,7 @@ export default function OrderListItem({
 }: Props) {
   const statusColor = getPaymentStatusColor(paymentStatus)
   const statusName = getPaymentStatusName(paymentStatus)
-  const formattedDate = formatDate(date, 'YY.MM.DD')
+  const formattedDate = date ? formatDate(date, 'YY.MM.DD') : null
   const scheduledPickupLabel = formatScheduledPickupLabel(scheduledAt)
 
   return (
@@ -55,7 +56,9 @@ export default function OrderListItem({
           </div>
         </div>
         <div className="flex flex-col items-end gap-[7px] justify-between">
-          <p className="text-[11px] leading-[11px] text-[#aaaaaa]">{formattedDate}</p>
+          {formattedDate && (
+            <p className="text-[11px] leading-[11px] text-[#aaaaaa]">{formattedDate}</p>
+          )}
           <p className="text-[11px] leading-[11px]" style={{ color: statusColor }}>
             {statusName}
           </p>

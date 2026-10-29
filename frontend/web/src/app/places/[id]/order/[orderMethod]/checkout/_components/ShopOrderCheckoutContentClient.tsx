@@ -1,7 +1,7 @@
 'use client'
 
 import { createOrder } from '@/actions/order'
-import { completeOnSitePayment, createPayment, getPaymentByOrderId } from '@/actions/payment'
+import { createPayment, getPaymentByOrderId } from '@/actions/payment'
 import OrderRequestField from '@/components/orders/OrderRequestField'
 import ScheduledOrderSheet from '@/components/shops/ScheduledOrderSheet'
 import { toast } from '@/components/ui/AppToaster'
@@ -11,7 +11,7 @@ import { COMMON_ERROR_MESSAGES } from '@/constants/errors'
 import type { MemberCoupon, MemberPersonalInfo } from '@/domains/member'
 import { useMyDeliveryAddresses } from '@/domains/member/member.hook'
 import { getOrderErrorMessage, type OrderMethodType } from '@/domains/order'
-import type { PaymentMethod } from '@/domains/payment'
+import { isOnSitePaymentMethod, type PaymentMethod } from '@/domains/payment'
 import { Shop } from '@/domains/shop'
 import type { ScheduledOrderSlot } from '@/domains/shop'
 import { useScheduledOrderSlots, useShopDeliveryTip } from '@/domains/shop/shop.hook'
@@ -362,15 +362,8 @@ export default function ShopOrderCheckoutContentClient({
       return
     }
 
-    // 3-A. 현장결제 완료 처리 (COMPLETED)
-    if (selectedPaymentMethod === 'CASH_ON_SITE' || selectedPaymentMethod === 'CARD_ON_SITE') {
-      const completeResult = await completeOnSitePayment(paymentId)
-
-      if (completeResult.error) {
-        toast(completeResult.error)
-        return
-      }
-
+    // 3-A. 현장결제는 결제 대기(PENDING)로 남는다. 완료 처리는 매장에서 결제를 확인한 점주가 한다.
+    if (isOnSitePaymentMethod(selectedPaymentMethod)) {
       // [이전 방식] push: 히스토리 스택에 결제완료 페이지 추가 → 뒤로가기 시 결제하기 페이지로 돌아옴
       // router.push(PAGE_PATHS.ORDER_COMPLETE(orderId))
 

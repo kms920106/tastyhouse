@@ -1,7 +1,6 @@
 package com.tastyhouse.infrastructure.jpa.order.query;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import com.tastyhouse.application.order.port.out.OrderDetailResult;
 import com.tastyhouse.application.order.port.out.OrderListItemResult;
+import com.tastyhouse.application.order.port.out.OrderListPaymentFilter;
 import com.tastyhouse.application.order.port.out.OrderManagementListItemResult;
 import com.tastyhouse.application.order.port.out.OrderManagementQueryPort;
 import com.tastyhouse.application.order.port.out.OrderPaymentResult;
@@ -49,10 +49,14 @@ class OrderQueryAdapter implements OrderQueryPort, OrderManagementQueryPort {
     }
 
     @Override
-    public PageResult<OrderListItemResult> findOrders(Long memberId, Collection<String> paymentStatuses, PageQuery pageQuery) {
+    public PageResult<OrderListItemResult> findOrders(Long memberId, OrderListPaymentFilter paymentFilter, PageQuery pageQuery) {
         BooleanExpression paymentJoinCondition = paymentJpaEntity.orderId
             .eq(orderJpaEntity.id)
-            .and(paymentJpaEntity.paymentStatus.in(paymentStatuses));
+            .and(
+                paymentJpaEntity.paymentStatus.in(paymentFilter.settledStatuses())
+                    .or(paymentJpaEntity.paymentStatus.eq(paymentFilter.awaitingStatus())
+                        .and(paymentJpaEntity.paymentMethod.in(paymentFilter.awaitingMethods())))
+            );
 
         List<OrderListItemResult> content = queryFactory
             .select(Projections.constructor(OrderListItemResult.class,
